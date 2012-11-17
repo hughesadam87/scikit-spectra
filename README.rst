@@ -34,9 +34,9 @@ data, particularly the output of fiberoptic/nanotechnology research.
 The decision to officialy package these nascent tools was made for the following 
 reasons:
  
-*To faciliate easier sharing and better organization between collaborators.
-*To document the progress and functionalities of the toolset.
-*To broadcast the toolkit to the community, and hopefully to merge with other Python spectroscopy packages.
+   *To faciliate easier sharing and better organization between collaborators.
+   *To document the progress and functionalities of the toolset.
+   *To broadcast the toolkit to the community, and hopefully to merge with other Python spectroscopy packages.
 
 In regard to the final point, ``pyuvvis`` is not an attempt to be the de-facto spectroscopy
 toolkit in Python; rather, it is a domain-specific wrapper for pandas.  It should be quite extensible
