@@ -22,7 +22,7 @@ The official documentation_ is generously hosted by github_.
 
    .. _github: http://github.com
  
-   .. _documentation: http://hugadams.github.com/PyUvVis/
+   .. _documentation: http://hugadams.github.com/pyuvvis/
 
 Goals and Background
 ====================

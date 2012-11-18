@@ -25,3 +25,4 @@ pyuvvis/pyplots/spec_aesthetics.py
 pyuvvis/scripts/__init__.py
 pyuvvis/scripts/for_testing.py
 pyuvvis/scripts/reflectance_simple.py
+pyuvvis/tests/__init__.py

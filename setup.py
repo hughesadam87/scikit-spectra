@@ -30,17 +30,16 @@ setup(
     long_description=open('README.rst').read(),
     install_requires=[
         "pandas >= 0.8.0",
+	"numpy >= 1.6.0",
         "chaco >= 4.2.0",
     ],
       classifiers=[
-          'Development Status :: 2 - Pre-alpha',
+          'Development Status :: 2 - Pre-Alpha',
           'Environment :: Console',
           'Intended Audience :: Science/Research',
           'Intended Audience :: Developers',
 	  'Natural Language :: English',
-          'Operating System :: MacOS :: MacOS X',  #This is limited only by chaco.  Pandas claims to be OS independent.  
-          'Operating System :: Microsoft :: Windows',
-          'Operating System :: Linux :: Ubuntu',
+#          'Operating System :: OSIndependent',  #This is limited only by 
           'Programming Language :: Python :: 2',
           'Topic :: Scientific/Engineering :: Visualization',
           'Topic :: Scientific/Engineering :: Chemistry',
