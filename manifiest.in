@@ -1,2 +1,3 @@
 include *.txt
+recursive-include data *
 recursive-include docs *.txt

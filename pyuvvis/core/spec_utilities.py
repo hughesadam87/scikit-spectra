@@ -6,7 +6,6 @@
 __author__ = "Adam Hughes"
 __copyright__ = "Copyright 2012, GWU Physics"
 __license__ = "Free BSD"
-__version__ = "1.0.1"
 __maintainer__ = "Adam Hughes"
 __email__ = "hugadams@gwmail.gwu.edu"
 __status__ = "Development"
@@ -14,7 +13,7 @@ __status__ = "Development"
 ### slicing with pandas is so easy, might not even be worth writing my own methods.
 
 from pandas import Series, DataFrame
-from dataframeserial import _get_metadict
+from pyuvvis.pandas_utils.dataframeserial import _get_metadict
 import numpy as np
 from scipy import integrate
 

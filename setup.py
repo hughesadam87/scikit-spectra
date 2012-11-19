@@ -7,6 +7,7 @@ setup(
     author='Adam Hughes, Zhaowen Liu and GWU Physics Reeves Lab students',
     maintainer='Adam Hughes',
     maintainer_email='hughesadam87@gmail.com',
+    author_email='hughesadam87@gmail.com',
       packages=['pyuvvis',
                 'pyuvvis.scripts',
                 'pyuvvis.chaco_interface',
@@ -17,11 +18,17 @@ setup(
                 'pyuvvis.pyplots',
                 'pyuvvis.tests',
                 ],
-      package_data={'pyuvvis.data' : ['example_data/*.pickle', 
+
+      ### See line in manifest.in that had to be included as well as this.
+      ### Can load package data using import pkgutil
+      ### data= pkgutil.get_data('pyuvvis', 'data/example_data/specdata.pickle')
+      ### Apparently this is useful for impoting using different OS distributions
+      package_data={'pyuvvis' : ['data/example_data/*', 
 					### Do I want to include this?
-				      'gwuspecdata/*.txt',   
-                                       'gwuspecdata.fiber1/*.txt',
-                                        'gwuspecdata.NPConcentration/*.txt']
+				      'data/gwuspecdata/*.txt',
+				      'data/gwuspecdata/fiber1/*',
+				    'data/gwuspecdata/NPConcentration/*',   
+                                 ]
                    },
     url='http://pypi.python.org/pypi/PyUvVis/',
     download_url='https://github.com/hugadams/pyuvvis',
@@ -29,9 +36,10 @@ setup(
     description='Pandas-based toolkit for spectral data analysis, primarily UVVis spectra for now.',
     long_description=open('README.rst').read(),
     install_requires=[
-        "pandas >= 0.8.0",
-	"numpy >= 1.6.0",
-        "chaco >= 4.2.0",
+        "pandas",
+#	"numpy >= 1.6.0",  #Pands puts this in
+        "chaco",
+	"scipy", #Probably too high version requirement
     ],
       classifiers=[
           'Development Status :: 2 - Pre-Alpha',
