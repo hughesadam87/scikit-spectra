@@ -3,18 +3,49 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to pyuvvis's documentation!
-===================================
+Welcome to pyuvvis
+==================
 
-Contents:
+**pyuvvis** is a set of wrappers and tools written using the pandas_ library
+with the intention of exploring spectral data, especially UV-Vis spectroscopy.
+
+   .. _pandas: http://pandas.pydata.org/index.html
+
+What's New
+----------
+
+I finally created this site which is generously hosted by GitHub_.  The `source code`_ is available for download; and the PyPi package is
+available http://pypi.python.org/pypi/PyUvVis/0.1.0 for installation.  
+
+.. _source code: https://github.com/hugadams/pyuvvis
+
+.. _GitHub: https://github.com
+
+
+On the Horizon
+--------------
+
+* More integration with BioPython, especially sequence-based methods and Blast functionality.
+* An API and setup.py installation file for PyCD and PyRecords.
+* Full scripts for canned analysis routines.
+* TraitsUI interface for domain comparisons.
+
+Check back soon for updates.
+
+Table of Contents
+=================
 
 .. toctree::
    :maxdepth: 2
 
+   Tutorial/installation_dependencies.rst
+   Tutorial/getting_started.rst
+   API/pyuvvis.rst
 
 
-Indices and tables
-==================
+
+Index and Search
+================
 
 * :ref:`genindex`
 * :ref:`modindex`

@@ -1,0 +1,245 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Getting Started &mdash; pyuvvis 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/scrolls.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/print.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../_static/theme_extras.js"></script>
+    <link rel="top" title="pyuvvis 0.1.0 documentation" href="../index.html" />
+    <link rel="prev" title="Dependencies/Installation" href="installation_dependencies.html" /> 
+  </head>
+  <body>
+    <div id="content">
+      <div class="header">
+        <h1 class="heading"><a href="../index.html"
+          title="back to the documentation overview"><span>Getting Started</span></a></h1>
+      </div>
+      <div class="relnav">
+        <a href="installation_dependencies.html">&laquo; Dependencies/Installation</a> |
+        <a href="#">Getting Started</a>
+      </div>
+      <div id="contentwrapper">
+        <div id="toc">
+          <h3>Table Of Contents</h3>
+          <ul>
+<li><a class="reference internal" href="#">Getting Started</a><ul>
+<li><a class="reference internal" href="#data-storage-the-conserved-domains-database-cdd-class">Data Storage: The (Conserved Domains Database) CDD Class</a></li>
+<li><a class="reference internal" href="#data-fields">Data Fields</a></li>
+<li><a class="reference internal" href="#reading-in-domains">Reading in Domains</a><ul>
+<li><a class="reference internal" href="#manual-instantiation">Manual Instantiation</a></li>
+<li><a class="reference internal" href="#file-input">File Input</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#domain-analysis">Domain Analysis</a><ul>
+<li><a class="reference internal" href="#manipulating-data">Manipulating Data</a></li>
+<li><a class="reference internal" href="#analysis">Analysis</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#integration-with-biopython-seq-class">Integration with BioPython Seq. Class</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+        
+  <div class="section" id="getting-started">
+<h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<p>The following sections will provide a brief introduction to the PyCD framework, with a more thorough tutorial coming soon.  First, the basic data containers will be discussed, followed by direct and from-file instantiation.  Utilities for batch domain analysis are presented followed by integration with <a class="reference external" href="http://biopython.org/DIST/docs/api/Bio.Seq.Seq-class.html">BioPython&#8217;s Seq. class</a>.</p>
+<div class="section" id="data-storage-the-conserved-domains-database-cdd-class">
+<h2>Data Storage: The (Conserved Domains Database) CDD Class<a class="headerlink" href="#data-storage-the-conserved-domains-database-cdd-class" title="Permalink to this headline">¶</a></h2>
+<p>For now, the main data container is a class called the <strong>DomainCDD</strong> class.  This is an immutable record class that is created from my <a class="reference external" href="http://hugadams.github.com/pyrecords">pyrecords project</a>.  Essentially, it is a named tuple with extra functionality.   Although this is currently immutble, I may supplant this with a mutable object type in the future.  The choice to choose an immutable record was mainly because these take up very little space in memory and are easy to work with.</p>
+</div>
+<div class="section" id="data-fields">
+<h2>Data Fields<a class="headerlink" href="#data-fields" title="Permalink to this headline">¶</a></h2>
+<p>The CDD class supports output from the CD-Batch search tool.  If a user uploads a set of protein sequences, the domains within the sequence are returned.  Here is some output from a real cdd file:</p>
+<p><strong>Q#3</strong> <strong>-</strong> <strong>&gt;SPU_018904</strong>   <strong>superfamily</strong> <strong>208873</strong>      <strong>361</strong> <strong>413</strong> <strong>2.00744e-22</strong> <strong>97.2737</strong>     <strong>cl08327</strong>     <strong>Glyco_hydro_47</strong> <strong>superfamily</strong>      <strong>C</strong>    <strong>-</strong></p>
+<p>This record contains 14 delimited fields.  The CDD class stores them in the following 14 attributes.</p>
+<p><strong>Query</strong> - Refers back to the protein to which the current domain belong.  Referencing by the numerical order proteins were input to the batch cd-search.  For example Q#10 means the current domain belongs to the tenth protein entered in the batch.</p>
+<p><strong>u1</strong> - N/A</p>
+<p><strong>Accession</strong> - GI Accession number <cite>of the protein</cite> to which this domain belongs.  (Note, &#8216;&gt;&#8217; is stripped internally to be compatible with BioPython Sequence class).</p>
+<p><strong>Hittype</strong> - Describes an NCBI CDD parameter which more or less corresponds to the extent of curation in the database.  Specific hits, for example, are hand-aligned; whereas, the designation of <em>superfamily</em> generally is applied to computationally recognized sequences.  Refer to the <a class="reference external" href="http://www.ncbi.nlm.nih.gov/Structure/cdd/cdd.shtml">NCBI CDD</a> for a better explanation.</p>
+<p><strong>PSSMID</strong> - Unique integer identifier for a CD domain.</p>
+<p><strong>Start</strong> - Position along the peptide sequence at which the domain begins.</p>
+<p><strong>End</strong> - Position along the peptide sequence at which the domain ends.</p>
+<p><strong>Eval</strong> - Evalue score for domain identification.  Again, more information on how this is computed is available through <a class="reference external" href="http://www.ncbi.nlm.nih.gov/Structure/cdd/cdd.shtml">NCBI CDD</a>.</p>
+<p><strong>Score</strong> - Heuristic score of domain match.</p>
+<p><strong>DomAccession</strong> - Accession corresponding to the domain (not protein accession).  cl02432 is the domain accession for c-type lectin domain.</p>
+<p><strong>DomShortname</strong> - Unique short name corresponding to the domain accession.  E.g. CLECT is the shortname to the c-type lectin domain.</p>
+<p><strong>Matchtype</strong> - Not sure how this is different from hit type at the moment.</p>
+<p><strong>u2</strong>  - N/A</p>
+<p><strong>u3</strong>  - N/A</p>
+<p><strong>sequence</strong> - <em>New</em> reserved slot to store the sequence corresponding to the region along the protein to which the domain identifies.  This is not implicitly returned by the NCBI CD Search tool for whatever reason.</p>
+</div>
+<div class="section" id="reading-in-domains">
+<h2>Reading in Domains<a class="headerlink" href="#reading-in-domains" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="manual-instantiation">
+<h3>Manual Instantiation<a class="headerlink" href="#manual-instantiation" title="Permalink to this headline">¶</a></h3>
+<p>Let&#8217;s see how it easy it is to instantiate a CD Domain object.  First, I&#8217;m going to demonstrate a manual instantiation; however, in practice, almost all input will be from batch files.  This input style is explained in the <a class="reference external" href="http://hugadams.github.com/pyrecords">pyrecords project</a> more thoroughly.  Records are generated first by inputing the immutable manager class, in this case, it is called <em>domain_manager</em>.</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [2]: </span><span class="kn">from</span> <span class="nn">DataTypes.cdd_fields</span> <span class="kn">import</span> <span class="n">domain_manager</span>
+</pre></div>
+</div>
+<p>Taking my example string:</p>
+<p><strong>Q#3</strong> <strong>-</strong> <strong>&gt;SPU_018904</strong>   <strong>superfamily</strong> <strong>208873</strong>      <strong>361</strong> <strong>413</strong> <strong>2.00744e-22</strong> <strong>97.2737</strong>     <strong>cl08327</strong>     <strong>Glyco_hydro_47</strong> <strong>superfamily</strong>      <strong>C</strong>    <strong>-</strong></p>
+<p>I will pass this as a list into the domain_manager.  This is very similar to namedtuple syntax, but pyrecords is automatically converts all of the attributes to their proper types.  For example, the attribute <em>Start</em> will be converted into an integer by default.</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [9]: </span><span class="n">fake_domain</span><span class="o">=</span><span class="n">fake_domain</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+
+<span class="gp">In [10]: </span><span class="n">domain</span><span class="o">=</span><span class="n">domain_manager</span><span class="o">.</span><span class="n">_make</span><span class="p">(</span><span class="n">fake_domain</span><span class="p">,</span> <span class="n">extend_defaults</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">In [11]: </span><span class="n">domain</span>
+
+<span class="gr">Out[11]: </span><span class="n">DomainCDD</span><span class="p">(</span><span class="n">Query</span><span class="o">=</span><span class="s">&#39;Q#3&#39;</span><span class="p">,</span> <span class="n">u1</span><span class="o">=</span><span class="s">&#39;-&#39;</span><span class="p">,</span> <span class="n">Accession</span><span class="o">=</span><span class="s">&#39;&gt;SPU_018904&#39;</span><span class="p">,</span> <span class="n">Hittype</span><span class="o">=</span><span class="s">&#39;superfamily&#39;</span><span class="p">,</span> <span class="n">PSSMID</span><span class="o">=</span><span class="mi">208873</span><span class="p">,</span> <span class="n">Start</span><span class="o">=</span><span class="mi">361</span><span class="p">,</span> <span class="n">End</span><span class="o">=</span><span class="mi">413</span><span class="p">,</span> <span class="n">Eval</span><span class="o">=</span><span class="mf">2.00744e-22</span><span class="p">,</span> <span class="n">Score</span><span class="o">=</span><span class="mf">97.2737</span><span class="p">,</span> <span class="n">DomAccession</span><span class="o">=</span><span class="s">&#39;cl08327&#39;</span><span class="p">,</span> <span class="n">DomShortname</span><span class="o">=</span><span class="s">&#39;Glyco_hydro_47&#39;</span><span class="p">,</span> <span class="n">Matchtype</span><span class="o">=</span><span class="s">&#39;superfamily&#39;</span><span class="p">,</span> <span class="n">u2</span><span class="o">=</span><span class="s">&#39;C&#39;</span><span class="p">,</span> <span class="n">u3</span><span class="o">=</span><span class="s">&#39;-&#39;</span><span class="p">,</span> <span class="n">sequence</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now I have complete attribute access with the correct field types.</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [13]: </span><span class="n">domain</span><span class="o">.</span><span class="n">Accession</span><span class="p">,</span> <span class="n">domain</span><span class="o">.</span><span class="n">Score</span>
+<span class="gr">Out[13]: </span><span class="p">(</span><span class="s">&#39;&gt;SPU_018904&#39;</span><span class="p">,</span> <span class="mf">97.2737</span><span class="p">)</span>
+
+<span class="gp">In [15]: </span><span class="nb">type</span><span class="p">(</span><span class="n">domain</span><span class="o">.</span><span class="n">Accession</span><span class="p">),</span> <span class="nb">type</span><span class="p">(</span><span class="n">domain</span><span class="o">.</span><span class="n">Score</span><span class="p">)</span>
+<span class="gr">Out[15]: </span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Anyone who is familiar with Python&#8217;s <em>namedtuple</em> data containers should find this syntax familiar.</p>
+</div>
+<div class="section" id="file-input">
+<h3>File Input<a class="headerlink" href="#file-input" title="Permalink to this headline">¶</a></h3>
+<p>For now, he batch output of NCBI&#8217;s CD Search is the only filetype supported.  It should be straigtforward to create custom file input shcemes, as the file reader function, <em>from_cdd_file()</em> is merely a small wrapper around the pyrecords <em>from_file()</em> function.  To demonstrate, I will load in a Test set of 500 real purple sea urchin proteins.</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [11]: </span><span class="n">domains</span><span class="o">=</span><span class="n">from_cdd_file</span><span class="p">(</span><span class="n">domain_manager</span><span class="p">,</span> <span class="s">&#39;TestData/TestSet.txt&#39;</span><span class="p">)</span>
+<span class="gp">In [13]: </span><span class="n">domains</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="gr">Out[13]: </span><span class="n">DomainCDD</span><span class="p">(</span><span class="n">Query</span><span class="o">=</span><span class="s">&#39;Q#1&#39;</span><span class="p">,</span> <span class="n">u1</span><span class="o">=</span><span class="s">&#39;-&#39;</span><span class="p">,</span> <span class="n">Accession</span><span class="o">=</span><span class="s">&#39;&gt;WHL22.684570.0&#39;</span><span class="p">,</span> <span class="n">Hittype</span><span class="o">=</span><span class="s">&#39;superfamily&#39;</span><span class="p">,</span> <span class="n">PSSMID</span><span class="o">=</span><span class="mi">212227</span><span class="p">,</span> <span class="n">Start</span><span class="o">=</span><span class="mi">189</span><span class="p">,</span> <span class="n">End</span><span class="o">=</span><span class="mi">410</span><span class="p">,</span> <span class="n">Eval</span><span class="o">=</span><span class="mf">2.91122e-33</span><span class="p">,</span> <span class="n">Score</span><span class="o">=</span><span class="mf">124.196</span><span class="p">,</span> <span class="n">DomAccession</span><span class="o">=</span><span class="s">&#39;cl00489&#39;</span><span class="p">,</span> <span class="n">DomShortname</span><span class="o">=</span><span class="s">&#39;60KD_IMP&#39;</span><span class="p">,</span> <span class="n">Matchtype</span><span class="o">=</span><span class="s">&#39;superfamily&#39;</span><span class="p">,</span> <span class="n">u2</span><span class="o">=</span><span class="s">&#39;-&#39;</span><span class="p">,</span> <span class="n">u3</span><span class="o">=</span><span class="s">&#39;-&#39;</span><span class="p">,</span> <span class="n">sequence</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="domain-analysis">
+<h2>Domain Analysis<a class="headerlink" href="#domain-analysis" title="Permalink to this headline">¶</a></h2>
+<p>The following sections will demonstrate some of the ways to manipulate and analyze batches of CD domains in PyCD.</p>
+<div class="section" id="manipulating-data">
+<h3>Manipulating Data<a class="headerlink" href="#manipulating-data" title="Permalink to this headline">¶</a></h3>
+<p>PyRecords&#8217;s <em>to_dic()</em> function allows for very flexible dictionary recasting right out of the box.  <em>to_dic()</em> requires the user specify an attribute field to key the dictionary.  If we wanted to key the dictionary by, for example, the unique integer PSSMID, this is very simple:</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [16]: </span><span class="n">domdic</span><span class="o">=</span><span class="n">to_dic</span><span class="p">(</span><span class="n">domains</span><span class="p">,</span> <span class="s">&#39;PSSMID&#39;</span><span class="p">)</span>
+<span class="gp">In [18]: </span><span class="n">domdic</span><span class="o">.</span><span class="n">items</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="gr">Out[18]: </span><span class="p">(</span><span class="mi">199168</span><span class="p">,</span> <span class="n">DomainCDD</span><span class="p">(</span><span class="n">Query</span><span class="o">=</span><span class="s">&#39;Q#174&#39;</span><span class="p">,</span> <span class="n">u1</span><span class="o">=</span><span class="s">&#39;-&#39;</span><span class="p">,</span> <span class="n">Accession</span><span class="o">=</span><span class="s">&#39;&gt;WHL22.399623.0&#39;</span> <span class="o">...</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>In reality, the PSSMID <strong>is not</strong> a good key because the same domains appear multiple times in the data set.  Therefore, this key <strong>is not unique</strong>.  <em>to_dic()</em> makes it quite easy to create custom dictionary keys as a composition of field attribtues.  For example, the datafields <em>Accession</em>, <em>Start</em>, <em>End</em>, <em>PSSMID</em> together make a key that is both unique and informative.  This is easy to implement.</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [22]: </span><span class="n">domdic</span><span class="o">=</span><span class="n">to_dic</span><span class="p">(</span><span class="n">domains</span><span class="p">,</span> <span class="s">&#39;Accession&#39;</span><span class="p">,</span> <span class="s">&#39;Start&#39;</span><span class="p">,</span> <span class="s">&#39;End&#39;</span><span class="p">,</span> <span class="s">&#39;PSSMID&#39;</span><span class="p">)</span>
+<span class="gp">In [23]: </span><span class="n">domdic</span><span class="o">.</span><span class="n">items</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="gr">Out[23]: </span><span class="p">(</span><span class="s">&#39;&gt;WHL22.485427.0_497_567_209363&#39;</span><span class="p">,</span> <span class="n">DomainCDD</span><span class="p">(</span><span class="n">Query</span><span class="o">=</span><span class="s">&#39;Q#391&#39;</span><span class="p">,</span> <span class="n">u1</span><span class="o">=</span><span class="s">&#39;-&#39;</span><span class="p">,</span> <span class="n">Accession</span><span class="o">=</span><span class="s">&#39;&gt;WHL22.485427.0&#39;</span> <span class="o">...</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>It doesn&#8217;t matter that the <em>Start</em> and <em>End</em> fields were stored as integers; <em>to_dic()</em> recasts them to strings.  The default delimiter used to separate attribute fields is the underscore, &#8216;_&#8217;, and be changed via a keyword parameter in the function call.</p>
+<p>A second way to store batch data is in the <strong>formatted domains</strong> style, which assigns domains to their respective proteins in a manner which preserves order.  The domains will be recorded by their domain accessions by defaults (e.g. &#8220;cl02432&#8221;); however, they may be stored via shortname (e.g. &#8220;CLECT&#8221;) through a keyword in the <em>formatted_domains()</em> function call:</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [27]: </span><span class="n">acs</span><span class="o">=</span><span class="n">formatted_domains</span><span class="p">(</span><span class="n">domains</span><span class="p">)</span>
+<span class="gp">In [28]: </span><span class="n">shorts</span><span class="o">=</span><span class="n">formatted_domains</span><span class="p">(</span><span class="n">domains</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s">&#39;Domain Shortname&#39;</span><span class="p">)</span>
+
+<span class="gp">In [32]: </span><span class="n">acs</span><span class="o">.</span><span class="n">items</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+<span class="gr">Out[32]: </span><span class="p">(</span><span class="s">&#39;&gt;WHL22.437786.0&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;cl02608&#39;</span><span class="p">,</span> <span class="s">&#39;cl00158&#39;</span><span class="p">,</span> <span class="s">&#39;cl03218&#39;</span><span class="p">,</span> <span class="s">&#39;cl15779&#39;</span><span class="p">])</span>
+
+<span class="gp">In [35]: </span><span class="n">shorts</span><span class="o">.</span><span class="n">items</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+<span class="gr">Out[35]: </span><span class="p">(</span><span class="s">&#39;&gt;WHL22.437786.0&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;BAH&#39;</span><span class="p">,</span> <span class="s">&#39;ZnF_GATA&#39;</span><span class="p">,</span> <span class="s">&#39;ELM2&#39;</span><span class="p">,</span> <span class="s">&#39;SANT&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>This formatted_domains representation is more natural for visualizing how the domains are structured along the proteins.  In summary, there are three distinct ways to store batch domain data in PyCD:</p>
+<ol class="arabic simple">
+<li>Nested tuples is the default storage style of PyCD and is returned by the <em>from_cdd_file()</em> function.</li>
+<li>Dictionaries with unique composite attribute keys is another useful way to handle the data.</li>
+<li>The so-called <em>formatted domains</em> style retains information about domain ordering along a protein.</li>
+</ol>
+<p>Often times, one representation of the dataset is more natural for a given type of analysis as will be demonstrated below.  As PyCD matures, a dataclass may be assigned to the formatted domains storage style to include additional domain information such as position along a protein and other information.</p>
+</div>
+<div class="section" id="analysis">
+<h3>Analysis<a class="headerlink" href="#analysis" title="Permalink to this headline">¶</a></h3>
+<p>PyRecords offers a general <em>histogram()</em> function to count attribute value occurrences in the set; for now this is built to handle dictionary input, but soon will handle nested tuples as well.  A call to this function specifying either of the domain attribute fields results in the domain distribution for the dataset:</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [43]: </span><span class="n">hist</span><span class="o">=</span><span class="n">histogram</span><span class="p">(</span><span class="n">domdic</span><span class="p">,</span> <span class="s">&#39;DomAccession&#39;</span><span class="p">,</span> <span class="n">sorted_return</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="gp">In [44]: </span><span class="n">hist</span><span class="p">[</span><span class="s">&#39;DomAccession&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+<span class="gr">Out[44]: </span><span class="p">((</span><span class="s">&#39;cl09941&#39;</span><span class="p">,</span> <span class="mi">82</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;cl11960&#39;</span><span class="p">,</span> <span class="mi">43</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;cl09099&#39;</span><span class="p">,</span> <span class="mi">27</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>If the slice notation of the histogram looks confusing, it is because the <em>histogram()</em> function is actually designed to accept multiple input fields.  Hence, multiple histograms can be generated simultaneously across attribute fields.  For example, below I will count occurrences for the Domain Acession field and PSSMID field simultaneously, and then output the top three PSSMID results.</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [48]: </span><span class="n">hist</span><span class="o">=</span><span class="n">histogram</span><span class="p">(</span><span class="n">domdic</span><span class="p">,</span> <span class="s">&#39;DomAccession&#39;</span><span class="p">,</span> <span class="s">&#39;PSSMID&#39;</span><span class="p">,</span> <span class="n">sorted_return</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">In [49]: </span><span class="n">hist</span><span class="p">[</span><span class="s">&#39;PSSMID&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+
+<span class="gr">Out[49]: </span><span class="p">((</span><span class="mi">209104</span><span class="p">,</span> <span class="mi">82</span><span class="p">),</span> <span class="p">(</span><span class="mi">209398</span><span class="p">,</span> <span class="mi">43</span><span class="p">),</span> <span class="p">(</span><span class="mi">212291</span><span class="p">,</span> <span class="mi">27</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Viewing domain data as a <em>network</em> is another important facet of domain analysis.  In the future, I would like to interface PyCD to Python&#8217;s <a class="reference external" href="http://networkx.lanl.gov/">NetworkX</a> package.  For now, I use a custom algorithm to create a network from the domain data.  This is done through the <em>network_diagram()</em> function and requires the formatted domains style of input.  It is important to emphasize that <em>network_diagram()</em> <em>does not</em> make a full network for entire dataset; rather, it creates a network for a single domain in the set.   A root domain (node) must be passed in the function call:</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [51]: </span><span class="n">shorts</span><span class="o">=</span><span class="n">formatted_domains</span><span class="p">(</span><span class="n">domains</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s">&#39;Domain Shortname&#39;</span><span class="p">)</span>
+<span class="gp">In [57]: </span><span class="n">domain_net</span><span class="o">=</span><span class="n">network_diagram</span><span class="p">(</span><span class="n">shorts</span><span class="p">,</span> <span class="s">&#39;TPR&#39;</span><span class="p">)</span>
+
+<span class="gp">In [58]: </span><span class="n">domain_net</span>
+<span class="gr">Out[58]: </span><span class="n">Network</span><span class="p">(</span><span class="n">seed_domain</span><span class="o">=</span><span class="s">&#39;TPR&#39;</span><span class="p">,</span> <span class="n">flank_left</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;CHAT&#39;</span><span class="p">,),</span> <span class="n">flank_right</span><span class="o">=</span><span class="p">(),</span> <span class="n">singles</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">doubles</span><span class="o">=</span><span class="mi">13</span><span class="p">,</span> <span class="n">n_terminal</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">c_terminal</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The information above indicates which domains are found adjacent to TPR in mosaic (multi-domain) proteins.  Only the CHAT domain appears with TPR; otherwise, TPR is found either along, or in pairs (13 times this happens).  This function will likely be supplanted by more sophisticated utilities after interfacing to NetworkX.  For now, it is useful to our analysis.</p>
+<p>PyCD provides a <em>network_outfile()</em> function that outputs the network data as a summary as well as an <em>adjacency matrix</em>.  The adjacency matrix output is a standard format for network visualization tools like the stellar <a class="reference external" href="http://www.yworks.com/en/products_yed_about.html">yEd</a> software.</p>
+<p>The output of <em>network_outfile()</em>, when read in directly to <a class="reference external" href="http://www.yworks.com/en/products_yed_about.html">yEd</a> (after tweaking a bit of yEd&#8217;s options), yields the following plot using CLECT as a root node in an entire computationally-annotated proteome:</p>
+<img alt="Tutorial/Tutorial_images/clect_adj.bmp" src="Tutorial/Tutorial_images/clect_adj.bmp" />
+</div>
+</div>
+<div class="section" id="integration-with-biopython-seq-class">
+<h2>Integration with BioPython Seq. Class<a class="headerlink" href="#integration-with-biopython-seq-class" title="Permalink to this headline">¶</a></h2>
+<p>A special <em>sequence</em> field is reserved in the Domains CDD class for the protein sequence of an identified domain.  Although the NCBI CDD tool returns the <em>start</em> and <em>end</em> points along a sequence, it does not retain this information in the results.  Therefore, it is quite helpful to be able to reassign these, especially for downstream analysis like performing phylogenetics and sequence alignment on the identified domains.</p>
+<p>Again, we will read in domains from a file.</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [73]: </span><span class="n">domains</span><span class="o">=</span><span class="n">from_cdd_file</span><span class="p">(</span><span class="n">domain_manager</span><span class="p">,</span> <span class="s">&#39;TestData/TestSet.txt&#39;</span><span class="p">,</span> <span class="n">warning</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">In [74]: </span><span class="n">domains</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="gr">Out[74]: </span><span class="n">DomainCDD</span><span class="p">(</span><span class="n">Query</span><span class="o">=</span><span class="s">&#39;Q#1&#39;</span><span class="p">,</span> <span class="n">u1</span><span class="o">=</span><span class="s">&#39;-&#39;</span><span class="p">,</span> <span class="n">Accession</span><span class="o">=</span><span class="s">&#39;&gt;WHL22.684570.0&#39;</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now, we will read in a set of protein sequences using the <em>proteins_from_file()</em> function, which is merely a small wrapper for the <em>SeqIO.parse()</em> method of the in <a class="reference external" href="http://biopython.org/DIST/docs/api/Bio.Seq.Seq-class.html">BioPython Seq class</a>.</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [77]: </span><span class="n">proteins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="gr">Out[77]: </span><span class="n">SeqRecord</span><span class="p">(</span><span class="n">seq</span><span class="o">=</span><span class="n">Seq</span><span class="p">(</span><span class="s">&#39;MYHPACRPASLARFQRGLHSAVFNPKTSLQQGASCSSHHHGALSDRQHIDSRKH...TDL&#39;</span><span class="p">,</span> <span class="n">ProteinAlphabet</span><span class="p">()),</span> <span class="nb">id</span><span class="o">=</span><span class="s">&#39;WHL22.684570.0&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;WHL22.684570.0&#39;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s">&#39;WHL22.684570.0 [86 - 1501]&#39;</span><span class="p">,</span> <span class="n">dbxrefs</span><span class="o">=</span><span class="p">[])</span>
+</pre></div>
+</div>
+<p>It is important to realize that BioPython sequences crop the &#8216;&gt;&#8217; character from the Accession of a protein sequence.  To match this, we must envoke the <em>crop_accession()</em> function.</p>
+<p>In [79]: domains=crop_accession(domains)
+In [80]: domains[0].Accession</p>
+<p>Out[81]: &#8216;WHL22.684570.0&#8217;</p>
+<p><em>crop_accession()</em> is a small wrapper around a powerful pyrecords function, <em>alter_field</em>, which lets the user specify a field and function.  The function is then applied to all field members.  For <em>crop_accession()</em>, one merely is passing the string method, .strip(&#8216;&gt;&#8217;), to the field attribute &#8216;Accession&#8217;.  The full call signature is shown below:</p>
+<p>Finally, we can assign the peptide sequence to the CDD domains batch.</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [83]: </span><span class="n">domains</span><span class="o">=</span><span class="n">assign_dom_seq</span><span class="p">(</span><span class="n">domains</span><span class="p">,</span> <span class="n">proteins</span><span class="p">)</span>
+<span class="gp">In [85]: </span><span class="n">domains</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">Start</span><span class="p">,</span> <span class="n">domains</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">End</span><span class="p">,</span> <span class="n">domains</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">sequence</span>
+
+<span class="gr">Out[85]: </span><span class="p">(</span><span class="mi">189</span><span class="p">,</span> <span class="mi">410</span><span class="p">,</span> <span class="n">Seq</span><span class="p">(</span><span class="s">&#39;WATVVATTFTLRFSLTLPLAIYSQNIRVRVENLQPEVIALAKRSFVERFAARAK...KIP&#39;</span><span class="p">,</span> <span class="n">ProteinAlphabet</span><span class="p">()))</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+      </div>
+    </div>
+
+    <div class="footer">
+        &copy; Copyright 2012, Adam Hughes.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>
