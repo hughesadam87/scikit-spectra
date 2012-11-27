@@ -5,12 +5,12 @@ import matplotlib.cm as cm
 from matplotlib.collections import PolyCollection
 from matplotlib.colors import colorConverter, Normalize
 
-def spec_surface3d(df, kind='surface', *args, **pltkwargs):
+def spec_surface3d(df, kind='contour', elev=0, azim=0, proj_xy=True, proj_zy=True, proj_xz=True,
+                   c_iso=10, r_iso=10,*args, **pltkwargs):
     ''' Matplotlib Axes3d wrapper for dataframe. Made to handle surface plots, so pure contour plots,
     polygon plots etc... these need their own classes.
     parameters:
      kind
-      surface: Returns pure axes3d.plot_surface(x,y,z,*args,**pltkwargs)
       contour: Based on Axes3d.contour(x,y,z,*args,**kwargs), returns a plot_surface() with
                relevant spectral projections.
       contourf: Filled contour plot based on Axes3D.conourf(x,y,z,*args,**kwargs).  Same a contour
@@ -37,10 +37,15 @@ def spec_surface3d(df, kind='surface', *args, **pltkwargs):
                       newxlim=xlim*padding correction
                       contour(offset=newxlim)
                       
-      A note on strides: Strides are integers, with 1 being the most.  I believe they are determined relative
-                         to the number of curves, so a cstride of 2 would produce double the curves if the 
-                         dataframe had double the columns.  Therefore, may want to look into it and make a smart stride.
-                         rstrides, cstrides can be passed right in with the plot parameters.
+      A note on strides: Strides are step sizes.  Say you have 100 curves, then a stride of 5 would give you 20 
+                         isolines over your surface.  As such, a smart keyword (c_iso and r_iso) will make sure
+                         that a fixed number of contours are drawn when the user passes in a dataframe.  
+                        
+                        
+      c_iso, r_iso:  See above.  These control how man column and row iso lines will be projected onto the 3d plot.
+                    For example, if c_iso=10, then 10 isolines will be plotted as columns, despite the actual length of the
+                    columns.  Alternatively, one can pass in c_stride directly, which is a column step size rather than
+                    an absolute number, and c_iso will be disregarded.
                 
 
       '''
@@ -48,8 +53,16 @@ def spec_surface3d(df, kind='surface', *args, **pltkwargs):
     ylabel_def='Wavelength'
     zlabel_def='Intensity'
     
+    
+    
     if not pltkwargs:
         pltkwargs={}
+        
+    ### If plane (xy) is input backwards (yx), still works    
+    proj_xy=pltkwargs.pop('proj_yx', proj_xy)
+    proj_zy=pltkwargs.pop('proj_yz', proj_zy)
+    proj_xz=pltkwargs.pop('proj_zx', proj_xz)
+    
     
     zlabel=pltkwargs.pop('zlabel', zlabel_def)
     
@@ -58,7 +71,7 @@ def spec_surface3d(df, kind='surface', *args, **pltkwargs):
     else:
         ### Get from df.index.name
         try:
-            xlabel=df.index.name
+            xlabel=df.column.name  #YES THIS IS PRIMARILY COLUMN IN THIS CASE
         ### Get from default value    
         except AttributeError:
             xlabel=xlabel_def
@@ -72,7 +85,7 @@ def spec_surface3d(df, kind='surface', *args, **pltkwargs):
         ylabel=pltkwargs.pop('ylabel')
     else:
         try:
-            ylabel=df.column.name
+            ylabel=df.index.name
         ### Get from default value    
         except AttributeError:
             ylabel=ylabel_def
@@ -98,35 +111,49 @@ def spec_surface3d(df, kind='surface', *args, **pltkwargs):
     ### Min/max of total data (only works if the data is 2d)
     zlim=pltkwargs.pop('zlim',  ((1.0-proj_padding)*(df.min()).min(), (1.0+proj_padding)*(df.max().max())) )  
     
+    cstride=int(round( len(df.columns)/float(c_iso) ) )
+    rstride=int(round( len(df.index)/float(r_iso) )  ) 
+    
+    ### This occurs if the 
+    if cstride==0:
+        print "Warning, dataset is too small to accomodate c_iso of %i, setting to 1."%c_iso
+        cstride=1
+    if rstride==0:
+        print "Warning, dataset is too small to accomodate r_iso of %i, setting to 1."%r_iso        
+        rstride=1 #to prevent errors
+    
     ### If these values are already passed in, they won't be overwritten
     # rstride are equitime lines, cstride is equispectral lines.  Low number, more lines
-    _surface_defaults={'alpha':0.2, 'rstride':4, 'cstride':2, 'color':'pink'} #Don't have any special
+    _surface_defaults={'alpha':0.2, 'rstride':rstride, 'cstride':cstride, 'color':'pink'} #Don't have any special
     _surface_defaults.update(pltkwargs)
     pltkwargs=_surface_defaults #Need to do this in two steps or it errors
 
     ax.plot_surface(xx,yy,df, *args, **pltkwargs)   
 
-    ## Surface plot
-    if kind=='surface':
-        pass
-
-    elif kind=='contourf' or kind=='contour':           
+    if kind=='contourf' or kind=='contour':           
         if kind=='contourf':
             cfunc=ax.contourf
         else:
             cfunc=ax.contour
             
-        cset = cfunc(xx, yy, df, zdir='z', offset=zlim[0])   #project z onto xy (zmid to bottom)
-        cset = cfunc(xx, yy, df, zdir='x', offset=xlim[0]) #project x onto zy (timestart)  (negative half time interval)
-        cset = ax.contour(xx, yy, df, zdir='y', offset=ylim[1]) #project y onto xz (ymid to 0)  (negative mid wavelength)
+        if proj_xy:
+            cset = cfunc(xx, yy, df, zdir='z', offset=zlim[0])   #project z onto xy (zmid to bottom)
+    
+        if proj_zy:
+            cset = cfunc(xx, yy, df, zdir='x', offset=xlim[0]) #project x onto zy (timestart)  (negative half time interval)
+
+        if proj_xz:
+            cset = ax.contour(xx, yy, df, zdir='y', offset=ylim[1]) #project y onto xz (ymid to 0)  (negative mid wavelength)
 
     else:
         raise AttributeError('spec_surface3d attribute "kind" must be\
-        surface, contour or contourf.  You entered %s'%kind)
+        contour or contourf.\nYou entered %s'%kind)
 
     ax.set_xlabel(xlabel)        #x 
     ax.set_ylabel(ylabel)  #Y
     ax.set_zlabel(zlabel)   #data      
+    
+    ax.view_init(elev, azim) 
     
     return ax
 

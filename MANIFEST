@@ -13,7 +13,7 @@ pyuvvis/chaco_interface/spectralplotdata.py
 pyuvvis/core/__init__.py
 pyuvvis/core/spec_labeltools.py
 pyuvvis/core/spec_utilities.py
-pyuvvis/data/example_data/specdata.pickle
+pyuvvis/data/example_data/spectra.pickle
 pyuvvis/data/gwuspecdata/11_data.txt
 pyuvvis/data/gwuspecdata/11_hours_timefile.txt
 pyuvvis/data/gwuspecdata/40_300_10_dark.txt

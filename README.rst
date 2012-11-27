@@ -51,5 +51,5 @@ In the ``pyuvvis`` directory (same one where you found this file), execute::
 
     python setup.py install
 
-See http://hugadams.github.com/PyUvVis/ for additional help.
+See http://hugadams.github.com/pyuvvis/ for additional help.
 

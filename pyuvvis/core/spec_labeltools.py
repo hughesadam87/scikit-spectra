@@ -70,8 +70,8 @@ def datetime_convert(datetimeindex, return_as='interval', cumsum=True):
         following: %s but %s was entered.'%(vstring, return_as))
 
 
-    ### Add a t=0 index.  User first element minus itself to take care of the fact 
-    newindex=np.insert(newindex, 0, newindex[1]-newindex[1])
+    ### Add a t=0 index.  Uses first element minus itself to preserve timestamp unit if intervals  
+    newindex=np.insert(newindex, 0, newindex[0]-newindex[0])
 
     if cumsum:
 	newindex=newindex.cumsum()

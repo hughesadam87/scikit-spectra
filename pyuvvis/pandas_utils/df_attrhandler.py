@@ -25,7 +25,7 @@ def transfer_attr(df1, df2, reversedeletion=False, speakup=True):
         df2=restore_attr(df2, df1attr)
         if speakup:            
             print '\nTransferring %s attributes:\n'%len(df1attr)        
-            print '\n'.join([(k+'\t'+str(v)) for k,v in sorted(df1attr.items())])
+
     else:
         if speakup:
             print 'No attributes found for transfer'

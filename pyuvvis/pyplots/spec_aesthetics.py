@@ -36,7 +36,7 @@ def _df_colormapper(df, axis=0, cmap=cm.autumn, style='mean', vmin=None, vmax=No
     return colors
     
 def _uvvis_colors(df, delim=':'):
-    ''' From a dataframe with indicies of ranged wavelengths (eg 450.0:400.0), and builds colormap
+    '''    From a dataframe with indicies of ranged wavelengths (eg 450.0:400.0), and builds colormap
     with fixed uv_vis limits (for now 400, 700).  Here are some builtin ones:
     http://dept.astro.lsa.umich.edu/~msshin/science/code/matplotlib_cm/'''
     colors=[]
@@ -61,7 +61,7 @@ def _genplot(df, title_def, xlabel_def, ylabel_def, **pltkwds):
     
     ### Get xaxis label from direct user keyword argument
     if pltkwds.has_key('xlabel'):  
-        xlabel=pltkwds['xlabel'] #Should I change to pltkwds.pop('xlabel')
+        xlabel=pltkwds.pop('xlabel') #Should I change to pltkwds.pop('xlabel')
     else:
         ### Get from df.index.name
         try:
@@ -76,7 +76,7 @@ def _genplot(df, title_def, xlabel_def, ylabel_def, **pltkwds):
             
             
     if pltkwds.has_key('ylabel'):
-        ylabel=pltkwds['ylabel']
+        ylabel=pltkwds.pop('ylabel')
     else:
         ylabel=ylabel_def    
         
@@ -104,8 +104,12 @@ def _genplot(df, title_def, xlabel_def, ylabel_def, **pltkwds):
 ### the correct dataframes to fill these plots.
 def specplot(df, **pltkwds):
     ''' Basically a call to gen plot with special attributes, and a default color mapper.'''
-    pltkwds['colors']=pltkwds.pop('colors', _df_colormapper(df) )   
+    pltkwds['colors']=pltkwds.pop('colors', _df_colormapper(df, cmap=cm.jet) )   
     pltkwds['linewidth']=pltkwds.pop('linewidth', 1.0 )    
+    
+    ### TEMPORARY WAY TO REMOVE COLOR BEHAVIOR REMOVE LATER ###
+    if pltkwds['colors']==None:
+        pltkwds.pop('colors')
     
     return _genplot(df, 'Spectral Plot', 'Wavelength', 'Intensity', **pltkwds)
     
@@ -113,7 +117,12 @@ def timeplot(df, **pltkwds):
     ''' Sends transposed dataframe into _genplot(); however, this is only useful if one wants to plot
     every single row in a dataframe.  For ranges of rows, see spec_utilities.wavelegnth_slices and
     range_timeplot() below.'''
-    pltkwds['colors']=pltkwds.pop('colors', _df_colormapper(df, axis=1) )        
+    pltkwds['colors']=pltkwds.pop('colors', _df_colormapper(df, axis=1) )       
+    
+    ### TEMPORARY WAY TO REMOVE COLOR BEHAVIOR REMOVE LATER ###
+    if pltkwds['colors']==None:
+        pltkwds.pop('colors')    
+    
     return _genplot(df.transpose(), 'Temporal Plot', 'Time', 'Intensity', **pltkwds)
 
 def range_timeplot(df, **pltkwds):
@@ -125,10 +134,14 @@ def range_timeplot(df, **pltkwds):
     pltkwds['legend']=pltkwds.pop('legend', True)
     pltkwds['linewidth']=pltkwds.pop('linewidth', 3.0 )    
     
+    ### TEMPORARY WAY TO REMOVE COLOR BEHAVIOR REMOVE LATER ###
+    if pltkwds['colors']==None:
+        pltkwds.pop('colors')    
+    
     return _genplot(df.transpose(), 'Temporal Plot', 'Time', 'Intensity', **pltkwds)    
 
 def absplot(df, **pltkwds):
-    return _genplot(df, 'Absorbance Plot', 'Wavelength', 'Intensity', **pltkwds)
+    return _genplot(df, 'Absorbance Plot', 'Wavelength', 'Relative Intensity', **pltkwds)
 
 def area(df, **pltkwds):
     return _genplot(df, 'Area Plot', 'Time', 'Area', **pltkwds)
