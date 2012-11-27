@@ -1,4 +1,4 @@
-import os
+import os, time
 from optparse import OptionParser
 
 ## For testing
@@ -37,6 +37,8 @@ if __name__=='__main__':
     img_ignore=['png', 'jpeg', 'tif', 'bmp'] #no .
     logfilename='RUNLOG'
     
+    ### Option Parser to catch indirectory, outdirectory, wheter to ignore images in a directory, 
+    ### and to overwrite output directory if it already exists 
     parser = OptionParser(usage='usage: %prog -i indirectory -o outdirectory ', version='%prog 0.1.0')
     parser.add_option('-d', '--indir',
                       action='store',
@@ -55,7 +57,7 @@ if __name__=='__main__':
                       default='', #None causes errors
                       help='Title of trial/run, used in plot titles and other places.',)     
     
-    parser.add_option('-i', '--ignore', action='store_true', default=True, #type='choice', choices=['True', 'False'],
+    parser.add_option('-i', '--ignore', action='store_true', default=True, 
                       dest='ignore',  help='Ignore the most commonly found image types \
                       (.png, .jpeg etc...) when parsing data files.')
     
@@ -68,22 +70,25 @@ if __name__=='__main__':
     
     (options, args) = parser.parse_args()
     
-    ### Arguments will default to None
+    ### Ensure indir/outdir were passed
     inroot, outroot=options.wd, options.od 
     if inroot==None or outroot == None:
+        ### Arguments will default to None, so can't do try: except AttributeError        
         parser.error("Please both enter an indirectory (-d) and outdirectory (-o)")
 
+    ### If runname, add underscore for output file formatting
     if options.rname !='':
-        options.rname+='_'  #Add underscore to runname if it exists
+        options.rname+='_'  
     
-    ### Open logfile
+    ### Open logfile to track various IO steps
+    start=time.time()
     lf=open(outroot + '/'+ logfilename, 'w')
 
-
-    ### Walk subdirectories    
+    ### Walk a single directory down    
     walker=os.walk(inroot, topdown=True, onerror=None, followlinks=False)
     (rootpath, rootdirs, rootfiles)= walker.next()
     for folder in rootdirs:    
+        print "Analyzing run directory %s"%folder
 
         wd=inroot+'/'+folder
         od=outroot+'/'+folder
@@ -149,12 +154,12 @@ if __name__=='__main__':
         if hasattr(df_full, 'darkseries'):
             if isinstance(df_full.darkseries, type(None) ):
                 df=df_full #need this                
-                lf.write('Warning: darkseries not found in data of run directory %s'%folder)            
+                lf.write('Warning: darkseries not found in data of run directory %s\n'%folder)            
             else:    
                 df=df_full.sub(df_full.darkseries, axis='index')
         else:
             df=df_full #need this
-            lf.write('Warning: darkseries attribute is no found on dataframe in folder %s !'%folder)            
+            lf.write('Warning: darkseries attribute is no found on dataframe in folder %s!\n'%folder)            
 
         
         ### Make parameter.  Really don't need this except autoscaling plots with the full data, primarily setting
@@ -200,7 +205,7 @@ if __name__=='__main__':
         ### 3D Plots.  Set row and column step size, eg 10 would mean 10 column traces on the contours ###
         c_iso=10 ; r_iso=10
         kinds=['contourf', 'contour']
-        views=( (14, -21), (10,-30) )  #elev, aziumuth
+        views=( (14, -21), (28, 17), (5, -13), (48, -14), (14,-155) )  #elev, aziumuth
         for kind in kinds:
             out3d=od+'/3dplots_'+kind
             os.mkdir(out3d)
@@ -219,69 +224,6 @@ if __name__=='__main__':
         
 
     ### Close logfile    
+    lf.write('Time for completion, %s'%(round(time.time()-start),1))
     lf.close()
             
-
-    
-    #df_stream=pkgutil.get_data('pyuvvis', 'data/example_data/spectra.pickle') 
-    #df=df_loads(df_stream)
-    
-    #### subtract the dark spectrum
-    #df=df.sub(df.darkseries, axis='index')
-
-
-    #df.columns=datetime_convert(df.columns, return_as='seconds')
-    
-
-    ##df=boxcar(df, 2.0)
-    #dfsliced=wavelength_slices(df, ranges=((350.0,370.0), (450.0,500.0), (550.0,570.0), (650.0,680.0), (680.0,700.0)),\
-                               #apply_fcn='simps')
-                             ##  apply_fcn=np.histogram, bins=3)
-
-    #dfarea=wavelength_slices(df, ranges=(min(df.index), max(df.index)), apply_fcn='simps')
-                             
-    #df=df.ix[400.0:700.0]
-   ## colormapper=_df_colormapper(df, axis=0, vmin=300.0, vmax=700.0, cmap=cm.gist_heat)
-    ##specplot(df, colors=colormapper)
-    ##plt.show()
-
-##    timeplot(df, colors=_df_colormapper(df, axis=1,cmap=cm.autumn))
-    #range_timeplot(dfsliced)
-    #plt.show()
-    #df=boxcar(df, 10.0, axis=1)
-
-
-    #df=df.ix[400.0:800.0] 
-    ##df=df.ix[500.0:600.0]
-   
-    ##spec_surface3d(df, kind='contourf', xlabel='Time (s)', ylabel='Wavelength (nm)')
-  
-
-    ##plt.title('9/5/12 NPSam')
-    ##plt.show()
-              
-    ##spec_surface3d(df, kind='contourf', xlabel='Time (s)', ylabel='Wavelength (nm)')
-    ##spec_surface3d(df)
-
-
-
-    ##mlab.surf(np.asarray(list(df.columns)), np.asarray(list(df.index)) , np.asarray(df), warp_scale='auto')
-    #spec_poly3d(df)
-    #plt.show()
-
-    ##transfer_attr(df, df2)     
-    ##specax=specplot(df2)
-
-    ##dftime=df.transpose()  ### Store a custom axis.
-    ##dftime.runname='Spec test name'
-    ##timeax=timeplot(dftime)
-    ##fig = plt.figure()
-    ##fig.axes.append(timeax)
-
-    #hz=spectral_convert(df.index)
-    #print 'hi'
-    ##df=df.transpose()
-    ##plt.figure()
-    ##df.plot()
-    ##plt.leged=False
-    ##plt.show()
