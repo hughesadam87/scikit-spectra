@@ -21,25 +21,27 @@ Installation
 
 Download the source_ and run::
 
-    python setup.py install
+   python setup.py install
 
 This should install to your systems default Python path.  If your defaul Python path is not found, or you have multiple Python distributions,
-install to an arbitrary directory using the ``home'' option::
+install to an arbitrary directory using the home keyword option::
 
-    python setup.py install --home=/path/to/directory/
+   python setup.py install --home=/path/to/directory/
 
-This will create a subdirectory with the structure **path/to/directory/lib/python/pyuvvis/**
+This will create a subdirectory with the structure:
+   
+   **path/to/directory/lib/python/pyuvvis/**
 
 Copy the pyuvvis folder into your Python distributions site-packages directory.  
 
 Testing Installation
 --------------------
 
-Substantial tests are coming.  For now, to test if the program is correctly installed, open a Python shell and run the following::
+Substantial tests are forthcoming.  For now, to test if the program is correctly installed, open a Python shell and run the following::
 
-    from pyuvvis import *
+   from pyuvvis import *
 
-    from pyuvvis.data import *
+   from pyuvvis.data import *
 
 This should result in no errors.  
 

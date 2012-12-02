@@ -27,6 +27,7 @@
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="pyuvvis 0.1.0 documentation" href="../index.html" />
+    <link rel="next" title="Plotting" href="plotting.html" />
     <link rel="prev" title="Dependencies/Installation" href="installation_dependencies.html" /> 
   </head>
   <body>
@@ -37,6 +38,8 @@
         <div class="rel">
           <a href="installation_dependencies.html" title="Dependencies/Installation"
              accesskey="P">previous</a> |
+          <a href="plotting.html" title="Plotting"
+             accesskey="N">next</a> |
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a>
         </div>
@@ -45,7 +48,7 @@
 
 
 <div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
-<a href="../index.html"><img src="../_static/gwu_data.jpeg" border="100" alt="sampledoc"/></a>
+<a href="../index.html"><img src="../_static/new_logo.png" border="100" alt="sampledoc"/></a>
 </div>
 
 
@@ -59,37 +62,56 @@
             
   <div class="section" id="getting-started">
 <h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
-<p>The following sections will provide a brief introduction to the PyCD framework, with a more thorough tutorial coming soon.  First, the basic data containers will be discussed, followed by direct and from-file instantiation.  Utilities for batch domain analysis are presented followed by integration with <a class="reference external" href="http://biopython.org/DIST/docs/api/Bio.Seq.Seq-class.html">BioPython&#8217;s Seq. class</a>.</p>
-<div class="section" id="data-storage-the-conserved-domains-database-cdd-class">
-<h2>Data Storage: The (Conserved Domains Database) CDD Class<a class="headerlink" href="#data-storage-the-conserved-domains-database-cdd-class" title="Permalink to this headline">¶</a></h2>
-<p>For now, the main data container is a class called the <strong>DomainCDD</strong> class.  This is an immutable record class that is created from my <a class="reference external" href="http://hugadams.github.com/pyrecords">pyrecords project</a>.  Essentially, it is a named tuple with extra functionality.   Although this is currently immutble, I may supplant this with a mutable object type in the future.  The choice to choose an immutable record was mainly because these take up very little space in memory and are easy to work with.</p>
+<p>The following sections will provide a brief introduction to the pyuvvis framework, with a more thorough tutorial coming soon.  First, the basic data structure and IO will be discussed, followed by an introduction to basic analysis tools, and then followed by advanced analysis tools.  Basic familiarty with <tt class="docutils literal"><span class="pre">pandas</span></tt> is assumed, so I&#8217;d urge newcomers to run through the tutorial <a class="reference external" href="http://pandas.pydata.org/pandas-docs/dev/dsintro.html">http://pandas.pydata.org/pandas-docs/dev/dsintro.html</a>.</p>
+<p>As a firm believer of lead-by example, let&#8217;s start by loading in some spectral data, and discuss the data structures as we go.</p>
+<p><tt class="docutils literal"><span class="pre">pyuvvis</span></tt> comes with some builtin package data.  This can be accessed easily using a special module called pkgutil.  We are going to load in a serialized set of spectral data from the package
+directory, <strong>pyuvvis/data/example_data</strong>.</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [8]: </span><span class="kn">import</span> <span class="nn">pkgutil</span>
+
+<span class="gp">In [9]: </span><span class="n">data</span><span class="o">=</span><span class="n">pkgutil</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="s">&#39;pyuvvis&#39;</span><span class="p">,</span> <span class="s">&#39;data/example_data/spectra.pickle&#39;</span><span class="p">)</span>
+</pre></div>
 </div>
-<div class="section" id="data-fields">
-<h2>Data Fields<a class="headerlink" href="#data-fields" title="Permalink to this headline">¶</a></h2>
-<p>The CDD class supports output from the CD-Batch search tool.  If a user uploads a set of protein sequences, the domains within the sequence are returned.  Here is some output from a real cdd file:</p>
-<p><strong>Q#3</strong> <strong>-</strong> <strong>&gt;SPU_018904</strong>   <strong>superfamily</strong> <strong>208873</strong>      <strong>361</strong> <strong>413</strong> <strong>2.00744e-22</strong> <strong>97.2737</strong>     <strong>cl08327</strong>     <strong>Glyco_hydro_47</strong> <strong>superfamily</strong>      <strong>C</strong>    <strong>-</strong></p>
-<p>This record contains 14 delimited fields.  The CDD class stores them in the following 14 attributes.</p>
-<p><strong>Query</strong> - Refers back to the protein to which the current domain belong.  Referencing by the numerical order proteins were input to the batch cd-search.  For example Q#10 means the current domain belongs to the tenth protein entered in the batch.</p>
-<p><strong>u1</strong> - N/A</p>
-<p><strong>Accession</strong> - GI Accession number <cite>of the protein</cite> to which this domain belongs.  (Note, &#8216;&gt;&#8217; is stripped internally to be compatible with BioPython Sequence class).</p>
-<p><strong>Hittype</strong> - Describes an NCBI CDD parameter which more or less corresponds to the extent of curation in the database.  Specific hits, for example, are hand-aligned; whereas, the designation of <em>superfamily</em> generally is applied to computationally recognized sequences.  Refer to the <a class="reference external" href="http://www.ncbi.nlm.nih.gov/Structure/cdd/cdd.shtml">NCBI CDD</a> for a better explanation.</p>
-<p><strong>PSSMID</strong> - Unique integer identifier for a CD domain.</p>
-<p><strong>Start</strong> - Position along the peptide sequence at which the domain begins.</p>
-<p><strong>End</strong> - Position along the peptide sequence at which the domain ends.</p>
-<p><strong>Eval</strong> - Evalue score for domain identification.  Again, more information on how this is computed is available through <a class="reference external" href="http://www.ncbi.nlm.nih.gov/Structure/cdd/cdd.shtml">NCBI CDD</a>.</p>
-<p><strong>Score</strong> - Heuristic score of domain match.</p>
-<p><strong>DomAccession</strong> - Accession corresponding to the domain (not protein accession).  cl02432 is the domain accession for c-type lectin domain.</p>
-<p><strong>DomShortname</strong> - Unique short name corresponding to the domain accession.  E.g. CLECT is the shortname to the c-type lectin domain.</p>
-<p><strong>Matchtype</strong> - Not sure how this is different from hit type at the moment.</p>
-<p><strong>u2</strong>  - N/A</p>
-<p><strong>u3</strong>  - N/A</p>
-<p><strong>sequence</strong> - <em>New</em> reserved slot to store the sequence corresponding to the region along the protein to which the domain identifies.  This is not implicitly returned by the NCBI CD Search tool for whatever reason.</p>
+<p>This is a serialized dataframe with custom attributes.  To serialize and deserialize a dataframe without losing specially attached attributes, pyuvvis comes with some custom utilities.
+We can load this serialized stream into a dataframe with these as such:</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [3]: </span><span class="kn">from</span> <span class="nn">pyuvvis.pandas_utils.dataframeserial</span> <span class="kn">import</span> <span class="n">df_loads</span>
+
+<span class="gp">In [4]: </span><span class="n">df</span><span class="o">=</span><span class="n">df_loads</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+<span class="gp">In [5]: </span><span class="n">df</span>
+<span class="go">Out[5]:</span>
+<span class="go">&lt;class &#39;pandas.core.frame.DataFrame&#39;&gt;</span>
+<span class="go">Index: 2048 entries, 339.09 to 1023.65</span>
+<span class="go">Columns: 216 entries, 2012-02-03 18:06:46 to 2012-02-04 05:05:56</span>
+<span class="go">dtypes: float64(216)</span>
+</pre></div>
 </div>
-<div class="section" id="reading-in-domains">
-<h2>Reading in Domains<a class="headerlink" href="#reading-in-domains" title="Permalink to this headline">¶</a></h2>
+<p><tt class="docutils literal"><span class="pre">df</span></tt> corresponds to spectral data with wavelengths from the range 339.09 to 1023.65 nm.  The columns are timestamps ranging from starting around 6pm on Feb 03 2012 and ending around 5am Feb 04 2012.</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [6]: </span><span class="n">df</span><span class="o">.</span><span class="n">index</span>
+<span class="gr">Out[6]: </span><span class="n">Index</span><span class="p">([</span><span class="mf">339.09</span><span class="p">,</span> <span class="mf">339.48</span><span class="p">,</span> <span class="mf">339.86</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="mf">1023.08</span><span class="p">,</span> <span class="mf">1023.36</span><span class="p">,</span> <span class="mf">1023.65</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+
+<span class="gp">In [7]: </span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+<span class="gr">Out[7]: </span><span class="p">(</span><span class="o">&lt;</span><span class="n">Timestamp</span><span class="p">:</span> <span class="mi">2012</span><span class="o">-</span><span class="mo">02</span><span class="o">-</span><span class="mo">03</span> <span class="mi">18</span><span class="p">:</span><span class="mo">06</span><span class="p">:</span><span class="mi">46</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">Timestamp</span><span class="p">:</span> <span class="mi">2012</span><span class="o">-</span><span class="mo">02</span><span class="o">-</span><span class="mo">04</span> <span class="mo">05</span><span class="p">:</span><span class="mo">05</span><span class="p">:</span><span class="mi">56</span><span class="o">&gt;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>First, let&#8217;s explore this dataset using some native pandas features.</p>
+<div class="section" id="manipulation-with-pandas">
+<h2>Manipulation with pandas<a class="headerlink" href="#manipulation-with-pandas" title="Permalink to this headline">¶</a></h2>
+<p>The</p>
+</div>
+<div class="section" id="data-storage-the-pandas-dataframe">
+<h2>Data Storage: The Pandas Dataframe<a class="headerlink" href="#data-storage-the-pandas-dataframe" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference external" href="http://pandas.pydata.org/">pandas</a> DataFrame class provides is naturally suited to handle spectral data.  We chose the following canonical axis labels:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>The column (axis=0) labels are taken to be timepoints for each curve.</li>
+<li>The index/rows labels are taken to be the wavelengths/spectral data.</li>
+</ol>
+</div></blockquote>
+<p>This powerful and flexible class ensures robust and intuitive data manipulation capabilities, as will be demonstrated in this tutorial.  There are some caveats to this that must be kept in mind.</p>
+<p>ADD DISCUSSION AFTER ADDING MORE GENERAL MODULES</p>
 <div class="section" id="manual-instantiation">
 <h3>Manual Instantiation<a class="headerlink" href="#manual-instantiation" title="Permalink to this headline">¶</a></h3>
-<p>Let&#8217;s see how it easy it is to instantiate a CD Domain object.  First, I&#8217;m going to demonstrate a manual instantiation; however, in practice, almost all input will be from batch files.  This input style is explained in the <a class="reference external" href="http://hugadams.github.com/pyrecords">pyrecords project</a> more thoroughly.  Records are generated first by inputing the immutable manager class, in this case, it is called <em>domain_manager</em>.</p>
+<p>Let&#8217;s see how it easy it is to instantiate a CD Domain object.  First, I&#8217;m going to demonstrate a manual instantiation; however, in practice, almost all input will be from batch files.  This input style is explained in the <a href="#id1"><span class="problematic" id="id2">`pyrecords project`_</span></a> more thoroughly.  Records are generated first by inputing the immutable manager class, in this case, it is called <em>domain_manager</em>.</p>
 <div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [2]: </span><span class="kn">from</span> <span class="nn">DataTypes.cdd_fields</span> <span class="kn">import</span> <span class="n">domain_manager</span>
 </pre></div>
 </div>
@@ -235,13 +257,13 @@ In [80]: domains[0].Accession</p>
           <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation_dependencies.html">Dependencies/Installation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="">Getting Started</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#data-storage-the-conserved-domains-database-cdd-class">Data Storage: The (Conserved Domains Database) CDD Class</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#data-fields">Data Fields</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#reading-in-domains">Reading in Domains</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#manipulation-with-pandas">Manipulation with pandas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-storage-the-pandas-dataframe">Data Storage: The Pandas Dataframe</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#domain-analysis">Domain Analysis</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#integration-with-biopython-seq-class">Integration with BioPython Seq. Class</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="plotting.html">Plotting</a></li>
 </ul>
 
           <h3 style="margin-top: 1.5em;">Search</h3>
@@ -264,6 +286,8 @@ In [80]: domains[0].Accession</p>
         <div class="left">
           <a href="installation_dependencies.html" title="Dependencies/Installation"
              >previous</a> |
+          <a href="plotting.html" title="Plotting"
+             >next</a> |
           <a href="../genindex.html" title="General Index"
              >index</a>
             <br/>

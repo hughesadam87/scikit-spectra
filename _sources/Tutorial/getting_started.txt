@@ -1,62 +1,89 @@
 Getting Started
 ===============
 
-The following sections will provide a brief introduction to the PyCD framework, with a more thorough tutorial coming soon.  First, the basic data containers will be discussed, followed by direct and from-file instantiation.  Utilities for batch domain analysis are presented followed by integration with `BioPython's Seq. class`_.
+The following sections will provide a brief introduction to the pyuvvis framework, with a more thorough tutorial coming soon.  First, the basic data structure and IO will be discussed, followed by an introduction to basic analysis tools, and then followed by advanced analysis tools.  Basic familiarty with ``pandas`` is assumed, so I'd urge newcomers to run through the tutorial http://pandas.pydata.org/pandas-docs/dev/dsintro.html.
 
-.. _BioPython's Seq. class: http://biopython.org/DIST/docs/api/Bio.Seq.Seq-class.html
+As a firm believer of lead-by example, let's start by loading in some spectral data, and discuss the data structures as we go.
 
+``pyuvvis`` comes with some builtin package data.  This can be accessed easily using a special module called pkgutil.  We are going to load in a serialized set of spectral data from the package
+directory, **pyuvvis/data/example_data**.
 
-Data Storage: The (Conserved Domains Database) CDD Class
---------------------------------------------------------
+.. sourcecode:: ipython
 
-For now, the main data container is a class called the **DomainCDD** class.  This is an immutable record class that is created from my `pyrecords project`_.  Essentially, it is a named tuple with extra functionality.   Although this is currently immutble, I may supplant this with a mutable object type in the future.  The choice to choose an immutable record was mainly because these take up very little space in memory and are easy to work with.  
-　
-.. _pyrecords project: http://hugadams.github.com/pyrecords
+   In [8]: import pkgutil
 
-Data Fields
------------
+   In [9]: data=pkgutil.get_data('pyuvvis', 'data/example_data/spectra.pickle')
 
-The CDD class supports output from the CD-Batch search tool.  If a user uploads a set of protein sequences, the domains within the sequence are returned.  Here is some output from a real cdd file:
-
-**Q#3** **-** **>SPU_018904**	**superfamily**	**208873**	**361**	**413**	**2.00744e-22**	**97.2737**	**cl08327**	**Glyco_hydro_47** **superfamily**	**C**	 **-**
-
-This record contains 14 delimited fields.  The CDD class stores them in the following 14 attributes.  
+This is a serialized dataframe with custom attributes.  To serialize and deserialize a dataframe without losing specially attached attributes, pyuvvis comes with some custom utilities.
+We can load this serialized stream into a dataframe with these as such:
 
 
-**Query** - Refers back to the protein to which the current domain belong.  Referencing by the numerical order proteins were input to the batch cd-search.  For example Q#10 means the current domain belongs to the tenth protein entered in the batch.
+.. sourcecode:: ipython
+   
+   In [3]: from pyuvvis.pandas_utils.dataframeserial import df_loads
 
-**u1** - N/A
+   In [4]: df=df_loads(data)
 
-**Accession** - GI Accession number `of the protein` to which this domain belongs.  (Note, '>' is stripped internally to be compatible with BioPython Sequence class). 
+   In [5]: df
+   Out[5]: 
+   <class 'pandas.core.frame.DataFrame'>
+   Index: 2048 entries, 339.09 to 1023.65
+   Columns: 216 entries, 2012-02-03 18:06:46 to 2012-02-04 05:05:56
+   dtypes: float64(216)
 
-**Hittype** - Describes an NCBI CDD parameter which more or less corresponds to the extent of curation in the database.  Specific hits, for example, are hand-aligned; whereas, the designation of *superfamily* generally is applied to computationally recognized sequences.  Refer to the `NCBI CDD`_ for a better explanation.
+``df`` corresponds to spectral data with wavelengths from the range 339.09 to 1023.65 nm.  The columns are timestamps ranging from starting around 6pm on Feb 03 2012 and ending around 5am Feb 04 2012.
 
-.. _NCBI CDD: http://www.ncbi.nlm.nih.gov/Structure/cdd/cdd.shtml
+.. sourcecode:: ipython
 
-**PSSMID** - Unique integer identifier for a CD domain.
+   In [6]: df.index
+   Out[6]: Index([339.09, 339.48, 339.86, ..., 1023.08, 1023.36, 1023.65], dtype=object)
 
-**Start** - Position along the peptide sequence at which the domain begins.
+   In [7]: df.columns[0], df.columns[-1]
+   Out[7]: (<Timestamp: 2012-02-03 18:06:46>, <Timestamp: 2012-02-04 05:05:56>)
 
-**End** - Position along the peptide sequence at which the domain ends.
 
-**Eval** - Evalue score for domain identification.  Again, more information on how this is computed is available through `NCBI CDD`_. 
+First, let's explore this dataset using some native pandas features.  
 
-**Score** - Heuristic score of domain match.
+Manipulation with pandas
+------------------------
 
-**DomAccession** - Accession corresponding to the domain (not protein accession).  cl02432 is the domain accession for c-type lectin domain. 
+The 
 
-**DomShortname** - Unique short name corresponding to the domain accession.  E.g. CLECT is the shortname to the c-type lectin domain.
 
-**Matchtype** - Not sure how this is different from hit type at the moment.
 
-**u2**  - N/A
 
-**u3**  - N/A
 
-**sequence** - *New* reserved slot to store the sequence corresponding to the region along the protein to which the domain identifies.  This is not implicitly returned by the NCBI CD Search tool for whatever reason.
 
-Reading in Domains
-------------------
+
+
+
+
+
+
+
+
+Data Storage: The Pandas Dataframe
+----------------------------------
+
+The pandas_ DataFrame class provides is naturally suited to handle spectral data.  We chose the following canonical axis labels:
+
+   1. The column (axis=0) labels are taken to be timepoints for each curve.
+   2. The index/rows labels are taken to be the wavelengths/spectral data.  
+
+
+
+
+
+
+
+This powerful and flexible class ensures robust and intuitive data manipulation capabilities, as will be demonstrated in this tutorial.  There are some caveats to this that must be kept in mind.  
+
+.. _pandas: http://pandas.pydata.org/
+
+
+ADD DISCUSSION AFTER ADDING MORE GENERAL MODULES
+
+
 
 Manual Instantiation
 ^^^^^^^^^^^^^^^^^^^^
