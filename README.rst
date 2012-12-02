@@ -60,5 +60,6 @@ The developmental version can be cloned from github:
 And installed in a similar manner:
 
    cd pyuvvis
+
    python setup.py install
 
