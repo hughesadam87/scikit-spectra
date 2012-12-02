@@ -116,3 +116,9 @@ def spectral_convert(spectral_array, in_unit='nanometers', out_unit='freq'):
     
     elif in_unit in reciprocal and out_unit in reciprocal:
 	    return  (spectral_array * spec_dic[out_unit]) / spec_dic[in_unit]
+	
+def spec_slice(spectral_array, bins):
+    ''' Simple method that will divide a spectral index into n evenly sliced bins and return as nested tuples.
+    Useful for generating wavelength slices with even spacing.  Simply a wrapper around np.histogram.'''
+    edges=np.histogram(spectral_array, bins)[1]
+    return [ (edges[idx], edges[i]) for idx, i in enumerate( range(1, len(edges)))]

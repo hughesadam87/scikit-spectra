@@ -162,6 +162,8 @@ def boxcar(df, binwidth, axis=0):
     
     return dfout
 
+                    
+                                
 
 def digitize_by(df, digitized_bins, binarray, axis=0, avg_fcn='mean', weight_max=None):
     ''' Takes in an array of digitized bins, and then restructures a dataframe

@@ -1,3 +1,12 @@
+''' File IO and miscellaneous utilities'''
+
+__author__ = "Adam Hughes"
+__copyright__ = "Copyright 2012, GWU Physics"
+__license__ = "Free BSD"
+__maintainer__ = "Adam Hughes"
+__email__ = "hugadams@gwmail.gwu.edu"
+__status__ = "Development"
+
 import os
 from pandas import DataFrame, read_csv, concat
 
