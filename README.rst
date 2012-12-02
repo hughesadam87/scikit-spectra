@@ -53,3 +53,12 @@ In the ``pyuvvis`` directory (same one where you found this file), execute::
 
 See http://hugadams.github.com/pyuvvis/ for additional help.
 
+The developmental version can be cloned from github:
+
+    git clone https://github.com/hugadams/pyuvvis.git
+
+And installed in a similar manner:
+
+   cd pyuvvis
+   python setup.py install
+
