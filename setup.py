@@ -3,7 +3,7 @@ from distutils.core import setup
 ### For now, most of these are in here for testing.  Dependency version requirements can probably be relaxed, especially chaco.
 setup(
     name='PyUvVis',
-    version='0.1.1b',
+    version='0.1.1c',
     author='Adam Hughes, Zhaowen Liu and GWU Physics Reeves Lab students',
     maintainer='Adam Hughes',
     maintainer_email='hughesadam87@gmail.com',
