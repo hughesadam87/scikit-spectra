@@ -191,7 +191,7 @@ Colormapping is more easily integrated, taking either literal mapltolib.cm objec
 
 .. sourcecode:: ipython
 
-   plot2d(df, title='Full Contour', cmap='gray', contours=70)
+   In [1]: plot2d(df, title='Full Contour', cmap='gray', contours=70)
 
 Produces:
 
@@ -210,7 +210,7 @@ For example, we can add plot labels and a colorbar:
 
 .. sourcecode:: ipython
 
-   plot2d(df, title='Full Contour', cmap='jet', contours=15, label=1, colorbar=1)
+   In [1]: plot2d(df, title='Full Contour', cmap='jet', contours=15, label=1, colorbar=1)
 
 Producing,
 
@@ -227,7 +227,7 @@ The **background** keyword lets the user pass either a formatted color map or cu
 
 .. sourcecode:: ipython
 
-    plot2d(A, title='Full Contour', cmap='autumn', contours=15, label=1, colorbar=1, background=1)
+    In [1]: plot2d(A, title='Full Contour', cmap='autumn', contours=15, label=1, colorbar=1, background=1)
 
 Gives:
 
@@ -256,7 +256,7 @@ A default call to plot3d, specifying default elevation and azimuth coordinates (
 
 .. sourcecode:: ipython
    
-   plot3d(df, elev=24, azim=-29)
+   In [1]: plot3d(df, elev=24, azim=-29)
 
 Yields a fully interactive Axes3D subobject:
 
@@ -271,7 +271,7 @@ The contour plots projections can be turned on and off selectively via the proj_
 
 .. sourcecode:: ipython
    
-   plot3d(df, elev=24, azim=-29, proj_xy=None, proj_yz=None, proj_xz=None)
+   In [1]: plot3d(df, elev=24, azim=-29, proj_xy=None, proj_yz=None, proj_xz=None)
 
 Gives
 
@@ -288,7 +288,7 @@ The appearance and layout of this surface object takes in a bevy of typical keyw
 
 .. sourcecode:: ipython
    
-   plot3d(df, elev=24, azim=-29, proj_xy=None, proj_yz=None, proj_xz=None, cmap='jet', c_iso=30, r_iso=30, title='hi there', alpha=0.9)
+   In [1]: plot3d(df, elev=24, azim=-29, proj_xy=None, proj_yz=None, proj_xz=None, cmap='jet', c_iso=30, r_iso=30, title='hi there', alpha=0.9)
 
 
 Yielding
@@ -304,9 +304,9 @@ There are three more important keywords to plot3d.  These are: **kind**, **conto
 
 .. sourcecode:: ipython
 
-   plot3d(df, elev=24, azim=-29, kind='contourf')
-   plot3d(df, elev=24, azim=-29, contour_color='red')
-   plot3d(df, elev=24, azim=-29, contour_cmap=cmget('autumn'))
+   In [1]: plot3d(df, elev=24, azim=-29, kind='contourf')
+   In [2]: plot3d(df, elev=24, azim=-29, contour_color='red')
+   In [3]: plot3d(df, elev=24, azim=-29, contour_cmap=cmget('autumn'))
 
 Yielding the following three plots respectively.
 
@@ -335,9 +335,9 @@ Yielding the following three plots respectively.
 We also have included a **poly3d** plotting utility to wrap matplotlib's polygonal plotting facilities.  This is still in development, and seems to have a few kinks to work out.  It should still work out of the box if anyone wants to play around with it.  The issues come in when formatting the plot, and I believe are indigenous to matplotlib itself.
 
 .. sourcecode:: ipython
-   from pyuvvis.advanced_plots import poly3d
 
-   poly3d(df)
+   In [1]: from pyuvvis.advanced_plots import poly3d
+   In [2]: poly3d(df)
 
 Produces something akin to, but not exactly, the following:
 

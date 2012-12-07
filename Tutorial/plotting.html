@@ -176,7 +176,7 @@ or any calling wrappers will also have this option.  For example:</p>
 <div><a class="reference internal image-reference" href="../_images/cont.png"><img alt="alternate text" class="align-center" src="../_images/cont.png" style="width: 8.0in; height: 5.0in;" /></a>
 </div></blockquote>
 <p>Colormapping is more easily integrated, taking either literal mapltolib.cm objects, or string wrappers to the aformentioned libraries.  Additionally, the contours input has been changed to keyword input for various reasons.</p>
-<div class="highlight-ipython"><div class="highlight"><pre><span class="go">plot2d(df, title=&#39;Full Contour&#39;, cmap=&#39;gray&#39;, contours=70)</span>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [1]: </span><span class="n">plot2d</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s">&#39;Full Contour&#39;</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s">&#39;gray&#39;</span><span class="p">,</span> <span class="n">contours</span><span class="o">=</span><span class="mi">70</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Produces:</p>
@@ -185,7 +185,7 @@ or any calling wrappers will also have this option.  For example:</p>
 </div></blockquote>
 <p>It is possible to trick out matplotlib contour plots as shown in the <a class="reference external" href="http://matplotlib.org/examples/pylab_examples/contour_demo.html">tutorial</a>; however, I have tried to simplify some of the hassle of this.  In particular, easier control of the labeling style, plot background and colorbars.  Special keyword arguments have been included in plot2d to add some defaul behaviors in all three areas. These are <strong>label</strong>, <strong>colorbar</strong>, and  <strong>background</strong>.  For now, only a few rudimentary defaults have been built in as a proof of concept.  Default styles are chosen using integer arguments.</p>
 <p>For example, we can add plot labels and a colorbar:</p>
-<div class="highlight-ipython"><div class="highlight"><pre><span class="go">plot2d(df, title=&#39;Full Contour&#39;, cmap=&#39;jet&#39;, contours=15, label=1, colorbar=1)</span>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [1]: </span><span class="n">plot2d</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s">&#39;Full Contour&#39;</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s">&#39;jet&#39;</span><span class="p">,</span> <span class="n">contours</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">colorbar</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Producing,</p>
@@ -194,7 +194,7 @@ or any calling wrappers will also have this option.  For example:</p>
 </div></blockquote>
 <p>Custom labeling styles and colorbars can be manually passed in as shown in the <a class="reference external" href="http://matplotlib.org/examples/pylab_examples/contour_demo.html">tutorial</a> with calls to the plotting methods, plt.clabel() and plt.colorbar() respectively.  As <strong>pyuvvis</strong> grows, more default styles will be added.</p>
 <p>The <strong>background</strong> keyword lets the user pass either a formatted color map or custom image directly into the plot background (open any image in PIL first).  This is a wrapper around plt.imshow() (see <a class="reference external" href="http://matplotlib.org/examples/pylab_examples/contour_demo.html">tutorial</a>).  Two default color maps are builtin.  For example:</p>
-<div class="highlight-ipython"><div class="highlight"><pre><span class="go">plot2d(A, title=&#39;Full Contour&#39;, cmap=&#39;autumn&#39;, contours=15, label=1, colorbar=1, background=1)</span>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [1]: </span><span class="n">plot2d</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s">&#39;Full Contour&#39;</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s">&#39;autumn&#39;</span><span class="p">,</span> <span class="n">contours</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">colorbar</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">background</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Gives:</p>
@@ -208,7 +208,7 @@ or any calling wrappers will also have this option.  For example:</p>
 <p><strong>pyuvvis</strong> introduces the plot3d() wrapper, which converts a DataFrame into an <a class="reference external" href="http://matplotlib.org/mpl_toolkits/mplot3d/tutorial.html">Axes3d</a> object or <a class="reference external" href="http://code.enthought.com/projects/mayavi/">Mayavi</a> scene.</p>
 <p>This does a lot under the hood to make to get nice scene formatting and label behavior, as well as intuitive color and contour mapping, thus it is more than just a laborious wrapper like plot2d() and _genplot().</p>
 <p>A default call to plot3d, specifying default elevation and azimuth coordinates (defaults to 0,0):</p>
-<div class="highlight-ipython"><div class="highlight"><pre><span class="go">plot3d(df, elev=24, azim=-29)</span>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [1]: </span><span class="n">plot3d</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">elev</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">azim</span><span class="o">=-</span><span class="mi">29</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Yields a fully interactive Axes3D subobject:</p>
@@ -216,7 +216,7 @@ or any calling wrappers will also have this option.  For example:</p>
 <div><a class="reference internal image-reference" href="../_images/3d.png"><img alt="alternate text" class="align-center" src="../_images/3d.png" style="width: 8.0in; height: 5.0in;" /></a>
 </div></blockquote>
 <p>The contour plots projections can be turned on and off selectively via the proj_xy, proj_xz, and proj_yz arguments.  To turn them off:</p>
-<div class="highlight-ipython"><div class="highlight"><pre><span class="go">plot3d(df, elev=24, azim=-29, proj_xy=None, proj_yz=None, proj_xz=None)</span>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [1]: </span><span class="n">plot3d</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">elev</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">azim</span><span class="o">=-</span><span class="mi">29</span><span class="p">,</span> <span class="n">proj_xy</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">proj_yz</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">proj_xz</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Gives</p>
@@ -225,7 +225,7 @@ or any calling wrappers will also have this option.  For example:</p>
 </div></blockquote>
 <p>For convienence, permutations of the plane projections in the keywords will work as well.  (EG proj_xy or proj_yx are the same keyword).</p>
 <p>The appearance and layout of this surface object takes in a bevy of typical keywords, which can be passed in directly.  I&#8217;ve added two new keywords for convienence, <strong>c_iso</strong> and <strong>r_iso</strong>.  These allow the user to control the number of columnwise and rowwise isolines that are drawn across the surface.  This is a corollary to the Axes3d keywords, <strong>cstrides</strong> and <strong>rstrides</strong>, which control the spacing between the lines.  Depending on use, either of these may be specified in the call to plot3d.  In the following example, I&#8217;m playing with the number of isolines (c_iso and r_iso), as well as increasing the surface transparancy (keyword- alpha), as well as adding a title.</p>
-<div class="highlight-ipython"><div class="highlight"><pre><span class="go">plot3d(df, elev=24, azim=-29, proj_xy=None, proj_yz=None, proj_xz=None, cmap=&#39;jet&#39;, c_iso=30, r_iso=30, title=&#39;hi there&#39;, alpha=0.9)</span>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [1]: </span><span class="n">plot3d</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">elev</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">azim</span><span class="o">=-</span><span class="mi">29</span><span class="p">,</span> <span class="n">proj_xy</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">proj_yz</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">proj_xz</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s">&#39;jet&#39;</span><span class="p">,</span> <span class="n">c_iso</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">r_iso</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s">&#39;hi there&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.9</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Yielding</p>
@@ -233,9 +233,9 @@ or any calling wrappers will also have this option.  For example:</p>
 <div><a class="reference internal image-reference" href="../_images/3d3.png"><img alt="alternate text" class="align-center" src="../_images/3d3.png" style="width: 8.0in; height: 5.0in;" /></a>
 </div></blockquote>
 <p>There are three more important keywords to plot3d.  These are: <strong>kind</strong>, <strong>contour_color</strong>, <strong>contour_cmap</strong> and <strong>contour_cmap</strong>.  Kind can take values of &#8220;contour&#8221; and &#8220;contourf&#8221;, to specify whether the contours should be filled or not.  <strong>contour_color</strong> and <strong>contour_cmap</strong> allow the user to pass a solid color or colormapping to the projections (sorry, for now there is not support for specifying separate colors for each projection.)  The resulting behavior is illustrated below.</p>
-<div class="highlight-ipython"><div class="highlight"><pre><span class="go">plot3d(df, elev=24, azim=-29, kind=&#39;contourf&#39;)</span>
-<span class="go">plot3d(df, elev=24, azim=-29, contour_color=&#39;red&#39;)</span>
-<span class="go">plot3d(df, elev=24, azim=-29, contour_cmap=cmget(&#39;autumn&#39;))</span>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [1]: </span><span class="n">plot3d</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">elev</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">azim</span><span class="o">=-</span><span class="mi">29</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s">&#39;contourf&#39;</span><span class="p">)</span>
+<span class="gp">In [2]: </span><span class="n">plot3d</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">elev</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">azim</span><span class="o">=-</span><span class="mi">29</span><span class="p">,</span> <span class="n">contour_color</span><span class="o">=</span><span class="s">&#39;red&#39;</span><span class="p">)</span>
+<span class="gp">In [3]: </span><span class="n">plot3d</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">elev</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">azim</span><span class="o">=-</span><span class="mi">29</span><span class="p">,</span> <span class="n">contour_cmap</span><span class="o">=</span><span class="n">cmget</span><span class="p">(</span><span class="s">&#39;autumn&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>Yielding the following three plots respectively.</p>
@@ -245,6 +245,10 @@ or any calling wrappers will also have this option.  For example:</p>
 <a class="reference internal image-reference" href="../_images/3dautumn.png"><img alt="alternate text" class="align-center" src="../_images/3dautumn.png" style="width: 8.0in; height: 5.0in;" /></a>
 </div></blockquote>
 <p>We also have included a <strong>poly3d</strong> plotting utility to wrap matplotlib&#8217;s polygonal plotting facilities.  This is still in development, and seems to have a few kinks to work out.  It should still work out of the box if anyone wants to play around with it.  The issues come in when formatting the plot, and I believe are indigenous to matplotlib itself.</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [1]: </span><span class="kn">from</span> <span class="nn">pyuvvis.advanced_plots</span> <span class="kn">import</span> <span class="n">poly3d</span>
+<span class="gp">In [2]: </span><span class="n">poly3d</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+</pre></div>
+</div>
 <p>Produces something akin to, but not exactly, the following:</p>
 <blockquote>
 <div><a class="reference internal image-reference" href="../_images/polygon.png"><img alt="alternate text" class="align-center" src="../_images/polygon.png" style="width: 8.0in; height: 5.0in;" /></a>
