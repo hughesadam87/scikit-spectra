@@ -300,6 +300,8 @@ Yielding
       :alt: alternate text
       :align: center
 
+*Take note that plot3d can take in string input for cmap if it correctly refers to a matplotlib.cm built-in colormap.*  
+
 There are three more important keywords to plot3d.  These are: **kind**, **contour_color**, **contour_cmap** and **contour_cmap**.  Kind can take values of "contour" and "contourf", to specify whether the contours should be filled or not.  **contour_color** and **contour_cmap** allow the user to pass a solid color or colormapping to the projections (sorry, for now there is not support for specifying separate colors for each projection.)  The resulting behavior is illustrated below.
 
 .. sourcecode:: ipython
