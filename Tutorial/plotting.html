@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Plotting &mdash; pyuvvis 0.1.0 documentation</title>
+    <title>Plotting &mdash; pyuvvis 0.1.1c documentation</title>
     
     <link rel="stylesheet" href="../_static/agogo.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.1.0',
+        VERSION:     '0.1.1c',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -26,14 +26,14 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="pyuvvis 0.1.0 documentation" href="../index.html" />
+    <link rel="top" title="pyuvvis 0.1.1c documentation" href="../index.html" />
     <link rel="prev" title="Getting Started" href="getting_started.html" /> 
   </head>
   <body>
     <div class="header-wrapper">
       <div class="header">
         <div class="headertitle"><a
-          href="../index.html">pyuvvis 0.1.0 documentation</a></div>
+          href="../index.html">pyuvvis 0.1.1c documentation</a></div>
         <div class="rel">
           <a href="getting_started.html" title="Getting Started"
              accesskey="P">previous</a> |
@@ -59,6 +59,197 @@
             
   <div class="section" id="plotting">
 <h1>Plotting<a class="headerlink" href="#plotting" title="Permalink to this headline">¶</a></h1>
+<p><strong>Note, many of the coloring features introduced here don&#8217;t work with older versions of matplotlib.</strong>
+I tested this on 1.1.0-2, on Ubuntu 10.04.  Please email me a <a class="reference external" href="mailto:hughesadam87&#37;&#52;&#48;gmail&#46;com">hughesadam87<span>&#64;</span>gmail<span>&#46;</span>com</a> for help and suggestions.</p>
+<div class="section" id="intro">
+<h2>Intro<a class="headerlink" href="#intro" title="Permalink to this headline">¶</a></h2>
+<p><strong>pyuvvis</strong> plotting is based on pandas and matplotlib plotting capabilities.  These
+include wrappers around matplotlib&#8217;s contour and 3d plotting API, as well as easier
+normalized color mapping.  This section will demonstrate these basic new plotting components,
+and then how one can extend them into other areas of interest, such as 2d correlation analysis (<a class="reference external" href="http://en.wikipedia.org/wiki/Two-dimensional_correlation_analysis">2dca</a>).</p>
+<blockquote>
+<div></div></blockquote>
+<p>The three new plotting functions introduced by pyuvvis are <strong>_genplot</strong>, <strong>plot2d</strong>, and <strong>plot3d</strong>.
+These plots will assign plot labels and aesthetics based on a hierarchy of access of keywords, attribute
+and then defaults.  In the absence of keywords, these plotting programs will look for the following attributes.</p>
+<ul class="simple">
+<li>Title-  <strong>df.name</strong></li>
+<li>Xlabel- <strong>df.index.name</strong></li>
+<li>Ylabel- <strong>df.columns.name</strong></li>
+</ul>
+<p>In the absence of these name attributes, it will settle on default values. I am hoping that in the future, these
+attributes become built in to the DataFrame class.</p>
+<p>It is easy to change default aesthetics of 1d, 2d or 3d plots, while retaining this attribute hierarchy.  For example,
+let me show how the function, <strong>specplot()</strong> is a customized version of <strong>_genplot()</strong>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">specplot</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="o">**</span><span class="n">pltkwds</span><span class="p">):</span>
+    <span class="n">pltkwds</span><span class="p">[</span><span class="s">&#39;linewidth&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">pltkwds</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;linewidth&#39;</span><span class="p">,</span> <span class="mf">1.0</span> <span class="p">)</span>
+    <span class="n">pltkwds</span><span class="p">[</span><span class="s">&#39;ylabel_def&#39;</span><span class="p">]</span><span class="o">=</span><span class="s">&#39;Intensity&#39;</span>
+    <span class="n">pltkwds</span><span class="p">[</span><span class="s">&#39;xlabel_def&#39;</span><span class="p">]</span><span class="o">=</span><span class="s">&#39;Wavelength&#39;</span>
+    <span class="n">pltkwds</span><span class="p">[</span><span class="s">&#39;title_def&#39;</span><span class="p">]</span><span class="o">=</span><span class="s">&#39;Spectral Plot&#39;</span>
+    <span class="k">return</span> <span class="n">_genplot</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="o">**</span><span class="n">pltkwds</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We see that the xlabel, ylabel and title have special keywords that are overwritten, these being xlabel_def, ylabel_def and title_def.  This is necessary to
+ensure correct attribute lookup.  Any other pyplot keywords, in this case <em>linewidth</em>, can be overwritten using <em>pop()</em> as shown above.  This custom plotting very easy, and is more
+useful with 2d and 3d plotting.  It ought to work the same way, except instead of <strong>_genplot()</strong>, one uses either <strong>plot2d()</strong> or <strong>plot3d()</strong>.</p>
+</div>
+<div class="section" id="d-plotting">
+<h2>1d plotting<a class="headerlink" href="#d-plotting" title="Permalink to this headline">¶</a></h2>
+<p>Basic 1d plotting is a light wrapper around <strong>pandas&#8217;</strong> df.plot().  We can load this function, _genplot(), using:</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [73]: </span><span class="kn">from</span> <span class="nn">pyuvvis.basic_plots</span> <span class="kn">import</span> <span class="n">_genplot</span>
+</pre></div>
+</div>
+<p>Upon calling <strong>specplot(df)</strong>, this will yield a plot:</p>
+<blockquote>
+<div><a class="reference internal image-reference" href="../_images/specplot.png"><img alt="alternate text" class="align-center" src="../_images/specplot.png" style="width: 8.0in; height: 5.0in;" /></a>
+</div></blockquote>
+<p>However, the default plot labeling and titling behavior is automatically overwritten in the presence of the &#8221;.name&#8221; attribute on the DataFrame, and its labels, as described in the preface to this section.  For example, if I assign these name attributes:</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [73]: </span><span class="n">df</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;title&#39;</span>
+<span class="gp">In [73]: </span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;rowlabel&#39;</span>
+<span class="gp">In [73]: </span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;columnlabel&#39;</span>
+<span class="gp">In [73]: </span><span class="n">specplot</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The plot no longer relies on its default values:</p>
+<blockquote>
+<div><a class="reference internal image-reference" href="../_images/labels.png"><img alt="alternate text" class="align-center" src="../_images/labels.png" style="width: 8.0in; height: 5.0in;" /></a>
+</div></blockquote>
+<p>However, they can be manually overwritten with manual keyword passing.</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [1]: </span><span class="n">specplot</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">xlabel</span><span class="o">=</span><span class="s">&#39;X test&#39;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s">&#39;Y test&#39;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s">&#39;Title here&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="color-mapping">
+<h3>color mapping<a class="headerlink" href="#color-mapping" title="Permalink to this headline">¶</a></h3>
+<p>Pandas df.plot() already supports solid color assignment through the color keyword parameter.  _genplot()
+or any calling wrappers will also have this option.  For example:</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [73]: </span><span class="n">specplot</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;r&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Produces:</p>
+<blockquote>
+<div><a class="reference internal image-reference" href="../_images/red.png"><img alt="alternate text" class="align-center" src="../_images/red.png" style="width: 8.0in; height: 5.0in;" /></a>
+</div></blockquote>
+<p>For now, the color mapping can only map colors to a single curve (eg, 1 color to 1 curve).  Curves currently are colored either by their mean or maximum values along an axis; however, the next pyuvvis update will allow the user to pass <em>any general function</em> to determine coloring.  For example, one could color curves based on their mean value proximity to a prime number, or even on a completely different set of criteria stored in another DataFrame.</p>
+<p>By default, color maps are normalized to the DataFrame&#8217;s max and min column values.  We can generate a color map through _df_colormapper().  For example:</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [1]: </span><span class="kn">from</span> <span class="nn">pyuvvis.pyplots.plot_utils</span> <span class="kn">import</span> <span class="n">cmget</span><span class="p">,</span> <span class="n">_df_colormapper</span>
+<span class="gp">In [73]: </span><span class="n">autumncolors</span><span class="o">=</span><span class="n">_df_colormapper</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s">&#39;autumn&#39;</span><span class="p">)</span>
+<span class="gp">In [43]: </span><span class="n">specplot</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">autumncolors</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Yields the following plot:</p>
+<blockquote>
+<div><a class="reference internal image-reference" href="../_images/autumn.png"><img alt="alternate text" class="align-center" src="../_images/autumn.png" style="width: 8.0in; height: 5.0in;" /></a>
+</div></blockquote>
+<p>We can choose the upper and lower value limits for normalizability.  For example, if we want the color map to apply to DataFrame curves whose maximum values are between 410.0 and 710.0 (in this case, intensity units of my spectral data), then this is quite easy to assign.</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [73]: </span><span class="n">scaledautumn</span><span class="o">=</span><span class="n">_df_colormapper</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s">&#39;autumn&#39;</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mf">410.0</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mf">710.0</span><span class="p">)</span>
+<span class="gp">In [43]: </span><span class="n">specplot</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">scaledautumn</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Yields the following plot:</p>
+<blockquote>
+<div><a class="reference internal image-reference" href="../_images/autumnscaled.png"><img alt="alternate text" class="align-center" src="../_images/autumnscaled.png" style="width: 8.0in; height: 5.0in;" /></a>
+</div></blockquote>
+<p>We see that any value greater than 710.0 is yellow, and any value below 410.0 is red.</p>
+<p>Additionally, for certain instances, it is useful to color map along the orthogonal axis:</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [1]: </span><span class="n">uvvis</span><span class="o">=</span><span class="n">_df_colormapper</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s">&#39;jet&#39;</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mf">410.0</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mf">710.0</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This may not be generally practical, but has uses in the scope of pyuvvis.  For example, we can look at the temporal evolution of various wavelength averages in the spectrum, while normalizing based on a prescribed color pattern to the visible light spectrum.  EG:</p>
+<blockquote>
+<div><a class="reference internal image-reference" href="../_images/norm_time.png"><img alt="alternate text" class="align-center" src="../_images/norm_time.png" style="width: 8.0in; height: 5.0in;" /></a>
+</div></blockquote>
+<p>More on this plot and analysis will come with the official pyuvvis documentation.</p>
+</div>
+</div>
+<div class="section" id="id1">
+<h2>2d plotting<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>pyuvvis provides a <strong>plot2d</strong> function, a DataFrame-based wrapper for matplotlib&#8217;s <a class="reference external" href="http://matplotlib.org/examples/pylab_examples/contour_demo.html">contour</a> plotting function, plt.contour().</dt>
+<dd></dd>
+</dl>
+<p><strong>plt.contour(df)</strong> will produce a plot; however, will not deduce the proper axis labels from the DataFrame.  I have included a plot2d wrapper that behaves much the same way as the 1d <em>_genplot()</em> function, in terms of how it handles name attributes and default values.  Plot2d and also handles other unexpected nuances in regard to the interplay between matplotlib and the pandas DataFrame that most users would not rather be bothered with.  Additionally, more bells and whistles have been included to make it easy to customize some contour plots.</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [50]: </span><span class="n">plot2d</span><span class="p">(</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">xlabel</span><span class="o">=</span><span class="s">&#39;xlabel&#39;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s">&#39;ylabel&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Yields:</p>
+<blockquote>
+<div><a class="reference internal image-reference" href="../_images/cont.png"><img alt="alternate text" class="align-center" src="../_images/cont.png" style="width: 8.0in; height: 5.0in;" /></a>
+</div></blockquote>
+<p>Colormapping is more easily integrated, taking either literal mapltolib.cm objects, or string wrappers to the aformentioned libraries.  Additionally, the contours input has been changed to keyword input for various reasons.</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="go">plot2d(df, title=&#39;Full Contour&#39;, cmap=&#39;gray&#39;, contours=70)</span>
+</pre></div>
+</div>
+<p>Produces:</p>
+<blockquote>
+<div><a class="reference internal image-reference" href="../_images/gary.png"><img alt="alternate text" class="align-center" src="../_images/gary.png" style="width: 8.0in; height: 5.0in;" /></a>
+</div></blockquote>
+<p>It is possible to trick out matplotlib contour plots as shown in the <a class="reference external" href="http://matplotlib.org/examples/pylab_examples/contour_demo.html">tutorial</a>; however, I have tried to simplify some of the hassle of this.  In particular, easier control of the labeling style, plot background and colorbars.  Special keyword arguments have been included in plot2d to add some defaul behaviors in all three areas. These are <strong>label</strong>, <strong>colorbar</strong>, and  <strong>background</strong>.  For now, only a few rudimentary defaults have been built in as a proof of concept.  Default styles are chosen using integer arguments.</p>
+<p>For example, we can add plot labels and a colorbar:</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="go">plot2d(df, title=&#39;Full Contour&#39;, cmap=&#39;jet&#39;, contours=15, label=1, colorbar=1)</span>
+</pre></div>
+</div>
+<p>Producing,</p>
+<blockquote>
+<div><a class="reference internal image-reference" href="../_images/c2.png"><img alt="alternate text" class="align-center" src="../_images/c2.png" style="width: 8.0in; height: 5.0in;" /></a>
+</div></blockquote>
+<p>Custom labeling styles and colorbars can be manually passed in as shown in the <a class="reference external" href="http://matplotlib.org/examples/pylab_examples/contour_demo.html">tutorial</a> with calls to the plotting methods, plt.clabel() and plt.colorbar() respectively.  As <strong>pyuvvis</strong> grows, more default styles will be added.</p>
+<p>The <strong>background</strong> keyword lets the user pass either a formatted color map or custom image directly into the plot background (open any image in PIL first).  This is a wrapper around plt.imshow() (see <a class="reference external" href="http://matplotlib.org/examples/pylab_examples/contour_demo.html">tutorial</a>).  Two default color maps are builtin.  For example:</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="go">plot2d(A, title=&#39;Full Contour&#39;, cmap=&#39;autumn&#39;, contours=15, label=1, colorbar=1, background=1)</span>
+</pre></div>
+</div>
+<p>Gives:</p>
+<blockquote>
+<div><a class="reference internal image-reference" href="../_images/cool.png"><img alt="alternate text" class="align-center" src="../_images/cool.png" style="width: 8.0in; height: 5.0in;" /></a>
+</div></blockquote>
+<p>This looks pretty cool; however, there are a few bugs I haven&#8217;t worked out when a background is passed in, the most prominent one of which is that depending on the values of the DataFrame, the plot tends to look very squished!  Another problem is that if you pass in a custom image background, the plot does not yet scale it to fit.  Fixes coming soon.</p>
+</div>
+<div class="section" id="id2">
+<h2>3d plotting<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p><strong>pyuvvis</strong> introduces the plot3d() wrapper, which converts a DataFrame into an <a class="reference external" href="http://matplotlib.org/mpl_toolkits/mplot3d/tutorial.html">Axes3d</a> object or <a class="reference external" href="http://code.enthought.com/projects/mayavi/">Mayavi</a> scene.</p>
+<p>This does a lot under the hood to make to get nice scene formatting and label behavior, as well as intuitive color and contour mapping, thus it is more than just a laborious wrapper like plot2d() and _genplot().</p>
+<p>A default call to plot3d, specifying default elevation and azimuth coordinates (defaults to 0,0):</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="go">plot3d(df, elev=24, azim=-29)</span>
+</pre></div>
+</div>
+<p>Yields a fully interactive Axes3D subobject:</p>
+<blockquote>
+<div><a class="reference internal image-reference" href="../_images/3d.png"><img alt="alternate text" class="align-center" src="../_images/3d.png" style="width: 8.0in; height: 5.0in;" /></a>
+</div></blockquote>
+<p>The contour plots projections can be turned on and off selectively via the proj_xy, proj_xz, and proj_yz arguments.  To turn them off:</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="go">plot3d(df, elev=24, azim=-29, proj_xy=None, proj_yz=None, proj_xz=None)</span>
+</pre></div>
+</div>
+<p>Gives</p>
+<blockquote>
+<div><a class="reference internal image-reference" href="../_images/3dNone.png"><img alt="alternate text" class="align-center" src="../_images/3dNone.png" style="width: 8.0in; height: 5.0in;" /></a>
+</div></blockquote>
+<p>For convienence, permutations of the plane projections in the keywords will work as well.  (EG proj_xy or proj_yx are the same keyword).</p>
+<p>The appearance and layout of this surface object takes in a bevy of typical keywords, which can be passed in directly.  I&#8217;ve added two new keywords for convienence, <strong>c_iso</strong> and <strong>r_iso</strong>.  These allow the user to control the number of columnwise and rowwise isolines that are drawn across the surface.  This is a corollary to the Axes3d keywords, <strong>cstrides</strong> and <strong>rstrides</strong>, which control the spacing between the lines.  Depending on use, either of these may be specified in the call to plot3d.  In the following example, I&#8217;m playing with the number of isolines (c_iso and r_iso), as well as increasing the surface transparancy (keyword- alpha), as well as adding a title.</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="go">plot3d(df, elev=24, azim=-29, proj_xy=None, proj_yz=None, proj_xz=None, cmap=&#39;jet&#39;, c_iso=30, r_iso=30, title=&#39;hi there&#39;, alpha=0.9)</span>
+</pre></div>
+</div>
+<p>Yielding</p>
+<blockquote>
+<div><a class="reference internal image-reference" href="../_images/3d3.png"><img alt="alternate text" class="align-center" src="../_images/3d3.png" style="width: 8.0in; height: 5.0in;" /></a>
+</div></blockquote>
+<p>There are three more important keywords to plot3d.  These are: <strong>kind</strong>, <strong>contour_color</strong>, <strong>contour_cmap</strong> and <strong>contour_cmap</strong>.  Kind can take values of &#8220;contour&#8221; and &#8220;contourf&#8221;, to specify whether the contours should be filled or not.  <strong>contour_color</strong> and <strong>contour_cmap</strong> allow the user to pass a solid color or colormapping to the projections (sorry, for now there is not support for specifying separate colors for each projection.)  The resulting behavior is illustrated below.</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="go">plot3d(df, elev=24, azim=-29, kind=&#39;contourf&#39;)</span>
+<span class="go">plot3d(df, elev=24, azim=-29, contour_color=&#39;red&#39;)</span>
+<span class="go">plot3d(df, elev=24, azim=-29, contour_cmap=cmget(&#39;autumn&#39;))</span>
+</pre></div>
+</div>
+<p>Yielding the following three plots respectively.</p>
+<blockquote>
+<div><a class="reference internal image-reference" href="../_images/3dfull.png"><img alt="alternate text" class="align-center" src="../_images/3dfull.png" style="width: 8.0in; height: 5.0in;" /></a>
+<a class="reference internal image-reference" href="../_images/3dred.png"><img alt="alternate text" class="align-center" src="../_images/3dred.png" style="width: 8.0in; height: 5.0in;" /></a>
+<a class="reference internal image-reference" href="../_images/3dautumn.png"><img alt="alternate text" class="align-center" src="../_images/3dautumn.png" style="width: 8.0in; height: 5.0in;" /></a>
+</div></blockquote>
+<p>We also have included a <strong>poly3d</strong> plotting utility to wrap matplotlib&#8217;s polygonal plotting facilities.  This is still in development, and seems to have a few kinks to work out.  It should still work out of the box if anyone wants to play around with it.  The issues come in when formatting the plot, and I believe are indigenous to matplotlib itself.</p>
+<p>Produces something akin to, but not exactly, the following:</p>
+<blockquote>
+<div><a class="reference internal image-reference" href="../_images/polygon.png"><img alt="alternate text" class="align-center" src="../_images/polygon.png" style="width: 8.0in; height: 5.0in;" /></a>
+</div></blockquote>
+</div>
 </div>
 
 
@@ -71,7 +262,13 @@
           <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation_dependencies.html">Dependencies/Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">Plotting</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Plotting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#intro">Intro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#d-plotting">1d plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id1">2d plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id2">3d plotting</a></li>
+</ul>
+</li>
 </ul>
 
           <h3 style="margin-top: 1.5em;">Search</h3>
