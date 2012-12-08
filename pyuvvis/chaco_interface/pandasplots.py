@@ -13,12 +13,10 @@ import numpy as np
 from time import sleep
 
 ### For pyuvvis imports
-from pyuvvis.exampledata import get_csvdataframe
-from pyuvvis.core.spec_utilities import wavelength_slices
-from pyuvvis.IO.gwu_interfaces import from_timefile_datafile
-from pyuvvis.core.spec_labeltools import datetime_convert
+from pyuvvis import get_csvdataframe
+from pyuvvis import wavelength_slices
+from pyuvvis import datetime_convert
 from pyuvvis.pandas_utils.rebin import rebin
-from pyuvvis import get_exampledata
 from pandas.stats.moments import rolling_mean
 
 ### Local import 
@@ -191,7 +189,8 @@ class PandasPlot(HasTraits):
 
     main_group=Group(
         Item('plot', editor=ComponentEditor(), show_label=False),
-        Item('df_new'), Item('df_change'), Item('re_bin', style='simple'),
+     #   Item('df_new'), Item('df_change'), 
+        Item('re_bin', style='simple'),
         #Include('sample_group'),
         #Include('axis_traits_group')
     )
@@ -200,7 +199,7 @@ class PandasPlot(HasTraits):
 
 if __name__=='__main__':
     
-    df=get_csvdataframe()
+    df=get_csvdataframe('spectra.pickle')
 
 
     ### THIS WILL INDUCE A FAILURE IN THE PLOT.PLOT call
