@@ -3,7 +3,8 @@ setup.py
 pyuvvis/__init__.py
 pyuvvis/corr2d.py
 pyuvvis/custom_errors.py
-pyuvvis/get_exampledata.py
+pyuvvis/exampledata.py
+pyuvvis/test.py
 pyuvvis/IO/__init__.py
 pyuvvis/IO/gwu_interfaces.py
 pyuvvis/IO/specrecord.py
