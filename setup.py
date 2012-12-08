@@ -3,7 +3,7 @@ from distutils.core import setup
 ### For now, most of these are in here for testing.  Dependency version requirements can probably be relaxed, especially chaco.
 setup(
     name='PyUvVis',
-    version='0.1.1c',
+    version='0.1.1-1',
     author='Adam Hughes, Zhaowen Liu and GWU Physics Reeves Lab students',
     maintainer='Adam Hughes',
     maintainer_email='hughesadam87@gmail.com',
@@ -28,7 +28,7 @@ setup(
 				      'data/gwuspecdata/*.txt',
 				      'data/gwuspecdata/fiber1/*',
 				    'data/gwuspecdata/NPConcentration/*',   
-                                 ]
+				'scripts/scripttest/* '                                ]
                    },
     url='http://pypi.python.org/pypi/PyUvVis/',
     download_url='https://github.com/hugadams/pyuvvis',

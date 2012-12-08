@@ -102,6 +102,9 @@ def plot2d(df, contours=6, label=None, colorbar=None, background=None, **pltkwds
                 ll,bb,ww,hh = CB.ax.get_position().bounds
                 CB.ax.set_position([ll, b+0.1*h, ww, h*0.8])
                 
+        else:
+            raise badvalue_error(colorbar, 'integer of value 1 is only supported for now')
+                
          
 
     plt.xlabel(xlabel)      
@@ -162,10 +165,9 @@ def plot3d(df, kind='contour', elev=0, azim=0, proj_xy=True, proj_zy=True, proj_
         raise AttributeError('plot3d can have non-null values for attributes contour_cmap and contour_color, but not both.')
 
     zlabel_def=''     
+    zlabel=pltkwds.pop('zlabel', zlabel_def)                    
     
     xlabel, ylabel, title, pltkwds=smart_label(df, pltkwds)    
-
-    zlabel=pltkwds.pop('zlabel', zlabel_def)                
         
     ### If plane (xy) is input backwards (yx), still works    
     proj_xy=pltkwds.pop('proj_yx', proj_xy)
@@ -221,7 +223,7 @@ def plot3d(df, kind='contour', elev=0, azim=0, proj_xy=True, proj_zy=True, proj_
             cset = cfunc(xx, yy, df, zdir='x',colors=contour_color, cmap=contour_cmap, offset=xlim[0]) #project x onto zy (timestart)  (negative half time interval)
 
         if proj_xz:
-            cset = ax.contour(xx, yy, df, zdir='y',colors=contour_color, cmap=contour_cmap, offset=ylim[1]) #project y onto xz (ymid to 0)  (negative mid wavelength)
+            cset = cfunc(xx, yy, df, zdir='y',colors=contour_color, cmap=contour_cmap, offset=ylim[1]) #project y onto xz (ymid to 0)  (negative mid wavelength)
 
     else:    
         raise badvalue_error(kind, 'contour, contourf')
@@ -237,21 +239,27 @@ def plot3d(df, kind='contour', elev=0, azim=0, proj_xy=True, proj_zy=True, proj_
 
 def spec_surface3d(df, **pltkwds):
     ''' Wrapper for plot3d, using basic spectral label and view as default parameters.'''
-    pltkwds['ylabel']=pltkwds.pop('ylabel', 'Wavelength')
-    pltkwds['xlabel']=pltkwds.pop('xlabel', 'Time')
-    pltkwds['zlabel']=pltkwds.pop('zlabel', 'Intensity')
+
     pltkwds['elev']=pltkwds.pop('elev', 14)
-    pltkwds['azim']=pltkwds.pop('azim', -21)    
+    pltkwds['azim']=pltkwds.pop('azim', -21)
+    pltkwds['zlabel']=pltkwds.pop('zlabel', 'Intensity')  #No df attribute, so leave like this    
+
+
+    pltkwds['ylabel_def']='Wavelength'
+    pltkwds['xlabel_def']='Time'
+    
     return plot3d(df, **pltkwds)
 
 ### Should I just merge spec-surface and spec-poly?  
 def spec_poly3d(df, **pltkwds):
     ''' Wrapper for poly, using basic spectral label and view as default parameters.'''
-    pltkwds['ylabel']=pltkwds.pop('ylabel', 'Wavelength')
-    pltkwds['xlabel']=pltkwds.pop('xlabel', 'Time')
-    pltkwds['zlabel']=pltkwds.pop('zlabel', 'Intensity')
     pltkwds['elev']=pltkwds.pop('elev', 23)
-    pltkwds['azim']=pltkwds.pop('azim', 26)    
+    pltkwds['azim']=pltkwds.pop('azim', 26)
+    pltkwds['zlabel']=pltkwds.pop('zlabel', 'Intensity')      
+    
+    
+    pltkwds['ylabel_def']='Wavelength'
+    pltkwds['xlabel_def']='Time'    
     return poly3d(df, **pltkwds)
 
 

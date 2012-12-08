@@ -14,7 +14,7 @@ from pandas import Series, DataFrame
 from numpy import dot, empty, asarray, conj
 from math import pi
 ### ONCE DONE, DELETE AND THEN REPLACE PYUVVIS EVERWHERE
-from pyplots.advanced_plots import plot3d
+from pyplots.advanced_plots import spec_surface3d
 
 ### For local use
 from custom_errors import badvalue_error
@@ -96,7 +96,7 @@ def corr_3d(df, **pltkwds):
                 
     pltkwds['elev']=pltkwds.pop('elev', 31)
     pltkwds['azim']=pltkwds.pop('azim', -52)    
-    return plot3d(df, **pltkwds)    
+    return spec_surface3d(df, **pltkwds)    
 
 def sync_3d(df, checkdata=False,  **pltkwds):
     ''' Label and title set for synchronous correlation 3d spectrum.  Wrapper for corr_3d.  Has extra keywords for checking 2dcs data for errors.
@@ -112,10 +112,10 @@ def sync_3d(df, checkdata=False,  **pltkwds):
             Df dimensions were: %i,%i'%(s0, s1))
         
         ### IMPLEMENT TEST FOR SYMMETRY, NOT SURE HOW
-        
-    
-    pltkwds['zlabel']=pltkwds.pop('zlabel', 'Intensity') #Not checked by smartlabel
-    pltkwds['title']=pltkwds.pop('title', 'Synchronous Spectrum')
+
+    pltkwds['zlabel']=pltkwds.pop('zlabel', 'Synchronicity')      
+
+    pltkwds['title_def']='Synchronous Spectrum'   
     corr_3d(df, **pltkwds)
     
 def async_3d(df, checkdata=False,  **pltkwds):
@@ -130,6 +130,7 @@ def async_3d(df, checkdata=False,  **pltkwds):
         
         ### IMPLEMENT TEST FOR ANTI-SYMMETRY, NOT SURE HOW    
     
-    pltkwds['zlabel']=pltkwds.pop('zlabel', 'Intensity')
-    pltkwds['title']=pltkwds.pop('title', 'Aynchronous Spectrum')
+    pltkwds['zlabel']=pltkwds.pop('zlabel', 'Asynchronicity')      
+    
+    pltkwds['title_def']='Asynchronous Spectrum'
     corr_3d(df, **pltkwds)    

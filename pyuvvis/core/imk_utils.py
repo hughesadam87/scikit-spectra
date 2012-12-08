@@ -209,6 +209,7 @@ def make_root_dir(rootout, overwrite=False):
     ### Make output directory and subdirectories ###    
     print 'making directory %s' %rootout
     os.makedirs(rootout)
+    return rootout
 
 
 ### Deprecated functions below ###

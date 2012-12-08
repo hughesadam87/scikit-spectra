@@ -29,13 +29,18 @@ def cmget(color):
         the default colormaps available to matplotlib (http://dept.astro.lsa.umich.edu/~msshin/science/code/matplotlib_cm/)') 
     return cmap
 
-def _df_colormapper(df, cmap, axis=0, style='mean', vmin=None, vmax=None):
+def _df_colormapper(df, cmap, axis=0, style='max', vmin=None, vmax=None):
     ''' Maps matplotlibcolors to a dataframe based on the mean value of each curve along that
     axis.  Useful for df.plot() which doesn't take a normalized colormap natively.  cmap can be
     an instance of an RGB color map, or a string which such that cm.string will produce one.
     Default ones are here:
-      http://dept.astro.lsa.umich.edu/~msshin/science/code/matplotlib_cm/   (is this outdated?) '''
+      http://dept.astro.lsa.umich.edu/~msshin/science/code/matplotlib_cm/   (is this outdated?) 
+      
+    style: should curve be colored based on its average value or max value.
     
+    Note that mapping paints an entire curve, not points on the curve! '''
+    
+    style=style.lower()
     if isinstance(cmap, basestring): 
         cmap=cmget(cmap)
     
@@ -48,17 +53,29 @@ def _df_colormapper(df, cmap, axis=0, style='mean', vmin=None, vmax=None):
         vmax=max(df.max(axis=axis))
         
     cNorm=Normalize(vmin=vmin, vmax=vmax)
-    scalarmap=cm.ScalarMappable(norm=cNorm, cmap=cmap)    
-    if axis==0:
-        colors=[scalarmap.to_rgba(df[x].mean()) for x in df.columns]
-    elif axis==1:
-        colors=[scalarmap.to_rgba(df.ix[x].mean()) for x in df.index]        
+    scalarmap=cm.ScalarMappable(norm=cNorm, cmap=cmap) 
+    if style=='mean':
+        if axis==0:
+            colors=[scalarmap.to_rgba(df[x].mean()) for x in df.columns]
+        elif axis==1:
+            colors=[scalarmap.to_rgba(df.ix[x].mean()) for x in df.index]    
+            
+    elif style=='max':
+        if axis==0:
+            colors=[scalarmap.to_rgba(df[x].max()) for x in df.columns]
+        elif axis==1:
+            colors=[scalarmap.to_rgba(df.ix[x].max()) for x in df.index]         
+    else:    
+        raise badvalue_error(style, '"max" or "mean"')         
+        
     return colors
     
 def _uvvis_colors(df, delim=':'):
     '''    From a dataframe with indicies of ranged wavelengths (eg 450.0:400.0), and builds colormap
     with fixed uv_vis limits (for now 400, 700).  Here are some builtin ones:
-    http://dept.astro.lsa.umich.edu/~msshin/science/code/matplotlib_cm/'''
+    http://dept.astro.lsa.umich.edu/~msshin/science/code/matplotlib_cm/.  
+    
+    Colors each curve based on the mid value in range. '''
     colors=[]
     cNorm=Normalize(vmin=350.0, vmax=700.0)
     scalarmap=cm.ScalarMappable(norm=cNorm, cmap=cm.jet)  
@@ -177,10 +194,10 @@ def smart_label(df, pltkwargs):
     
     ### If no pltkwards or df attributes found, these are assigned to axis.  Blank probably not necessary,
     ### but wanted to leave this here incase it's ever useful to alter the default label.
-    xlabel_def=''
-    ylabel_def=''
-    zlabel_def=''
-    title_def=''        
+    xlabel_def=pltkwargs.pop('xlabel_def', '')
+    ylabel_def=pltkwargs.pop('ylabel_def', '')
+    zlabel_def=pltkwargs.pop('zlabel_def', '')
+    title_def=pltkwargs.pop('title_def', '')        
         
     if 'xlabel' in pltkwargs:
         xlabel=pltkwargs.pop('xlabel')

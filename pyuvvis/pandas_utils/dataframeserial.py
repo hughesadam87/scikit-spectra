@@ -25,7 +25,6 @@ __status__ = "Prototype"
 
 import cPickle
 from operator import attrgetter
-
 from pandas import DataFrame
 
 ### For testing ###

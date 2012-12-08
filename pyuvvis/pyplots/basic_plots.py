@@ -20,10 +20,7 @@ def _genplot(df, **pltkwargs):
     ### For now this could use improvement  
     pltkwargs['legend']=pltkwargs.pop('legend', False)
     legstyle=pltkwargs.pop('legstyle', None)          
-    
-    ### Special keyword to remove pre-set defaults from methods that call this one ###
-   
-        
+            
     ### Make sure don't have "colors", or that 'colors' is not set to default    
     if 'colors' in pltkwargs:
         if pltkwargs['color'].lower()=='default':
@@ -55,9 +52,9 @@ def specplot(df, **pltkwds):
     ''' Basically a call to gen plot with special attributes, and a default color mapper.'''
     pltkwds['linewidth']=pltkwds.pop('linewidth', 1.0 )    
            
-    pltkwds['ylabel']=pltkwds.pop('ylabel', 'Intensity')
-    pltkwds['xlabel']=pltkwds.pop('xlabel', 'Wavelength')
-    pltkwds['title']=pltkwds.pop('title', 'Spectral Plot')   
+    pltkwds['ylabel_def']='Intensity'
+    pltkwds['xlabel_def']='Wavelength'
+    pltkwds['title_def']='Spectral Plot'   
     
     return _genplot(df, **pltkwds)
     
@@ -66,12 +63,12 @@ def timeplot(df, **pltkwds):
     every single row in a dataframe.  For ranges of rows, see spec_utilities.wavelegnth_slices and
     range_timeplot() below.'''
     pltkwds['color']=pltkwds.pop('color', _df_colormapper(df, 'jet', axis=1) )         
-        
-    pltkwds['ylabel']=pltkwds.pop('ylabel', 'Intensity')
-    pltkwds['xlabel']=pltkwds.pop('xlabel', 'Time')
-    pltkwds['title']=pltkwds.pop('title', 'Temporal Plot')    
     pltkwds['legend']=pltkwds.pop('legend', True) #Turn legend on
-    
+        
+    pltkwds['ylabel_def']='Intensity'
+    pltkwds['xlabel_def']='Time'
+    pltkwds['title_def']='Intensity vs. Time Plot'     
+        
     return _genplot(df.transpose(),  **pltkwds)
 
 def range_timeplot(df, **pltkwds):
@@ -82,18 +79,18 @@ def range_timeplot(df, **pltkwds):
     pltkwds['color']=pltkwds.pop('color', _uvvis_colors(df))
     pltkwds['legend']=pltkwds.pop('legend', True)
     pltkwds['linewidth']=pltkwds.pop('linewidth', 3.0 )  
+    pltkwds['legend']=pltkwds.pop('legend', True) #Turn legend on        
           
-    pltkwds['ylabel']=pltkwds.pop('ylabel', 'Intensity')
-    pltkwds['xlabel']=pltkwds.pop('xlabel', 'Time')
-    pltkwds['title']=pltkwds.pop('title', 'Ranged Time Plot')   
-    pltkwds['legend']=pltkwds.pop('legend', True) #Turn legend on    
-            
+    pltkwds['ylabel_def']='Intensity'
+    pltkwds['xlabel_def']='Time'
+    pltkwds['title_def']='Ranged Time Plot'         
+                
     return _genplot(df.transpose(), **pltkwds)   #DF TRANSPOSE
  
-def absplot(df, **pltkwds):
-    pltkwds['ylabel']=pltkwds.pop('ylabel', 'Relative Intensity')
-    pltkwds['xlabel']=pltkwds.pop('xlabel', 'Wavelength')
-    pltkwds['title']=pltkwds.pop('title', 'Absorbance Plot')   
+def absplot(df, **pltkwds):    
+    pltkwds['ylabel_def']='Relative Intensity'
+    pltkwds['xlabel_def']='Wavelength'
+    pltkwds['title_def']='Absorbance Plot'
     
     return _genplot(df, **pltkwds)    
     

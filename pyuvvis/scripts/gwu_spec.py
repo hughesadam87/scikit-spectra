@@ -7,33 +7,33 @@ import matplotlib.pyplot as plt
 import specparms as sp  #if change filename, change shutil call
 
 
-### LOCAL IMPORTS
-#sys.path.append('../../pyuvvis')
-#from pyplots.advanced_plots import spec_surface3d, surf3d, spec_poly3d, plot2d
-#from pandas_utils.dataframeserial import df_load, df_dump
-#from pandas_utils.df_attrhandler import transfer_attr
-#from core.spec_labeltools import datetime_convert, spectral_convert, spec_slice
-#from core.spec_utilities import boxcar, wavelength_slices, divby
-#from core.baseline import dynamic_baseline
-#from pyplots.basic_plots import specplot, timeplot, absplot, range_timeplot
-#from pyplots.plot_utils import _df_colormapper, cmget
-#from IO.gwu_interfaces import from_timefile_datafile, get_files_in_dir, from_spec_files
-#from core.baseline import dynamic_baseline
-#from imk_utils import make_root_dir, get_files_in_dir, get_shortname
-#from corr2d import corr_analysis, make_ref, sync_3d, async_3d
+## LOCAL IMPORTS
+sys.path.append('../../pyuvvis')
+from pyplots.advanced_plots import spec_surface3d, surf3d, spec_poly3d, plot2d, plot3d
+from pandas_utils.dataframeserial import df_load, df_dump
+from pandas_utils.df_attrhandler import transfer_attr
+from core.spec_labeltools import datetime_convert, spectral_convert, spec_slice
+from core.spec_utilities import boxcar, wavelength_slices, divby
+from core.baseline import dynamic_baseline
+from pyplots.basic_plots import specplot, timeplot, absplot, range_timeplot
+from pyplots.plot_utils import _df_colormapper, cmget
+from IO.gwu_interfaces import from_timefile_datafile, get_files_in_dir, from_spec_files
+from core.baseline import dynamic_baseline
+from imk_utils import make_root_dir, get_files_in_dir, get_shortname
+from corr2d import corr_analysis, make_ref, sync_3d, async_3d
 
 ### UPDATE PACKAGE THEN CHANGE THIS
-from pyuvvis.pyplots.advanced_plots import spec_surface3d, surf3d, spec_poly3d, plot2d
-from pyuvvis.pandas_utils.dataframeserial import df_load, df_dump
-from pyuvvis.pandas_utils.df_attrhandler import transfer_attr
-from pyuvvis.core.spec_labeltools import datetime_convert, spectral_convert, spec_slice
-from pyuvvis.core.spec_utilities import boxcar, wavelength_slices, divby
-from pyuvvis.core.baseline import dynamic_baseline
-from pyuvvis.core.imk_utils import make_root_dir, get_files_in_dir, get_shortname
-from pyuvvis.pyplots.basic_plots import specplot, timeplot, absplot, range_timeplot
-from pyuvvis.pyplots.plot_utils import _df_colormapper, cmget
-from pyuvvis.IO.gwu_interfaces import from_timefile_datafile, get_files_in_dir, from_spec_files
-from pyuvvis.corr2d import corr_analysis, make_ref, sync_3d, async_3d
+#from pyuvvis.pyplots.advanced_plots import spec_surface3d, surf3d, spec_poly3d, plot2d, plot3d
+#from pyuvvis.pandas_utils.dataframeserial import df_load, df_dump
+#from pyuvvis.pandas_utils.df_attrhandler import transfer_attr
+#from pyuvvis.core.spec_labeltools import datetime_convert, spectral_convert, spec_slice
+#from pyuvvis.core.spec_utilities import boxcar, wavelength_slices, divby
+#from pyuvvis.core.baseline import dynamic_baseline
+#from pyuvvis.core.imk_utils import make_root_dir, get_files_in_dir, get_shortname
+#from pyuvvis.pyplots.basic_plots import specplot, timeplot, absplot, range_timeplot, _genplot
+#from pyuvvis.pyplots.plot_utils import _df_colormapper, cmget
+#from pyuvvis.IO.gwu_interfaces import from_timefile_datafile, get_files_in_dir, from_spec_files
+#from pyuvvis.corr2d import corr_analysis, make_ref, sync_3d, async_3d
 
 
 def plt_clrsave(outpath, outname): # dpi=600):
@@ -156,7 +156,8 @@ if __name__=='__main__':
                 lf.write('Loading contents of folder, %s, multiple raw spectral files %s.\n\n'%(folder, len(infiles)))                    
             
         ### Output the pickled dataframe    
-        df_dump(df_full, outdir+'/rundata.pickle')
+        df_dump(df_full, od+'/rundata.pickle')
+	df_full.to_csv(od+'/rundata.csv')
         
         ### Subtract the dark spectrum if it has one.  Note that all program should produce an attribute for darkseries,
         ### which may be None, but the attribute should still be here.
@@ -242,7 +243,7 @@ if __name__=='__main__':
         ref=make_ref(df, method='empty')     
 
         S,A=corr_analysis(df, ref)
-        sync_3d(A, title='Synchronous Spectrum (%s-%s %s)'%(round(min(df), 1), round(max(df),1), timeunit)) #min/max by columns      
+        sync_3d(S, title='Synchronous Spectrum (%s-%s %s)'%(round(min(df), 1), round(max(df),1), timeunit)) #min/max by columns      
         plt_clrsave(outcorr, options.rname+'full_sync')                
         async_3d(A, title='Asynchronous Spectrum (%s-%s %s)'%(round(min(df), 1), round(max(df),1), timeunit))
         plt_clrsave(outcorr, options.rname+'full_async')        
@@ -250,7 +251,7 @@ if __name__=='__main__':
         
         absdf=divby(df) 
         S,A=corr_analysis(absdf, ref)        
-        sync_3d(A, title='Synchronous Spectrum (%s-%s %s)'%(round(min(df), 1), round(max(df),1), timeunit)) #min/max by columns      
+        sync_3d(S, title='Synchronous Spectrum (%s-%s %s)'%(round(min(df), 1), round(max(df),1), timeunit)) #min/max by columns      
         plt_clrsave(outcorr, options.rname+'relative_sync')                
         async_3d(A, title='Asynchronous Spectrum (%s-%s %s)'%(round(min(df), 1), round(max(df),1), timeunit))
         plt_clrsave(outcorr, options.rname+'relative_async')         

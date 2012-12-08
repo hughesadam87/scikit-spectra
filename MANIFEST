@@ -3,6 +3,7 @@ setup.py
 pyuvvis/__init__.py
 pyuvvis/corr2d.py
 pyuvvis/custom_errors.py
+pyuvvis/get_exampledata.py
 pyuvvis/IO/__init__.py
 pyuvvis/IO/gwu_interfaces.py
 pyuvvis/IO/specrecord.py
@@ -17,6 +18,8 @@ pyuvvis/core/baseline.py
 pyuvvis/core/imk_utils.py
 pyuvvis/core/spec_labeltools.py
 pyuvvis/core/spec_utilities.py
+pyuvvis/data/example_data/spectra.csv
+pyuvvis/data/example_data/spectra.pickle
 pyuvvis/data/gwuspecdata/11_data.txt
 pyuvvis/data/gwuspecdata/11_hours_timefile.txt
 pyuvvis/data/gwuspecdata/40_300_10_dark.txt

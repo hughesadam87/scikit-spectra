@@ -1,10 +1,9 @@
-from pandasplotdatav2 import PandasPlotData
+### Enthought tool suite imports 
 from traits.api import Instance, Str, Enum, Range, HasTraits, Button, Enum, Property, Bool
 from traitsui.api import Item, View, HGroup, VGroup, Group, Include
 from enable.api import ComponentEditor
 from chaco.api import LabelAxis, Plot, ToolbarPlot
 from chaco.tools.api import BetterSelectingZoom, PanTool
-from string import ascii_lowercase, ascii_uppercase
 from random import randint
 from copy import deepcopy
 from pandas import DataFrame
@@ -12,12 +11,18 @@ from pandas import DataFrame
 ### For testing 
 import numpy as np
 from time import sleep
-from spec_utilities import wavelength_slices
-from spec_class import from_timefile_datafile
-from spec_labeltools import datetime_convert
-from pandas_utils import rebin
+
+### For pyuvvis imports
+from pyuvvis.get_exampledata import get_csvdataframe
+from pyuvvis.core.spec_utilities import wavelength_slices
+from pyuvvis.IO.gwu_interfaces import from_timefile_datafile
+from pyuvvis.core.spec_labeltools import datetime_convert
+from pyuvvis.pandas_utils.rebin import rebin
+from pyuvvis import get_exampledata
 from pandas.stats.moments import rolling_mean
 
+### Local import 
+from pandasplotdatav2 import PandasPlotData
 
 ### Add a method to relable rows/columns in place?
 class PandasPlot(HasTraits):
@@ -101,9 +106,9 @@ class PandasPlot(HasTraits):
     def _getlabelarray(self, dataframe):
         ''' Conveience method to get label along working dimension of a dataframe.'''
         if self._primaryaxis==0:
-            return dataframe.columns.values
+            return np.asarray(dataframe.columns)
         else:
-            return dataframe.index.values
+            return np.asarray(dataframe.index)
 
     def _df_change_fired(self):
         ''' set data iteratively column by column'''
@@ -194,18 +199,19 @@ class PandasPlot(HasTraits):
     traits_view=View( Include('main_group') )
 
 if __name__=='__main__':
-    df=from_timefile_datafile('./npsam/All_f1_npsam_by_1', './npsam/f1_npsam_timefile.txt')
     
- #   df.columns=datetime_convert(df.columns, return_as='seconds')
+    df=get_csvdataframe()
 
 
     ### THIS WILL INDUCE A FAILURE IN THE PLOT.PLOT call
-    dfsliced=wavelength_slices(df, ranges=((350.0,370.0), (450.0,500.0), (550.0,570.0), (650.0,680.0), (680.0,700.0)),\
-                            apply_fcn='simps')
-    theplot.dataframe=dfsliced
+ #   df=wavelength_slices(df, ranges=((350.0,370.0), (450.0,500.0), (550.0,570.0), (650.0,680.0), (680.0,700.0)),\
+ #                           apply_fcn='simps')
 
-    theplot=PandasPlot()   
+    ### resample dataframe to be a bit less dense, makes plot changes more fluid ###
     
-
+    df=df.ix[300.0:800.0:5.0, 0:150:5]
+ 
+    theplot=PandasPlot()   
+    theplot.dataframe=df   
     theplot.configure_traits()
 
