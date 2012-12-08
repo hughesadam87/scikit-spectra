@@ -5,31 +5,20 @@ The following sections will provide a brief introduction to the pyuvvis framewor
 
 As a firm believer of lead-by example, let's start by loading in some spectral data, and discuss the data structures as we go.
 
-``pyuvvis`` comes with some builtin package data.  This can be accessed easily using a special module called pkgutil.  We are going to load in a serialized set of spectral data from the package
-directory, **pyuvvis/data/example_data**.
+``pyuvvis`` comes with some builtin package data, with a convienent import function, get_csvdataframe(), which imports *.csv* or *.pickle* files from the directory *pyuvvis/data/example_data*.  We are going to load in a serialized set of spectral data called *spectra.pickle*.
 
 .. sourcecode:: ipython
 
-   In [8]: import pkgutil
+   In [3]: from pyuvvis import get_csvdataframe
 
-   In [9]: data=pkgutil.get_data('pyuvvis', 'data/example_data/spectra.pickle')
-
-This is a serialized dataframe with custom attributes.  To serialize and deserialize a dataframe without losing specially attached attributes, pyuvvis comes with some custom utilities.
-We can load this serialized stream into a dataframe with these as such:
-
-
-.. sourcecode:: ipython
-   
-   In [3]: from pyuvvis.pandas_utils.dataframeserial import df_loads
-
-   In [4]: df=df_loads(data)
+   In [4]: df=get_csvdataframe('spectra.pickle')
 
    In [5]: df
    Out[5]: 
    <class 'pandas.core.frame.DataFrame'>
    Index: 2048 entries, 339.09 to 1023.65
-   Columns: 216 entries, 2012-02-03 18:06:46 to 2012-02-04 05:05:56
-   dtypes: float64(216)
+   Columns: 158 entries, 2012-05-02 20:26:47 to 2012-05-02 20:44:36
+   dtypes: float64(158)
 
 ``df`` corresponds to spectral data with wavelengths from the range 339.09 to 1023.65 nm.  The columns are timestamps ranging from starting around 6pm on Feb 03 2012 and ending around 5am Feb 04 2012.
 
