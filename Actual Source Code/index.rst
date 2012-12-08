@@ -36,7 +36,7 @@ Table of Contents
 .. toctree::
    :maxdepth: 2
 
-   installation_dependencies.rst
+   Tutorial/installation_dependencies.rst
    Tutorial/getting_started.rst
    Tutorial/plotting.rst
    API/pyuvvis.rst
