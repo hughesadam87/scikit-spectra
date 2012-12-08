@@ -13,7 +13,7 @@ import numpy as np
 from time import sleep
 
 ### For pyuvvis imports
-from pyuvvis.get_exampledata import get_csvdataframe
+from pyuvvis.exampledata import get_csvdataframe
 from pyuvvis.core.spec_utilities import wavelength_slices
 from pyuvvis.IO.gwu_interfaces import from_timefile_datafile
 from pyuvvis.core.spec_labeltools import datetime_convert
