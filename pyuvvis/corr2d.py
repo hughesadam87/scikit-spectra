@@ -1,7 +1,20 @@
 ''' Suite for 2-dimensional correlation analysis based on pandas dataframes.  Decided to put it in, despite already
 seeing a numpy-based version in paper "2D-correlation analysis applied to in situ and operando Mossbauer spectroscopy".
 This would not be pandas friendly, so it wouldn't intgerate into pyuvvis and I also want to build some tools from 
-scratch to refamiliarize myself with the topic.'''
+scratch to refamiliarize myself with the topic.
+
+To remember/writeup eventually:
+
+From page 32 Noda book,
+Classical statistical cross correlation measures the dot product between spectral variables at different times.
+For example, a pulse at t=0 and again at t=3, then the cross correlation would be max at tau=3.  If this experiment
+went on for 50 minutes, then we average and integrate over all time.  If this pulse happed every 3 seconds, this correlation
+would be 100% for exmaple.  If the pulse happed like only 5 times, the correlation would be diluted by the normalization factor.
+
+The synchronous spectrum is the cross correlation at tau=0, summed and averaged over all times.  Basically, it measures the instantaneous
+correlation of all spectral variables.  The asynchronous spectrum is the instantaneous orthogonal spectrum basically.  So whenever two things
+are moving together at one instant, weight goes into the sync.  If not, weight goes into the async  Makes me think of an easy filter!  Can
+just throw out regions where not much is happening right?  Maybe call it a 2dcs filter.'''
 
 __author__ = "Adam Hughes"
 __copyright__ = "Copyright 2012, GWU Physics"
