@@ -71,7 +71,7 @@ def df_dumps(df):
 def df_dump(df, outfile):
     ''' Save dataframe as a file.'''
     outstream=df_dumps(df) #Dumps writes the object to memory    
-    f=open(outfile, 'w')
+    f=open(outfile, 'w') #Should this be 'wb'
     f.write(outstream)
     f.close()
     return None #Should I return none or stream?    

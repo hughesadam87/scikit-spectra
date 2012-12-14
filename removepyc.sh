@@ -3,7 +3,7 @@ ext=pyc
 
 find $rootdir -iname "*.$ext" -exec rm '{}' ';'
 
-echo "Removal operation complete"
+echo ".pyc removal complete"
 
 ## later make rootdir and ext keywords and put in my path.
 ## note: if I want it to prompt before deleting each file, 
