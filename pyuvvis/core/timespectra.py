@@ -10,6 +10,7 @@ import pandas
 
 from specindex import SpecIndex, list_sunits, specunits
 from spec_labeltools import datetime_convert
+from restore_utils import as_dataframe as adf
 
 ### These are used to overwrite pandas string formatting 
 from StringIO import StringIO #For overwritting dataframe output methods
@@ -154,7 +155,14 @@ def __newrepr__(self):
     Just ads a bit of extra data to the dataframe on printout.  Literally just copied directly from dataframe.__repr__ and
     added print statements.  Dataframe also has a nice ___reprhtml___ method for html accessibility.
     """
-    print 'ababababa'
+    delim='\t'
+    if self.specunit==None:
+        specunitout='None'
+    else:
+        specunitout=self.full_specunit
+        
+    print '**',self.name,'**', delim, 'Spectral unit:', specunitout, delim, 'Time unit:', 'Not Implemented','\n'
+    
     buf = StringIO()
     if self._need_info_repr_():
         self.info(buf=buf, verbose=self._verbose_info)
@@ -172,12 +180,7 @@ def __newrepr__(self):
 ### by using set_x methods.
 
 
-#@property
-#def timetypes(self):
-    #return self.columns.list_units()
-
-
-### Temporal column attributes/properties
+### Spectral column attributes/properties
 @property
 def specunit(self):
     return self.index.unit    #Short name key
@@ -193,22 +196,37 @@ def set_specunit(self, unit):
 def spectypes(self):
     return specunits
 
+
+### Temporal column attributes
+#@property
+#def full_specunit(self):
+    #return tunits[self.timeunit]
+
 @property
 def timetypes(self):
     return tunits
 
 
+### Doesn't work
+#def to_dataframe(self):
+    #return adf(self)
+
+### Instance methods
 pandas.DataFrame.list_sunits=list_sunits
 pandas.DataFrame.list_tunits=list_tunits
 
 pandas.DataFrame.spectypes=spectypes                
 pandas.DataFrame.specunit=specunit
+pandas.DataFrame.full_specunit=full_specunit
 pandas.DataFrame.set_specunit=set_specunit
 
 pandas.DataFrame.timetypes=timetypes
 
 pandas.DataFrame.as_interval=as_interval
 pandas.DataFrame.as_datetime=as_datetime
+#pandas.DataFrame.as_dataframe=to_dataframe
+
+
 
 ###Overwrite output representation
 pandas.DataFrame.__repr__=__newrepr__
@@ -220,7 +238,7 @@ if __name__ == '__main__':
     ### best to generate them in other modules and import them to simulate realisitc usec ase
     
     spec=SpecIndex([400,500,600])
-    df=TimeSpectra(randn(3,3), columns=testdates, index=spec, specunit='nm')
+    df=TimeSpectra(randn(3,3), columns=testdates, index=spec, specunit='nm', timeunit='s')
     
 
 

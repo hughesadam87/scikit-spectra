@@ -54,7 +54,7 @@ def SpecIndex(inp, *args, **defattr):
     
     **deft attributes are those defined above, 'kind, unit and name.'''
 
-    name=defattr.pop('name', 'Wavelength')
+    name=defattr.pop('name', 'Wavelength')  #Do I want a dic to have wavelength/wavenumber/energy/frequency and try to associate it?
     unit=defattr.pop('unit', None)
     
     ### Transfer unit key to actual unit name
@@ -95,21 +95,6 @@ def _set_spectra(self, outunit, **kwargs):
         self.unit=outunit
         return self
     
-    ###If converting from None, just make sure new unit is valid then assign
-    #if self.unit==None:
-        
-        #if outunit in specunits:
-            #self.unit=outunit
-            #return self
-        #else:
-            #raise SpecError(outunit)
-
-    ###If converting from x to y, ensure proper units and then convert values and reassign unit attribute
-
-    #UNIT TEST
-    #outunit=outunit.lower()
-    #if outunit not in specunits:
-        #raise SpecError(outunit)
     else:
         out=spectral_convert(self, self.unit, outunit)
         return SpecIndex(out, unit=outunit, name=self.name) #_kind automatically assigned by SpecIndex
