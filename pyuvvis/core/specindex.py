@@ -4,7 +4,7 @@
     so try to follow it when making other pathced Index objects.
     
     Attributes:  
-       kind= defaults to 'spectral'
+       _kind= defaults to 'spectral' (potentially used by other pyuvis methods as an identifier)
        unit= variety of spectral data units (nm, cm etc...) or None
        name= Actually just overwrites default behavior or "Wavelength"
        
@@ -19,47 +19,67 @@
 
 import pandas
 
+
 from pyuvvis.core.spec_labeltools import spectral_convert
 
 
 ### Define new attributes (default values provided in SpecIndex())
-pandas.Index.kind=None
 pandas.Index.unit=None
+pandas.Index._kind=None  #Used to identify SpecIndex by other PyUvVis methods (don't overwrite) (SET TO 'spectral' later)
 
-### List of valid units.  Must be identical to that of spectral_convert method
-allunits={'m':'meters', 'nm':'nanometers', 'cm':'centimeters', 'um':'micrometers', 'k':'wavenumber(cm-1)',
-    'ev':'electron volts', 'nm-1':'nanometers inverse', 'f':'frequency(Hz)', 'w':'angular frequency(rad/s)'}
+### List of valid units.  Must be identical to that of spectral_convert method (ALL CHARACTERS MUST BE LOWERCASE )
+specunits={'m':'meters', 'nm':'nanometers', 'cm':'centimeters', 'um':'micrometers', 'k':'wavenumber(cm-1)',
+    'ev':'electron volts', 'nm-1':'nanometers inverse', 'f':'frequency(hz)', 'w':'angular frequency(rad/s)'}
+
+_specinverse=dict((v,k) for k,v in specunits.iteritems()) #Used for lookup by value
+
+def _unit_valid(unit):
+    ''' Checks to make sure unit is valid.  If unit is in specunits.keys(), returns it. 
+    If unit is passed by value (like '''
+
+    if unit==None:
+        return unit
+    
+    unit=unit.lower()
+    if unit in specunits:
+        return unit
+    elif unit in _specinverse:
+        return _specinverse[unit]
+    else:
+        raise SpecError(unit)
 
 def SpecIndex(inp, *args, **defattr):
     ''' Lets other programs call this custom Index object.  Index must be called with array values
     by default (aka Index() will fail)
     
-    **deft attributes are those defined above, 'kind, unit and name'''
+    **deft attributes are those defined above, 'kind, unit and name.'''
 
     name=defattr.pop('name', 'Wavelength')
-    kind=defattr.pop('kind', 'spectral')
     unit=defattr.pop('unit', None)
     
-    index=pandas.Index(inp, *args, **defattr)  #Enforce dtype=Float?
+    ### Transfer unit key to actual unit name
+    unit=_unit_valid(unit)
     
-    index.unit=unit ; index.name=name ; index.kind=kind
+    index=pandas.Index(inp, *args, **defattr)  #Enforce dtype=Float?
         
-    ### If bad unit is passed as input ###    
-    if index.unit not in allunits and index.unit != None:
-        print 'Cannot assign spectral unit, "%s"'%index.unit  
-        index.unit=None        
+    index.unit=unit 
+    index.name=name  
+    index._kind='spectral'  #DONT CHANGE
+          
     return index
 
 def SpecError(value):
-    ''' Custom Error for when user tries to pass a bad spectral unit'''
-    return NameError('Invalid spectral unit, "%s".  See df.spectypes for available units'%value)
+    ''' Custom Error for when user tries to pass a bad spectral unit.  Implementation actually defers user
+    to see an attribute in the dataframe rather that calling list_sunits directly'''
+    return NameError('Invalid spectral unit, "%s".  See df.list_sunits for valid spectral units'%value)
 
-def list_units(self, delim='\t'):
+### Self necessary here or additional df stuff gets printed   
+def list_sunits(self, delim='\t'):
     ''' Print out all available units in a nice format'''
     print '\nUnit',delim,'Description'
     print '-------------------\n'
 
-    for (k,v) in sorted(allunits.items()):
+    for (k,v) in sorted(specunits.items()):
         print k,delim,v
     print '\n'
 
@@ -67,38 +87,42 @@ def list_units(self, delim='\t'):
 def _set_spectra(self, outunit, **kwargs):
     '''Handles requests to change spectral axis unit.  Ensures that transformations involving unit=None
     are handles properly, and that only valid units are passed to the actual converting function, "spectral_convert".'''  
-
+  
+    outunit=_unit_valid(outunit)  
+  
     ###If converting to None, don't change the index values
-    if outunit==None:    
+    if outunit==None or self.unit==None:    
         self.unit=outunit
         return self
     
     ###If converting from None, just make sure new unit is valid then assign
-    if self.unit==None:
-        if outunit in allunits:
-            self.unit=outunit
-            return self
-        else:
-            raise SpecError(outunit)
+    #if self.unit==None:
+        
+        #if outunit in specunits:
+            #self.unit=outunit
+            #return self
+        #else:
+            #raise SpecError(outunit)
 
     ###If converting from x to y, ensure proper units and then convert values and reassign unit attribute
-    outunit=outunit.lower()
-    if outunit not in allunits:
-        raise SpecError(outunt)
+
+    #UNIT TEST
+    #outunit=outunit.lower()
+    #if outunit not in specunits:
+        #raise SpecError(outunit)
     else:
         out=spectral_convert(self, self.unit, outunit)
-        out=SpecIndex(out)
-        out.unit=outunit
-        return out
+        return SpecIndex(out, unit=outunit, name=self.name) #_kind automatically assigned by SpecIndex
                 
 ### Assign custom methods            
 pandas.Index._set_spectra=_set_spectra
-pandas.Index.list_units=list_units
+pandas.Index.list_sunits=list_sunits
 
 if __name__ == '__main__':
     x=SpecIndex([200,300,400])
-    x.unit='nanometers'
     x=x._set_spectra('centimeters')
+    
+    ## DONT EVER SET UNIT USING INDEX.UNIT DIRECTLY
 
     
     
