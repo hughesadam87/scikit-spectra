@@ -31,7 +31,7 @@ sec_conversions={'nanoseconds':10**-9, 'microseconds':10**-6, 'milliseconds':10*
 
 ### Mapping of various spectral units to meters.  
 spec_dic= { 'm':1.0, 'cm':.01, 'um':.000001, 'nm': .000000001,          
-            'cm-1': .01, 'nm-1':.000000001,'f': c, 'w': 2.0*math.pi*c, 'ev':h*c/(eVtoJ)  }
+            'k': .01, 'nm-1':.000000001,'f': c, 'w': 2.0*math.pi*c, 'ev':h*c/(eVtoJ)  }
 
 
 ### Index/label utilities.  Leave mapping back to dataframe separate. ###
@@ -80,7 +80,7 @@ def datetime_convert(datetimeindex, return_as='interval', cumsum=True):
 
 ### Spectral units conversion ###
 proportional=['m', 'nm', 'cm', 'um'] 
-reciprocal=['cm-1', 'ev', 'nm-1', 'f', 'w']    
+reciprocal=['k', 'ev', 'nm-1', 'f', 'w']    
 allunits=proportional+reciprocal
 
 def spectral_convert(spectral_array, in_unit='nm', out_unit='f'):
@@ -115,6 +115,19 @@ def spectral_convert(spectral_array, in_unit='nm', out_unit='f'):
 
     elif in_unit in reciprocal and out_unit in reciprocal:
         return  (spectral_array * spec_dic[out_unit]) / spec_dic[in_unit]
+    
+    
+### Conversions for intensity data.  Note that T= I(t)/Iref
+### Since it's not really a scaling but a mapping, I use lambda operations and their inverses.  Uses Transmittance
+### as the base unit, as it is literally curve/ref, hence the natural unit of divby() 
+Tdic={None:'Raw data', 't':'Transmittance', '%t':'(%)Transmittance', 'a':'Absorbance (base 10)',
+      'a(ln)':'Absorbance (base e)'} 
+from_T={'t':lambda x: x,  '%t':lambda x: 100.0 * x, 'a':lambda x: -np.log10(x), 'a(ln)':lambda x:-np.log(x)}
+to_T={'t':lambda x: x,  '%t':lambda x: x/100.0, 'a':lambda x: np.power(10, -x), 'a(ln)':lambda x: np.exp(-x)}
+
+
+
+
 
 def spec_slice(spectral_array, bins):
     ''' Simple method that will divide a spectral index into n evenly sliced bins and return as nested tuples.

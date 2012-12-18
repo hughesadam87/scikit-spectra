@@ -33,7 +33,7 @@ from pyuvvis import make_root_dir, get_files_in_dir, get_shortname
 from pyuvvis import specplot, timeplot, absplot, range_timeplot, _genplot
 from pyuvvis import _df_colormapper, cmget
 from pyuvvis import from_timefile_datafile, get_files_in_dir, from_spec_files
-from pyuvvis import corr_analysis, make_ref, sync_3d, async_3d
+from pyuvvis import ca2d, make_ref, sync_3d, async_3d
 
 
 def plt_clrsave(outpath, outname): # dpi=600):
@@ -238,11 +238,11 @@ if __name__=='__main__':
 
 
         #### correlation analysis
-        outcorr=od+'/corr_analysis'
+        outcorr=od+'/2dca'
         os.mkdir(outcorr)        
         ref=make_ref(df, method='empty')     
 
-        S,A=corr_analysis(df, ref)
+        S,A=ca2d(df, ref)
         sync_3d(S, title='Synchronous Spectrum (%s-%s %s)'%(round(min(df), 1), round(max(df),1), timeunit)) #min/max by columns      
         plt_clrsave(outcorr, options.rname+'full_sync')                
         async_3d(A, title='Asynchronous Spectrum (%s-%s %s)'%(round(min(df), 1), round(max(df),1), timeunit))
@@ -250,7 +250,7 @@ if __name__=='__main__':
 
 
         absdf=divby(df) 
-        S,A=corr_analysis(absdf, ref)        
+        S,A=ca2d(absdf, ref)        
         sync_3d(S, title='Synchronous Spectrum (%s-%s %s)'%(round(min(df), 1), round(max(df),1), timeunit)) #min/max by columns      
         plt_clrsave(outcorr, options.rname+'relative_sync')                
         async_3d(A, title='Asynchronous Spectrum (%s-%s %s)'%(round(min(df), 1), round(max(df),1), timeunit))
