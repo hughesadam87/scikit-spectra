@@ -16,6 +16,11 @@ def get_files_in_dir(directory):
     ''' Given a directory, this returns just the files in said directory.  Surprisingly
         no one line solution exists in os that I can find '''
     files=[]
+
+    ### If path entered with or without trailing '/', account for it
+    if directory[-1] !='/':
+        directory=directory+'/'
+
     for item in os.listdir(directory):
         if os.path.isfile(os.path.join(directory, item)):
             files.append(directory+'/'+item)

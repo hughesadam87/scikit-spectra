@@ -18,11 +18,16 @@
        strange, will be very compatable with monkey-patched DataFrames, to ensure correct default behaviors and stuff.'''
 
 import pandas
+from collections import Iterable 
 
 from pyuvvis.core.spec_labeltools import spectral_convert
+
 ### Define new attributes (default values provided in SpecIndex())
 pandas.Index.unit=None
 pandas.Index._kind=None  #Used to identify SpecIndex by other PyUvVis methods (don't overwrite) (SET TO 'spectral' later)
+
+### Store old printout of specindex for later redefinition
+pandas.Index.old__unicode__=pandas.Index.__unicode__
 
 ### List of valid units.  Must be identical to that of spectral_convert method (ALL CHARACTERS MUST BE LOWERCASE )
 
@@ -40,9 +45,15 @@ def get_category(unit):
     ''' Given a unit key ('m', 'f' etc...), returns the key in speccats to which it belongs.'''
     if unit != None:
         for key in speccats:
-            for value in speccats[key]:
-                if value==unit:
+            ### Handle length one case separately (eg Energy: ev)
+            if isinstance(speccats[key], basestring):
+                if speccats[key]==unit:
                     return key
+            ### Length N case (eg Wavelength: 'm', 'nm'...etc..
+            else:
+                for value in speccats[key]:                    
+                    if value==unit:
+                        return key
     return None
 
 def _unit_valid(unit):
@@ -104,14 +115,26 @@ def _convert_spectra(self, outunit, **kwargs):
     else:
         out=spectral_convert(self, self.unit, outunit)
         return SpecIndex(out, unit=outunit, name=get_category(outunit)) #_kind automatically assigned by SpecIndex
+               
+def __unicode__(self):
+    ''' Add some printout before Index type.  Don't change __name__ which will change between float index, int64 index etc... because this
+    is nice to the type of data (see index method __unicode__ which is called by __repr__ '''
+    if self.unit==None:
+        sout=''
+    else:
+        sout=self.unit
+    return 'Spectra(%s): %s'%(sout, self.old__unicode__())
                 
 ### Assign custom methods            
 pandas.Index._convert_spectra=_convert_spectra
+pandas.Index.__unicode__=__unicode__ #Overload the new repr
 
 if __name__ == '__main__':
     x=SpecIndex([200,300,400])
+    print x
     x=x._convert_spectra('centimeters')
-    print 'hi'
+    x=x._convert_spectra('ev')
+    print x
     
     ## DONT EVER SET UNIT USING INDEX.UNIT DIRECTLY
 

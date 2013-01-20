@@ -1,30 +1,27 @@
-from types import NoneType, MethodType
-from operator import itemgetter
-import string
-
-### PUT THIS IN PANDAS UTILS AND UPATE PACKAGE
-from pyuvvis.pandas_utils.metadframe import MetaDataframe, mload, mloads
-
-## LOCAL VERSION OF METADATAFRAME
-#import sys
-#sys.path.append("../pandas_utils")
-#from metadframe import MetaDataframe, mload, mloads
+from types import MethodType, NoneType
+from copy import deepcopy
+import inspect
+import functools
+import cPickle
 
 from pandas import DataFrame, DatetimeIndex, Index, Series
 from numpy import array_equal
 
-### Absolute pyuvvis imports (DON'T USE RELATIVE IMPORTS)
+### Local imports (REPLACE WITH PYUVVIS IMPORTS)
 from specindex import SpecIndex, specunits
 from spec_labeltools import datetime_convert
 from spec_labeltools import from_T, to_T, Tdic
 from pyuvvis.core.spec_utilities import divby
-from pyuvvis.pyplots.advanced_plots import spec_surface3d
-from pyuvvis.custom_errors import badkey_check
+from pyuvvis import spec_surface3d
 
+#### These are used to overwrite pandas string formatting 
+#from StringIO import StringIO #For overwritting dataframe output methods
+#from pandas.util import py3compat
+#import pandas.core.common as com
 
 ## testing (DELETE)
-from pandas import date_range
 from numpy.random import randn
+from testimport import dates as testdates
 import matplotlib.pyplot as plt
 
 
@@ -56,6 +53,18 @@ def BaselineError(index, timespectra):
 ## Helper Functions###
 ######################
 
+### Loading.  These are both giving recursion errors, where instance methods or not.
+def ts_load(inname):
+    ''' Load TimeSpectra from file'''
+    if isinstance(inname, basestring):
+        inname=open(inname, 'r')
+    return cPickle.load(inname)
+
+def ts_loads(string):
+    ''' Load a TimeSpectra from string stored in memory.'''
+    ### BUG WHY DOESNT THIS WORK
+    return cPickle.loads(string)    
+
 ### Unit validations###
 def _valid_iunit(sout):
     '''When user is switching spectral intensity units, make sure they do it write.'''
@@ -83,13 +92,13 @@ def _as_interval(timespectra, unit):#, unit=None):
 ### Time interval computations ###
 def _as_datetime(timespectra):
     ''' Return datetimeindex from either stop,start or start, periods.'''
-    if timespectra._stop:
-        timespectra._df.columns=DatetimeIndex(start=timespectra._start, end=timespectra._stop, freq=timespectra._freq)
+    if self.stop:
+        self.df.columns=DatetimeIndex(start=timespectra.start, end=timespectra.stop, freq=timespectra.freq)
     else:
-        timespectra._df.columns=DatetimeIndex(start=timespectra._start, periods=timespectra._periods, freq=timespectra._freq)
-    
+        self.df.columns=DatetimeIndex(start=timespectra.start, periods=timespectra.periods, freq=timespectra.freq)
 
-class TimeSpectra(MetaDataframe):
+
+class TimeSpectra(object):
     ''' Provides core TimeSpectra composite pandas DataFrame to represent a set of spectral data.  Enforces spectral data 
     along the index and temporal data as columns.  The spectral index is controlled from the specindex
     module, which has a psuedo-class called SpecIndex (really a monkey patched Index).  Temporal data is stored using a DatetimeIndex or
@@ -101,7 +110,7 @@ class TimeSpectra(MetaDataframe):
     def __init__(self, *dfargs, **dfkwargs):
         ### Pop default DataFrame keywords before initializing###
         self.name=dfkwargs.pop('name', 'TimeSpectra')
-        
+
         ###Spectral index-related keywords
         specunit=dfkwargs.pop('specunit', None)
 
@@ -120,51 +129,48 @@ class TimeSpectra(MetaDataframe):
         if stop and periods:
             raise AttributeError('TimeSpectra cannot be initialized with both periods and stop; please choose one or the other.')
 
-        super(TimeSpectra, self).__init__(*dfargs, **dfkwargs)        
+        df=DataFrame(*dfargs, **dfkwargs)
 
         ### If user passes non datetime index to columns, make sure they didn't accidetnally pass SpecIndex by mistake.
-        if not isinstance(self._df.columns, DatetimeIndex):
+        if not isinstance(df.columns, DatetimeIndex):
             try:
-                if self._df.columns._kind == 'spectral':
+                if df.columns._kind == 'spectral':
                     raise IOError("SpecIndex must be passed as index, not columns.")   ### Can't be an attribute error or next won't be raised             
 
             ### df.columns has no attribute _kind, meaning it is likely a normal pandas index        
             except AttributeError:
                 self._interval=True
-                self._start=start
-                self._stop=stop
-                self._freq=freq
-                self._timeunit=timeunit
+                self.start=start
+                self.stop=stop
+                self.freq=freq
+                self.timeunit=timeunit
 
         ### Take Datetime info and use to recreate the array
         else:
             self._interval=False        
-            self._start=self._df.columns[0]
-            self._stop=self._df.columns[-1]
-            self._freq=self._df.columns.freq
+            self.start=df.columns[0]
+            self.stop=df.columns[-1]
+            self.freq=df.columns.freq
 
             ### ADD TRANSLATION FOR FREQ--> basetimeuint
-#       self._timeunit=get_time_from_freq(df.columns.freq)
-
+#       self.timeunit=get_time_from_freq(df.columns.freq)
 
         ### Have to do it here instead of defaulting on instantiation.
-        self._df._tkind='temporal'
+        df._tkind='temporal'
 
         ### Assign spectral intensity related stuff but 
         ### DONT CALL _set_itype function
         iunit=_valid_iunit(iunit)
         self._itype=iunit
+
+        self.df=df
         
-        ### This has to be done AFTER self._df has been set
+        ### This has to be done AFTER self.df has been set
         self._baseline=self._baseline_valid(baseline)#SHOULD DEFAULT TO NONE SO USER CAN PASS NORMALIZED DATA WITHOUT REF        
 
         ###Set Index as spectral variables
-        self._specunit = specunit  #This will automatically convert to a spectral index
-        
-        ###Store intrinsic attributes for output later by listattr methods
-        self._intrinsic=self.__dict__.keys()
-        self._intrinsic.remove('name') #Not a private attr
-        
+        self.specunit = specunit  #This will automatically convert to a spectral index
+
 
     #############################################################################    
     ### Methods ( @property decorators ensure use can't overwrite methods) ######   
@@ -197,27 +203,19 @@ class TimeSpectra(MetaDataframe):
 
     def as_datetime(self):
         ''' Return columns as DatetimeIndex'''
-        self._df.columns=_as_datetime(self)
+        self.df.columns=_as_datetime(self)
         self._tkind='temporal'    
         self._interval=False
 
 
     def as_interval(self, unit='interval'):  
         ''' Return columns as intervals as computed by datetime_convert function'''
-        self._df.columns=_as_interval(self, unit)
+        self.df.columns=_as_interval(self, unit)
         self._tkind='temporal'
         self._interval=True    
 
 
-    @property
-    def data(self):
-        ''' Instead of directly accessing self._df.'''
-        return self.as_dataframe()
 
-    ###############################
-    ### Baseline related operations
-    ###############################
-    
     @property
     def baseline(self):
         ''' This is stored as a Series unless user has set it otherwise.'''
@@ -255,86 +253,22 @@ class TimeSpectra(MetaDataframe):
         ''' Convience method for setting to None'''
         self.baseline=None
         
-    def _baseline_valid(self, ref, force_series=True):
-        ''' Helper method for to handles various scenarios of valid references.  Eg user wants to 
-        convert the spectral representation, this evaluates manually passed ref vs. internally stored one.
+    def as_dataframe(self):
+        ''' Convience method for self.df'''
+        return self.df
 
-        **force_seires - If true, program will convert if user explictly passing a non-series iterable.
-        
-        This goes through several cases to determine baseline.  In order, it attempts to get the baseline from:
-            1. Column name from dataframe.
-            2. Column index from dataframe.
-            3. Uses ref itself.
-               a. If series, checks for compatibility between spectral indicies.
-               b. If dataframe, ensures proper index and shape (1-d) and converts to series (if force_series True).
-               c. If iterable, converts to series (if force_series True)
-               
-        Errors will be thrown if new baseline does not have identical spectral values to self._df.index as evaluated by
-        numpy.array_equal()
-
-        Returns baseline. '''
-        
-        
-        if isinstance(ref, NoneType):
-            return ref
-
-        ### First, try ref is itself a column name
-        try:
-            rout=self._df[ref]
-        except (KeyError, ValueError):  #Value error if ref itself is a dataframe
-            pass
-
-        ### If rtemp is an integer, return that column value.  
-        ### NOTE: IF COLUMN NAMES ARE ALSO INTEGERS, THIS CAN BE PROBLEMATIC.
-        if isinstance(ref, int):
-            rout=self._df[self._df.columns[ref]]        
-
-        ### Finally if ref is itself a series, make sure it has the correct spectral index
-        elif isinstance(ref, Series):
-            if array_equal(ref.index, self._df.index) == False:
-                raise BaselineError(ref.index, self)
-            else:
-                rout=ref
-            
-        ### Finally if array or other iterable, force to a series
-        else:
-            if force_series:
-                
-                ### If user passes dataframe, downconvert to series 
-                if isinstance(ref, DataFrame):
-                    if ref.shape[1] != 1:
-                        raise TypeError('Baseline must be a dataframe of a single column with index values equivalent to those of %s'%self._name)
-                    if ref.index.all() != self._df.index.all():
-                        raise BaselineError(ref, self)                    
-                    else:
-                        rout=Series(ref[ref.columns[0]], index=ref.index) 
-   
-                ### Add index to current iterable 
-                else:
-                    if len(ref) != len(self._df.index):
-                        raise BaselineError(ref, self)
-                    else:
-                        rout=Series(ref, index=self._df.index)
-
-            ### Return itrable as is
-            else:
-                rout=ref
-
-        return rout  #MAKES MORE SENSE TO MAKE THIS A 1D DATAFRAME
-    
-        
     ### Spectral column attributes/properties
     @property
     def specunit(self):
-        return self._df.index.unit    #Short name key
+        return self.df.index.unit    #Short name key
 
     @property
     def full_specunit(self):
-        return specunits[self._df.index.unit]
+        return specunits[self.df.index.unit]
 
     @specunit.setter
     def specunit(self, unit):
-        self._df.index=self._df.index._convert_spectra(unit) 
+        self.df.index=self.df.index._convert_spectra(unit) 
         
     def as_specunit(self, unit):
         ''' Returns new dataframe with different spectral unit on the index.'''
@@ -388,7 +322,7 @@ class TimeSpectra(MetaDataframe):
 
         sout=_valid_iunit(sout)
         sin=self._itype
-        df=self._df #for convienence/back compatibility
+        df=self.df #for convienence/back compatibility
 
         # Corner case, for compatibility with baseline.setter
         if sin==None and sout==None:
@@ -447,66 +381,87 @@ class TimeSpectra(MetaDataframe):
 
         self._baseline=rout       
         self._itype=sout        
-        self._df=df    
+        self.df=df    
 
     @property
     def itypes(self):
         return Tdic
+    
+    ### Save methods.  (Load/loads can't be instance methods or recursion errors)    
+    def save(self, outname):
+        ''' Takes in str or opened file and saves. cPickle.dump wrapper.'''
+        if isinstance(outname, basestring):
+            outname=open(outname, 'w')
+        cPickle.dump(self, outname)
+
+    
+    def dumps(self):
+        ''' Output TimeSpectra into a pickled string in memory.'''
+        return cPickle.dumps(self)
+    
+    def deepcopy(self):
+        ''' Make a deepcopy of self, including the dataframe.'''
+        return self._deepcopy(self.df)
+
+    #################################
+    ### Dataframe METHOD Overwrites##   
+    #################################
+    def __getitem__(self, key):
+        ''' Item lookup'''
+        return self.df.__getitem__(key)    
+
+    def __setitem__(self, key, value):
+        self.df.__setitem__(key, value)    
+
+    def __getattr__(self, attr, *fcnargs, **fcnkwargs):
+        ''' Tells python how to handle all attributes that are not found.  Basic attributes 
+        are directly referenced to self.df; however, instance methods (like df.corr() ) are
+        handled specially using a special private parsing method, _dfgetattr().'''
+
+        ### Return basic attribute
+        refout=getattr(self.df, attr)
+        if not isinstance(refout, MethodType):
+            return refout
+
+        ### Handle instance methods using _dfgetattr().
+        ### see http://stackoverflow.com/questions/3434938/python-allowing-methods-not-specifically-defined-to-be-called-ala-getattr
+        else:         
+            return functools.partial(self._dfgetattr, attr, *fcnargs, **fcnkwargs)
+            ### This is a reference to the fuction (aka a wrapper) not the function itself
+
+
+    def _deepcopy(self, dfnew):
+        ''' Copies all attribtues into a new object except has to store current dataframe
+        in memory as this can't be copied correctly using copy.deepcopy.  Probably a quicker way...
         
-    ### ADD PYTHON STRING FORMATTING TO THIS
-    def list_attr(self, classattr=False, dfattr=False, methods=False, types=False, delim='\t', sortby='name'): #values=False,):
-        ''' 
-        IF VALUES FIELD IS ADDED, HAVE TO CHANGE HOW SORTING IS DONW, HOW ATTS IS MADE AND ALSO OUTPUT!
-        Prints out all the custom attributes that are not builtin attributes of the timespectra.  Should this be 
-        in utils as a gneeral function?  Seems kind of useful.'''
-
-        ### Take all attributes in current instance        
-        atts=[x for x in dir(self) if '__' not in x]
-
-        ### Remove self._intrinsic (aka class attributes) if desired
-        if classattr==False:
-            atts=[attr for attr in atts if attr not in self._intrinsic]        
-            atts.remove('_intrinsic') 
-            atts.remove('list_attr')
+        dfnew is used if one wants to pass a new dataframe in.  This is used primarily in calls from __getattr__.'''
+        ### Store old value of df
+        olddf=self.df.copy(deep=True)
+        self.df=None
         
-        ### Include dataframe attributes if desired
-        if dfattr==True:
-            atts=atts+[x for x in dir(self._df) if '__' not in x]
+        ### Create new object and apply new df
+        newobj=deepcopy(self)
+        newobj.df=dfnew
         
-        ### Remove methods if desired
-        if methods==False:
-            atts=[attr for attr in atts if isinstance(getattr(self, attr), MethodType) != True]
- 
-        ### Should output include types and/or values?
-        outheader=['Attribute']
-        if types==True: 
-            outheader=outheader+['Type']
-            atts=[(att, str(type(getattr(self, att))).split()[1].split('>')[0] ) for att in atts]
-            #string operation just does str(<type 'int'>) ---> 'int'
-            
-
-            ### Sort output either by name or type
-            badkey_check(sortby, ['name', 'type']) #sortby must be 'name' or 'type'
-            
-            if sortby=='name':
-                atts=sorted(atts, key=itemgetter(0))
-            elif sortby=='type':
-                atts=sorted(atts, key=itemgetter(1))
-
-        ### Output to screen
-        print delim.join(outheader)    
-        print '--------------------'
-        for att in atts:
-            if types==True:
-                print string.rjust(delim.join(att), 7) #MAKE '\N' comprehension if string format never works out
-            else:
-                print att
+        ### Restore old value of df and return new object
+        self.df=olddf
+        return newobj
         
        
     def _dfgetattr(self, attr, use_base=False, *fcnargs, **fcnkwargs):
-        ''' This is overwritten from MetaDataframe to account for the use_base option.'''
+        ''' Called by __getattr__ as a wrapper, this private method is used to ensure that any
+        DataFrame method that returns a new DataFrame will actually return a TimeSpectra object
+        instead.  It does so by typechecking the return of attr().
+        
+        **kwargs: use_base - If true, program attempts to call attribute on the baseline.  Baseline ought
+        to be maintained as a series, and Series/Dataframe API's must be same.
+        
+        *fcnargs and **fcnkwargs are passed to the dataframe method.
+        
+        Note: tried to ad an as_new keyword to do this operation in place, but doing self=tsout instead of return tsout
+        didn't work.  Could try to add this at the __getattr__ level; however, may not be worth it.'''
  
-        out=getattr(self._df, attr)(*fcnargs, **fcnkwargs)
+        out=getattr(self.df, attr)(*fcnargs, **fcnkwargs)
         
         ### If operation returns a dataframe, return new TimeSpectra
         if isinstance(out, DataFrame):
@@ -534,21 +489,151 @@ class TimeSpectra(MetaDataframe):
         else:
             return out
         
-    ### OVERWRITE METADATFRAME CLASS METHODS
-    def __union__(self):
-        ''' Add some header and spectral data information to the standard output of the dataframe.
-        Just ads a bit of extra data to the dataframe on printout.  This is called by __repr__, which 
-        can either return unicode or bytes.  This is better than overwriting __repr__()'''
-        delim='\t'
-        if self._specunit==None:
-            specunitout='None'
-        else:
-            specunitout=self.full_specunit
+    ### ERRORS ARE NOT DUE TO WHAT I'M DOING, BUT DO TO OVERWRITING THIS INT HE FIRST PLACE
+    ### EVEN IF I JUST PRINT 'HI' IT BUGS OUT WITHOUT ANY REF TO df.__repr__()
+    #def __repr__(self):
+        #''' Add some header and spectral data information to the standard output of the dataframe.'''
+        ##"""
+        ##Just ads a bit of extra data to the dataframe on printout.  Literally just copied directly from dataframe.__repr__ and
+        ##added print statements.  Dataframe also has a nice ___reprhtml___ method for html accessibility.
+        ##"""
+        ##delim='\t'
+        ##if self.specunit==None:
+            ##specunitout='None'
+        ##else:
+            ##specunitout=self.full_specunit
 
-        outline='**',self._name,'**', delim, 'Spectral unit:', specunitout, delim, 'Time unit:', 'Not Implemented','\n'   
-        return ''.join(outline)+'\n'+self._df.__union__()    
+        ##outline='**',self.name,'**', delim, 'Spectral unit:', specunitout, delim, 'Time unit:', 'Not Implemented','\n'   
+        ##return ''.join(outline)+self.df.__repr__()
+        #return self._deepcopy(self.df.__repr__()
+
+ 
+    @property
+    def ix(self):    
+        return self._deepcopy(self.df.ix)
     
+    ### Operator overloading ####
+    ### In place operations need to overwrite self.df
+    def __add__(self, x):
+        return self._deepcopy(self.df.__add__(x))
+
+    def __sub__(self, x):
+        return self._deepcopy(self.df.__sub__(x))
+
+    def __mul__(self, x):
+        return self._deepcopy(self.df.__mul__(x))
+
+    def __div__(self, x):
+        return self._deepcopy(self.df.__div__(x))
+
+    def __truediv__(self, x):
+        return self._deepcopy(self.df.__truediv__(x))
+
+    ### From what I can tell, __pos__(), __abs__() builtin to df, just __neg__()    
+    def __neg__(self):  
+        return self._deepcopy(self.df.__neg__() )
+
+    ### Object comparison operators
+    def __lt__(self, x):
+        return self._deepcopy(self.df.__lt__(x))
+
+    def __le__(self, x):
+        return self._deepcopy(self.df.__le__(x))
+
+    def __eq__(self, x):
+        return self._deepcopy(self.df.__eq__(x))
+
+    def __ne__(self, x):
+        return self._deepcopy(self.df.__ne__(x))
+
+    def __ge__(self, x):
+        return self._deepcopy(self.df.__ge__(x))
+
+    def __gt__(self, x):
+        return self._deepcopy(self.df.__gt__(x))     
+
+
+    ### DataFrame __x__ method ovewrites.  Prevents TimeSpectra
+    ### from calling these from python object
+    def __len__(self):
+        return self.df.__len__()
+
+    def __nonzero__(self):
+        return self.df.__nonzero__()
+
+    def __contains__(self, x):
+        return self.df.__contains__(x)
+
+    def __iter__(self):
+        return self.df.__iter__()
+
+    def _baseline_valid(self, ref, force_series=True):
+        ''' Helper method for to handles various scenarios of valid references.  Eg user wants to 
+        convert the spectral representation, this evaluates manually passed ref vs. internally stored one.
+
+        **force_seires - If true, program will convert if user explictly passing a non-series iterable.
         
+        This goes through several cases to determine baseline.  In order, it attempts to get the baseline from:
+            1. Column name from dataframe.
+            2. Column index from dataframe.
+            3. Uses ref itself.
+               a. If series, checks for compatibility between spectral indicies.
+               b. If dataframe, ensures proper index and shape (1-d) and converts to series (if force_series True).
+               c. If iterable, converts to series (if force_series True)
+               
+        Errors will be thrown if new baseline does not have identical spectral values to self.df.index as evaluated by
+        numpy.array_equal()
+
+        Returns baseline. '''
+        
+        
+        if isinstance(ref, NoneType):
+            return ref
+
+        ### First, try ref is itself a column name
+        try:
+            rout=self.df[ref]
+        except (KeyError, ValueError):  #Value error if ref itself is a dataframe
+            pass
+
+        ### If rtemp is an integer, return that column value.  
+        ### NOTE: IF COLUMN NAMES ARE ALSO INTEGERS, THIS CAN BE PROBLEMATIC.
+        if isinstance(ref, int):
+            rout=self.df[self.df.columns[ref]]        
+
+        ### Finally if ref is itself a series, make sure it has the correct spectral index
+        elif isinstance(ref, Series):
+            if array_equal(ref.index, self.df.index) == False:
+                raise BaselineError(ref.index, self)
+            else:
+                rout=ref
+            
+        ### Finally if array or other iterable, force to a series
+        else:
+            if force_series:
+                
+                ### If user passes dataframe, downconvert to series 
+                if isinstance(ref, DataFrame):
+                    if ref.shape[1] != 1:
+                        raise TypeError('Baseline must be a dataframe of a single column with index values equivalent to those of %s'%self.name)
+                    if ref.index.all() != self.df.index.all():
+                        raise BaselineError(ref, self)                    
+                    else:
+                        rout=Series(ref[ref.columns[0]], index=ref.index) 
+   
+                ### Add index to current iterable 
+                else:
+                    if len(ref) != len(self.df.index):
+                        raise BaselineError(ref, self)
+                    else:
+                        rout=Series(ref, index=self.df.index)
+
+            ### Return itrable as is
+            else:
+                rout=ref
+
+        return rout  #MAKES MORE SENSE TO MAKE THIS A 1D DATAFRAME
+
 
 #### TESTING ###
 if __name__ == '__main__':
@@ -556,21 +641,14 @@ if __name__ == '__main__':
     ### Be careful when generating test data from Pandas Index/DataFrame objects, as this module has overwritten their defaul behavior
     ### best to generate them in other modules and import them to simulate realisitc usec ase
 
-    spec=SpecIndex([400.,500.,600.], unit='nm')
-    testdates=date_range(start='3/3/12',periods=3,freq='h')
-    
+    spec=SpecIndex([400.,500.,600.])
     ts=TimeSpectra(abs(randn(3,3)), columns=testdates, index=spec, specunit='k', timeunit='s', baseline=[1.,2.,3.])    
-
-    ts.a=50; ts.b='as'
     ts.iunit='t'
-
-    ts.list_attr(dfattr=False, methods=False, types=True)    
-    ts.as_iunit('a')
     x=ts.as_iunit('a')
     #ts.as_interval()
     #spec_surface3d(ts)  ##Not working because of axis format problem
     #plt.show()
 #    ts.rank(use_base=True)
     x=ts.dumps()
-    ts=mloads(x)
-
+    ts=ts_loads(x)
+    print 'hi'

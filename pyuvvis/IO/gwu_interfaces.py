@@ -2,7 +2,11 @@
  To convert a list of raw files, use from_spec_files()
  To convert old-style timefile/spectral data file, use from_timefile_datafile()
  Returns a pandas DataFrame with custom attributes "metadata", "filedict", "darkseries".
- For correct serialization, use spec_serial.py module, not native pickle module.'''
+ For correct serialization, use spec_serial.py module, not native pickle module.
+ 
+ Updated 1/17/13 to return TimeSpectra() class instead of DataFrame.  Thus, return
+ classes are named dataframe instead of something like timespec just because the old
+ source was written this way.'''
 
 __author__ = "Adam Hughes, Zhaowen Liu"
 __copyright__ = "Copyright 2012, GWU Physics"
@@ -17,6 +21,11 @@ import os
 from pandas import DataFrame, Series, datetime, read_csv, concat
 import numpy as np
 
+# PyUvVis imports
+from pyuvvis.core.timespectra import TimeSpectra
+from pyuvvis.core.specindex import SpecIndex
+from pyuvvis.pandas_utils.dr_reader import get_files_in_dir
+
 # Local imports
 from specrecord import MetaData
 
@@ -27,14 +36,6 @@ spec_suite_months={'jan':1, 'feb':2, 'mar':3, 'apr':4, 'may':5, 'jun':6, 'jul':7
 
 spec_dtype = np.dtype([ ('wavelength', float), ('intensity', float) ])
 
-def get_files_in_dir(directory):
-    ''' Given a directory, this returns just the files in said directory.  Surprisingly
-        no one line solution exists in os that I can find '''
-    files=[]
-    for item in os.listdir(directory):
-        if os.path.isfile(os.path.join(directory, item)):
-            files.append(directory+'/'+item)
-    return files
 
 def get_shortname(filepath, cut_extension=False):
     ''' simply get the filename of fullpath.  Cut extension will remove file extension'''
@@ -72,7 +73,7 @@ def extract_darkfile(filelist, return_null=True):
     else:
         return darkfiles[0]
 
-def get_headermetadata_dataframe(dataframe, time_file_dict, runname=None):
+def get_headermetadata_dataframe(dataframe, time_file_dict, name=None):
     ''' After creation of the dataframe and datetime-to-file dic, various metadata attributes 
     come together like filecount, filestart, filend etc...
     **run title becomes name of dataframe and can be adopted by plots'''
@@ -89,7 +90,7 @@ def get_headermetadata_dataframe(dataframe, time_file_dict, runname=None):
 ##########################################################
 
 def from_spec_files(file_list, specframe=None, skiphead=17, skipfoot=1,\
-                    check_for_overlapping_time=True, extract_dark=True, runname=None):
+                    check_for_overlapping_time=True, extract_dark=True, name=None):
     ''' Takes in raw files directly from Ocean optics spectrometer and creates a spectral dataframe.   
     This is somewhat customized to my analysis, but has general arguments for future adaptations.
 
@@ -162,12 +163,11 @@ def from_spec_files(file_list, specframe=None, skiphead=17, skipfoot=1,\
         f.close()
 
     ### Make dataframe, add filenames, darkseries and metadata attributes (note, DateTimeIndex auto sorts!!)
-    dataframe=DataFrame(dict_of_series)      
-    dataframe.index.name='Wavelength'  #This autodetected in plots
+    dataframe=TimeSpectra(dict_of_series)
+    dataframe.specunit='nm'
     dataframe.filedict=time_file_dict
-    dataframe.darkseries=darkseries
-    if runname:
-        dataframe.runname=runname    
+    dataframe.darkseries=darkseries  #KEEP THIS AS DARK SERIES RECALL IT IS SEPARATE FROM BASELINE OR REFERENCE..
+    dataframe.name=name    
 
     ### Take metadata from first file in filelist that isn't darkfile
     for infile in file_list:
@@ -211,12 +211,12 @@ def _get_metadata_fromheader(specsuiteheader):
 ######### Get dataframe from timefile / datafile #####
 ## Authors Zhaowen Liu/Adam Hughes, 10/15/12
 
-def from_timefile_datafile(datafile, timefile, extract_dark=True, runname=None): 
+def from_timefile_datafile(datafile, timefile, extract_dark=True, name=None): 
     ''' Converts old-style spectral data from GWU phys lab into  
     a dataframe with timestamp column index and wavelength row indicies.
 
     Creates the DataFrame from a dictionary of Series, keyed by datetime.
-    **runname becomes name of dataframe''' 
+    **name becomes name of dataframe''' 
 
     tlines=open(timefile,'r').readlines()
     tlines=[line.strip().split() for line in tlines]           
@@ -252,14 +252,14 @@ def from_timefile_datafile(datafile, timefile, extract_dark=True, runname=None):
     else:
         darkseries=None
 
-    dataframe=DataFrame(data, columns=sorted_times, index=wavelengths)      
+    dataframe=TimeSpectra(data, columns=sorted_times, index=wavelengths)      
+    
 
 
     ### Add field attributes to dataframe
     dataframe.darkseries=darkseries 
     dataframe.filedict=time_file_dict
-    if runname:
-        dataframe.runname=runname
+    dataframe.name=name
 
     ### Get headermeta data from first line in timefile that isn't darkfile.  Only checks one line
     ### Does not check for consistency
@@ -274,16 +274,16 @@ def from_timefile_datafile(datafile, timefile, extract_dark=True, runname=None):
     meta_general=get_headermetadata_dataframe(dataframe, time_file_dict) 
     meta_general.update(meta_partial)
     dataframe.metadata=meta_general
-    dataframe.index.name='Wavelength'  #This autodetected in plots    
+    dataframe.specunit='nm'  #This autodetected in plots    
 
     ### Sort dataframe by ascending time (could also sort spectral data) ###
     dataframe.sort(axis=1, inplace=True) #axis1=columns
 
     return dataframe
 
-def from_gwu_chem_IR(filelist, sortnames=False, shortname=True, cut_extension=False):
-    ''' Format for comma delimited two column data from GWU chemistry's IR.  These have no useful metadata
-    or dark data nad so it is important that users either pass in a correctly sorted filelist.  Once the 
+def from_gwu_chem_UVVIS(filelist, sortnames=False, shortname=True, cut_extension=False, name=None):
+    ''' Format for comma delimited two column data from GWU chemistry's UVVis.  These have no useful metadata
+    or dark data and so it is important that users either pass in a correctly sorted filelist.  Once the 
     dataframe is created, on can do df=df.reindex(columns=[correct order]).  
     
     It uses read_csv() to and creates a list of dataframes.  Afterwards, concat() merges these.
@@ -304,7 +304,7 @@ def from_gwu_chem_IR(filelist, sortnames=False, shortname=True, cut_extension=Fa
     working_names=[fget(afile) for afile in filelist]
         
 
-    dflist=[read_csv(afile, sep=',', header=None, index_col=0, skiprows=2, na_values=' \r',
+    dflist=[read_csv(afile, sep=',', header=None, index_col=0, skiprows=2, na_values=' ',  #Used to be ' \r', or is this from IR?
                                names=[fget(afile)]) for afile in filelist]
     
     ### THIS IS BUSTED, PUTTING NANS EVERYWHERE EXCEPT ONE FILE, but dflist itself ws nice.
@@ -314,10 +314,13 @@ def from_gwu_chem_IR(filelist, sortnames=False, shortname=True, cut_extension=Fa
     if sortnames:
         dataframe=dataframe.reindex(columns=sorted(working_names))
 
+    dataframe=TimeSpectra(dataframe) #this is fine
+
     dataframe.metadata=None
     dataframe.filedict=None
     dataframe.darkseries=None
-    dataframe.index.name='Wavelength'  #This autodetected in plots    
+    dataframe.specunit='nm' #This autodetected in plots    
+    dataframe.name=name
     
     return dataframe
             
@@ -345,3 +348,24 @@ def _get_headermetadata_timefile(splitline):
     missingdic['spectrometer']='USB2E7196'  
 
     return missingdic
+
+if __name__=='__main__':
+    # Assumes datapath is ../data/gwuspecdata...
+    
+    ### Test of raw fiber spectral data
+    files=get_files_in_dir('../data/gwuspecdata/fiber1')
+    ts=from_spec_files(files, name='Test Spectra')
+    #print ts, type(ts)
+    
+    ### Test of timefile/datafile
+    #dfile='../data/gwuspecdata/ex_tf_df/11_data.txt'
+    #tfile='../data/gwuspecdata/ex_tf_df/11_tfile.txt'
+    #ts2=from_timefile_datafile(dfile, tfile, extract_dark=True, name='Test Spec 2')
+    #print ts2, type(ts2)
+    
+    ### Test of chem UVVIS data
+    files=get_files_in_dir('../data/gwuspecdata/IRData')
+    ts3=from_gwu_chem_UVVIS(files, name='IR Spec')
+    print ts3, type(ts3), ts3[ts3.columns[0]]
+    
+    ### ADD CHEM IR DATA (Did it in a notebook at one point actually)
