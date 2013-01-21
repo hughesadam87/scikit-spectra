@@ -1,3 +1,13 @@
+''' GWU in-house script for dataanalysis of fiberoptic probe data.'''
+
+__author__ = "Adam Hughes"
+__copyright__ = "Copyright 2013, GWU Physics"
+__license__ = "Free BSD"
+__maintainer__ = "Adam Hughes"
+__email__ = "hugadams@gwmail.gwu.edu"
+__status__ = "Development"
+
+
 import os, time, shutil, sys
 from optparse import OptionParser
 
@@ -21,11 +31,11 @@ import specparms as sp  #if change filename, change shutil call
 #from core.baseline import dynamic_baseline
 #from imk_utils import make_root_dir, get_files_in_dir, get_shortname
 #from corr2d import corr_analysis, make_ref, sync_3d, async_3d
+from pyuvvis.core.timespectra import mload, mloads
 
 ### UPDATE PACKAGE THEN CHANGE THIS
+#from pyuvvis import mloads, mload
 from pyuvvis import spec_surface3d, surf3d, spec_poly3d, plot2d, plot3d
-from pyuvvis import df_load, df_dump
-from pyuvvis import transfer_attr
 from pyuvvis import datetime_convert, spectral_convert, spec_slice
 from pyuvvis import boxcar, wavelength_slices, divby
 from pyuvvis import dynamic_baseline
@@ -128,7 +138,7 @@ if __name__=='__main__':
             raise IOError('Indirectory must contain only one pickle file if you want to use it!!!')
 
         elif len(picklefile)==1:
-            df_full=df_load(picklefile[0])        
+            ts_full=mload(picklefile[0])        
             lf.write('Loaded contents of folder, %s, using the ".pickle" file, %s.\n\n'%(folder, get_shortname(picklefile[0])))            
 
         ### If no picklefile found try reading in datafile directly
@@ -137,12 +147,12 @@ if __name__=='__main__':
                 timefile=[afile for afile in infiles if 'time' in afile.lower()]
                 if len(timefile) == 1:
                     infiles.remove(timefile[0])
-                    df_full=from_timefile_datafile(datafile=infiles[0], timefile=timefile[0])
+                    ts_full=from_timefile_datafile(datafile=infiles[0], timefile=timefile[0])
                     lf.write('Loading contents of folder, %s, using the timefile/datafile conventional import\n\n'%folder)   
 
                 ### ACCOUNT FOR REMOTE POSSIBILITY THAT 2 FILES COULD STILL JUST BE TWO RAW DATA FILES INSTEAD OF DATAFILE/TIMEFILE
                 elif len(timefile) == 0:
-                    df_full=from_spec_files(infiles)
+                    ts_full=from_spec_files(infiles)
                     lf.write('Loading contents of folder, %s, multiple raw spectral files %s.  (If these were \
                     supposed to be datafile/timefile and not raw files, couldnt find word "time" in filename.) \
                     \n\n'%(folder, len(infiles))) 
@@ -152,24 +162,24 @@ if __name__=='__main__':
                     raise IOError('Timefile not found.  File must contain word "time"')                    
 
             else:
-                df_full=from_spec_files(infiles)
+                ts_full=from_spec_files(infiles)
                 lf.write('Loading contents of folder, %s, multiple raw spectral files %s.\n\n'%(folder, len(infiles)))                    
 
         ### Output the pickled dataframe    
-        df_dump(df_full, od+'/rundata.pickle')
-        df_full.to_csv(od+'/rundata.csv')
+        ts_full.save(od+'/rundata.pickle')
+        ts_full.to_csv(od+'/rundata.csv')
 
         ### Subtract the dark spectrum if it has one.  Note that all program should produce an attribute for darkseries,
         ### which may be None, but the attribute should still be here.
-        if hasattr(df_full, 'darkseries') and sp.sub_base==True:
-            if isinstance(df_full.darkseries, type(None) ):
-                df=df_full #need this                
+        if hasattr(ts_full, 'darkseries') and sp.sub_base==True:
+            if isinstance(ts_full.darkseries, type(None) ):
+                df=ts_full #need this                
                 lf.write('Warning: darkseries not found in data of run directory %s\n\n'%folder)            
             else:    
-                df=df_full.sub(df_full.darkseries, axis='index')
+                df=ts_full.sub(ts_full.darkseries, axis='index')
         else:
-            df=df_full #need this
-            lf.write('Warning: darkseries attribute is no found on dataframe in folder %s!\n\n'%folder)            
+            df=ts_full #need this
+            lf.write('Warning: darkseries attribute is not found on dataframe in folder %s!\n\n'%folder)            
 
         ### Fit first order baselines automatically?
         if sp.line_fit:
@@ -195,7 +205,7 @@ if __name__=='__main__':
             lf.write('Parameters Error: unable to slice x_min and x_max range in directory %s\n\n'%folder)      
 
 
-        transfer_attr(df_full, df, speakup=False)
+        transfer_attr(ts_full, df, speakup=False)
         df.columns.name=timeunit  #Useful for plotting 2d-3d for autodetection, but not necessary       
 
         ###### Polygon Plot

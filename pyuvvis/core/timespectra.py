@@ -6,17 +6,20 @@ import string
 from pyuvvis.pandas_utils.metadframe import MetaDataframe, mload, mloads
 
 ## LOCAL VERSION OF METADATAFRAME
-#import sys
-#sys.path.append("../pandas_utils")
+import sys
+sys.path.append("../pandas_utils")
 #from metadframe import MetaDataframe, mload, mloads
+
+sys.path.append("../pyplots")
+from basic_plots import specplot, absplot, timeplot, range_timeplot
 
 from pandas import DataFrame, DatetimeIndex, Index, Series
 from numpy import array_equal
 
 ### Absolute pyuvvis imports (DON'T USE RELATIVE IMPORTS)
-from specindex import SpecIndex, specunits
-from spec_labeltools import datetime_convert
-from spec_labeltools import from_T, to_T, Tdic
+from pyuvvis.core.specindex import SpecIndex, specunits
+from pyuvvis.core.spec_labeltools import datetime_convert
+from pyuvvis.core.spec_labeltools import from_T, to_T, Tdic
 from pyuvvis.core.spec_utilities import divby
 from pyuvvis.pyplots.advanced_plots import spec_surface3d
 from pyuvvis.custom_errors import badkey_check
@@ -29,7 +32,7 @@ import matplotlib.pyplot as plt
 
 
 tunits={'ns':'nanoseconds', 'us':'microseconds', 'ms':'milliseconds', 's':'seconds', 
-        'm':'minutes', 'h':'hours','d':'days', 'y':'years'}
+        'm':'minutes', 'h':'hours','d':'days', 'y':'years'}  #ADD NULL VALUE? Like None:'No Time Unit' (iunit/specunit do it)
 
 
 #################
@@ -52,9 +55,9 @@ def BaselineError(index, timespectra):
                         timespectra.name, timespectra.df.index[0], sunit, timespectra.df.index[-1], sunit) )
 
 
-######################
-## Helper Functions###
-######################
+##########################################
+## TimeSpectra Private Utilities   #######
+##########################################
 
 ### Unit validations###
 def _valid_iunit(sout):
@@ -87,7 +90,12 @@ def _as_datetime(timespectra):
         timespectra._df.columns=DatetimeIndex(start=timespectra._start, end=timespectra._stop, freq=timespectra._freq)
     else:
         timespectra._df.columns=DatetimeIndex(start=timespectra._start, periods=timespectra._periods, freq=timespectra._freq)
-    
+        
+
+##########################################
+## TimeSpectra Public Utilities    #######
+########################################## 
+
 
 class TimeSpectra(MetaDataframe):
     ''' Provides core TimeSpectra composite pandas DataFrame to represent a set of spectral data.  Enforces spectral data 
@@ -134,7 +142,8 @@ class TimeSpectra(MetaDataframe):
                 self._start=start
                 self._stop=stop
                 self._freq=freq
-                self._timeunit=timeunit
+                self._timeunit=timeunit  #Private for property attribute compatibility
+                
 
         ### Take Datetime info and use to recreate the array
         else:
@@ -142,9 +151,12 @@ class TimeSpectra(MetaDataframe):
             self._start=self._df.columns[0]
             self._stop=self._df.columns[-1]
             self._freq=self._df.columns.freq
+            self._timeunit=timeunit  #Obtain from df somehow
+            
 
-            ### ADD TRANSLATION FOR FREQ--> basetimeuint
+            ### ADD TRANSLATION FOR FREQ--> basetimeuint MAKE IT A PROPERTY? BUT ADD INTIIALIZTION SHIT
 #       self._timeunit=get_time_from_freq(df.columns.freq)
+      
 
 
         ### Have to do it here instead of defaulting on instantiation.
@@ -158,8 +170,28 @@ class TimeSpectra(MetaDataframe):
         ### This has to be done AFTER self._df has been set
         self._baseline=self._baseline_valid(baseline)#SHOULD DEFAULT TO NONE SO USER CAN PASS NORMALIZED DATA WITHOUT REF        
 
-        ###Set Index as spectral variables
-        self._specunit = specunit  #This will automatically convert to a spectral index
+        ###Set Index as spectral variables, take care of 4 cases of initialization.
+        if not hasattr(self._df.index, '_convert_spectra'):  #Better to find method than index.unit attribute
+            # No index, no specunit
+            if specunit == None:
+                self.specunit=None
+            # No index, specunit
+            else:
+                self.specunit=specunit   #Property setter will do validation         
+    
+            
+        else:
+            # Index, no specunit
+            if specunit == None:
+                self.specunit=self._df.index.unit
+                
+            # Index, specunit---> Convert down
+            else:
+                old_unit=self._df.index.unit
+                self.specunit=specunit 
+                if old_unit != specunit:
+                    print 'Alert: SpecIndex unit was changed internally from "%s" to "%s"'%(old_unit, specunit)
+                
         
         ###Store intrinsic attributes for output later by listattr methods
         self._intrinsic=self.__dict__.keys()
@@ -321,7 +353,7 @@ class TimeSpectra(MetaDataframe):
                 rout=ref
 
         return rout  #MAKES MORE SENSE TO MAKE THIS A 1D DATAFRAME
-    
+       
         
     ### Spectral column attributes/properties
     @property
@@ -345,9 +377,22 @@ class TimeSpectra(MetaDataframe):
     @property
     def spectypes(self):
         return specunits
-
-
+    
     ### Temporal column attributes
+    @property
+    def timeunit(self):
+        return self._timeunit
+    
+    @timeunit.setter
+    def timeunit(self, unit):
+        #Do checks and validation here!
+        self._timeunit=unit
+        
+    @property
+    def full_timeunit(self):
+        ### ACTUALLY MAKE THIS WORK
+        return 'full unit'+self.timeunit
+    
     @property
     def timetypes(self):
         return tunits
@@ -534,13 +579,13 @@ class TimeSpectra(MetaDataframe):
         else:
             return out
         
-    ### OVERWRITE METADATFRAME CLASS METHODS
+    ### OVERWRITE METADATFRAME MAGIC METHODS
     def __union__(self):
         ''' Add some header and spectral data information to the standard output of the dataframe.
         Just ads a bit of extra data to the dataframe on printout.  This is called by __repr__, which 
         can either return unicode or bytes.  This is better than overwriting __repr__()'''
         delim='\t'
-        if self._specunit==None:
+        if self.specunit==None:
             specunitout='None'
         else:
             specunitout=self.full_specunit
@@ -556,10 +601,11 @@ if __name__ == '__main__':
     ### Be careful when generating test data from Pandas Index/DataFrame objects, as this module has overwritten their defaul behavior
     ### best to generate them in other modules and import them to simulate realisitc usec ase
 
-    spec=SpecIndex([400.,500.,600.], unit='nm')
+    spec=SpecIndex([400.,500.,600.])
     testdates=date_range(start='3/3/12',periods=3,freq='h')
     
-    ts=TimeSpectra(abs(randn(3,3)), columns=testdates, index=spec, specunit='k', timeunit='s', baseline=[1.,2.,3.])    
+    ts=TimeSpectra(abs(randn(3,3)), columns=testdates, index=spec, timeunit='s', baseline=[1.,2.,3.])    
+    range_timeplot(ts)
 
     ts.a=50; ts.b='as'
     ts.iunit='t'

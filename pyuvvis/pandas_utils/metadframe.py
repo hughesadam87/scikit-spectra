@@ -231,6 +231,8 @@ if __name__ == '__main__':
 
     ### Create a MetaDataFrame
     meta_df=MetaDataframe(abs(randn(3,3)), index=['A','B','C'], columns=['c11','c22', 'c33'])    
+    
+    meta_df.to_csv('deletejunkme')
 
     ### Add some new attributes
     meta_df.a=50
