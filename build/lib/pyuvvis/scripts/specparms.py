@@ -7,9 +7,11 @@
 #####   Data Manipulation Parameters  ##
 ########################################
 
+specunit='nm'
 x_min=430.0     #Define range over which data is used in file
 x_max=680.0
-timeunit='seconds'          #hours, minutes, seconds, interval       
+
+timeunit='s'          #hours, minutes, seconds, interval       
 tstart=None  #In units of timeunit
 tend=None
 #x and t sampling params would probably be superfulous, but if put them in, can cut with df[start:end:sample] 

@@ -1,7 +1,8 @@
 __docformat__ = 'restructuredtext' #What's this actually do
 
 ### Core classes
-from pyuvvis.core.timespectra import SpecIndex, TimeSpectra
+from pyuvvis.core.timespectra import TimeSpectra, mload, mloads
+from pyuvvis.core.specindex import SpecIndex
 
 ### Plotting
 from pyuvvis.pyplots.advanced_plots import spec_surface3d, surf3d, spec_poly3d, plot2d, plot3d   #Make instance methods
@@ -14,12 +15,12 @@ from pyuvvis.pyplots.plot_utils import _df_colormapper, cmget  #???
 #from pyuvvis.pandas_utils.df_attrhandler import transfer_attr
 
 ### Spectral utilities
-from pyuvvis.core.spec_labeltools import spec_slice #datetime_convert, spectral_convert, spec_slice
-from pyuvvis.core.spec_utilities import boxcar, wavelength_slices, divby  #Make instance methods? (remove divby since timespec can do that?)
+from pyuvvis.core.spec_labeltools import spec_slice, datetime_convert, spectral_convert, spec_slice
+from pyuvvis.core.utilities import boxcar  #Make instance methods? (remove divby since timespec can do that?)
 #I think instance method version of boxcar should be sure to smooth baseline (how to do this non-generically?)
 #and for that matter, IX should probably cut baseline too.
 from pyuvvis.core.baseline import dynamic_baseline #leave as function.
-from pyuvvis.core.imk_utils import make_root_dir, get_files_in_dir, get_shortname
+#from pyuvvis.core.imk_utils import make_root_dir, get_files_in_dir, get_shortname (not useful)
 
 ###IO
 from pyuvvis.IO.gwu_interfaces import from_timefile_datafile, get_files_in_dir, from_spec_files

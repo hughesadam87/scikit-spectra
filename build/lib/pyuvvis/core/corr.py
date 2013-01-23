@@ -77,6 +77,7 @@ def noda_matrix(length):
     return Njk
 
 def ca2d(df, reference):
+    '''This actually compuates 2d correlation analysis'''
     dyn=df.sub(reference, axis=0) #Need to subtract along index this way
     T_dyn=conj(dyn).transpose()  #Conjugate transpose matrix
     m=len(df.columns)  #confirmed columns

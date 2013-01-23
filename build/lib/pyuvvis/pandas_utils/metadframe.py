@@ -9,7 +9,9 @@ import copy
 import functools
 import cPickle
 
-from pandas import DataFrame
+from pandas.core.indexing import _NDFrameIndexer
+
+from pandas import DataFrame, Series
 
 ## for testing
 from numpy.random import randn
@@ -31,8 +33,8 @@ def mload(inname):
 
 def mloads(string):
     ''' Load a MetaDataframe from string stored in memory.'''
-    return cPickle.loads(string)   
-
+    return cPickle.loads(string)        
+        
 
 class MetaDataframe(object):
     ''' Base composition for subclassing dataframe.'''
@@ -65,7 +67,7 @@ class MetaDataframe(object):
 
     def __getitem__(self, key):
         ''' Item lookup'''
-        return self._df.__getitem__(key)    
+        return self._transfer(self._df.__getitem__(key) )   
 
     def __setitem__(self, key, value):
         self._df.__setitem__(key, value)    
@@ -104,13 +106,13 @@ class MetaDataframe(object):
             self.__dict__[name]=value
 
 
-    def _deepcopy(self, dfnew):
+    def _transfer(self, dfnew):
         ''' Copies all attribtues into a new object except has to store current dataframe
         in memory as this can't be copied correctly using copy.deepcopy.  Probably a quicker way...
 
         dfnew is used if one wants to pass a new dataframe in.  This is used primarily in calls from __getattr__.'''
         ### Store old value of df and remove current df to copy operation will take
-        olddf=self._df.copy(deep=True)
+        olddf=self._df.copy() #Removed deep=True because series return could not implement it
         self._df=None
 
         ### Create new object and apply new df 
@@ -139,7 +141,7 @@ class MetaDataframe(object):
 
         ### If operation returns a dataframe, return new TimeSpectra
         if isinstance(out, DataFrame):
-            dfout=self._deepcopy(out)
+            dfout=self._transfer(out)
             return dfout
 
         ### Otherwise return whatever the method return would be
@@ -150,50 +152,45 @@ class MetaDataframe(object):
         ''' Can be customized, but by default, reutrns the output of a standard Dataframe.'''
         return self._df.__union__()
 
-
-    @property
-    def ix(self):    
-        return self._deepcopy(self._df.ix)
-
     ### Operator overloading ####
     ### In place operations need to overwrite self._df
     def __add__(self, x):
-        return self._deepcopy(self._df.__add__(x))
+        return self._transfer(self._df.__add__(x))
 
     def __sub__(self, x):
-        return self._deepcopy(self._df.__sub__(x))
+        return self._transfer(self._df.__sub__(x))
 
     def __mul__(self, x):
-        return self._deepcopy(self._df.__mul__(x))
+        return self._transfer(self._df.__mul__(x))
 
     def __div__(self, x):
-        return self._deepcopy(self._df.__div__(x))
+        return self._transfer(self._df.__div__(x))
 
     def __truediv__(self, x):
-        return self._deepcopy(self._df.__truediv__(x))
+        return self._transfer(self._df.__truediv__(x))
 
     ### From what I can tell, __pos__(), __abs__() builtin to df, just __neg__()    
     def __neg__(self):  
-        return self._deepcopy(self._df.__neg__() )
+        return self._transfer(self._df.__neg__() )
 
     ### Object comparison operators
     def __lt__(self, x):
-        return self._deepcopy(self._df.__lt__(x))
+        return self._transfer(self._df.__lt__(x))
 
     def __le__(self, x):
-        return self._deepcopy(self._df.__le__(x))
+        return self._transfer(self._df.__le__(x))
 
     def __eq__(self, x):
-        return self._deepcopy(self._df.__eq__(x))
+        return self._transfer(self._df.__eq__(x))
 
     def __ne__(self, x):
-        return self._deepcopy(self._df.__ne__(x))
+        return self._transfer(self._df.__ne__(x))
 
     def __ge__(self, x):
-        return self._deepcopy(self._df.__ge__(x))
+        return self._transfer(self._df.__ge__(x))
 
     def __gt__(self, x):
-        return self._deepcopy(self._df.__gt__(x))     
+        return self._transfer(self._df.__gt__(x))     
 
     def __len__(self):
         return self._df.__len__()
@@ -206,6 +203,32 @@ class MetaDataframe(object):
 
     def __iter__(self):
         return self._df.__iter__()
+
+
+    ## Fancy indexing
+    _ix=None     
+        
+    @property	  	
+    def ix(self, *args, **kwargs):      	
+        ''' This just presents user with _NDFrameIndexer, so any calls go directly to it.'''
+        if self._ix is None:
+            self._ix = _MetaIndexer(self, _NDFrameIndexer(self) )
+        return self._ix        
+    
+class _MetaIndexer(object):
+    ''' This class exists to intercept returns from .ix and assign attributes properly.  The ix property actually just
+    relays everything to _NDFrameIndexer, so this is the best way I can think of to implement the return of __getitem__.
+    I had a more simple solution before (namely to just pass self to _NDFrameIndexer and this worked for slicing unless
+    the slice was to return a single object.  EG ix[0], which then returned a series with loss of custom attributes.'''
+    def __init__(self, metadf, indexer):
+        self.indexer=indexer #_NDFrameIndexer
+        self.metadf=metadf #MetaDataframe
+    
+    def __getitem__(self, key):
+        out=self.indexer.__getitem__(key)       
+        return self.metadf._transfer(out)
+    
+    
 
 
 class SubFoo(MetaDataframe):
@@ -231,6 +254,8 @@ if __name__ == '__main__':
 
     ### Create a MetaDataFrame
     meta_df=MetaDataframe(abs(randn(3,3)), index=['A','B','C'], columns=['c11','c22', 'c33'])    
+    
+    meta_df.to_csv('deletejunkme')
 
     ### Add some new attributes
     meta_df.a=50
@@ -238,6 +263,8 @@ if __name__ == '__main__':
     print 'See the original metadataframe\n'
     print meta_df
     print '\nI can operate on it (+ - / *) and call dataframe methods like rank()'
+    
+    meta_df.ix[0]
 
     ### Perform some intrinsic DF operations
     new=meta_df*50.0

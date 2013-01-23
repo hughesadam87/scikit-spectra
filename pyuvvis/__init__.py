@@ -16,11 +16,11 @@ from pyuvvis.pyplots.plot_utils import _df_colormapper, cmget  #???
 
 ### Spectral utilities
 from pyuvvis.core.spec_labeltools import spec_slice, datetime_convert, spectral_convert, spec_slice
-from pyuvvis.core.spec_utilities import boxcar, wavelength_slices, divby  #Make instance methods? (remove divby since timespec can do that?)
+from pyuvvis.core.utilities import boxcar  #Make instance methods? (remove divby since timespec can do that?)
 #I think instance method version of boxcar should be sure to smooth baseline (how to do this non-generically?)
 #and for that matter, IX should probably cut baseline too.
 from pyuvvis.core.baseline import dynamic_baseline #leave as function.
-from pyuvvis.core.imk_utils import make_root_dir, get_files_in_dir, get_shortname
+#from pyuvvis.core.imk_utils import make_root_dir, get_files_in_dir, get_shortname (not useful)
 
 ###IO
 from pyuvvis.IO.gwu_interfaces import from_timefile_datafile, get_files_in_dir, from_spec_files

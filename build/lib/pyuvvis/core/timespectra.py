@@ -6,18 +6,21 @@ import string
 from pyuvvis.pandas_utils.metadframe import MetaDataframe, mload, mloads
 
 ## LOCAL VERSION OF METADATAFRAME
-#import sys
+import sys
 #sys.path.append("../pandas_utils")
 #from metadframe import MetaDataframe, mload, mloads
+
+#sys.path.append("../pyplots")
+#from basic_plots import specplot, absplot, timeplot, range_timeplot
 
 from pandas import DataFrame, DatetimeIndex, Index, Series
 from numpy import array_equal
 
 ### Absolute pyuvvis imports (DON'T USE RELATIVE IMPORTS)
-from specindex import SpecIndex, specunits
-from spec_labeltools import datetime_convert
-from spec_labeltools import from_T, to_T, Tdic
-from pyuvvis.core.spec_utilities import divby
+from pyuvvis.core.specindex import SpecIndex, specunits
+from pyuvvis.core.spec_labeltools import datetime_convert
+from pyuvvis.core.spec_labeltools import from_T, to_T, Tdic
+from pyuvvis.core.utilities import divby, df_wavelength_slices
 from pyuvvis.pyplots.advanced_plots import spec_surface3d
 from pyuvvis.custom_errors import badkey_check
 
@@ -29,7 +32,7 @@ import matplotlib.pyplot as plt
 
 
 tunits={'ns':'nanoseconds', 'us':'microseconds', 'ms':'milliseconds', 's':'seconds', 
-        'm':'minutes', 'h':'hours','d':'days', 'y':'years'}
+        'm':'minutes', 'h':'hours','d':'days', 'y':'years'}  #ADD NULL VALUE? Like None:'No Time Unit' (iunit/specunit do it)
 
 
 #################
@@ -52,9 +55,9 @@ def BaselineError(index, timespectra):
                         timespectra.name, timespectra.df.index[0], sunit, timespectra.df.index[-1], sunit) )
 
 
-######################
-## Helper Functions###
-######################
+##########################################
+## TimeSpectra Private Utilities   #######
+##########################################
 
 ### Unit validations###
 def _valid_iunit(sout):
@@ -87,7 +90,39 @@ def _as_datetime(timespectra):
         timespectra._df.columns=DatetimeIndex(start=timespectra._start, end=timespectra._stop, freq=timespectra._freq)
     else:
         timespectra._df.columns=DatetimeIndex(start=timespectra._start, periods=timespectra._periods, freq=timespectra._freq)
+        
+
+##########################################
+## TimeSpectra Public Utilities    #######
+########################################## 
+### Wrapper for df_from_directory
+def spec_from_dir(directory, csvargs, sortnames=False, concat_axis=1, shortname=True, cut_extension=False):
+    ''' Takes files from a directory, presuming they are identically formatted, and reads them into
+    a dataframe by iterating over read_csv().  All arguments that read_csv() would take are passed
+    in.  These kwargs are in regard the files themselves, for example, skiprows, skipfooter and header.
+        
+    For now, no support for glob to take only files of a certain file extension.
+    For now, conctaentation occurs along
+
+    Args:
+       directory- Path to directory where files are stored.
+       csvargs- Dictionary of arguments that are passed directly to the read_csv() function. For example
+                skiprows, header, na_values etc... see pandas API for read_csv()
+        
+    Kwds:
+       sortnames- Will attempt to autosort the filelist. Otherwise, files are ordered by the module
+                  os.path.listdir().
+                  
+       concat_axis- How to merge datafiles into a dataframe.  Default is axis=1, which means all files 
+                    should share the same index values.  I use this for spectral data where the wavelength
+                    column is my dataframe index.
+                  
+       shortname- If false, full file path is used as the column name.  If true, only the filename is used. 
+       
+       cut_extension- If kwd shortname is True, this will determine if the file extension is saved or cut from the data.'''
     
+    return TimeSpectra(df_from_directory(directory, csvargs, sortnames=sortnames, concat_axis=concat_axis, shortname=shortname, cut_extension=cut_extension))
+
 
 class TimeSpectra(MetaDataframe):
     ''' Provides core TimeSpectra composite pandas DataFrame to represent a set of spectral data.  Enforces spectral data 
@@ -134,7 +169,8 @@ class TimeSpectra(MetaDataframe):
                 self._start=start
                 self._stop=stop
                 self._freq=freq
-                self._timeunit=timeunit
+                self._timeunit=timeunit  #Private for property attribute compatibility
+                
 
         ### Take Datetime info and use to recreate the array
         else:
@@ -142,11 +178,12 @@ class TimeSpectra(MetaDataframe):
             self._start=self._df.columns[0]
             self._stop=self._df.columns[-1]
             self._freq=self._df.columns.freq
+            self._timeunit=timeunit  #Obtain from df somehow
+            
 
-            ### ADD TRANSLATION FOR FREQ--> basetimeuint
+            ### ADD TRANSLATION FOR FREQ--> basetimeuint MAKE IT A PROPERTY? BUT ADD INTIIALIZTION SHIT
 #       self._timeunit=get_time_from_freq(df.columns.freq)
-
-
+      
         ### Have to do it here instead of defaulting on instantiation.
         self._df._tkind='temporal'
 
@@ -158,8 +195,27 @@ class TimeSpectra(MetaDataframe):
         ### This has to be done AFTER self._df has been set
         self._baseline=self._baseline_valid(baseline)#SHOULD DEFAULT TO NONE SO USER CAN PASS NORMALIZED DATA WITHOUT REF        
 
-        ###Set Index as spectral variables
-        self._specunit = specunit  #This will automatically convert to a spectral index
+        ###Set Index as spectral variables, take care of 4 cases of initialization.
+        if not hasattr(self._df.index, '_convert_spectra'):  #Better to find method than index.unit attribute
+            # No index, no specunit
+            if specunit == None:
+                self.specunit=None
+            # No index, specunit
+            else:
+                self.specunit=specunit   #Property setter will do validation         
+    
+        else:
+            # Index, no specunit
+            if specunit == None:
+                self.specunit=self._df.index.unit
+                
+            # Index, specunit---> Convert down
+            else:
+                old_unit=self._df.index.unit
+                self.specunit=specunit 
+                if old_unit != specunit:
+                    print 'Alert: SpecIndex unit was changed internally from "%s" to "%s"'%(old_unit, specunit)
+                
         
         ###Store intrinsic attributes for output later by listattr methods
         self._intrinsic=self.__dict__.keys()
@@ -322,6 +378,33 @@ class TimeSpectra(MetaDataframe):
 
         return rout  #MAKES MORE SENSE TO MAKE THIS A 1D DATAFRAME
     
+    def wavelength_slices(self, ranges, apply_fcn='mean', **applyfcn_kwds):
+        '''Takes in a dataframe with a list of start/end ranges.  Slices df into these various ranges,
+        then returns a composite dataframe with these slices.  Composite dataframe will nicely
+        plot when piped into spec aesthetics timeplot.
+        
+        Note: By default, this operation slices rows/index, and then averages by columns.  Therefore,
+              the default operations is df.ix[], followed by mean(axis=0).  Note that this is not axis=1!
+              The can be confusing, so I chose to force the user to use this method (didn't give keyword options).
+              It is best for users to pass a transposed array.  
+              
+             
+              If ever deciding to change this, I should merely change the following:
+               df.ix  ---> df.columns[]
+               mean(axis=0) to mean(axis=1)
+               
+        
+        kwds:
+         apply_fcn: Chooses the way to collapse data.  Special/useful functions have special string designations.
+            Can be mean, sum, or a variety of integration methods (simps, trapz etc..)
+            Any vectorized function (like np.histogram) can be passed in with keyword arguments and it will be
+            applied chunk by chunk to the slices.
+            
+         **apply_fcn_kdws:  If user is passing a function to apply_fcn that requires keywords, the get passed 
+          in to dfcut.apply() '''   
+        return self._transfer(df_wavelength_slices(self._df, ranges=ranges, apply_fcn=apply_fcn, **applyfcn_kwds))
+        
+       
         
     ### Spectral column attributes/properties
     @property
@@ -345,9 +428,22 @@ class TimeSpectra(MetaDataframe):
     @property
     def spectypes(self):
         return specunits
-
-
+    
     ### Temporal column attributes
+    @property
+    def timeunit(self):
+        return self._timeunit
+    
+    @timeunit.setter
+    def timeunit(self, unit):
+        #Do checks and validation here!
+        self._timeunit=unit
+        
+    @property
+    def full_timeunit(self):
+        ### ACTUALLY MAKE THIS WORK
+        return 'full unit'+self.timeunit
+    
     @property
     def timetypes(self):
         return tunits
@@ -501,10 +597,11 @@ class TimeSpectra(MetaDataframe):
                 print string.rjust(delim.join(att), 7) #MAKE '\N' comprehension if string format never works out
             else:
                 print att
-        
-       
-    def _dfgetattr(self, attr, use_base=False, *fcnargs, **fcnkwargs):
+                
+    def _dfgetattr(self, attr, *fcnargs, **fcnkwargs):
         ''' This is overwritten from MetaDataframe to account for the use_base option.'''
+
+        use_base=fcnkwargs.pop('use_base', False)
  
         out=getattr(self._df, attr)(*fcnargs, **fcnkwargs)
         
@@ -520,7 +617,7 @@ class TimeSpectra(MetaDataframe):
                     raise Exception('Could not successfully perform operation "%s" on baseline.  Please check\
                     Pandas Series API'%attr)            
             
-            tsout=self._deepcopy(out)
+            tsout=self._transfer(out)
             if use_base==True:
                 ### Have to convert back down to a series ### (IF FORCED BASELINE TO DATAFRAME)
                 ### and Series(df) does not work correctly!! VERY HACKy
@@ -534,13 +631,13 @@ class TimeSpectra(MetaDataframe):
         else:
             return out
         
-    ### OVERWRITE METADATFRAME CLASS METHODS
+    ### OVERWRITE METADATFRAME MAGIC METHODS
     def __union__(self):
         ''' Add some header and spectral data information to the standard output of the dataframe.
         Just ads a bit of extra data to the dataframe on printout.  This is called by __repr__, which 
         can either return unicode or bytes.  This is better than overwriting __repr__()'''
         delim='\t'
-        if self._specunit==None:
+        if self.specunit==None:
             specunitout='None'
         else:
             specunitout=self.full_specunit
@@ -556,10 +653,12 @@ if __name__ == '__main__':
     ### Be careful when generating test data from Pandas Index/DataFrame objects, as this module has overwritten their defaul behavior
     ### best to generate them in other modules and import them to simulate realisitc usec ase
 
-    spec=SpecIndex([400.,500.,600.], unit='nm')
+    spec=SpecIndex([400.,500.,600.])
     testdates=date_range(start='3/3/12',periods=3,freq='h')
     
-    ts=TimeSpectra(abs(randn(3,3)), columns=testdates, index=spec, specunit='k', timeunit='s', baseline=[1.,2.,3.])    
+    ts=TimeSpectra(abs(randn(3,3)), columns=testdates, index=spec, timeunit='s', baseline=[1.,2.,3.])    
+    ts.to_csv('junk')
+    range_timeplot(ts)
 
     ts.a=50; ts.b='as'
     ts.iunit='t'
@@ -573,4 +672,3 @@ if __name__ == '__main__':
 #    ts.rank(use_base=True)
     x=ts.dumps()
     ts=mloads(x)
-

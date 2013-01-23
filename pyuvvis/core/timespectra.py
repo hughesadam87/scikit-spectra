@@ -7,11 +7,11 @@ from pyuvvis.pandas_utils.metadframe import MetaDataframe, mload, mloads
 
 ## LOCAL VERSION OF METADATAFRAME
 import sys
-sys.path.append("../pandas_utils")
+#sys.path.append("../pandas_utils")
 #from metadframe import MetaDataframe, mload, mloads
 
-sys.path.append("../pyplots")
-from basic_plots import specplot, absplot, timeplot, range_timeplot
+#sys.path.append("../pyplots")
+#from basic_plots import specplot, absplot, timeplot, range_timeplot
 
 from pandas import DataFrame, DatetimeIndex, Index, Series
 from numpy import array_equal
@@ -20,7 +20,7 @@ from numpy import array_equal
 from pyuvvis.core.specindex import SpecIndex, specunits
 from pyuvvis.core.spec_labeltools import datetime_convert
 from pyuvvis.core.spec_labeltools import from_T, to_T, Tdic
-from pyuvvis.core.spec_utilities import divby
+from pyuvvis.core.utilities import divby, df_wavelength_slices
 from pyuvvis.pyplots.advanced_plots import spec_surface3d
 from pyuvvis.custom_errors import badkey_check
 
@@ -95,6 +95,33 @@ def _as_datetime(timespectra):
 ##########################################
 ## TimeSpectra Public Utilities    #######
 ########################################## 
+### Wrapper for df_from_directory
+def spec_from_dir(directory, csvargs, sortnames=False, concat_axis=1, shortname=True, cut_extension=False):
+    ''' Takes files from a directory, presuming they are identically formatted, and reads them into
+    a dataframe by iterating over read_csv().  All arguments that read_csv() would take are passed
+    in.  These kwargs are in regard the files themselves, for example, skiprows, skipfooter and header.
+        
+    For now, no support for glob to take only files of a certain file extension.
+    For now, conctaentation occurs along
+
+    Args:
+       directory- Path to directory where files are stored.
+       csvargs- Dictionary of arguments that are passed directly to the read_csv() function. For example
+                skiprows, header, na_values etc... see pandas API for read_csv()
+        
+    Kwds:
+       sortnames- Will attempt to autosort the filelist. Otherwise, files are ordered by the module
+                  os.path.listdir().
+                  
+       concat_axis- How to merge datafiles into a dataframe.  Default is axis=1, which means all files 
+                    should share the same index values.  I use this for spectral data where the wavelength
+                    column is my dataframe index.
+                  
+       shortname- If false, full file path is used as the column name.  If true, only the filename is used. 
+       
+       cut_extension- If kwd shortname is True, this will determine if the file extension is saved or cut from the data.'''
+    
+    return TimeSpectra(df_from_directory(directory, csvargs, sortnames=sortnames, concat_axis=concat_axis, shortname=shortname, cut_extension=cut_extension))
 
 
 class TimeSpectra(MetaDataframe):
@@ -157,8 +184,6 @@ class TimeSpectra(MetaDataframe):
             ### ADD TRANSLATION FOR FREQ--> basetimeuint MAKE IT A PROPERTY? BUT ADD INTIIALIZTION SHIT
 #       self._timeunit=get_time_from_freq(df.columns.freq)
       
-
-
         ### Have to do it here instead of defaulting on instantiation.
         self._df._tkind='temporal'
 
@@ -179,7 +204,6 @@ class TimeSpectra(MetaDataframe):
             else:
                 self.specunit=specunit   #Property setter will do validation         
     
-            
         else:
             # Index, no specunit
             if specunit == None:
@@ -353,6 +377,33 @@ class TimeSpectra(MetaDataframe):
                 rout=ref
 
         return rout  #MAKES MORE SENSE TO MAKE THIS A 1D DATAFRAME
+    
+    def wavelength_slices(self, ranges, apply_fcn='mean', **applyfcn_kwds):
+        '''Takes in a dataframe with a list of start/end ranges.  Slices df into these various ranges,
+        then returns a composite dataframe with these slices.  Composite dataframe will nicely
+        plot when piped into spec aesthetics timeplot.
+        
+        Note: By default, this operation slices rows/index, and then averages by columns.  Therefore,
+              the default operations is df.ix[], followed by mean(axis=0).  Note that this is not axis=1!
+              The can be confusing, so I chose to force the user to use this method (didn't give keyword options).
+              It is best for users to pass a transposed array.  
+              
+             
+              If ever deciding to change this, I should merely change the following:
+               df.ix  ---> df.columns[]
+               mean(axis=0) to mean(axis=1)
+               
+        
+        kwds:
+         apply_fcn: Chooses the way to collapse data.  Special/useful functions have special string designations.
+            Can be mean, sum, or a variety of integration methods (simps, trapz etc..)
+            Any vectorized function (like np.histogram) can be passed in with keyword arguments and it will be
+            applied chunk by chunk to the slices.
+            
+         **apply_fcn_kdws:  If user is passing a function to apply_fcn that requires keywords, the get passed 
+          in to dfcut.apply() '''   
+        return self._transfer(df_wavelength_slices(self._df, ranges=ranges, apply_fcn=apply_fcn, **applyfcn_kwds))
+        
        
         
     ### Spectral column attributes/properties
@@ -546,10 +597,11 @@ class TimeSpectra(MetaDataframe):
                 print string.rjust(delim.join(att), 7) #MAKE '\N' comprehension if string format never works out
             else:
                 print att
-        
-       
-    def _dfgetattr(self, attr, use_base=False, *fcnargs, **fcnkwargs):
+                
+    def _dfgetattr(self, attr, *fcnargs, **fcnkwargs):
         ''' This is overwritten from MetaDataframe to account for the use_base option.'''
+
+        use_base=fcnkwargs.pop('use_base', False)
  
         out=getattr(self._df, attr)(*fcnargs, **fcnkwargs)
         
@@ -565,7 +617,7 @@ class TimeSpectra(MetaDataframe):
                     raise Exception('Could not successfully perform operation "%s" on baseline.  Please check\
                     Pandas Series API'%attr)            
             
-            tsout=self._deepcopy(out)
+            tsout=self._transfer(out)
             if use_base==True:
                 ### Have to convert back down to a series ### (IF FORCED BASELINE TO DATAFRAME)
                 ### and Series(df) does not work correctly!! VERY HACKy
@@ -605,6 +657,7 @@ if __name__ == '__main__':
     testdates=date_range(start='3/3/12',periods=3,freq='h')
     
     ts=TimeSpectra(abs(randn(3,3)), columns=testdates, index=spec, timeunit='s', baseline=[1.,2.,3.])    
+    ts.to_csv('junk')
     range_timeplot(ts)
 
     ts.a=50; ts.b='as'
@@ -619,4 +672,3 @@ if __name__ == '__main__':
 #    ts.rank(use_base=True)
     x=ts.dumps()
     ts=mloads(x)
-

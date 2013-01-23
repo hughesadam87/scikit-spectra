@@ -20,6 +20,8 @@
 import pandas
 from collections import Iterable 
 
+from pandas import DatetimeIndex
+
 from pyuvvis.core.spec_labeltools import spectral_convert
 
 ### Define new attributes (default values provided in SpecIndex())
@@ -33,13 +35,19 @@ pandas.Index.old__unicode__=pandas.Index.__unicode__
 
 ### Before messing this up, realize that _unit_valid() relies on it!
 specunits={'m':'meters', 'nm':'nanometers', 'cm':'centimeters', 'um':'micrometers', 'k':'wavenumber(cm-1)',
-    'ev':'electron volts', 'nm-1':'nanometers inverse', 'f':'frequency(hz)', 'w':'angular frequency(rad/s)'}
+    'ev':'electron volts', 'nm-1':'nanometers inverse', 'f':'frequency(hz)', 'w':'angular frequency(rad/s)',
+    None:'No Spectral Unit'}
 
 _specinverse=dict((v,k) for k,v in specunits.iteritems()) #Used for lookup by value
 
 ### Catetegorical representation
 speccats={'Wavelength':('m','nm','cm', 'um'), 'Wavenumber':('k', 'nm-1'), 'Energy':('ev'), 'Frequency':('f'), 
           'Ang. Frequency':('w') }
+
+def SpecError(value):
+    ''' Custom Error for when user tries to pass a bad spectral unit.  Implementation actually defers user
+    to see an attribute in the dataframe rather that calling list_sunits directly'''
+    return NameError('Invalid spectral unit, "%s".  See df.list_sunits for valid spectral units'%value)
 
 def get_category(unit):
     ''' Given a unit key ('m', 'f' etc...), returns the key in speccats to which it belongs.'''
@@ -70,7 +78,7 @@ def _unit_valid(unit):
         return _specinverse[unit]
     else:
         raise SpecError(unit)
-
+    
 def SpecIndex(inp, *args, **defattr):
     ''' Lets other programs call this custom Index object.  Index must be called with array values
     by default (aka Index() will fail)
@@ -93,13 +101,7 @@ def SpecIndex(inp, *args, **defattr):
           
     return index
 
-def SpecError(value):
-    ''' Custom Error for when user tries to pass a bad spectral unit.  Implementation actually defers user
-    to see an attribute in the dataframe rather that calling list_sunits directly'''
-    return NameError('Invalid spectral unit, "%s".  See df.list_sunits for valid spectral units'%value)
-
-
-### **kwargs needs to be in here to work
+### DONT CHANGE THE NAME OF THIS METHOD WITHOUT UPDATED TIMESPECTRA() __INIT__ WHICH LOOKS FOR IT!
 def _convert_spectra(self, outunit, **kwargs):
     '''Handles requests to change spectral axis unit, and hence values.  Ensures that transformations involving unit=None
     are handles properly, and that only valid units are passed to the actual converting function, "spectral_convert".'''  
@@ -118,16 +120,17 @@ def _convert_spectra(self, outunit, **kwargs):
                
 def __unicode__(self):
     ''' Add some printout before Index type.  Don't change __name__ which will change between float index, int64 index etc... because this
-    is nice to the type of data (see index method __unicode__ which is called by __repr__ '''
+    is nice to the type of data (see index method __unicode__ which is called by __repr__) '''
     if self.unit==None:
         sout=''
     else:
         sout=self.unit
     return 'Spectra(%s): %s'%(sout, self.old__unicode__())
+
                 
 ### Assign custom methods            
 pandas.Index._convert_spectra=_convert_spectra
-pandas.Index.__unicode__=__unicode__ #Overload the new repr
+pandas.Index.__unicode__=__unicode__ #Overload the new printout
 
 if __name__ == '__main__':
     x=SpecIndex([200,300,400])

@@ -1,3 +1,13 @@
+''' GWU in-house script for dataanalysis of fiberoptic probe data.'''
+
+__author__ = "Adam Hughes"
+__copyright__ = "Copyright 2013, GWU Physics"
+__license__ = "Free BSD"
+__maintainer__ = "Adam Hughes"
+__email__ = "hugadams@gwmail.gwu.edu"
+__status__ = "Development"
+
+
 import os, time, shutil, sys
 from optparse import OptionParser
 
@@ -7,33 +17,21 @@ import matplotlib.pyplot as plt
 import specparms as sp  #if change filename, change shutil call
 
 
-## LOCAL IMPORTS
-#sys.path.append('../../pyuvvis')
-#from pyplots.advanced_plots import spec_surface3d, surf3d, spec_poly3d, plot2d, plot3d
-#from pandas_utils.dataframeserial import df_load, df_dump
-#from pandas_utils.df_attrhandler import transfer_attr
-#from core.spec_labeltools import datetime_convert, spectral_convert, spec_slice
-#from core.spec_utilities import boxcar, wavelength_slices, divby
-#from core.baseline import dynamic_baseline
-#from pyplots.basic_plots import specplot, timeplot, absplot, range_timeplot
-#from pyplots.plot_utils import _df_colormapper, cmget
-#from IO.gwu_interfaces import from_timefile_datafile, get_files_in_dir, from_spec_files
-#from core.baseline import dynamic_baseline
-#from imk_utils import make_root_dir, get_files_in_dir, get_shortname
-#from corr2d import corr_analysis, make_ref, sync_3d, async_3d
+## This file is local... maybe make my own toolset?
+from imk_utils import make_root_dir, get_files_in_dir, get_shortname
 
-### UPDATE PACKAGE THEN CHANGE THIS
-from pyuvvis import spec_surface3d, surf3d, spec_poly3d, plot2d, plot3d
-from pyuvvis import df_load, df_dump
-from pyuvvis import transfer_attr
-from pyuvvis import datetime_convert, spectral_convert, spec_slice
-from pyuvvis import boxcar, wavelength_slices, divby
-from pyuvvis import dynamic_baseline
-from pyuvvis import make_root_dir, get_files_in_dir, get_shortname
-from pyuvvis import specplot, timeplot, absplot, range_timeplot, _genplot
-from pyuvvis import _df_colormapper, cmget
-from pyuvvis import from_timefile_datafile, get_files_in_dir, from_spec_files
-from pyuvvis import ca2d, make_ref, sync_3d, async_3d
+
+## ASBOLUTE IMPORTS
+from pyuvvis.pyplots.advanced_plots import spec_surface3d, surf3d, spec_poly3d, plot2d, plot3d
+from pyuvvis.core.spec_labeltools import datetime_convert, spec_slice
+from pyuvvis.core.utilities import boxcar
+from pyuvvis.core.baseline import dynamic_baseline
+from pyuvvis.pyplots.basic_plots import specplot, timeplot, absplot, range_timeplot
+from pyuvvis.pyplots.plot_utils import _df_colormapper, cmget
+from pyuvvis.IO.gwu_interfaces import from_timefile_datafile, get_files_in_dir, from_spec_files
+from pyuvvis.core.baseline import dynamic_baseline
+from pyuvvis.core.corr import ca2d, make_ref, sync_3d, async_3d
+from pyuvvis.core.timespectra import mload, mloads
 
 
 def plt_clrsave(outpath, outname): # dpi=600):
@@ -128,7 +126,7 @@ if __name__=='__main__':
             raise IOError('Indirectory must contain only one pickle file if you want to use it!!!')
 
         elif len(picklefile)==1:
-            df_full=df_load(picklefile[0])        
+            ts_full=mload(picklefile[0])        
             lf.write('Loaded contents of folder, %s, using the ".pickle" file, %s.\n\n'%(folder, get_shortname(picklefile[0])))            
 
         ### If no picklefile found try reading in datafile directly
@@ -137,12 +135,12 @@ if __name__=='__main__':
                 timefile=[afile for afile in infiles if 'time' in afile.lower()]
                 if len(timefile) == 1:
                     infiles.remove(timefile[0])
-                    df_full=from_timefile_datafile(datafile=infiles[0], timefile=timefile[0])
+                    ts_full=from_timefile_datafile(datafile=infiles[0], timefile=timefile[0])
                     lf.write('Loading contents of folder, %s, using the timefile/datafile conventional import\n\n'%folder)   
 
                 ### ACCOUNT FOR REMOTE POSSIBILITY THAT 2 FILES COULD STILL JUST BE TWO RAW DATA FILES INSTEAD OF DATAFILE/TIMEFILE
                 elif len(timefile) == 0:
-                    df_full=from_spec_files(infiles)
+                    ts_full=from_spec_files(infiles)
                     lf.write('Loading contents of folder, %s, multiple raw spectral files %s.  (If these were \
                     supposed to be datafile/timefile and not raw files, couldnt find word "time" in filename.) \
                     \n\n'%(folder, len(infiles))) 
@@ -152,115 +150,122 @@ if __name__=='__main__':
                     raise IOError('Timefile not found.  File must contain word "time"')                    
 
             else:
-                df_full=from_spec_files(infiles)
+                ts_full=from_spec_files(infiles)
                 lf.write('Loading contents of folder, %s, multiple raw spectral files %s.\n\n'%(folder, len(infiles)))                    
 
         ### Output the pickled dataframe    
-        df_dump(df_full, od+'/rundata.pickle')
-        df_full.to_csv(od+'/rundata.csv')
+        ts_full.save(od+'/rundata.pickle')
+        ts_full.to_csv(od+'/rundata.csv') 
 
-        ### Subtract the dark spectrum if it has one.  Note that all program should produce an attribute for darkseries,
+        ### Subtract the dark spectrum if it has one.  Note that all programs should produce an attribute for darkseries,
         ### which may be None, but the attribute should still be here.
-        if hasattr(df_full, 'darkseries') and sp.sub_base==True:
-            if isinstance(df_full.darkseries, type(None) ):
-                df=df_full #need this                
+        if hasattr(ts_full, 'darkseries') and sp.sub_base==True:
+            if isinstance(ts_full.darkseries, type(None) ):
+                ts=ts_full #need this                
                 lf.write('Warning: darkseries not found in data of run directory %s\n\n'%folder)            
             else:    
-                df=df_full.sub(df_full.darkseries, axis='index')
+                ts=ts_full.sub(ts_full.darkseries, axis='index') #U#P#D#A#T#E (Doesn't save spectra anyway... need to make a csv method with header)
         else:
-            df=df_full #need this
-            lf.write('Warning: darkseries attribute is no found on dataframe in folder %s!\n\n'%folder)            
+            ts=ts_full #need this
+            lf.write('Warning: darkseries attribute is not found on dataframe in folder %s!\n\n'%folder)            
 
         ### Fit first order baselines automatically?
-        if sp.line_fit:
-            blines=dynamic_baseline(df, sp.fit_regions )
-            df=df-blines 
+        if sp.line_fit==True:
+            blines=dynamic_baseline(ts, sp.fit_regions )
+            ts=ts-blines 
+            
+        try:
+            specunit=sp.specunit
+        except AttributeError:
+            specunit='nm'
 
-        ### Convert time axis to specified unit          
+        # THIS NEEDS UPDATED FOR WHEN TIMEUNIT WORKS #
+        ## Convert time axis to specified unit          
         try:
             timeunit=sp.timeunit #Take from params file  
         except AttributeError:
             timeunit='interval'
-        df.columns=datetime_convert(df.columns, return_as=timeunit)     
+        # TIMESPECTRA NEEDS TO BE ABLE TO HANDLE THIS ALL ON ITS OWN, 
+        ts.columns=datetime_convert(ts.columns, return_as=timeunit)
+        ts.timeunit=timeunit        
 
         ### Slice spectra and time start/end points.  Doesn't stop script upon erroringa
         try:
-            df=df[sp.tstart: sp.tend] 
+            ts=ts[sp.tstart: sp.tend] 
         except Exception:
             lf.write('Parameters Error: unable to slice tstart and tend to specified range in directory %s\n\n'%folder)           
 
         try:
-            df=df.ix[sp.x_min: sp.x_max] 
+            ts=ts.ix[sp.x_min: sp.x_max] 
         except Exception:
             lf.write('Parameters Error: unable to slice x_min and x_max range in directory %s\n\n'%folder)      
+   
 
-
-        transfer_attr(df_full, df, speakup=False)
-        df.columns.name=timeunit  #Useful for plotting 2d-3d for autodetection, but not necessary       
+        ts.baseline=0 
 
         ###### Polygon Plot
-        spec_poly3d(df, title=options.rname+'3d Poly Spec')
+        spec_poly3d(ts, title=options.rname+'3d Poly Spec')
         plt_clrsave(outdir, options.rname+'polygon')
 
         ##### Basic spectral and absorbance plots    
-        specplot(df, title=options.rname+'Full spectrum')
+        specplot(ts, title=options.rname+'Full spectrum')
         plt_clrsave(outdir, options.rname+'full_spectrum')
 
-        absplot(divby(df), title=options.rname+'Relative spectrum' )
+        absplot(ts, title=options.rname+'Relative spectrum' )
         plt_clrsave(outdir, options.rname+'relative')
 
         ### Look for uv-vis ranges in data, if not found, default to equally slicing spectrum by 7
         try:
             uv_ranges=sp.uv_ranges
             if isinstance(uv_ranges, float) or isinstance(uv_ranges, int):
-                uv_ranges=spec_slice(df.index, uv_ranges)   
+                uv_ranges=spec_slice(ts.index, uv_ranges)   
 
         except AttributeError:
-            uv_ranges=spec_slice(df.index, 8)   
+            uv_ranges=spec_slice(ts.index, 8)   
 
         ### Time averaged plot, not scaled to 1 (relative intenisty dependson bin width and actual intensity)
-        dfsliced=wavelength_slices(df, ranges=uv_ranges, apply_fcn='mean')
-        range_timeplot(dfsliced, ylabel='Average Intensity', xlabel='Time ('+timeunit+')' ) #legstyle =1 for upper left
+        tssliced=ts.wavelength_slices(ranges=uv_ranges, apply_fcn='mean')
+        range_timeplot(tssliced, ylabel='Average Intensity', xlabel='Time ('+timeunit+')' ) #legstyle =1 for upper left
         plt_clrsave(outdir, options.rname+'raw_time')
 
         ### Now scale curves to 1 for objective comparison
-        dfsliced_norm=dfsliced.apply(lambda x: x/x[0], axis=1)
-        range_timeplot(dfsliced_norm, title='Normalized Range Timeplot', ylabel='Scaled Average Intensity',\
+        tssliced_norm=tssliced.apply(lambda x: x/x[0], axis=1)
+        range_timeplot(tssliced_norm, title='Normalized Range Timeplot', ylabel='Scaled Average Intensity',\
                        xlabel='Time ('+timeunit+')', legstyle=1 )
         plt_clrsave(outdir, options.rname+'norm_time')        
 
-        ### Area plot using simpson method of integration
-        dfarea=wavelength_slices(df, ranges=(min(df.index), max(df.index)), apply_fcn='simps')                
-        range_timeplot(dfarea, ylabel='Power', xlabel='Time ('+timeunit+')', legend=False,
+        ### Area plot using simpson method of integration (MAKE THIS EASIER?)
+        tsarea=ts.wavelength_slices(ranges=(min(ts.index), max(ts.index)), apply_fcn='simps')                
+        range_timeplot(tsarea, ylabel='Power', xlabel='Time ('+timeunit+')', legend=False,
                        title='Spectral Power vs. Time (%i nm - %i nm)'%  ## Eventually make nm a paremeter and class method
-                       (min(df.index), max(df.index)), color='r')
+                       (min(ts.index), max(ts.index)), color='r')
         plt_clrsave(outdir, options.rname+'full_area')
 
 
         #### correlation analysis
         outcorr=od+'/2dca'
         os.mkdir(outcorr)        
-        ref=make_ref(df, method='empty')     
+        ref=make_ref(ts, method='empty')     
 
-        S,A=ca2d(df, ref)
-        sync_3d(S, title='Synchronous Spectrum (%s-%s %s)'%(round(min(df), 1), round(max(df),1), timeunit)) #min/max by columns      
+        S,A=ca2d(ts, ref)
+        sync_3d(S, title='Synchronous Spectrum (%s-%s %s)'%(round(min(ts), 1), round(max(ts),1), ts.full_timeunit)) #min/max by columns      
         plt_clrsave(outcorr, options.rname+'full_sync')                
-        async_3d(A, title='Asynchronous Spectrum (%s-%s %s)'%(round(min(df), 1), round(max(df),1), timeunit))
+        async_3d(A, title='Asynchronous Spectrum (%s-%s %s)'%(round(min(ts), 1), round(max(ts),1), ts.full_timeunit))
         plt_clrsave(outcorr, options.rname+'full_async')        
 
 
-        absdf=divby(df) 
-        S,A=ca2d(absdf, ref)        
-        sync_3d(S, title='Synchronous Spectrum (%s-%s %s)'%(round(min(df), 1), round(max(df),1), timeunit)) #min/max by columns      
-        plt_clrsave(outcorr, options.rname+'relative_sync')                
-        async_3d(A, title='Asynchronous Spectrum (%s-%s %s)'%(round(min(df), 1), round(max(df),1), timeunit))
-        plt_clrsave(outcorr, options.rname+'relative_async')         
-
-
         #### 2d contour plot (solid color or cmap accepted)
-        plot2d(df, title='Full Contour', cmap='autumn', contours=7, label=1, colorbar=1, background=1)
+        plot2d(ts, title='Full Contour', cmap='autumn', contours=7, label=1, colorbar=1, background=1)
         plt_clrsave(outdir, options.rname+'full_contour')        
 
+
+        ### EVENTUALLY JUST ADD DIFFERENT IUNITS IN REPRESENTATION
+        #absdf=divby(df) 
+        #S,A=ca2d(absdf, ref)        
+        #sync_3d(S, title='Synchronous Spectrum (%s-%s %s)'%(round(min(ts), 1), round(max(ts),1), ts.full_timeunit)) #min/max by columns      
+        #plt_clrsave(outcorr, options.rname+'relative_sync')                
+        #async_3d(A, title='Asynchronous Spectrum (%s-%s %s)'%(round(min(ts), 1), round(max(ts),1), ts.full_timeunit))
+        #plt_clrsave(outcorr, options.rname+'relative_async')         
 
 
         ### 3D Plots.  Set row and column step size, eg 10 would mean 10 column traces on the contours ###
@@ -272,14 +277,14 @@ if __name__=='__main__':
             os.mkdir(out3d)
 
             for view in views:        
-                spec_surface3d(df, kind=kind, c_iso=c_iso, r_iso=r_iso, cmap=cmget('gray'), contour_cmap=cmget('autumn'),
+                spec_surface3d(ts, kind=kind, c_iso=c_iso, r_iso=r_iso, cmap=cmget('gray'), contour_cmap=cmget('autumn'),
                                elev=view[0], azim=view[1], xlabel='Time ('+timeunit+')')
                 plt_clrsave(out3d, '%sfull_3d_%s_%s'%(options.rname, view[0], view[1])   )    
 
 
-                spec_surface3d(divby(df), kind=kind, c_iso=c_iso, r_iso=r_iso, cmap=cmget('gray'), contour_cmap=cmget('autumn'),
-                               elev=view[0], azim=view[1], xlabel='Time ('+timeunit+')')
-                plt_clrsave(out3d, '%srelative_3d_%s_%s'%(options.rname, view[0], view[1])   )    
+                #spec_surface3d(divby(ts), kind=kind, c_iso=c_iso, r_iso=r_iso, cmap=cmget('gray'), contour_cmap=cmget('autumn'),
+                               #elev=view[0], azim=view[1], xlabel='Time ('+timeunit+')')
+                #plt_clrsave(out3d, '%srelative_3d_%s_%s'%(options.rname, view[0], view[1])   )    
 
 
 
