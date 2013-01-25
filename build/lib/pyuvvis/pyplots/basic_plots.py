@@ -93,11 +93,24 @@ def range_timeplot(ranged_ts, **pltkwds):
     pltkwds['color']=pltkwds.pop('color', _uvvis_colors(ranged_ts))
     pltkwds['legend']=pltkwds.pop('legend', True)
     pltkwds['linewidth']=pltkwds.pop('linewidth', 3.0 )  
-    pltkwds['legend']=pltkwds.pop('legend', True) #Turn legend on        
           
     xlabel=pltkwds.pop('xlabel', ranged_ts.full_timeunit)  
     ylabel=pltkwds.pop('ylabel', ranged_ts.full_iunit)    
     title=pltkwds.pop('title', 'Ranged Time Plot: '+str(ranged_ts.name) )       
+                
+    return _genplot(ranged_ts.transpose(), xlabel, ylabel, title,**pltkwds)   #ts TRANSPOSE
+
+def areaplot(ranged_ts, **pltkwds):
+    ''' Makes plots based on ranged time intervals from spec_utilities.wavelength_slices().
+    Uses a special function, _uvvis_colorss() to map the visible spectrum.  Changes default legend
+    behavior to true.'''
+
+    pltkwds['legend']=pltkwds.pop('legend', False)
+    pltkwds['linewidth']=pltkwds.pop('linewidth', 3.0 )  
+          
+    xlabel=pltkwds.pop('xlabel', ranged_ts.full_timeunit)  
+    ylabel=pltkwds.pop('ylabel', ranged_ts.full_iunit)    
+    title=pltkwds.pop('title', 'Area Plot: '+str(ranged_ts.name) )       
                 
     return _genplot(ranged_ts.transpose(), xlabel, ylabel, title,**pltkwds)   #ts TRANSPOSE
     

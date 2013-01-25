@@ -1,6 +1,6 @@
+import string
 from types import NoneType, MethodType
 from operator import itemgetter
-import string
 
 ### PUT THIS IN PANDAS UTILS AND UPATE PACKAGE
 from pyuvvis.pandas_utils.metadframe import MetaDataframe, mload, mloads
@@ -17,12 +17,11 @@ from pandas import DataFrame, DatetimeIndex, Index, Series
 from numpy import array_equal
 
 ### Absolute pyuvvis imports (DON'T USE RELATIVE IMPORTS)
-from pyuvvis.core.specindex import SpecIndex, specunits
-from pyuvvis.core.spec_labeltools import datetime_convert
-from pyuvvis.core.spec_labeltools import from_T, to_T, Tdic
+from pyuvvis.core.specindex import SpecIndex, specunits, get_spec_category
+from pyuvvis.core.spec_labeltools import datetime_convert, from_T, to_T, Idic, intvl_dic
 from pyuvvis.core.utilities import divby, df_wavelength_slices
 from pyuvvis.pyplots.advanced_plots import spec_surface3d
-from pyuvvis.custom_errors import badkey_check
+from pyuvvis.custom_errors import badkey_check, null_attributes
 
 
 ## testing (DELETE)
@@ -30,6 +29,7 @@ from pandas import date_range
 from numpy.random import randn
 import matplotlib.pyplot as plt
 
+from pandas import read_csv as df_read_csv
 
 tunits={'ns':'nanoseconds', 'us':'microseconds', 'ms':'milliseconds', 's':'seconds', 
         'm':'minutes', 'h':'hours','d':'days', 'y':'years'}  #ADD NULL VALUE? Like None:'No Time Unit' (iunit/specunit do it)
@@ -54,42 +54,69 @@ def BaselineError(index, timespectra):
                       %(len(index), index[0], sunit,  index[-1], sunit, len(timespectra.baseline), \
                         timespectra.name, timespectra.df.index[0], sunit, timespectra.df.index[-1], sunit) )
 
+    
+
 
 ##########################################
 ## TimeSpectra Private Utilities   #######
 ##########################################
 
 ### Unit validations###
+def _valid_xunit(value, dic):
+    ''' Validates existence of key (usually a unit type like spectral unit in a dictionary such as specunits)'''
+    if value == None:
+        return None
+    else:
+        badkey_check(value, dic.keys())
+        return value.lower()    
+              
+
 def _valid_iunit(sout):
     '''When user is switching spectral intensity units, make sure they do it write.'''
-    if sout==None:
-        return sout
-    sout=sout.lower()
-    if sout in Tdic.keys():
-        return sout
-    else:
-        raise ItypeError(sout)    
+    return _valid_xunit(sout, Idic)
 
+def _valid_intvlunit(sout):
+    ''' Validate interval unit.'''
+    return _valid_xunit(sout, intvl_dic)
 
+        
 def _as_interval(timespectra, unit):#, unit=None):
     ''' Return columns as intervals as computed by datetime_convert function.  Not an instance method
     for calls from objects other than self.'''
+    
     ### If current columns is DatetimeIndex, convert
     if timespectra._interval==False:
         return Index(datetime_convert(timespectra.columns, return_as=unit, cumsum=True))#, unit=unit)              
 
     ### If currently already intervals, convert to datetime, then convert that to new units
     else:
-        newcols=_as_datetime(timespectra)
+        newcols=_as_datetime(timespectra) #Convert to new unit
         return Index(datetime_convert(newcols, return_as=unit, cumsum=True))#, unit=unit)      
 
 ### Time interval computations ###
-def _as_datetime(timespectra):
-    ''' Return datetimeindex from either stop,start or start, periods.'''
-    if timespectra._stop:
-        timespectra._df.columns=DatetimeIndex(start=timespectra._start, end=timespectra._stop, freq=timespectra._freq)
-    else:
-        timespectra._df.columns=DatetimeIndex(start=timespectra._start, periods=timespectra._periods, freq=timespectra._freq)
+def _as_datetime(timespectra, periods=None):
+    ''' Return datetimeindex given a timespectra object.  Queries the _stop, _start, _freq attributes
+        to generate the datetime index.
+    
+        Parameters
+        ----------
+        timespectra : TimeSpectra object from which to sample _stop, _start and _freq.
+        
+        periods: If passed, datetimeindex will be generate from _stop, _periods, _freq.  This is
+                 only useful in certain cases such as in the __init__ of TS if a user decides to
+                 construct from periods.  In any case, _stop is still stored internally.
+    '''
+
+    ### Make sure all attributes are set before converting
+    null_attributes(timespectra, '_as_datetime', '_start','_freq')  #Essentially a gate that requires _start, _freq to pass
+    
+    if periods:
+        return DatetimeIndex(start=timespectra._start, periods=timespectra._periods, freq=timespectra._freq)        
+
+    else:      
+        null_attributes(timespectra, '_as_datetime', '_stop')
+        return DatetimeIndex(start=timespectra._start, end=timespectra._stop, freq=timespectra._freq)
+
         
 
 ##########################################
@@ -148,16 +175,20 @@ class TimeSpectra(MetaDataframe):
         start=dfkwargs.pop('start', None)
         stop= dfkwargs.pop('stop', None)    
         periods=dfkwargs.pop('periods',None)
-        timeunit=dfkwargs.pop('timeunit',None) #Not the same as freq, but inferred from it
         baseline=dfkwargs.pop('baseline', None)
         
+        
+        ### NEED TO WORK OUT LOGIC OF THIS INITIALIZATION?
+        ### Should I even do anything?
+        self._intervalunit=dfkwargs.pop('intvlunit', None)        
 
         if stop and periods:
+            # date_range will throw its own error for this, but I prefer to catch it before it happens            
             raise AttributeError('TimeSpectra cannot be initialized with both periods and stop; please choose one or the other.')
 
         super(TimeSpectra, self).__init__(*dfargs, **dfkwargs)        
 
-        ### If user passes non datetime index to columns, make sure they didn't accidetnally pass SpecIndex by mistake.
+        ### If user passes non datetime index to columns, make sure they didn't accidentally pass SpecIndex by mistake.
         if not isinstance(self._df.columns, DatetimeIndex):
             try:
                 if self._df.columns._kind == 'spectral':
@@ -165,28 +196,31 @@ class TimeSpectra(MetaDataframe):
 
             ### df.columns has no attribute _kind, meaning it is likely a normal pandas index        
             except AttributeError:
-                self._interval=True
+                self._interval=None
                 self._start=start
                 self._stop=stop
                 self._freq=freq
-                self._timeunit=timeunit  #Private for property attribute compatibility
-                
 
-        ### Take Datetime info and use to recreate the array
+                ### If enough keywords passed, convert to a datetime index at initialization
+                if start and freq:
+                    if stop:
+                        self.to_datetime()                      
+                     
+                    ### If initialized with periods representation    
+                    elif periods:
+                        self._df.columns=_as_datetime(self, periods=periods)
+                        self._stop=self._df.columns[-1]
+                        self._interval=False
+                                                   
+
+        ### If DateimIndex already, store attributes directly from array
         else:
             self._interval=False        
             self._start=self._df.columns[0]
             self._stop=self._df.columns[-1]
             self._freq=self._df.columns.freq
-            self._timeunit=timeunit  #Obtain from df somehow
             
-
-            ### ADD TRANSLATION FOR FREQ--> basetimeuint MAKE IT A PROPERTY? BUT ADD INTIIALIZTION SHIT
-#       self._timeunit=get_time_from_freq(df.columns.freq)
       
-        ### Have to do it here instead of defaulting on instantiation.
-        self._df._tkind='temporal'
-
         ### Assign spectral intensity related stuff but 
         ### DONT CALL _set_itype function
         iunit=_valid_iunit(iunit)
@@ -242,28 +276,95 @@ class TimeSpectra(MetaDataframe):
         self._list_out(tunits, delim=delim)
 
     def list_iunits(self, delim='\t'):
-        self._list_out(Tdic, delim=delim)
+        ''' Intensity units of dateframe.  Eg %Transmittance vs. Absorbance'''
+        self._list_out(Idic, delim=delim)
 
     ### Self necessary here or additional df stuff gets printed   
     def list_sunits(self, delim='\t'):
         ''' Print out all available units in a nice format'''
         self._list_out(specunits, delim=delim)         
 
-    ### Timeunit conversions/manipulations
+    def list_intvlunits(self, delim='\t'):
+        ''' Print out all possible units to express the columns in 
+            interval or referenced notation (eg to=0)'''
+        self._list_out(intvl_dic, delim=delim)
+        
+    def label_stats(self, delim='    '):
+        ''' Formatted output of various quantities pertinent to columns/rows of timespectra.  For more
+        comprehensive object output, please refert to list_attr() method.'''
+        
+        ### Human-readable form of self._interval
+        tstatsdic={True:'Datetime', False:'Interval/Referenced', None:'Unknown'}
+        tstyle=tstatsdic[self._interval]
+        
+        print '\nTemporal/Columns stats'
+        print '-----------------------\n'
+        print '%sTime Display Style: %s\n'%(delim, tstyle)
+        print '%sDatetimeindex parameters:'%(delim)
+        print '%s%sstart=%s, stop=%s, freq=%s\n'%(delim, delim, self._start, self._stop, self._freq)
+        print '%sTimeinterval parameters:'%(delim)
+        print '%s%sintvlunit=%s\n'%(delim, delim, self.intvlunit)
 
-    def as_datetime(self):
-        ''' Return columns as DatetimeIndex'''
-        self._df.columns=_as_datetime(self)
-        self._tkind='temporal'    
-        self._interval=False
+            
+        print '\nSpectral/Index stats'
+        print '---------------------\n'
+        print '%sspectral category=%s, specunit=%s'%(delim, get_spec_category(self.specunit), self.specunit)
+        
+    ### ADD PYTHON STRING FORMATTING TO THIS
+    def list_attr(self, classattr=False, dfattr=False, methods=False, types=False, delim='\t', sortby='name'): #values=False,):
+        ''' 
+        IF VALUES FIELD IS ADDED, HAVE TO CHANGE HOW SORTING IS DONW, HOW ATTS IS MADE AND ALSO OUTPUT!
+        Prints out all the custom attributes that are not builtin attributes of the timespectra.  Should this be 
+        in utils as a gneeral function?  Seems kind of useful.'''
 
+        ### Take all attributes in current instance        
+        atts=[x for x in dir(self) if '__' not in x]
 
-    def as_interval(self, unit='interval'):  
-        ''' Return columns as intervals as computed by datetime_convert function'''
-        self._df.columns=_as_interval(self, unit)
-        self._tkind='temporal'
-        self._interval=True    
+        ### Remove self._intrinsic (aka class attributes) if desired
+        if classattr==False:
+            atts=[attr for attr in atts if attr not in self._intrinsic]        
+            filterout=['_intrinsic', 'ix', '_ix', 'list_attr']
+            for att in filterout:
+                atts.remove(att)
+        
+        ### Include dataframe attributes if desired
+        if dfattr==True:
+            atts=atts+[x for x in dir(self._df) if '__' not in x]
+        
+        ### Remove methods if desired
+        if methods==False:
+            atts=[attr for attr in atts if isinstance(getattr(self, attr), MethodType) != True]
+        else:
+            atts.append('ix') #This will
+ 
+        ### Should output include types and/or values?
+        outheader=['Attribute']
+        if types==True: 
+            outheader=outheader+['Type']
+            atts=[(att, str(type(getattr(self, att))).split()[1].split('>')[0] ) for att in atts]
+            #string operation just does str(<type 'int'>) ---> 'int'
+            
 
+            ### Sort output either by name or type
+            badkey_check(sortby, ['name', 'type']) #sortby must be 'name' or 'type'
+            
+            if sortby=='name':
+                atts=sorted(atts, key=itemgetter(0))
+            elif sortby=='type':
+                atts=sorted(atts, key=itemgetter(1))
+
+        ### Output to screen
+        print delim.join(outheader)    
+        print '--------------------'
+        for att in atts:
+            if types==True:
+                print string.rjust(delim.join(att), 7) #MAKE '\N' comprehension if string format never works out
+            else:
+                print att    
+        
+        
+        
+        
 
     @property
     def data(self):
@@ -379,31 +480,46 @@ class TimeSpectra(MetaDataframe):
         return rout  #MAKES MORE SENSE TO MAKE THIS A 1D DATAFRAME
     
     def wavelength_slices(self, ranges, apply_fcn='mean', **applyfcn_kwds):
-        '''Takes in a dataframe with a list of start/end ranges.  Slices df into these various ranges,
-        then returns a composite dataframe with these slices.  Composite dataframe will nicely
+        '''Returns sliced averages/sums of wavelength regions. Composite dataframe will nicely
         plot when piped into spec aesthetics timeplot.
         
-        Note: By default, this operation slices rows/index, and then averages by columns.  Therefore,
-              the default operations is df.ix[], followed by mean(axis=0).  Note that this is not axis=1!
-              The can be confusing, so I chose to force the user to use this method (didn't give keyword options).
-              It is best for users to pass a transposed array.  
-              
-             
-              If ever deciding to change this, I should merely change the following:
-               df.ix  ---> df.columns[]
-               mean(axis=0) to mean(axis=1)
-               
         
-        kwds:
-         apply_fcn: Chooses the way to collapse data.  Special/useful functions have special string designations.
-            Can be mean, sum, or a variety of integration methods (simps, trapz etc..)
-            Any vectorized function (like np.histogram) can be passed in with keyword arguments and it will be
-            applied chunk by chunk to the slices.
+        Parameters:
+        -----------
+        
+            apply_fcn: Chooses the way to collapse data.  Builtin functions include 'mean'
+                     'sum', 'simps', 'trapz', 'romb', 'cumtrapz', but any user function that
+                     results in collapsed data (eg averging function/integrators/etc...) can 
+                     be passed in with any relevant keywords.
+                
             
-         **apply_fcn_kdws:  If user is passing a function to apply_fcn that requires keywords, the get passed 
-          in to dfcut.apply() '''   
+         **apply_fcn_kdws: 
+             If user is passing a function to apply_fcn that requires keywords, the get passed in to dfcut.apply() 
+          
+        Notes
+        -----
+            See description of 'df_wavelength_slices' in utilities.py for more information. 
+            
+            WHEN PLOTTING, PLOT THE TRANSPOSE OF THE RETURNED DF.  '''   
         return self._transfer(df_wavelength_slices(self._df, ranges=ranges, apply_fcn=apply_fcn, **applyfcn_kwds))
+    
+    def area(self, apply_fcn='simps'):
+        ''' Returns total area under the spectra vs. time curve.  To choose a slice of the spectrum,
+            call wavelength_slices with appropriate ranges and an apply_fcn appropriate to style of integration.
         
+        Parameters
+        ----------
+           apply_fcn: Integration method-'simps', 'trapz', 'romb', 'cumtrapz'
+
+        Notes
+        -----
+           This is a wrapper for wavelength_sclices, and as such, user can actually pass any function into the apply_fcn. 
+           Besides mean/sum which is understands already, one could, for example, pass a euler integration function and
+           it should work. 
+           
+           WHEN PLOTTING, PLOT THE TRANSPOSE OF THE RETURNED DF.
+        '''
+        return ts.wavelength_slices(ranges=(min(self.index), max(self.index)), apply_fcn=apply_fcn)
        
         
     ### Spectral column attributes/properties
@@ -429,29 +545,144 @@ class TimeSpectra(MetaDataframe):
     def spectypes(self):
         return specunits
     
-    ### Temporal column attributes
+    ### Temporal/column related functionality
+    def set_daterange(*date_range_args):
+        ''' Wrapper around pandas.date_range to reset the column
+        values on of the data on the fly. See pandas.date_range()
+        for use.  In brief:
+        
+        Parameters
+        ----------
+           start: time start.  
+           freq: Frequency unit
+           stop/periods: specifies endpoint given start and freq.
+           
+        Example
+        -------
+            timespectra.set_daterange('1/1/2012', period=5, freq='H')
+        '''
+        
+        rng=date_range(*date_range_args)
+        self._df.columns=rng
+        self._start=rng[0]
+        self._stop=rng[1]
+        self._freq=rng.freq
+        self._intervals=False
+    
+    @property 
+    def freq(self):
+        return self._freq
+    
+    @freq.setter
+    def freq(self, unit):
+        ''' Freq cannot be set.  This will raise same error as setting datetimeindex.'''
+        raise AttributeError('"freq" attribute cannot be set.  Please use set_daterange() \
+                               to overwrite current timespectra index.')
+    
+    @property
+    def intvlunit(self):
+        return self._intervalunit    
+    
+    @intvlunit.setter
+    def intvlunit(self, unit):
+        ''' If _df in interval mode, convert it.  Otherwise just store attributes.'''
+        if unit==None:
+            unit='intvl'
+            print 'Defaulting intvlunit to "intvl"'
+            
+        if self._interval==True:
+            self.to_interval(unit)                
+        else:
+            self._intervalunit=_valid_intvlunit(unit)
+            
+    @property
+    def full_intvlunit(self):
+        if not self._intervalunit:
+            return None
+        else:
+            return intvl_dic[self._intervalunit]
+            
     @property
     def timeunit(self):
-        return self._timeunit
-    
-    @timeunit.setter
-    def timeunit(self, unit):
-        #Do checks and validation here!
-        self._timeunit=unit
-        
-    @property
-    def full_timeunit(self):
-        ### ACTUALLY MAKE THIS WORK
-        return 'full unit'+self.timeunit
+        ''' Quick reference to current state of time labels.  For comprehensive output, try ts.label_stats()'''
+        if self._interval==True:
+            return self.intvlunit
+        elif self._interval==False:
+            return 'Timestamp'
+        elif self._interval==None:
+            return 'Unknown'
     
     @property
     def timetypes(self):
         return tunits
+    
+    def to_datetime(self):
+        ''' Set columns to DatetimeIndex.  
+        
+        Notes
+        -----
+            self._interval can be None, True or False.  This will call _as_datetime() if it's None or True 
+            and if not all appropriate attributes are found, an error will be raised.
+        '''
+        if self._interval != False:       
+            self._df.columns=_as_datetime(self)
+            self._interval=False
+          
+
+    def to_interval(self, unit=None):  
+        ''' Set columns to interval as computed by datetime_convert function. '''
+        
+        ### User calls function with empty call (), if proper attributes, convert it
+        if unit==None: 
+            null_attributes(self, 'to_interval', '_start', '_stop', '_freq')            
+            if self._intervalunit != None:
+                unit=self._intervalunit
+            else:
+                unit='intvl'  #Default if user has not set anything in _intervalunit
+                
+        ### User calls function with unit
+        else:
+            unit=_valid_intvlunit(unit)          
+            
+            ### If _df already interval
+            if self._interval==True:
+                if unit==self._intervalunit:
+                    return         
+                    
+            
+            ### If interval is None or False, do the conversion
+            elif self._interval==None:
+                ### Make sure proper attributes to get back ater in place
+                null_attributes(self, 'to_interval', '_start', '_stop', '_freq')
+                
+        self._df.columns=_as_interval(self, unit)
+        self._interval=True    
+        self._intervalunit=unit
+        
+    def as_interval(self, unit=None):
+        ''' Return copy of TimeSpectra as interval.'''
+        if isinstance(unit, basestring):
+            if unit.lower() in ['none', 'full']:
+                unit=None
+
+        tsout=self.deepcopy()        
+        tsout.to_interval(unit)
+        return tsout        
+            
+
+    def as_datetime(self):
+        ''' Return copy of TimeSpectra as datetime.'''
+        tsout=self.deepcopy()
+        tsout.to_datetime()
+        return tsout
+            
+    
+    
 
     ### Spectral Intensity related attributes/conversions
     @property
     def full_iunit(self):
-        return Tdic[self._itype]
+        return Idic[self._itype]
     
     @property
     def iunit(self):
@@ -547,56 +778,8 @@ class TimeSpectra(MetaDataframe):
 
     @property
     def itypes(self):
-        return Tdic
+        return Idic
         
-    ### ADD PYTHON STRING FORMATTING TO THIS
-    def list_attr(self, classattr=False, dfattr=False, methods=False, types=False, delim='\t', sortby='name'): #values=False,):
-        ''' 
-        IF VALUES FIELD IS ADDED, HAVE TO CHANGE HOW SORTING IS DONW, HOW ATTS IS MADE AND ALSO OUTPUT!
-        Prints out all the custom attributes that are not builtin attributes of the timespectra.  Should this be 
-        in utils as a gneeral function?  Seems kind of useful.'''
-
-        ### Take all attributes in current instance        
-        atts=[x for x in dir(self) if '__' not in x]
-
-        ### Remove self._intrinsic (aka class attributes) if desired
-        if classattr==False:
-            atts=[attr for attr in atts if attr not in self._intrinsic]        
-            atts.remove('_intrinsic') 
-            atts.remove('list_attr')
-        
-        ### Include dataframe attributes if desired
-        if dfattr==True:
-            atts=atts+[x for x in dir(self._df) if '__' not in x]
-        
-        ### Remove methods if desired
-        if methods==False:
-            atts=[attr for attr in atts if isinstance(getattr(self, attr), MethodType) != True]
- 
-        ### Should output include types and/or values?
-        outheader=['Attribute']
-        if types==True: 
-            outheader=outheader+['Type']
-            atts=[(att, str(type(getattr(self, att))).split()[1].split('>')[0] ) for att in atts]
-            #string operation just does str(<type 'int'>) ---> 'int'
-            
-
-            ### Sort output either by name or type
-            badkey_check(sortby, ['name', 'type']) #sortby must be 'name' or 'type'
-            
-            if sortby=='name':
-                atts=sorted(atts, key=itemgetter(0))
-            elif sortby=='type':
-                atts=sorted(atts, key=itemgetter(1))
-
-        ### Output to screen
-        print delim.join(outheader)    
-        print '--------------------'
-        for att in atts:
-            if types==True:
-                print string.rjust(delim.join(att), 7) #MAKE '\N' comprehension if string format never works out
-            else:
-                print att
                 
     def _dfgetattr(self, attr, *fcnargs, **fcnkwargs):
         ''' This is overwritten from MetaDataframe to account for the use_base option.'''
@@ -646,6 +829,88 @@ class TimeSpectra(MetaDataframe):
         return ''.join(outline)+'\n'+self._df.__union__()    
     
         
+    def to_csv(self, path_or_buff, meta_separate=False, **csv_kwargs):
+        ''' Output to CSV file.  
+        
+            Parameters:
+            ----------
+               path_or_buff: string path to outfile destination.
+               
+               meta_separate: 
+                   If None: metadata is lost and self._df.to_csv(**csv_kwargs) is called.
+                   If False: metadata is serialized and output at taile file the path_or_buff file.
+                   If True: metadata is added to it's own file named path_or_buff.mdf
+                       
+               csv_kwargs: csv formatting arguments passed directoy to self._df.to_csv()
+               
+            Notes:
+            ------
+               MetaData is gotten from self.__dict__.
+               In future, may opt to implement the option to choose the meta_separate filename if 
+               output is separated (eg meta_separate=True)
+                   
+        '''
+        
+        meta=cPickle.dumps(self.__dict__)
+        self._df.to_csv(path_or_buff, **csv_kwargs)
+        if meta_separate == None:
+            return
+        elif meta_separate == True:
+            raise NotImplemented('Not yet implemented this style of csv output')
+        elif meta_separate==False:
+            o=open(path_or_buff, 'a') #'w'?#
+            o.write(meta)
+            o.close()
+                   
+    #################
+    ### CSV Output###
+    #################
+                   
+    def from_csv(path_or_buff, meta_separate=False, **csv_kwargs):
+        ''' Read from CSV file.
+        
+            Parameters:
+            ----------
+               path_or_buff: string path to infile destination.
+               
+               meta_separate: 
+                   If None: metadata is lost and self._df.to_csv(**csv_kwargs) is called.
+                   If False: metadata is serialized and output at taile file the path_or_buff file.
+                   If True: metadata is added to it's own file named path_or_buff.mdf
+                       
+               csv_kwargs: csv formatting arguments passed directoy to self._df.to_csv()
+               
+            Notes:
+            ------
+               MetaData is gotten from self.__dict__.
+               In future, may opt to implement the option to choose the meta_separate filename if 
+               output is separated (eg meta_separate=True)
+               
+               
+            Returns: TimeSpectra
+                 '''
+        if meta_separate == None:
+            return TimeSpectra(read_csv(path_or_buff, **csv_kwargs))
+
+        elif meta_separate == False:
+            fileHandle = open(path_or_buff, 'r')
+            lineList = fileHandle.readlines()
+            fileHandle.close()
+            meta=cPickle.loads(lineList[-1])        
+            ### This could be buggy if __init__() from all the keywords is working correctly.
+            
+            ### Make sure user skips last line in file that was added in addition via meta_sepaarte
+            csv_kwargs['skip_footer']=csv_kwargs.pop('skip_footer', 0) + 1
+            df=df_read_csv(path_or_buff, **csv_kwargs)
+            
+            ### This is hard part, how to set meta data
+        
+        elif meta_separate == True:
+            raise NotImplementedError("Haven't resolved, but this hsould return meta and df")
+        
+        ### Initialize timespectra from meta.  Is this how I want to do it?
+        ts=TimeSpectra(df, **meta) 
+        
 
 #### TESTING ###
 if __name__ == '__main__':
@@ -655,8 +920,19 @@ if __name__ == '__main__':
 
     spec=SpecIndex([400.,500.,600.])
     testdates=date_range(start='3/3/12',periods=3,freq='h')
+    testdates2=date_range(start='3/3/12',periods=3,freq='45s')
     
-    ts=TimeSpectra(abs(randn(3,3)), columns=testdates, index=spec, timeunit='s', baseline=[1.,2.,3.])    
+    ts=TimeSpectra(abs(randn(3,3)), columns=testdates, index=spec, baseline=[1.,2.,3.])  
+    t2=TimeSpectra(abs(randn(3,3)), columns=testdates2, index=spec, baseline=[1.,2.,3.])    
+    
+    ts.iunit='a'
+    
+    ts.to_interval()
+    ts._stop=None    
+    ts._freq=None
+    ts._start=None
+    ts.to_datetime()
+
     ts.to_csv('junk')
     range_timeplot(ts)
 

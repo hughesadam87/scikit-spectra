@@ -11,7 +11,7 @@ import cPickle
 
 from pandas.core.indexing import _NDFrameIndexer
 
-from pandas import DataFrame, Series
+from pandas import DataFrame, Series, read_csv
 
 ## for testing
 from numpy.random import randn
@@ -57,7 +57,8 @@ class MetaDataframe(object):
     def deepcopy(self):
         ''' Make a deepcopy of self, including the dataframe.'''
         return copy.deepcopy(self)   
-
+    
+            
     def as_dataframe(self):
         ''' Convience method to return a raw dataframe, self._df'''
         return self._df    
@@ -147,9 +148,12 @@ class MetaDataframe(object):
         ### Otherwise return whatever the method return would be
         else:
             return out
+        
+    def __repr__(self):
+        return self._df.__repr__()
 
     def __union__(self):
-        ''' Can be customized, but by default, reutrns the output of a standard Dataframe.'''
+        ''' Can be customized, but by default, returns the output of a standard Dataframe.'''
         return self._df.__union__()
 
     ### Operator overloading ####

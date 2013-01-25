@@ -49,7 +49,7 @@ def SpecError(value):
     to see an attribute in the dataframe rather that calling list_sunits directly'''
     return NameError('Invalid spectral unit, "%s".  See df.list_sunits for valid spectral units'%value)
 
-def get_category(unit):
+def get_spec_category(unit):
     ''' Given a unit key ('m', 'f' etc...), returns the key in speccats to which it belongs.'''
     if unit != None:
         for key in speccats:
@@ -95,7 +95,7 @@ def SpecIndex(inp, *args, **defattr):
     ### Assign unit and category
     index.unit=unit 
     if unit:
-        index.name=get_category(unit) 
+        index.name=get_spec_category(unit) 
         
     index._kind='spectral'  #DONT CHANGE
           
@@ -111,12 +111,12 @@ def _convert_spectra(self, outunit, **kwargs):
     ###If converting to None, don't change the index values
     if outunit==None or self.unit==None:    
         self.unit=outunit
-        self.name=get_category(self.unit)
+        self.name=get_spec_category(self.unit)
         return self
     
     else:
         out=spectral_convert(self, self.unit, outunit)
-        return SpecIndex(out, unit=outunit, name=get_category(outunit)) #_kind automatically assigned by SpecIndex
+        return SpecIndex(out, unit=outunit, name=get_spec_category(outunit)) #_kind automatically assigned by SpecIndex
                
 def __unicode__(self):
     ''' Add some printout before Index type.  Don't change __name__ which will change between float index, int64 index etc... because this
