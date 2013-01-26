@@ -219,7 +219,14 @@ class TimeSpectra(MetaDataframe):
             self._start=self._df.columns[0]
             self._stop=self._df.columns[-1]
             self._freq=self._df.columns.freq
-            
+ 
+            ### If freq is not explicitly given, can it be inferred
+            ### REMOVE THIS
+            if self._df.columns.freq:
+                self._freq=self._df.columns.freq
+            else:
+                if self._start and self._stop:
+                    self._freq=((self[-1] - self[0])/len(self.columns)).total_seconds()
       
         ### Assign spectral intensity related stuff but 
         ### DONT CALL _set_itype function
@@ -827,6 +834,15 @@ class TimeSpectra(MetaDataframe):
         else:
             return out
         
+    def _transfer(self, dfnew):
+        ''' See metadataframe _transfer for basic use.  Had to overwrite here to add 
+        a hack to apply the spectral unit.  See issue #33 on pyuvvis github for explanation. '''
+        sunit=self.specunit
+        newobj=super(TimeSpectra, self)._transfer(dfnew)   
+        newobj.specunit=sunit
+        return newobj
+        
+    
     ### OVERWRITE METADATFRAME MAGIC METHODS
     def __union__(self):
         ''' Add some header and spectral data information to the standard output of the dataframe.
@@ -841,7 +857,11 @@ class TimeSpectra(MetaDataframe):
         outline='**',self._name,'**', delim, 'Spectral unit:', specunitout, delim, 'Time unit:', 'Not Implemented','\n'   
         return ''.join(outline)+'\n'+self._df.__union__()    
     
-        
+                   
+    #################
+    ### CSV Output###
+    #################
+                           
     def to_csv(self, path_or_buff, meta_separate=False, **csv_kwargs):
         ''' Output to CSV file.  
         
@@ -874,11 +894,7 @@ class TimeSpectra(MetaDataframe):
             o=open(path_or_buff, 'a') #'w'?#
             o.write(meta)
             o.close()
-                   
-    #################
-    ### CSV Output###
-    #################
-                   
+
     def from_csv(path_or_buff, meta_separate=False, **csv_kwargs):
         ''' Read from CSV file.
         
