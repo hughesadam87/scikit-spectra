@@ -11,7 +11,7 @@ import cPickle
 
 from pandas.core.indexing import _NDFrameIndexer
 
-from pandas import DataFrame, Series, read_csv
+from pandas import DataFrame, Series
 
 ## for testing
 from numpy.random import randn
@@ -57,8 +57,7 @@ class MetaDataframe(object):
     def deepcopy(self):
         ''' Make a deepcopy of self, including the dataframe.'''
         return copy.deepcopy(self)   
-    
-            
+
     def as_dataframe(self):
         ''' Convience method to return a raw dataframe, self._df'''
         return self._df    
@@ -148,13 +147,9 @@ class MetaDataframe(object):
         ### Otherwise return whatever the method return would be
         else:
             return out
-        
+
     def __repr__(self):
         return self._df.__repr__()
-
-    def __union__(self):
-        ''' Can be customized, but by default, returns the output of a standard Dataframe.'''
-        return self._df.__union__()
 
     ### Operator overloading ####
     ### In place operations need to overwrite self._df
@@ -244,7 +239,7 @@ class SubFoo(MetaDataframe):
 
         super(SubFoo, self).__init__(*dfargs, **dfkwargs)
 
-    def __union__(self):
+    def __repr__(self):
         return "Hi I'm SubFoo. I'm not really a DataFrame, but I quack like one."
 
     @property
@@ -280,7 +275,7 @@ if __name__ == '__main__':
     print '\nAttributes a = %s and b = %s will persist when new metadataframes are returned.'%(new.a, new.b)
 
     ### Demonstrate subclassing by invoking SubFoo class
-    print '\nI can subclass a dataframe an overwrite its __union__() method\n'
+    print '\nI can subclass a dataframe an overwrite its __repr__() or more carefully __bytes__()/__unicode__() method(s)\n'
     subclass=SubFoo(50, 200, abs(randn(3,3)), index=['A','B','C'], columns=['c11','c22', 'c33'])    
     print subclass
     ### Access underlying dataframe
@@ -292,5 +287,6 @@ if __name__ == '__main__':
 #    df.save('outpath')
 #    f=open('outpath', 'r')
 #    df2=load(f)    
+
 
 

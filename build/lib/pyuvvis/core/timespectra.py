@@ -219,7 +219,14 @@ class TimeSpectra(MetaDataframe):
             self._start=self._df.columns[0]
             self._stop=self._df.columns[-1]
             self._freq=self._df.columns.freq
-            
+ 
+            ### If freq is not explicitly given, can it be inferred
+            ### REMOVE THIS
+            if self._df.columns.freq:
+                self._freq=self._df.columns.freq
+            else:
+                if self._start and self._stop:
+                    self._freq=((self[-1] - self[0])/len(self.columns)).total_seconds()
       
         ### Assign spectral intensity related stuff but 
         ### DONT CALL _set_itype function
@@ -311,19 +318,32 @@ class TimeSpectra(MetaDataframe):
         print '%sspectral category=%s, specunit=%s'%(delim, get_spec_category(self.specunit), self.specunit)
         
     ### ADD PYTHON STRING FORMATTING TO THIS
-    def list_attr(self, classattr=False, dfattr=False, methods=False, types=False, delim='\t', sortby='name'): #values=False,):
-        ''' 
-        IF VALUES FIELD IS ADDED, HAVE TO CHANGE HOW SORTING IS DONW, HOW ATTS IS MADE AND ALSO OUTPUT!
-        Prints out all the custom attributes that are not builtin attributes of the timespectra.  Should this be 
-        in utils as a gneeral function?  Seems kind of useful.'''
+    def list_attr(self, privattr=False, dfattr=False, methods=False, types=False, delim='\t', sortby='name'): #values=False,):
+        ''' Outputs various attributes in the namespace, as well as their types.
+        
+        Parameters
+        ----------
+           privattr: Should private attributes be listed.
+           dfattr: Should dataframe's attributes (eg shape, columns) be listed
+           methods: If True, methods will be output; otherwise, only non-method attributes are listed.
+           types: Output the type of attribute along with it?
+           delim: For formatting.
+           sortby: If outputing by type, order by name or by type?
+           
+        Notes
+        -----
+           Would like to add "values" but the formatting might get messy.  A good IDE can provide this information anyway,
+           for example, Stack Data in windware.  Also increases complexity of the logic below.
+           Refer to label_stats() for more detailed information on certain attributes.
+      .'''
 
         ### Take all attributes in current instance        
         atts=[x for x in dir(self) if '__' not in x]
 
         ### Remove self._intrinsic (aka class attributes) if desired
-        if classattr==False:
+        if privattr==False:
             atts=[attr for attr in atts if attr not in self._intrinsic]        
-            filterout=['_intrinsic', 'ix', '_ix', 'list_attr']
+            filterout=['_intrinsic', 'ix', '_ix', 'list_attr'] #Don't want these as attributes
             for att in filterout:
                 atts.remove(att)
         
@@ -335,7 +355,7 @@ class TimeSpectra(MetaDataframe):
         if methods==False:
             atts=[attr for attr in atts if isinstance(getattr(self, attr), MethodType) != True]
         else:
-            atts.append('ix') #This will
+            atts.append('ix') #This as an attribute but want it to seem like a method
  
         ### Should output include types and/or values?
         outheader=['Attribute']
@@ -519,7 +539,7 @@ class TimeSpectra(MetaDataframe):
            
            WHEN PLOTTING, PLOT THE TRANSPOSE OF THE RETURNED DF.
         '''
-        return ts.wavelength_slices(ranges=(min(self.index), max(self.index)), apply_fcn=apply_fcn)
+        return self.wavelength_slices(ranges=(min(self.index), max(self.index)), apply_fcn=apply_fcn)
        
         
     ### Spectral column attributes/properties
@@ -814,8 +834,17 @@ class TimeSpectra(MetaDataframe):
         else:
             return out
         
+    def _transfer(self, dfnew):
+        ''' See metadataframe _transfer for basic use.  Had to overwrite here to add 
+        a hack to apply the spectral unit.  See issue #33 on pyuvvis github for explanation. '''
+        sunit=self.specunit
+        newobj=super(TimeSpectra, self)._transfer(dfnew)   
+        newobj.specunit=sunit
+        return newobj
+        
+    
     ### OVERWRITE METADATFRAME MAGIC METHODS
-    def __union__(self):
+    def __repr__(self):
         ''' Add some header and spectral data information to the standard output of the dataframe.
         Just ads a bit of extra data to the dataframe on printout.  This is called by __repr__, which 
         can either return unicode or bytes.  This is better than overwriting __repr__()'''
@@ -825,10 +854,14 @@ class TimeSpectra(MetaDataframe):
         else:
             specunitout=self.full_specunit
 
-        outline='**',self._name,'**', delim, 'Spectral unit:', specunitout, delim, 'Time unit:', 'Not Implemented','\n'   
-        return ''.join(outline)+'\n'+self._df.__union__()    
+        outline='**',self.name,'**', delim, 'Spectral unit:', specunitout, delim, 'Time unit:', 'Not Implemented','\n'   
+        return ''.join(outline)+'\n'+self._df.__repr__()    
     
-        
+                   
+    #################
+    ### CSV Output###
+    #################
+                           
     def to_csv(self, path_or_buff, meta_separate=False, **csv_kwargs):
         ''' Output to CSV file.  
         
@@ -861,11 +894,7 @@ class TimeSpectra(MetaDataframe):
             o=open(path_or_buff, 'a') #'w'?#
             o.write(meta)
             o.close()
-                   
-    #################
-    ### CSV Output###
-    #################
-                   
+
     def from_csv(path_or_buff, meta_separate=False, **csv_kwargs):
         ''' Read from CSV file.
         

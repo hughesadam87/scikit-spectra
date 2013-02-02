@@ -91,13 +91,13 @@ def null_attributes(obj, callfcn, *attr_required):
         raise AttributeError('%s call to null_attribute() missing some of the required attributes for examination'%callfcn)
 
     ### Zip together, and if only a single value (eg not iterable), just piece manually
-    try:
+    if len(attr_required)==1:
+        dic={attr_required[0]:values}
+    else:
         dic=dict(zip(attr_required, values))
-    except TypeError:
-        dic={attr_required:values}
 
     missing=[k for k in dic if dic[k] == None]
     
     if missing:
-        raise AttributeError('%s requires non-null values for attributes: "%s".  Value(s) missing for "%s"'%(callfcn, '","'.join(attr_required), ','.join(missing)))
+        raise AttributeError('%s requires non-null values for attribute(s): "%s".  Returned null for "%s"'%(callfcn, '","'.join(attr_required), ','.join(missing)))
     
