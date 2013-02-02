@@ -539,7 +539,7 @@ class TimeSpectra(MetaDataframe):
            
            WHEN PLOTTING, PLOT THE TRANSPOSE OF THE RETURNED DF.
         '''
-        return ts.wavelength_slices(ranges=(min(self.index), max(self.index)), apply_fcn=apply_fcn)
+        return self.wavelength_slices(ranges=(min(self.index), max(self.index)), apply_fcn=apply_fcn)
        
         
     ### Spectral column attributes/properties
@@ -844,7 +844,7 @@ class TimeSpectra(MetaDataframe):
         
     
     ### OVERWRITE METADATFRAME MAGIC METHODS
-    def __union__(self):
+    def __repr__(self):
         ''' Add some header and spectral data information to the standard output of the dataframe.
         Just ads a bit of extra data to the dataframe on printout.  This is called by __repr__, which 
         can either return unicode or bytes.  This is better than overwriting __repr__()'''
@@ -854,8 +854,8 @@ class TimeSpectra(MetaDataframe):
         else:
             specunitout=self.full_specunit
 
-        outline='**',self._name,'**', delim, 'Spectral unit:', specunitout, delim, 'Time unit:', 'Not Implemented','\n'   
-        return ''.join(outline)+'\n'+self._df.__union__()    
+        outline='**',self.name,'**', delim, 'Spectral unit:', specunitout, delim, 'Time unit:', 'Not Implemented','\n'   
+        return ''.join(outline)+'\n'+self._df.__repr__()    
     
                    
     #################
