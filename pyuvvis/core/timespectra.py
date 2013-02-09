@@ -1,25 +1,26 @@
 '''Provides core "TimeSpectra" class and associated utilities.'''
 
 import string
+import cPickle
 from types import NoneType, MethodType
 from operator import itemgetter
 
-from pyuvvis.pandas_utils.metadframe import MetaDataframe, mload, mloads
+from pyuvvis.pandas_utils.metadframe import MetaDataFrame, mload, mloads, _MetaIndexer, _NDFrameIndexer
 
 from pandas import DataFrame, DatetimeIndex, Index, Series
-from numpy import array_equal
+import numpy as np
+from scipy import integrate
 
 ### Absolute pyuvvis imports (DON'T USE RELATIVE IMPORTS)
 from pyuvvis.core.specindex import SpecIndex, specunits, get_spec_category
 from pyuvvis.core.spec_labeltools import datetime_convert, from_T, to_T, Idic, intvl_dic
-from pyuvvis.core.utilities import divby, df_wavelength_slices
+from pyuvvis.core.utilities import divby
 from pyuvvis.pyplots.advanced_plots import spec_surface3d
 from pyuvvis.custom_errors import badkey_check
 
 
 ## For testing 
 from pandas import date_range
-from numpy.random import randn
 import matplotlib.pyplot as plt
 
 from pandas import read_csv as df_read_csv
@@ -128,7 +129,7 @@ def spec_from_dir(directory, csvargs, sortnames=False, concat_axis=1, shortname=
     return TimeSpectra(df_from_directory(directory, csvargs, sortnames=sortnames, concat_axis=concat_axis, shortname=shortname, cut_extension=cut_extension))
 
 
-class TimeSpectra(MetaDataframe):
+class TimeSpectra(MetaDataFrame):
     ''' Provides core TimeSpectra composite pandas DataFrame to represent a set of spectral data.  Enforces spectral data 
     along the index and temporal data as columns.  The spectral index is controlled from the specindex
     module, which has a psuedo-class called SpecIndex (really a monkey patched Index).  Temporal data is stored using a DatetimeIndex or
@@ -359,6 +360,7 @@ class TimeSpectra(MetaDataframe):
             ### If data is in raw/full mode (itype=None)
             if self._itype == None:
                 baseline=self._baseline_valid(baseline, force_series=force_series)                  
+                
                 self._baseline=baseline
 
             ### Let _set_itype() do lifting.  Basically convert to full and back to current itype. 
@@ -376,11 +378,19 @@ class TimeSpectra(MetaDataframe):
         ''' Convience method for setting to None'''
         self.baseline=None
         
-    def _baseline_valid(self, ref, force_series=True):
+    def _baseline_valid(self, ref, force_series=True, zero_warn=True, nan_warn=True):
         ''' Helper method for to handles various scenarios of valid references.  Eg user wants to 
         convert the spectral representation, this evaluates manually passed ref vs. internally stored one.
 
-        **force_seires - If true, program will convert if user explictly passing a non-series iterable.
+        Parameters:
+        -----------
+        ref: Baseline object for inspection.   See notes for more details of validation process.
+        force_series:  If true, baseline is forced to a Series type.
+        zero_warn: If true, a warning is raised if baseline contains zeros.
+        nan_warn:  If true, a warning is raised if baseline contains nans.
+        
+        Notes:
+        ------
         
         This goes through several cases to determine baseline.  In order, it attempts to get the baseline from:
             1. Column name from dataframe.
@@ -391,9 +401,12 @@ class TimeSpectra(MetaDataframe):
                c. If iterable, converts to series (if force_series True)
                
         Errors will be thrown if new baseline does not have identical spectral values to self._df.index as evaluated by
-        numpy.array_equal()
-
-        Returns baseline. '''
+        numpy.np.array_equal()
+        
+        Zero_warn and nan_warn are useful when the user plans on changing intensity units of the data.  For example,
+        converting from raw data to absorbance data, a relative division will result in hard-to-spot errors due to
+        the 0's and nans in the original baseline. 
+        '''
         
         
         if isinstance(ref, NoneType):
@@ -412,7 +425,7 @@ class TimeSpectra(MetaDataframe):
 
         ### Finally if ref is itself a series, make sure it has the correct spectral index
         elif isinstance(ref, Series):
-            if array_equal(ref.index, self._df.index) == False:
+            if np.array_equal(ref.index, self._df.index) == False:
                 raise BaselineError(ref.index, self)
             else:
                 rout=ref
@@ -440,6 +453,15 @@ class TimeSpectra(MetaDataframe):
             ### Return itrable as is
             else:
                 rout=ref
+                
+        if nan_warn:
+            if np.isnan(np.sum(rout)):  #Fast way to check for nan's
+                raise Warning('Zero values found in baseline')
+                
+                
+        if zero_warn:
+            if 0.0 in rout:
+                raise Warning('Zero values found in baseline')
 
         return rout  #MAKES MORE SENSE TO MAKE THIS A 1D DATAFRAME
     
@@ -465,7 +487,67 @@ class TimeSpectra(MetaDataframe):
             See description of 'df_wavelength_slices' in utilities.py for more information. 
             
             WHEN PLOTTING, PLOT THE TRANSPOSE OF THE RETURNED DF.  '''   
-        return self._transfer(df_wavelength_slices(self._df, ranges=ranges, apply_fcn=apply_fcn, **applyfcn_kwds))
+#        return self._transfer(df_wavelength_slices(self, ranges, apply_fcn=apply_fcn, **applyfcn_kwds))
+
+
+        dflist=[]; snames=[]
+        
+        ### If single range is passed in, want to make sure it can still be iterated over...
+        if len(ranges)==2:
+            ranges=[ranges]
+        
+        for rng in ranges:
+            if len(rng)!=2:
+                raise AttributeError("In slices function, all ranges passed in must be len 2, aka a start and stop \
+                pair.  %s of length %s was entered"%rng, len(rng))
+            else:
+                dfcut=self.ix[rng[0]:rng[1]]
+                snames.append('%s:%s'%(rng[0],rng[1]))
+                
+                if isinstance(apply_fcn, str):
+        
+                    ### Pandas cython operations ###
+                    if apply_fcn.lower() == 'mean': 
+                        series=dfcut.mean(axis=0)
+                    elif apply_fcn.lower() == 'sum':
+                        series=dfcut.sum(axis=0)
+                    
+                        
+                    ### Integration isn't the same as sum because it takes the units of the x-axis into account through x
+                    ### parameter.  If interval is odd, last interval is used w/ trapezoidal rule
+                    elif apply_fcn.lower() == 'simps':
+                        series=dfcut.apply(integrate.simps, x=dfcut.index, even='last')
+                        
+                    elif apply_fcn.lower() == 'trapz':
+                        series=dfcut.apply(integrate.trapz, x=dfcut.index)     
+                        
+                    elif apply_fcn.lower() == 'romb':
+                        series=dfcut.apply(integrate.romb, x=dfcut.index)
+                        
+                    elif apply_fcn.lower() == 'cumtrapz':
+                        series=dfcut.apply(integrate.trapz, x=dfcut.index, ititial=None)           
+                        
+                    else:
+                        raise AttributeError('apply_fcn in wavelength slices, as a string, must be one of the following: \
+                        (mean, sum, simps, trapz, romb, cumtrapz) but %s was entered.  Alternatively, you can pass \
+                        a function to apply_fcn, with any relevant **kwds')
+        
+                ### Try to apply arbirtrary function.  Note, function can't depend on dfcut, since 
+                ### that is created in here
+                else:
+                    series=dfcut.apply(apply_fcn, **applyfcn_kwds)
+                    
+                    
+                ### OK
+                dflist.append(series)
+                
+        return self._transfer(DataFrame(dflist, index=snames))
+        
+                ### THESE ACTUALLY YIELD SERIES
+                    ###APPLY INTEGRAL, NORMALIZED SUM, NORMALIZED AREA?    
+                    
+                
+#        return dataframe
     
     def area(self, apply_fcn='simps'):
         ''' Returns total area under the spectra vs. time curve.  To choose a slice of the spectrum,
@@ -483,7 +565,7 @@ class TimeSpectra(MetaDataframe):
            
            WHEN PLOTTING, PLOT THE TRANSPOSE OF THE RETURNED DF.
         '''
-        return self.wavelength_slices(ranges=(min(self.index), max(self.index)), apply_fcn=apply_fcn)
+        return self.wavelength_slices((min(self.index), max(self.index)), apply_fcn=apply_fcn)
        
         
     ### Spectral column attributes/properties
@@ -498,6 +580,7 @@ class TimeSpectra(MetaDataframe):
     @specunit.setter
     def specunit(self, unit):
         self._df.index=self._df.index._convert_spectra(unit) 
+    #    self.index=self._df.index #Necessary because this is done sloppily
         
     def as_specunit(self, unit):
         ''' Returns new dataframe with different spectral unit on the index.'''
@@ -700,7 +783,7 @@ class TimeSpectra(MetaDataframe):
 
         sout=_valid_iunit(sout)
         sin=self._itype
-        df=self._df #for convienence/back compatibility
+        df=self._df #Could also work just by calling self...
 
         # Corner case, for compatibility with baseline.setter
         if sin==None and sout==None:
@@ -754,6 +837,10 @@ class TimeSpectra(MetaDataframe):
         #############################################################
         elif sin !=None and sout==None:
             rout=self._baseline_valid(ref)
+            
+            if rout == None:
+                rout=self._baseline
+            
             df=df.apply(to_T[sin])
             df=df.mul(rout, axis=0)  #Multiply up!
 
@@ -765,9 +852,12 @@ class TimeSpectra(MetaDataframe):
     def itypes(self):
         return Idic
         
+    ############################################## 
+    #####Overwrite MetaDataFrame private methods #
+    ##############################################    
                 
     def _dfgetattr(self, attr, *fcnargs, **fcnkwargs):
-        ''' This is overwritten from MetaDataframe to account for the use_base option.'''
+        ''' This is overwritten from MetaDataFrame to account for the use_base option.'''
 
         use_base=fcnkwargs.pop('use_base', False)
  
@@ -833,8 +923,13 @@ class TimeSpectra(MetaDataframe):
             specunitout='None'
         else:
             specunitout=self.full_specunit
+            
+        if not self.name:
+            outname='Unnamed' #If user explicitly sets self.name=None; defaults to timespectra 
+        else:
+            outname=self.name
 
-        outline='**',self.name,'**', delim, 'Spectral unit:', specunitout, delim, 'Time unit:', 'Not Implemented','\n'   
+        outline='**',outname,'**', delim, 'Spectral unit:', specunitout, delim, 'Time unit:', 'Not Implemented','\n'   
         return ''.join(outline)+'\n'+self._df.__repr__()    
     
                    
@@ -921,6 +1016,44 @@ class TimeSpectra(MetaDataframe):
         ts=TimeSpectra(df, **meta) 
         
 
+    @property	  	
+    def ix(self, *args, **kwargs):      	
+        ''' Pandas Indexing.  Note, this has been modified to ensure that series returns (eg ix[3])
+        still maintain attributes.  To remove this behavior, replace the following:
+        
+        self._ix = _MetaIndexer(self, _NDFrameIndexer(self) ) --> self._ix=_NDFrameIndexer(self)
+        
+        The above works because slicing preserved attributes because the _NDFrameIndexer is a python object 
+        subclass.'''
+        if self._ix is None:
+            self._ix = _TSIndexer(self, _NDFrameIndexer(self) )
+        return self._ix              
+        
+class _TSIndexer(object):
+    ''' Intercepts the slicing of ix so Series returns can be handled properly.  In addition,
+        it makes sure that the new index is assigned properly.  Differs from metadataframe because
+        it accounts for baseline shape changes.'''
+    def __init__(self, metadf, indexer):
+        self.indexer=indexer #_NDFrameIndexer
+        self.metadf=metadf #MetaDataFrame
+    
+    def __getitem__(self, key):
+        out=self.indexer.__getitem__(key)
+        if array_truthtest(out.baseline):
+            out._baseline=out.baseline.ix[key] #Slice the baseline (assign to private is important)
+        
+
+        ### Series returns transformed to MetaDataFrame
+        if isinstance(out, Series):
+            df=DataFrame(out)
+            return self.metadf._transfer(out)
+        
+    
+        ### Make sure the new object's index property is syched to its ._df index.
+        else:
+            return out
+        
+
 #### TESTING ###
 if __name__ == '__main__':
 
@@ -933,12 +1066,19 @@ if __name__ == '__main__':
     testdates=date_range(start='3/3/12',periods=3,freq='h')
     testdates2=date_range(start='3/3/12',periods=3,freq='45s')
     
-    ts=TimeSpectra(abs(randn(3,3)), columns=testdates, index=spec, baseline=[1.,2.,3.])  
-    ts.to_interval()
-
-    t2=TimeSpectra(abs(randn(3,3)), columns=testdates2, index=spec, baseline=[1.,2.,3.])    
+    ts=TimeSpectra(abs(np.random.randn(3,3)), columns=testdates, index=spec, baseline=[1.,2.,3.])  
+    t2=TimeSpectra(abs(np.random.randn(3,3)), columns=testdates2, index=spec, baseline=[1.,2.,3.]) 
+    ts.ix[400.:504.]
     
+    uv_ranges=((430.0,450.0))#, (450.0,515.0), (515.0, 570.0), (570.0,620.0), (620.0,680.0))
+    
+    tssliced=ts.wavelength_slices(uv_ranges, apply_fcn='mean')
+    
+    
+    ts.iunit=None
     ts.iunit='a'
+    ts.iunit=None
+    
     
     ts.to_csv('junk')
     range_timeplot(ts)

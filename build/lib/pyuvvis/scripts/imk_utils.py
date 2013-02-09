@@ -195,7 +195,7 @@ def rundict_foldersbyrun(indir):
     #return scaledict    
     
             
-def make_root_dir(rootout, overwrite=False):
+def make_root_dir(rootout, overwrite=False, verbose=True):
     ''' Creates directory structure for program results output.  Warning, if overwriting, all files and subfolders
         in the root out directory will be destroyed, not just ones pertaining to the relevant infiles.'''
     ### Check if outdirectory already exists and react decide to overwrite or error ###
@@ -207,7 +207,8 @@ def make_root_dir(rootout, overwrite=False):
             raise IOError('Directory %s already exists, remove or set overwrite to True'%rootout)
         
     ### Make output directory and subdirectories ###    
-    print 'making directory %s' %rootout
+    if verbose:
+        print 'making directory %s' %rootout
     os.makedirs(rootout)
     return rootout
 

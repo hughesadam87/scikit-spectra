@@ -1,4 +1,4 @@
-''' Provides composition class, MetaDataframe, which is an ordinary python object that stores a Dataframe and 
+''' Provides composition class, MetaDataFrame, which is an ordinary python object that stores a Dataframe and 
 attempts to promote attributes and methods to the instance level (eg self.x instead of self.df.x).  This object
 can be subclassed and ensures persistence of custom attributes.  The goal of this MetaDataFrame is to provide a 
 subclassing api beyond monkey patching (which currently fails in persisting attributes upon most method returns 
@@ -26,17 +26,17 @@ _dfattrs=[x for x in dir(DataFrame) if '__' not in x]
 # Loading (perhaps change name?) ... Doesn't work correctly as instance methods
 
 def mload(inname):
-    ''' Load MetaDataframe from file'''
+    ''' Load MetaDataFrame from file'''
     if isinstance(inname, basestring):
         inname=open(inname, 'r')
     return cPickle.load(inname)
 
 def mloads(string):
-    ''' Load a MetaDataframe from string stored in memory.'''
+    ''' Load a MetaDataFrame from string stored in memory.'''
     return cPickle.loads(string)        
         
 
-class MetaDataframe(object):
+class MetaDataFrame(object):
     ''' Base composition for subclassing dataframe.'''
 
     def __init__(self, *dfargs, **dfkwargs):
@@ -99,7 +99,7 @@ class MetaDataframe(object):
         of the time due to implicit possible issues with dir() and inspection in Python.  Best practice is for users to avoid name
         conflicts when possible.'''
         
-        super(MetaDataframe, self).__setattr__(name, value)        
+        super(MetaDataFrame, self).__setattr__(name, value)        
         if name in _dfattrs:
             setattr(self._df, name, value)
         else:
@@ -116,7 +116,7 @@ class MetaDataframe(object):
         self._df=None
 
         ### Create new object and apply new df 
-        newobj=copy.deepcopy(self)  #This looks like None, but is it type (MetaDataframe, just __union__ prints None
+        newobj=copy.deepcopy(self)  #This looks like None, but is it type (MetaDataFrame, just __union__ prints None
         newobj._df=dfnew
 
         ### Restore old value of df and return new object
@@ -209,29 +209,41 @@ class MetaDataframe(object):
         
     @property	  	
     def ix(self, *args, **kwargs):      	
-        ''' This just presents user with _NDFrameIndexer, so any calls go directly to it.'''
+        ''' Pandas Indexing.  Note, this has been modified to ensure that series returns (eg ix[3])
+        still maintain attributes.  To remove this behavior, replace the following:
+        
+        self._ix = _MetaIndexer(self, _NDFrameIndexer(self) ) --> self._ix=_NDFrameIndexer(self)
+        
+        The above works because slicing preserved attributes because the _NDFrameIndexer is a python object 
+        subclass.'''
         if self._ix is None:
             self._ix = _MetaIndexer(self, _NDFrameIndexer(self) )
         return self._ix        
     
 class _MetaIndexer(object):
-    ''' This class exists to intercept returns from .ix and assign attributes properly.  The ix property actually just
-    relays everything to _NDFrameIndexer, so this is the best way I can think of to implement the return of __getitem__.
-    I had a more simple solution before (namely to just pass self to _NDFrameIndexer and this worked for slicing unless
-    the slice was to return a single object.  EG ix[0], which then returned a series with loss of custom attributes.'''
+    ''' Intercepts the slicing of ix so Series returns can be handled properly.  In addition,
+        it makes sure that the new index is assigned properly.'''
     def __init__(self, metadf, indexer):
         self.indexer=indexer #_NDFrameIndexer
-        self.metadf=metadf #MetaDataframe
+        self.metadf=metadf #MetaDataFrame
     
     def __getitem__(self, key):
-        out=self.indexer.__getitem__(key)       
-        return self.metadf._transfer(out)
+        out=self.indexer.__getitem__(key)
+
+        ### Series returns transformed to MetaDataFrame
+        if isinstance(out, Series):
+            df=DataFrame(out)
+            return self.metadf._transfer(out)
+
+        ### Make sure the new object's index property is syched to its ._df index.
+        else:
+            return out
     
     
 
 
-class SubFoo(MetaDataframe):
-    ''' Shows an example of how to subclass MetaDataframe with custom attributes, a and b.'''
+class SubFoo(MetaDataFrame):
+    ''' Shows an example of how to subclass MetaDataFrame with custom attributes, a and b.'''
 
     def __init__(self, a, b, *dfargs, **dfkwargs):
         self.a = a
@@ -252,7 +264,7 @@ class SubFoo(MetaDataframe):
 if __name__ == '__main__':
 
     ### Create a MetaDataFrame
-    meta_df=MetaDataframe(abs(randn(3,3)), index=['A','B','C'], columns=['c11','c22', 'c33'])    
+    meta_df=MetaDataFrame(abs(randn(3,3)), index=['A','B','C'], columns=['c11','c22', 'c33'])    
     
     meta_df.to_csv('deletejunkme')
 

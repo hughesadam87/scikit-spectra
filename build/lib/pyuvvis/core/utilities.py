@@ -20,127 +20,69 @@ from scipy import integrate
 
 from pyuvvis.pandas_utils.dataframeserial import _get_metadict
 from pyuvvis.pandas_utils.dr_reader import df_from_directory
-
+from pyuvvis.custom_errors import badvalue_error
 
 ### Rather deprecated due to TimeSpectra.baseline/iunit
-def divby(df, divisor=0, axis=0):
+def divby(df, divisor=0, axis=0, sameshape=True):
     ''' Small wrapper around pandas.divide() that takes in either column integers, names,
     or entire arrays as the divisor.  Note, pandas.divide by default is rowwise, but here
     it defaults to column-wise.
     
-    Note that this program first checks if divisor is an integer.  If not, it attempts
-    to lookup by rowname or columnname.  Finally, it tries to divide by the divisor itself,
-    if the divisor is an array/series.  This seemed like a flexible way to do this 
-    without too much type checking.'''
-    if axis==0:
+    Parameters:
+    -----------
+      df:  Dataframe object.
+      divisor: (See notes below)
+      axis: Division axis. 0=column-wise division. 1=row-wise
+      sameshape: If true, function will check that the divisor as the same shape as
+                 the data along that axis.  For example, is an array of 2000 units, 
+                 and axis=0, then the row dimension must be 2000 for the dataframe.
+                 AFAIK df.div does not enforce this stringency, which sometimes can lead
+                 to hard-to-find bugs.
+    
+    Notes:
+    ------
+      This program first checks if divisor is an integer.  If not, it attempts
+      to lookup by rowname or columnname.  Finally, it tries to divide by the divisor itself,
+      if the divisor is an array/series.  This seemed like a flexible way to do this 
+      without too much type checking.'''
+
+    ### Column-wise division
+    if axis==0:        
         if isinstance(divisor, int):
-            return df.divide(df[df.columns[divisor]], axis=0) #Default axis is actually 1/rows
+            divisor=df.columns[divisor]
         
         else:
             try:
-                return df.divide(df[divisor], axis=0) #Default axis is actually 1/rows
+                divisor=df[divisor]
             except KeyError:
-                return df.divide(divisor, axis=0)
-        
+                pass #divisor=divisor
+            
+        divlen=df.shape[0] #Store length of a single column
+
+
+    ### Rowwise division    
     elif axis==1:
         if isinstance(divisor, int):
-            return df.divide(df.ix[divisor], axis=1) #Default axis is actually 1/row        
+            divisor=df.ix[divisor]
         
         else:
             try:
-                return df.divide(df.xs(divisor), axis=1) #Default axis is actually 1/rows
+                divisor=df.xs(divisor)
             except KeyError:
-                return df.divide(divisor, axis=0)        
-    else:
-        raise AttributeError('Axis must be 0 (column binning) or 1 (index/row) binning.  You entered %s'%axis)
-    
-
-def df_wavelength_slices(df, ranges, apply_fcn='mean', **applyfcn_kwds):
-    '''Takes in a dataframe with a list of start/end ranges.  Slices df into these various ranges,
-    then returns a composite dataframe with these slices.  Composite dataframe will nicely
-    plot when piped into spec aesthetics timeplot.
-    
-    Note: By default, this operation slices rows/index, and then averages by columns.  Therefore,
-          the default operations is df.ix[], followed by mean(axis=0).  Note that this is not axis=1!
-          The can be confusing, so I chose to force the user to use this method (didn't give keyword options).
-          It is best for users to pass a transposed array.  
-          
-         
-          If ever deciding to change this, I should merely change the following:
-           df.ix  ---> df.columns[]
-           mean(axis=0) to mean(axis=1)
-           
-    
-    kwds:
-     apply_fcn: Chooses the way to collapse data.  Special/useful functions have special string designations.
-        Can be mean, sum, or a variety of integration methods (simps, trapz etc..)
-        Any vectorized function (like np.histogram) can be passed in with keyword arguments and it will be
-        applied chunk by chunk to the slices.
+                pass
+            
+        divlen=df.shape[1]
         
-     **apply_fcn_kdws:  If user is passing a function to apply_fcn that requires keywords, the get passed 
-      in to dfcut.apply() '''
-
-    ### Probably could do this all at once using groupby... ###
+    else:
+        raise badvalue_error('axis', '0,1')
     
-    dflist=[]; snames=[]
-
-    ### If single range is passed in, want to make sure it can still be iterated over...
-    if len(ranges)==2:
-        ranges=[ranges]
-
-    for rng in ranges:
-        if len(rng)!=2:
-            raise AttributeError("In slices function, all ranges passed in must be len 2, aka a start and stop \
-            pair.  %s of length %s was entered"%rng, len(rng))
-        else:
-            dfcut=df.ix[rng[0]:rng[1]]
-            snames.append('%s:%s'%(rng[0],rng[1]))
-            
-            if isinstance(apply_fcn, str):
-
-                ### Pandas cython operations ###
-                if apply_fcn.lower() == 'mean': 
-                    series=dfcut.mean(axis=0)
-                elif apply_fcn.lower() == 'sum':
-                    series=dfcut.sum(axis=0)
-                
-                    
-                ### Integration isn't the same as sum because it takes the units of the x-axis into account through x
-                ### parameter.  If interval is odd, last interval is used w/ trapezoidal rule
-                elif apply_fcn.lower() == 'simps':
-                    series=dfcut.apply(integrate.simps, x=dfcut.index, even='last')
-                    
-                elif apply_fcn.lower() == 'trapz':
-                    series=dfcut.apply(integrate.trapz, x=dfcut.index)     
-                    
-                elif apply_fcn.lower() == 'romb':
-                    series=dfcut.apply(integrate.romb, x=dfcut.index)
-                    
-                elif apply_fcn.lower() == 'cumtrapz':
-                    series=dfcut.apply(integrate.trapz, x=dfcut.index, ititial=None)           
-                    
-                else:
-                    raise AttributeError('apply_fcn in wavelength slices, as a string, must be one of the following: \
-                    (mean, sum, simps, trapz, romb, cumtrapz) but %s was entered.  Alternatively, you can pass \
-                    a function to apply_fcn, with any relevant **kwds')
-
-            ### Try to apply arbirtrary function.  Note, function can't depend on dfcut, since 
-            ### that is created in here
-            else:
-                series=dfcut.apply(apply_fcn, **applyfcn_kwds)
-                
-                
-            ### OK
-            dflist.append(series)
-            
-    dataframe=DataFrame(dflist, index=snames)
+    ### Enforce strict shapetype
+    if sameshape:
+        if len(divisor) != divlen:
+            raise TypeError('Divisor dimensions %s do not match dataframe dimensions %s along axis = %s'%(divlen, df.shape, axis))
     
-            ### THESE ACTUALLY YIELD SERIES
-                ###APPLY INTEGRAL, NORMALIZED SUM, NORMALIZED AREA?    
-                
-            
-    return dataframe
-            
+    return df.divide(divisor, axis=axis)
+    
             
 
 def boxcar(df, binwidth, axis=0):

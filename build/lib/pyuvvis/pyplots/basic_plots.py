@@ -52,7 +52,7 @@ def specplot(ts, **pltkwds):
            
     xlabel=pltkwds.pop('xlabel', ts.full_specunit)  
     ylabel=pltkwds.pop('ylabel', ts.full_iunit+' (Counts)')    
-    title=pltkwds.pop('title', str(ts.name) )    
+    title=pltkwds.pop('title', '(%s) %s'%(ts.full_iunit, ts.name) )    
         
     return _genplot(ts, xlabel, ylabel, title, **pltkwds)
     
@@ -71,7 +71,9 @@ def timeplot(ts, **pltkwds):
 
 ### Is this worth having? 
 def absplot(ts, default='a', **pltkwds):    
-    ''' Absorbance plot'''
+    ''' Absorbance plot.  Note: This will autoconvert data.  This is a convienence method
+    but if data is already in absorbance mode, then it's redundant to have this as specplot()
+    will produce same plot.'''
     ### Make sure ts is absorbance, or readily convertable
     if ts.full_iunit not in ['a', 'a(ln)']:
         ts=ts.as_iunit(default)

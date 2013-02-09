@@ -1,12 +1,11 @@
-''' Utilities for converting various file formats to a spectral dataframe.
+''' Utilities for converting various file formats to a pyuvvis TimeSpectra.
  To convert a list of raw files, use from_spec_files()
  To convert old-style timefile/spectral data file, use from_timefile_datafile()
- Returns a pandas DataFrame with custom attributes "metadata", "filedict", "darkseries".
- For correct serialization, use spec_serial.py module, not native pickle module.
+ To convert spectral datafiles from Ocean Optics USB2000 and USB650, pas file list in 
+ from_spec_files.
  
- Updated 1/17/13 to return TimeSpectra() class instead of DataFrame.  Thus, return
- classes are named dataframe instead of something like timespec just because the old
- source was written this way.'''
+ Returns a pyuvvis TimeSpectra with custom attributes "metadata", "filedict", "darkseries".
+ '''
 
 __author__ = "Adam Hughes, Zhaowen Liu"
 __copyright__ = "Copyright 2012, GWU Physics"
@@ -89,29 +88,32 @@ def get_headermetadata_dataframe(dataframe, time_file_dict, name=None):
 ### Below are the 2 main functions to extract the data ###
 ##########################################################
 
-def from_spec_files(file_list, specframe=None, skiphead=17, skipfoot=1,\
-                    check_for_overlapping_time=True, extract_dark=True, name=None):
-    ''' Takes in raw files directly from Ocean optics spectrometer and creates a spectral dataframe.   
-    This is somewhat customized to my analysis, but has general arguments for future adaptations.
+def from_spec_files(file_list, name=None, skiphead=17, skipfoot=1, check_for_overlapping_time=True, extract_dark=True):
+    ''' Takes in raw files directly from Ocean optics USB2000 and USB650 spectrometers and returns a
+    pyuvvis TimeSpectra. If spectral data stored without header, can be called with skiphead=0.
 
-    Built to work with 2-column data only!!!
+    Parameters
+    ----------
+       name: Set name of returned TimeSpectra.
+       
+       check_for_overlapping_time: will raise errors if any files have identical times. Otherwise, time
+                                   is overwritten.  Really only useful for testing or otherwise cornercase instances.
+       
+       extract_dark: Attempt to find a filename with caseinsenstive string match to "dark".  If dark spectrum
+                     not found, will print warning.  If multiple darks found, will raise error.
+      
+       skiphead/skipfoot: Mostly for reminder that this filetype has a 17 line header and a 1 line footer.
+       
+    Notes
+    -----
+        Built to work with 2-column data only!!!
 
-    Dataframe is constructed from a list of dictionaries.
-    Each dataframe gets an appended headerdata attribute (dataframe.headerdata) which is a dictionary,
-    keyed by columns and stores (infile, header, footer) data so no info is lost between files.
+        Dataframe is constructed from a list of dictionaries.
+        Each dataframe gets an appended headerdata attribute (dataframe.headerdata) which is a dictionary,
+        keyed by columns and stores (infile, header, footer) data so no info is lost between files.
 
-    Constructed to work for non-equally spaced datafiles, or non-identical data (aka wavelengths can have nans).
-    **kwargs
-       - check_for_overlapping will raise errors if any files have identical times. Otherwise, time
-       is overwritten.  Really only useful for testing or otherwise cornercase instances.
-       - Extract dark will attempt to find a filename with caseinsenstive string match to "dark".  If dark
-       not found, will print warning.  If multiple darks found, will raise error.
-       -skiphead/skipfoot are mostly for reminder that this filetype has a 17 line header and a 1 line footer.'''
-
-
-    ### Need to add functionality for spectral dataframe (join/concat)
-    if specframe:
-        raise NotImplemented
+        Constructed to work for non-equally spaced datafiles, or non-identical data (aka wavelengths can have nans).
+    '''
 
     dict_of_series={} #Dict of series eventually merged to dataframe   
     time_file_dict={} #Dict of time:filename (darkfile intentionally excluded)
@@ -167,7 +169,8 @@ def from_spec_files(file_list, specframe=None, skiphead=17, skipfoot=1,\
     dataframe.specunit='nm'
     dataframe.filedict=time_file_dict
     dataframe.darkseries=darkseries  #KEEP THIS AS DARK SERIES RECALL IT IS SEPARATE FROM BASELINE OR REFERENCE..
-    dataframe.name=name    
+    if name:
+        dataframe.name=name    
 
     ### Take metadata from first file in filelist that isn't darkfile
     for infile in file_list:
@@ -182,7 +185,6 @@ def from_spec_files(file_list, specframe=None, skiphead=17, skipfoot=1,\
     meta_general=get_headermetadata_dataframe(dataframe, time_file_dict) 
     meta_general.update(meta_partial)
     dataframe.metadata=meta_general   
-
 
     return dataframe
 
@@ -237,7 +239,7 @@ def from_timefile_datafile(datafile, timefile, extract_dark=True, name=None):
         darkfile=extract_darkfile(sorted_files, return_null=True)   
 
     if darkfile:    
-        ####Fine darkseries by reverse lookup (lookup by value) and get index position
+        ####Find darkseries by reverse lookup (lookup by value) and get index position
 
         #darkindex, darktime=[(idx, time) for idx, (time, afile) in enumerate(sorted_tfd) if afile == darkfile][0]
         darkindex=sorted_files.index(darkfile)
@@ -259,7 +261,8 @@ def from_timefile_datafile(datafile, timefile, extract_dark=True, name=None):
     ### Add field attributes to dataframe
     dataframe.darkseries=darkseries 
     dataframe.filedict=time_file_dict
-    dataframe.name=name
+    if name:
+        dataframe.name=name
 
     ### Get headermeta data from first line in timefile that isn't darkfile.  Only checks one line
     ### Does not check for consistency
@@ -320,7 +323,8 @@ def from_gwu_chem_UVVIS(filelist, sortnames=False, shortname=True, cut_extension
     dataframe.filedict=None
     dataframe.darkseries=None
     dataframe.specunit='nm' #This autodetected in plots    
-    dataframe.name=name
+    if name:
+        dataframe.name=name
     
     return dataframe
             

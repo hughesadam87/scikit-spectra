@@ -1,0 +1,3 @@
+Loading contents of folder, RINSE_LEAF, multiple raw spectral files 2520.
+
+Time for completion, 568.5
