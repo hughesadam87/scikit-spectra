@@ -1,3 +1,3 @@
-Loading contents of folder, RINSE_LEAF, multiple raw spectral files 2520.
+Loading contents of "sam2", using the timefile/datafile conventional import
 
-Time for completion, 568.5
+Time for completion, 73.3

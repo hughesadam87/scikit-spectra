@@ -2,6 +2,7 @@
 
 import string
 import cPickle
+import collections
 from types import NoneType, MethodType
 from operator import itemgetter
 
@@ -26,7 +27,7 @@ import matplotlib.pyplot as plt
 from pandas import read_csv as df_read_csv
 
 tunits={'ns':'Nanoseconds', 'us':'Microseconds', 'ms':'Milliseconds', 's':'Seconds', 
-        'm':'Minutes', 'h':'Hours','d':'Days', 'y':'Years'}  #ADD NULL VALUE? Like None:'No Time Unit' (iunit/specunit do it)
+        'm':'Minutes', 'h':'Hours','d':'Days', 'y':'Years'}  #ADD NULL VALUE? Like None:'No Time Unit' (iunit/specunit do this)
 
 
 #################
@@ -206,6 +207,10 @@ class TimeSpectra(MetaDataFrame):
         ###Store intrinsic attributes for output later by listattr methods
         self._intrinsic=self.__dict__.keys()
         self._intrinsic.remove('name') #Not a private attr
+        
+        ###Which attributes/methods are manipulated along with the dataframe
+        self._cnsvdattr=['_baseline']
+        self._cnsvdmeth=['ix']
         
 
     #############################################################################    
@@ -853,35 +858,85 @@ class TimeSpectra(MetaDataFrame):
         return Idic
         
     ############################################## 
-    #####Overwrite MetaDataFrame private methods #
+    #####Overwrite MetaDataFrame behavior ########
     ##############################################    
+    
+    
+    @property
+    def cnsvdattr(self):
+        ''' attr:value of conserved attributes'''
+        return dict((attr, getattr(self, attr)) for attr in self._cnsvdattr)
+    
+    @cnsvdattr.setter
+    def cnsvdattr(self, attrs):
+        ''' Set which attributes are mutated in DataFrame operations via cons_methods.'''
+        if not isinstance(attrs, collections.Iterable):
+            attrs=[attrs]
+            
+        consout=[]
+        for attr in attrs:
+            try:
+                consout.append(attrgetter(attr, self))
+            except AttributeError:
+                raise AttributeError('%s not found on object %s'%(attr, self)) 
+
+        self._cnsvdattr=consout
+        
+    @property
+    def cnsvdmeth(self):
+        return self._cnsvdmeth
+    
+    @cnsvdmeth.setter
+    def cnsvdmeth(self, attrs):
+        ### Do I even want to do anything more than setter?
+        raise NotImplemented
+            
+        
                 
     def _dfgetattr(self, attr, *fcnargs, **fcnkwargs):
         ''' This is overwritten from MetaDataFrame to account for the use_base option.'''
 
-        use_base=fcnkwargs.pop('use_base', False)
+#        use_base=fcnkwargs.pop('use_base', False)
  
         out=getattr(self._df, attr)(*fcnargs, **fcnkwargs)
         
         ### If operation returns a dataframe, return new TimeSpectra
         if isinstance(out, DataFrame):
             
-            ### Should this operation be called on baseline?
-            if use_base == True:
-                try:
-                    baseout=getattr(self.baseline, attr)(*fcnargs, **fcnkwargs)
-                except Exception:
-                    ### There may be cases where df.x() and series.x() aren't available!
-                    raise Exception('Could not successfully perform operation "%s" on baseline.  Please check\
-                    Pandas Series API'%attr)            
+            csvdout=None
+            if attr in self._cnsvdmethd:    
+                if self.cnsvdattrs:
+                    csvdf=DataFrame(self.cnsvdattr)  #THIS MAY BE ISSUE IF NON-EQUAL LENGTH?
+                    try:
+                        csvdout=getattr(csvdf, attr)(*fcnargs, **fcnkwargs)
+                    except Exception:
+                        ### There may be cases where df.x() and series.x() aren't available!
+                        raise Exception('Could not successfully perform operation "%s" on one or multiple \
+                        conserved attributes %s.'%attr, '","'.join(csvdout.columns))                       
+                
+            #### Should this operation be called on baseline?
+            #if use_base == True:
+                #try:
+                    #baseout=getattr(self.baseline, attr)(*fcnargs, **fcnkwargs)
+                #except Exception:
+                    #### There may be cases where df.x() and series.x() aren't available!
+                    #raise Exception('Could not successfully perform operation "%s" on baseline.  Please check\
+                    #Pandas Series API'%attr)            
             
             tsout=self._transfer(out)
-            if use_base==True:
-                ### Have to convert back down to a series ### (IF FORCED BASELINE TO DATAFRAME)
-                ### and Series(df) does not work correctly!! VERY HACKy
-#                tsout.baseline=Series(baseout[baseout.columns[0]])
+            
+            ### Set csvdout values
+            if csvdout:
+                for col in csvdout:
+                    setattr(tsout, col, csvdout[col])
+
+
+            #if use_base==True:
+                #### Have to convert back down to a series ### (IF FORCED BASELINE TO DATAFRAME)
+                #### and Series(df) does not work correctly!! VERY HACKy
+##                tsout.baseline=Series(baseout[baseout.columns[0]])
                 
-                tsout.baseline=baseout
+                #tsout.baseline=baseout
             
             return tsout
         

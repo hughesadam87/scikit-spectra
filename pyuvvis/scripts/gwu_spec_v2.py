@@ -271,8 +271,6 @@ def core_analysis():
         ### DELTE ME
         ######
         ###
-        ts_full=ts_full.ix[351.0::]
- #       ts_full.darkseries=ts_full.darkseries[351.0::]
         
         ### Output the pickled dataframe   
         ts_full.save(outroot+'/rundata.pickle')  
@@ -282,6 +280,7 @@ def core_analysis():
             ts_full.baseline=params['baseline']
         else:
             ts_full.baseline=0
+            
             
         try:
             ts_full.specunit=params['specunit']
@@ -293,6 +292,10 @@ def core_analysis():
             ts_full.intvlunit=params['intvlunit'] #Take from params file  
         except AttributeError:
             ts_full.intvlunit='intvl'        
+        
+        ### CUT OUT ERRONEOUS 351.0 portion of baseline    
+        ts_full=ts_full.ix[351.0::]
+            
         
 
         ### Subtract the dark spectrum if it has one.  Note that all programs should produce an attribute for darkseries,
@@ -311,6 +314,10 @@ def core_analysis():
         if params['line_fit']:
             blines=dynamic_baseline(ts, params['fit_regions'] )
             ts=ts-blines 
+
+            from pandas import DataFrame
+            newbline=dynamic_baseline(DataFrame(ts.baseline), params['fit_regions'])   #THIS IS ALSO NECESSARY
+            ts.baseline=ts.baseline-newbline[newbline.columns[0]]
              
 
         ### Slice spectra and time start/end points.  Doesn't stop script upon erroringa
@@ -364,14 +371,8 @@ def core_analysis():
             #### Time averaged plot, not scaled to 1 (relative intenisty dependson bin width and actual intensity)
             tssliced=ts.wavelength_slices(uv_ranges, apply_fcn='mean')
             range_timeplot(tssliced, ylabel='Average Intensity', xlabel='Time ('+ts.timeunit+')' ) #legstyle =1 for upper left
-            plt_clrsave(od, options.rname+'raw_time')
-    
-            #### Now scale curves to 1 for objective comparison
-            tssliced_norm=tssliced.apply(lambda x: x/x[0], axis=1)
-            range_timeplot(tssliced_norm, title='Normalized Range Timeplot', ylabel='Scaled Average Intensity',\
-                           xlabel='Time ('+ts.timeunit+')', legstyle=1 )
-            plt_clrsave(od, options.rname+'norm_time')        
-    
+            plt_clrsave(od, options.rname+'stripchart')
+ 
             ### Area plot using simpson method of integration
             tsarea=ts.area()                
             areaplot(tsarea, ylabel='Power', xlabel='Time ('+ts.timeunit+')', legend=False,
@@ -380,37 +381,37 @@ def core_analysis():
             plt_clrsave(od, options.rname+'full_area')
             
             ###### Polygon Plot
-   #         spec_poly3d(ts, title=options.rname+'3d Poly Spec')
-   #         plt_clrsave(od, options.rname+'polygon')           
+            spec_poly3d(ts, title=options.rname+'3d Poly Spec')
+            plt_clrsave(od, options.rname+'polygon')           
         
-            ##### correlation analysis
-            #outcorr=od+'/2dCorrAnal'
-            #os.mkdir(outcorr)        
-            #ref=make_ref(ts, method='empty')     
+            #### correlation analysis
+            outcorr=od+'/2dCorrAnal'
+            os.mkdir(outcorr)        
+            ref=make_ref(ts, method='empty')     
     
-            #S,A=ca2d(ts, ref)
-            #sync_3d(S, title='Synchronous Spectrum (%s-%s %s)'%(round(min(ts), 1), round(max(ts),1), ts.full_timeunit)) #min/max by columns      
-            #plt_clrsave(outcorr, options.rname+'full_sync')                
-            #async_3d(A, title='Asynchronous Spectrum (%s-%s %s)'%(round(min(ts), 1), round(max(ts),1), ts.full_timeunit))
-            #plt_clrsave(outcorr, options.rname+'full_async')        
+            S,A=ca2d(ts, ref)
+            sync_3d(S, title='Synchronous Spectrum (%s-%s %s)'%(round(min(ts), 1), round(max(ts),1), ts.full_timeunit)) #min/max by columns      
+            plt_clrsave(outcorr, options.rname+'full_sync')                
+            async_3d(A, title='Asynchronous Spectrum (%s-%s %s)'%(round(min(ts), 1), round(max(ts),1), ts.full_timeunit))
+            plt_clrsave(outcorr, options.rname+'full_async')        
     
     
-            ##### 2d contour plot (solid color or cmap accepted)
-            #plot2d(ts, title='Full Contour', cmap='autumn', contours=7, label=1, colorbar=1, background=1)
-            #plt_clrsave(od, options.rname+'full_contour')        
+            #### 2d contour plot (solid color or cmap accepted)
+            plot2d(ts, title='Full Contour', cmap='autumn', contours=7, label=1, colorbar=1, background=1)
+            plt_clrsave(od, options.rname+'full_contour')        
        
-            #### 3D Plots.  Set row and column step size, eg 10 would mean 10 column traces on the contours ###
-            #c_iso=10 ; r_iso=10
-            #kinds=['contourf', 'contour']
-            #views=( (14, -21), (28, 17), (5, -13), (48, -14), (14,-155) )  #elev, aziumuth
-            #for kind in kinds:
-                #out3d=od+'/3dplots_'+kind
-                #os.mkdir(out3d)
+            ### 3D Plots.  Set row and column step size, eg 10 would mean 10 column traces on the contours ###
+            c_iso=10 ; r_iso=10
+            kinds=['contourf', 'contour']
+            views=( (14, -21), (28, 17), (5, -13), (48, -14), (14,-155) )  #elev, aziumuth
+            for kind in kinds:
+                out3d=od+'/3dplots_'+kind
+                os.mkdir(out3d)
     
-                #for view in views:        
-                    #spec_surface3d(ts, kind=kind, c_iso=c_iso, r_iso=r_iso, cmap=cmget('gray'), contour_cmap=cmget('autumn'),
-                                   #elev=view[0], azim=view[1], xlabel='Time ('+ts.timeunit+')')
-                    #plt_clrsave(out3d, '%sfull_3d_%s_%s'%(options.rname, view[0], view[1])   )    
+                for view in views:        
+                    spec_surface3d(ts, kind=kind, c_iso=c_iso, r_iso=r_iso, cmap=cmget('gray'), contour_cmap=cmget('autumn'),
+                                   elev=view[0], azim=view[1], xlabel='Time ('+ts.timeunit+')')
+                    plt_clrsave(out3d, '%sfull_3d_%s_%s'%(options.rname, view[0], view[1])   )    
         
 
     ### Close logfile    

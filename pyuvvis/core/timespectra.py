@@ -26,7 +26,7 @@ import matplotlib.pyplot as plt
 from pandas import read_csv as df_read_csv
 
 tunits={'ns':'Nanoseconds', 'us':'Microseconds', 'ms':'Milliseconds', 's':'Seconds', 
-        'm':'Minutes', 'h':'Hours','d':'Days', 'y':'Years'}  #ADD NULL VALUE? Like None:'No Time Unit' (iunit/specunit do it)
+        'm':'Minutes', 'h':'Hours','d':'Days', 'y':'Years'}  #ADD NULL VALUE? Like None:'No Time Unit' (iunit/specunit do this)
 
 
 #################
@@ -207,6 +207,10 @@ class TimeSpectra(MetaDataFrame):
         self._intrinsic=self.__dict__.keys()
         self._intrinsic.remove('name') #Not a private attr
         
+        ###Which attributes/methods are manipulated along with the dataframe
+        self._cnsvdattr=['_baseline', 'darkseries']
+        self._cnsvdmeth=['_slice']#['ix']
+
 
     #############################################################################    
     ### Methods ( @property decorators ensure use can't overwrite methods) ######   
@@ -853,35 +857,108 @@ class TimeSpectra(MetaDataFrame):
         return Idic
         
     ############################################## 
-    #####Overwrite MetaDataFrame private methods #
+    #####Overwrite MetaDataFrame behavior ########
     ##############################################    
-                
-    def _dfgetattr(self, attr, *fcnargs, **fcnkwargs):
-        ''' This is overwritten from MetaDataFrame to account for the use_base option.'''
+    
+    
+    @property
+    def cnsvdattr(self):
+        ''' attr:value of conserved attributes'''
+        csvdout={}
+        for attr in self._cnsvdattr:
+            if hasattr(self, attr):
+                csvdout[attr]=getattr(self, attr)
+            else:
+                csvdout[attr]=None
+        return csvdout
+    
+    @cnsvdattr.setter
+    def cnsvdattr(self, attrs):
+        ''' Set which attributes are mutated in DataFrame operations via cons_methods.'''
+        if isinstance(attrs, basestring):
+            attrs=[attrs]
+            
+        consout=[]
+        for attr in attrs:
+            try:
+                consout.append(attrgetter(attr, self))
+            except AttributeError:
+                raise AttributeError('%s not found on object %s'%(attr, self)) 
 
-        use_base=fcnkwargs.pop('use_base', False)
+        self._cnsvdattr=consout
+        
+    @property
+    def cnsvdmeth(self):
+        return self._cnsvdmeth
+    
+    @cnsvdmeth.setter
+    def cnsvdmeth(self, attrs):
+        ### Do I even want to do anything more than setter?
+        if isinstance(attrs, basestring):
+            attrs=[attrs]
+
+        for attr in attrs:
+            if hasattr(self, attr):
+                pass
+            else:
+                raise AttributeError('%s has no attribute "%s"'%(self.name, attr))
+            
+        self._cnsvdmeth=attrs        
+        
+    def _dfgetattr(self, attr, *fcnargs, **fcnkwargs):
+        ''' This is overwritten from MetaDataFrame to allow special attributes to
+        be manipulated under dataframe operations.  For example, if a user slices the dataframe,
+        then the baseline auto get sliced on the return array; otherwise, get tough-to-track
+        length mismatch issues.
+        
+        Notes:
+        -----
+        Since new series items always have a name by default, an originally unnamed series
+        attribute (such as baseline) will end with a name=_baseline afterwards.  Added a hack
+        to intercept this highly common attribute and apply to output.'''
  
         out=getattr(self._df, attr)(*fcnargs, **fcnkwargs)
         
         ### If operation returns a dataframe, return new TimeSpectra
         if isinstance(out, DataFrame):
             
-            ### Should this operation be called on baseline?
-            if use_base == True:
-                try:
-                    baseout=getattr(self.baseline, attr)(*fcnargs, **fcnkwargs)
-                except Exception:
-                    ### There may be cases where df.x() and series.x() aren't available!
-                    raise Exception('Could not successfully perform operation "%s" on baseline.  Please check\
-                    Pandas Series API'%attr)            
+            ### Are there specially conserved attributes?
+            csvdout=None
+            if attr in self._cnsvdmeth:    
+                if self._cnsvdattr:
+                    cnsvdattr=dict((k,v) for k, v in self.cnsvdattr.iteritems() if v is not None)
+                                    
+                                    
+                    csvdf=DataFrame(cnsvdattr)  #STILL WORKS WITH NONEQUAL LENGTH
+                    _csvdfattrs=dict((attr, (cnsvdattr[attr].__dict__)) for attr in cnsvdattr)
+                                        
+                    try:
+                        csvdout=getattr(csvdf, attr)(*fcnargs, **fcnkwargs)
+                    except Exception:
+                        raise Exception('Could not successfully perform operation "%s" on one or multiple \
+                        conserved attributes %s.'%attr, '","'.join(csvdout.columns))                               
             
+            ### Create new timespectra object
             tsout=self._transfer(out)
-            if use_base==True:
-                ### Have to convert back down to a series ### (IF FORCED BASELINE TO DATAFRAME)
-                ### and Series(df) does not work correctly!! VERY HACKy
-#                tsout.baseline=Series(baseout[baseout.columns[0]])
+            
+            if not isinstance(csvdout, NoneType):
+                                
+                for col in csvdout:
+                    
+                    ###Restore custom attributes on the cnsvdattributes
+                    restattr=[attr for attr in _csvdfattrs[col] if attr not in csvdout[col].__dict__]
+                    if restattr:
+                        for attr in restattr:
+                            setattr(csvdout[col], attr, _csvdfattrs[col][attr]) 
+
+                        ### Hack to conserve "name" attribute of series return
+                        try:
+                            setattr(csvdout[col], 'name', _csvdfattrs[col]['name']) 
+                        except KeyError:
+                            pass
                 
-                tsout.baseline=baseout
+                    ### Apply conserved attributes to new dataframe                        
+                    setattr(tsout, col, csvdout[col])
             
             return tsout
         
@@ -1014,45 +1091,7 @@ class TimeSpectra(MetaDataFrame):
         
         ### Initialize timespectra from meta.  Is this how I want to do it?
         ts=TimeSpectra(df, **meta) 
-        
-
-    @property	  	
-    def ix(self, *args, **kwargs):      	
-        ''' Pandas Indexing.  Note, this has been modified to ensure that series returns (eg ix[3])
-        still maintain attributes.  To remove this behavior, replace the following:
-        
-        self._ix = _MetaIndexer(self, _NDFrameIndexer(self) ) --> self._ix=_NDFrameIndexer(self)
-        
-        The above works because slicing preserved attributes because the _NDFrameIndexer is a python object 
-        subclass.'''
-        if self._ix is None:
-            self._ix = _TSIndexer(self, _NDFrameIndexer(self) )
-        return self._ix              
-        
-class _TSIndexer(object):
-    ''' Intercepts the slicing of ix so Series returns can be handled properly.  In addition,
-        it makes sure that the new index is assigned properly.  Differs from metadataframe because
-        it accounts for baseline shape changes.'''
-    def __init__(self, metadf, indexer):
-        self.indexer=indexer #_NDFrameIndexer
-        self.metadf=metadf #MetaDataFrame
-    
-    def __getitem__(self, key):
-        out=self.indexer.__getitem__(key)
-        if array_truthtest(out.baseline):
-            out._baseline=out.baseline.ix[key] #Slice the baseline (assign to private is important)
-        
-
-        ### Series returns transformed to MetaDataFrame
-        if isinstance(out, Series):
-            df=DataFrame(out)
-            return self.metadf._transfer(out)
-        
-    
-        ### Make sure the new object's index property is syched to its ._df index.
-        else:
-            return out
-        
+                
 
 #### TESTING ###
 if __name__ == '__main__':
@@ -1068,7 +1107,14 @@ if __name__ == '__main__':
     
     ts=TimeSpectra(abs(np.random.randn(3,3)), columns=testdates, index=spec, baseline=[1.,2.,3.])  
     t2=TimeSpectra(abs(np.random.randn(3,3)), columns=testdates2, index=spec, baseline=[1.,2.,3.]) 
-    ts.ix[400.:504.]
+    ts._baseline.x='I WORK'
+    ts._baseline.name='joe'
+#    ts.darkseries=Series([20,30,50,50], index=[400., 500., 600., 700.])
+#    t2.darkseries=ts.darkseries
+    x=ts.ix[450.0:650.]
+    y=t2.ix[500.:650.]
+    
+    ts.cnsvdmeth='name'
     
     uv_ranges=((430.0,450.0))#, (450.0,515.0), (515.0, 570.0), (570.0,620.0), (620.0,680.0))
     

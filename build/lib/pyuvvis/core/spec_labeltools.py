@@ -46,8 +46,10 @@ spec_dic= { 'm':1.0, 'cm':.01, 'um':.000001, 'nm': .000000001,
 ### as the base unit, as it is literally curve/ref, hence the natural unit of divby() 
 Idic={None:'Raw data', 't':'Transmittance', '%t':'(%)Transmittance', 'r':'Relative Inverse (1/T)',
       'a':'Absorbance (base 10)', 'a(ln)':'Absorbance (base e)'} 
-from_T={'t':lambda x: x,  '%t':lambda x: 100.0 * x, 'r':lambda x:1.0/x, 'a':lambda x: -np.log10(x), 'a(ln)':lambda x:-np.log(x)}    #Operation
-to_T={'t':lambda x: x,  '%t':lambda x: x/100.0, 'r':lambda x:1.0/x, 'a':lambda x: np.power(10, -x), 'a(ln)':lambda x: np.exp(-x)} #Inverse operation
+
+### Remember, data is already divided by ref before from_T is called, so "r" is base unit, not "t".  
+from_T={'t':lambda x: 1.0/x,  '%t':lambda x: 100.0 * (1.0/ x), 'r':lambda x: x, 'a':lambda x: -np.log10(x), 'a(ln)':lambda x:-np.log(x)}    #Operation
+to_T={'t':lambda x: 1.0/x,  '%t':lambda x: (1.0/ x) / 100.0, 'r':lambda x: x, 'a':lambda x: np.power(10, -x), 'a(ln)':lambda x: np.exp(-x)} #Inverse operation
 
 
 ### Index/label utilities.  Leave mapping back to dataframe separate. ###

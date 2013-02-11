@@ -272,7 +272,7 @@ def core_analysis():
         ######
         ###
         ts_full=ts_full.ix[351.0::]
- #       ts_full.darkseries=ts_full.darkseries[351.0::]
+        ts_full.darkseries=ts_full.darkseries[351.0::]  #THIS IS NECE$SSARY
         
         ### Output the pickled dataframe   
         ts_full.save(outroot+'/rundata.pickle')  
@@ -311,6 +311,10 @@ def core_analysis():
         if params['line_fit']:
             blines=dynamic_baseline(ts, params['fit_regions'] )
             ts=ts-blines 
+
+            from pandas import DataFrame
+            newbline=dynamic_baseline(DataFrame(ts.baseline), params['fit_regions'])   #THIS IS ALSO NECESSARY
+            ts.baseline=ts.baseline-newbline[newbline.columns[0]]
              
 
         ### Slice spectra and time start/end points.  Doesn't stop script upon erroringa
