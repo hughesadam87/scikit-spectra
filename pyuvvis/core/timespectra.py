@@ -14,7 +14,7 @@ from scipy import integrate
 ### Absolute pyuvvis imports (DON'T USE RELATIVE IMPORTS)
 from pyuvvis.core.specindex import SpecIndex, specunits, get_spec_category
 from pyuvvis.core.spec_labeltools import datetime_convert, from_T, to_T, Idic, intvl_dic
-from pyuvvis.core.utilities import divby
+from pyuvvis.core.utilities import divby, boxcar
 from pyuvvis.pyplots.advanced_plots import spec_surface3d
 from pyuvvis.custom_errors import badkey_check
 
@@ -209,7 +209,7 @@ class TimeSpectra(MetaDataFrame):
         
         ###Which attributes/methods are manipulated along with the dataframe
         self._cnsvdattr=['_baseline', 'darkseries']
-        self._cnsvdmeth=['_slice']#['ix']
+        self._cnsvdmeth=['_slice', 'boxcar'] #_slice is ix
 
 
     #############################################################################    
@@ -552,6 +552,19 @@ class TimeSpectra(MetaDataFrame):
                     
                 
 #        return dataframe
+
+    def boxcar(self, binwidth, axis=1):
+        '''Performs boxcar averaging by binning data.
+        
+        Parameters
+        ----------
+           binwidth: Width of the slice overwhich to average.
+           axis: 1/0 for index/column averaging respectively.
+        '''
+        if axis==0 and self._interval==False:
+            raise NotImplementedError('Cannot boxcar along DateTime axis.')
+        
+        return self._transfer(boxcar(self, binwidth=binwidth, axis=axis))
     
     def area(self, apply_fcn='simps'):
         ''' Returns total area under the spectra vs. time curve.  To choose a slice of the spectrum,
@@ -1101,16 +1114,21 @@ if __name__ == '__main__':
 
 
 
-    spec=SpecIndex([400.,500.,600.])
-    testdates=date_range(start='3/3/12',periods=3,freq='h')
-    testdates2=date_range(start='3/3/12',periods=3,freq='45s')
+    spec=SpecIndex(range(400, 700,1) )
+#    spec=SpecIndex([400.,500.,600.])
+    testdates=date_range(start='3/3/12',periods=30,freq='h')
+    testdates2=date_range(start='3/3/12',periods=30,freq='45s')
     
-    ts=TimeSpectra(abs(np.random.randn(3,3)), columns=testdates, index=spec, baseline=[1.,2.,3.])  
-    t2=TimeSpectra(abs(np.random.randn(3,3)), columns=testdates2, index=spec, baseline=[1.,2.,3.]) 
+    ts=TimeSpectra(abs(np.random.randn(300,30)), columns=testdates, index=spec)  
+    t2=TimeSpectra(abs(np.random.randn(300,30)), columns=testdates2, index=spec) 
+    ts.baseline=0
     ts._baseline.x='I WORK'
     ts._baseline.name='joe'
 #    ts.darkseries=Series([20,30,50,50], index=[400., 500., 600., 700.])
 #    t2.darkseries=ts.darkseries
+    ts._df.ix[:, 0:4]
+    ts.ix[:,0:4]
+    ts.boxcar(binwidth=20, axis=1)
     x=ts.ix[450.0:650.]
     y=t2.ix[500.:650.]
     

@@ -33,9 +33,9 @@ sec_conversions={'ns':10**-9, 'us':10**-6, 'ms':10**-3, \
                  's':1.0, 'm':60.0, 'h':3600.0, \
                  'd':86400.0, 'y':31536000.0, 'intvl':None}
 
-intvl_dic={'ns':'nanoseconds', 'us':'microseconds', 'ms':'milliseconds',
-           's':'seconds', 'm':'meters', 'h':'hours', 'd':'days', 'y':'years',
-           'intvl':'interval timestamp'}
+intvl_dic={'ns':'Nanoseconds', 'us':'Microseconds', 'ms':'Milliseconds',
+           's':'Seconds', 'm':'Minutes', 'h':'Hours', 'd':'Days', 'y':'Years',
+           'intvl':'Interval timestamp'}
 
 ### Mapping of various spectral units to meters.  
 spec_dic= { 'm':1.0, 'cm':.01, 'um':.000001, 'nm': .000000001,          

@@ -18,6 +18,9 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
     ### For now this could use improvement  
     pltkwargs['legend']=pltkwargs.pop('legend', False)
     legstyle=pltkwargs.pop('legstyle', None)          
+    
+    ### Grid (add support for minor grids later)
+    grid=pltkwargs.pop('grid', True)
             
     ### Make sure don't have "colors", or that 'colors' is not set to default    
     if 'colors' in pltkwargs:
@@ -41,6 +44,9 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
             ax.legend(loc='upper left', ncol=2, shadow=True, fancybox=True)  #If l
         if legstyle==2:
             ax=easy_legend(ax, position='top', fancy=True)
+            
+    if grid:
+        ax.grid(True)
     return ax    
 
 	
@@ -105,7 +111,29 @@ def range_timeplot(ranged_ts, **pltkwds):
 def areaplot(ranged_ts, **pltkwds):
     ''' Makes plots based on ranged time intervals from spec_utilities.wavelength_slices().
     Uses a special function, _uvvis_colorss() to map the visible spectrum.  Changes default legend
-    behavior to true.'''
+    behavior to true.
+    
+    Notes:
+    ------
+    Added some extra functionality on 2/13/13, to make it ok if user passed in transposed() or non-transposed(). 
+    Additionally, if user passes non Mx1 dimensional plot, it recomputes the area.  Hence, user can just do areaplot(ts)
+    '''
+    
+    ### If not M x 1 shape, recompute area
+    cols, rows=ranged_ts.shape
+    if cols != 1 and rows != 1:
+        try:
+            ranged_ts=ranged_ts.area()
+        except Exception:
+            ### Often error is if someone passed in transposed area using datetime index
+            raise IOError('Could not successfully run .area() on %s object.'%type(ranged_ts))
+        else:
+            print 'Warning: Recomputing area from shape (%s, %s) to %s'%(cols, rows, str(ranged_ts.shape))
+    
+    ### If shape is wrong, take transpose    
+    cols, rows=ranged_ts.shape    
+    if cols ==1 and rows != 1:
+        ranged_ts=ranged_ts.transpose()
 
     pltkwds['legend']=pltkwds.pop('legend', False)
     pltkwds['linewidth']=pltkwds.pop('linewidth', 3.0 )  
@@ -114,7 +142,7 @@ def areaplot(ranged_ts, **pltkwds):
     ylabel=pltkwds.pop('ylabel', ranged_ts.full_iunit)    
     title=pltkwds.pop('title', 'Area Plot: '+str(ranged_ts.name) )       
                 
-    return _genplot(ranged_ts.transpose(), xlabel, ylabel, title,**pltkwds)   #ts TRANSPOSE
+    return _genplot(ranged_ts, xlabel, ylabel, title,**pltkwds)   #ts TRANSPOSE
     
 
     

@@ -5,8 +5,8 @@ from pyuvvis.core.timespectra import TimeSpectra, mload, mloads
 from pyuvvis.core.specindex import SpecIndex
 
 ### Plotting
-from pyuvvis.pyplots.advanced_plots import spec_surface3d, surf3d, spec_poly3d, plot2d, plot3d  
-from pyuvvis.pyplots.basic_plots import specplot, timeplot, absplot, range_timeplot, _genplot    
+from pyuvvis.pyplots.advanced_plots import spec_surface3d, surf3d, spec_poly3d, plot2d, plot3d 
+from pyuvvis.pyplots.basic_plots import specplot, timeplot, absplot, range_timeplot, areaplot, _genplot    
 from pyuvvis.pyplots.plot_utils import _df_colormapper, cmget  #???
 
 ### Pandas utilities
@@ -16,9 +16,6 @@ from pyuvvis.pyplots.plot_utils import _df_colormapper, cmget  #???
 
 ### Spectral utilities
 from pyuvvis.core.spec_labeltools import spec_slice, datetime_convert, spectral_convert, spec_slice
-from pyuvvis.core.utilities import boxcar  #Make instance methods? 
-#I think instance method version of boxcar should be sure to smooth baseline (how to do this non-generically?)
-#and for that matter, IX should probably cut baseline too.
 from pyuvvis.core.baseline import dynamic_baseline #leave as function.
 
 ###IO (most common GWU imports)

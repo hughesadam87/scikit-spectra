@@ -1,3 +1,0 @@
-Loading contents of "sam2", using the timefile/datafile conventional import
-
-Time for completion, 73.3

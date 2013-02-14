@@ -14,6 +14,7 @@ setup(
                 'pyuvvis.core',
                 'pyuvvis.deprecates_oldprograms',
                 'pyuvvis.IO',
+		'pyuvvis.nptools',
                 'pyuvvis.pandas_utils',
                 'pyuvvis.pyplots',
                 'pyuvvis.tests',

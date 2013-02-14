@@ -41,6 +41,26 @@ def plt_clrsave(outpath, outname): # dpi=600):
     ''' Save plot then clear afterwards.  dpi=600 saves a nicer quality picture for publication.'''
     plt.savefig('%s/%s' %(outpath, outname)) #, dpi=600 )
     plt.clf()
+    
+def _lgfile(logfile, verbose, message):
+    ''' Writes information to logfile and optionally to screen if user uses --verbose=True 
+        in core_analysis() call.
+        Params:
+        -------
+           outfile: logfile opened in write mode
+           verbose: if true, contents are printed to screen in addition to written to log'''
+    if verbose:
+        print message
+    logfile.write(message)
+    
+def currenttime(tstart):
+    ''' Return the timedelta in HMS given original time. '''
+    tf=time.time()-tstart
+    if tf > 86400:
+        tf = '> 1 day' #Fix later to actually record number of days
+    else:
+        tf=time.strftime('%H:%M:%S', time.gmtime(tf))    
+    return tf
 
 
 def core_analysis():
@@ -123,6 +143,10 @@ def core_analysis():
                       help='This will clean and overwrite files found in the output directory\
                        before writing new results.  Careful, this will delete ALL files in any\
                        directory that you pass.')
+    
+    parser.add_option('--verbose', action='store_true', default=True, #REMOVE
+                      dest='verb',
+                      help='If true, anything written to logfile will also be printed to screen.')    
 
 
     (options, kwargs) = parser.parse_args()
@@ -209,8 +233,12 @@ def core_analysis():
     ### Walk a single directory down    
     walker=os.walk(inroot, topdown=True, onerror=None, followlinks=False)
     (rootpath, rootdirs, rootfiles)= walker.next()
+    
+    if not rootdirs:
+        raise IOError('"%s" directory is empty.'%rootpath)
+    
     for folder in rootdirs:    
-        print "Analyzing run directory %s"%folder
+        _lgfile(lf, options.verb, "Analyzing run directory %s"%folder)
 
         wd=inroot+'/'+folder
         infiles=get_files_in_dir(wd)
@@ -226,36 +254,46 @@ def core_analysis():
         picklefile=[afile for afile in infiles if afile.split('.')[-1]=='pickle']
 
         if len(picklefile)>1:
-            lf.write('Failed to load in folder, %s, had more than one .pickle files.\n\n'%folder)
+            _lgfile(lf, options.verb,'Failed to load in folder, %s, had more than one .pickle files.\n\n'%folder)
             raise IOError('Indirectory must contain only one pickle file if you want to use it!!!')
 
         elif len(picklefile)==1:
+            _lgfile(lf, options.verb,'Loaded contents of folder, %s, using the ".pickle" file, %s.\n\n'%(folder, get_shortname(picklefile[0])))            
             ts_full=mload(picklefile[0])        
-            lf.write('Loaded contents of folder, %s, using the ".pickle" file, %s.\n\n'%(folder, get_shortname(picklefile[0])))            
 
         ### If no picklefile found try reading in datafile directly
         else:
             if len(infiles) == 2:
                 timefile=[afile for afile in infiles if 'time' in afile.lower()]
                 if len(timefile) == 1:
+                    _lgfile(lf, options.verb,'Loading contents of "%s", using the timefile/datafile conventional import\n\n'%folder)                       
                     infiles.remove(timefile[0])
                     ts_full=from_timefile_datafile(datafile=infiles[0], timefile=timefile[0])
-                    lf.write('Loading contents of "%s", using the timefile/datafile conventional import\n\n'%folder)   
 
                 ### ACCOUNT FOR REMOTE POSSIBILITY THAT 2 FILES COULD STILL JUST BE TWO RAW DATA FILES INSTEAD OF DATAFILE/TIMEFILE
                 elif len(timefile) == 0:
-                    ts_full=from_spec_files(infiles)
-                    lf.write('Loading contents of folder "%s" multiple raw spectral files %s.  (If these were \
+                    _lgfile(lf, options.verb,'Loading contents of folder "%s" multiple raw spectral files %s.  (If these were \
                     supposed to be datafile/timefile and not raw files, couldnt find word "time" in filename.) \
-                    \n\n'%(folder, len(infiles))) 
+                    \n\n'%(folder, len(infiles)))                     
+                    ts_full=from_spec_files(infiles)
+
 
                 else:
-                    lf.write('Failure: multiple timefile matches found in folder %s\n\n'%folder)                                
+                    _lgfile(lf, options.verb,'Failure: multiple timefile matches found in folder %s\n\n'%folder)                                
                     raise IOError('Timefile not found.  File must contain word "time"')                    
 
             else:
-                ts_full=from_spec_files(infiles)
-                lf.write('Loading contents of folder, %s, multiple raw spectral files %s.\n\n'%(folder, len(infiles)))                    
+                try:
+                    _lgfile(lf, options.verb,'Loading contents of folder, %s, multiple raw spectral files %s.\n\n'%(folder, len(infiles)))                         
+                    ts_full=from_spec_files(infiles)
+                except Exception as E:
+                    _lgfile(lf, options.verb,'SCRIPT ERROR: Could not load contents of %s'%folder)
+                    continue
+
+                
+
+        _lgfile(lf, options.verb, 'Time to import %s to TimeSpectra: %s'%(folder, currenttime(start))) 
+                
                 
         #############################
         ### Setup outputdirectory ###
@@ -303,12 +341,12 @@ def core_analysis():
         if hasattr(ts_full, 'darkseries') and params['sub_base']==True:
             if isinstance(ts_full.darkseries, type(None) ):
                 ts=ts_full #need this                
-                lf.write('Warning: darkseries not found in data of run directory %s\n\n'%folder)            
+                _lgfile(lf, options.verb,'Warning: darkseries not found in data of run directory %s\n\n'%folder)            
             else:    
                 ts=ts_full.sub(ts_full.darkseries, axis='index') 
         else:
             ts=ts_full #need this
-            lf.write('Warning: darkseries attribute is not found on dataframe in folder %s!\n\n'%folder)            
+            _lgfile(lf, options.verb,'Warning: darkseries attribute is not found on dataframe in folder %s!\n\n'%folder)            
     
         ### Fit first order baselines automatically?
         if params['line_fit']:
@@ -324,13 +362,13 @@ def core_analysis():
         try:
             ts=ts[params['tstart']: params['tend'] ] 
         except Exception:
-            lf.write('Parameters Error: unable to slice tstart and tend to specified range in directory %s\n\n'%folder)           
+            _lgfile(lf, options.verb,'Parameters Error: unable to slice tstart and tend to specified range in directory %s\n\n'%folder)           
     
         try:
             ts=ts.ix[params['x_min']: params['x_max'] ] 
       #      ts.baseline=ts.baseline.ix[params['x_min']: params['x_max'] ] 
         except Exception:
-            lf.write('Parameters Error: unable to slice x_min and x_max range in directory %s\n\n'%folder)              
+            _lgfile(lf, options.verb,'Parameters Error: unable to slice x_min and x_max range in directory %s\n\n'%folder)              
 
         ### Set data to interval
         try:
@@ -374,8 +412,7 @@ def core_analysis():
             plt_clrsave(od, options.rname+'stripchart')
  
             ### Area plot using simpson method of integration
-            tsarea=ts.area()                
-            areaplot(tsarea, ylabel='Power', xlabel='Time ('+ts.timeunit+')', legend=False,
+            areaplot(ts, ylabel='Power', xlabel='Time ('+ts.timeunit+')', legend=False,
                            title='Spectral Power vs. Time (%i nm - %i nm)'%  ## Eventually make nm a paremeter and class method
                            (min(ts.index), max(ts.index)), color='r')
             plt_clrsave(od, options.rname+'full_area')
@@ -414,8 +451,8 @@ def core_analysis():
                     plt_clrsave(out3d, '%sfull_3d_%s_%s'%(options.rname, view[0], view[1])   )    
         
 
-    ### Close logfile    
-    lf.write('Time for completion, %s'%(round(time.time()-start,1)))
+    ### Record runtime and close logfile    
+    _lgfile(lf, options.verb,'Script total runtime: %s'%(currenttime(start)))
     lf.close()
 
 if __name__=='__main__':  
