@@ -82,7 +82,12 @@ class MetaDataFrame(object):
         handled specially using a special private parsing method, _dfgetattr().'''
 
         ### Return basic attribute
-        refout=getattr(self._df, attr)
+        
+        try:
+            refout=getattr(self._df, attr)
+        except AttributeError:
+            raise AttributeError('Could not find attribute "%s" in %s or its underlying DataFrame'%(attr, self.__class__.__name__))           
+           
         if not isinstance(refout, MethodType):
             return refout
 

@@ -399,12 +399,9 @@ def core_analysis():
     
             ### Look for uv-vis ranges in data, if not found, default to equally slicing spectrum by 8
             try:
-                uv_ranges=params['uv_ranges']
-                if isinstance(uv_ranges, float) or isinstance(uv_ranges, int):
-                    uv_ranges=spec_slice(ts.index, uv_ranges)   
-    
-            except (AttributeError, KeyError):
-                uv_ranges=spec_slice(ts.index, 8)   
+                uv_ranges=params['uv_ranges']   
+            except (KeyError):
+                uv_ranges=8   
                     
             #### Time averaged plot, not scaled to 1 (relative intenisty dependson bin width and actual intensity)
             tssliced=ts.wavelength_slices(uv_ranges, apply_fcn='mean')

@@ -3,6 +3,7 @@ __docformat__ = 'restructuredtext' #What's this actually do
 ### Core classes
 from pyuvvis.core.timespectra import TimeSpectra, mload, mloads
 from pyuvvis.core.specindex import SpecIndex
+from pyuvvis.core.utilities import maxmin_xy
 
 ### Plotting
 from pyuvvis.pyplots.advanced_plots import spec_surface3d, surf3d, spec_poly3d, plot2d, plot3d 

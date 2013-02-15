@@ -22,14 +22,15 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
     ### Grid (add support for minor grids later)
     grid=pltkwargs.pop('grid', True)
             
-    ### Make sure don't have "colors", or that 'colors' is not set to default    
-    if 'colors' in pltkwargs:
-        if pltkwargs['color'].lower()=='default':
-            pltkwargs.pop('color')      
-    
+    ### Make sure don't have "colors" instead of "color"   
     if 'colors' in pltkwargs:
         pltkwargs['color']=pltkwargs.pop('colors')    
         print 'Warning: in _genplot, overwriting kwarg "colors" to "color"'
+        
+    ### If user wants default colors, just drop color keyword altogether. (Could remove this)
+    if 'color' in pltkwargs:
+        if pltkwargs['color'].lower()=='default':
+            pltkwargs.pop('color')          
     
     ax=ts.plot(**pltkwargs)
         

@@ -1,0 +1,3 @@
+Analyzing run directory sam2Loading contents of "sam2", using the timefile/datafile conventional import
+
+Time to import sam2 to TimeSpectra: 00:00:00Script total runtime: 00:01:13

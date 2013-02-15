@@ -13,8 +13,8 @@ from scipy import integrate
 
 ### Absolute pyuvvis imports (DON'T USE RELATIVE IMPORTS)
 from pyuvvis.core.specindex import SpecIndex, specunits, get_spec_category
-from pyuvvis.core.spec_labeltools import datetime_convert, from_T, to_T, Idic, intvl_dic
-from pyuvvis.core.utilities import divby, boxcar
+from pyuvvis.core.spec_labeltools import datetime_convert, from_T, to_T, Idic, intvl_dic, spec_slice
+from pyuvvis.core.utilities import divby, boxcar, maxmin_xy
 from pyuvvis.pyplots.advanced_plots import spec_surface3d
 from pyuvvis.custom_errors import badkey_check
 
@@ -496,6 +496,9 @@ class TimeSpectra(MetaDataFrame):
 
         dflist=[]; snames=[]
         
+        if isinstance(ranges, float) or isinstance(ranges, int):
+            ranges=spec_slice(self.index, ranges)           
+        
         ### If single range is passed in, want to make sure it can still be iterated over...
         if len(ranges)==2:
             ranges=[ranges]
@@ -931,7 +934,7 @@ class TimeSpectra(MetaDataFrame):
         to intercept this highly common attribute and apply to output.'''
  
         out=getattr(self._df, attr)(*fcnargs, **fcnkwargs)
-        
+                
         ### If operation returns a dataframe, return new TimeSpectra
         if isinstance(out, DataFrame):
             
@@ -1122,23 +1125,27 @@ if __name__ == '__main__':
     ts=TimeSpectra(abs(np.random.randn(300,30)), columns=testdates, index=spec)  
     t2=TimeSpectra(abs(np.random.randn(300,30)), columns=testdates2, index=spec) 
     ts.baseline=0
-    ts._baseline.x='I WORK'
-    ts._baseline.name='joe'
-#    ts.darkseries=Series([20,30,50,50], index=[400., 500., 600., 700.])
-#    t2.darkseries=ts.darkseries
-    ts._df.ix[:, 0:4]
-    ts.ix[:,0:4]
-    ts.boxcar(binwidth=20, axis=1)
-    x=ts.ix[450.0:650.]
-    y=t2.ix[500.:650.]
+    #ts._baseline.x='I WORK'
+    #ts._baseline.name='joe'
+##    ts.darkseries=Series([20,30,50,50], index=[400., 500., 600., 700.])
+##    t2.darkseries=ts.darkseries
+    #ts._df.ix[:, 0:4]
+    #ts.ix[:,0:4]
+    #ts.boxcar(binwidth=20, axis=1)
+    #x=ts.ix[450.0:650.]
+    #y=t2.ix[500.:650.]
     
-    ts.cnsvdmeth='name'
+    #ts.cnsvdmeth='name'
     
     uv_ranges=((430.0,450.0))#, (450.0,515.0), (515.0, 570.0), (570.0,620.0), (620.0,680.0))
     
     tssliced=ts.wavelength_slices(uv_ranges, apply_fcn='mean')
-    
-    
+        
+    ts.a
+    from pyuvvis.core.utilities import find_nearest
+    x=ts.ix[500.:510, 0]
+    b=maxmin_xy(x)
+    a=find_nearest(x, .15)
     ts.iunit=None
     ts.iunit='a'
     ts.iunit=None
