@@ -51,13 +51,21 @@ def sort_summary(summary_file, delim='\t'):
 
         f.close()
 
-def get_files_in_dir(directory):
+def get_files_in_dir(directory, sort=True):
     ''' Given a directory, this returns just the files in said directory.  Surprisingly
         no one line solution exists in os that I can find '''
     files=[]
+
+    ### If path entered with or without trailing '/', account for it
+    if directory[-1] !='/':
+        directory=directory+'/'
+
     for item in os.listdir(directory):
         if os.path.isfile(os.path.join(directory, item)):
             files.append(directory+'/'+item)
+            
+    if sort:
+        files.sort()
     return files
 
 ### The following methods navigate subdirectories and return file names in dictionaries ###
@@ -195,7 +203,7 @@ def rundict_foldersbyrun(indir):
     #return scaledict    
     
             
-def make_root_dir(rootout, overwrite=False):
+def make_root_dir(rootout, overwrite=False, verbose=True):
     ''' Creates directory structure for program results output.  Warning, if overwriting, all files and subfolders
         in the root out directory will be destroyed, not just ones pertaining to the relevant infiles.'''
     ### Check if outdirectory already exists and react decide to overwrite or error ###
@@ -207,7 +215,8 @@ def make_root_dir(rootout, overwrite=False):
             raise IOError('Directory %s already exists, remove or set overwrite to True'%rootout)
         
     ### Make output directory and subdirectories ###    
-    print 'making directory %s' %rootout
+    if verbose:
+        print 'making directory %s' %rootout
     os.makedirs(rootout)
     return rootout
 

@@ -5,9 +5,9 @@ fit_regions	((345.0, 395.0), (900.0, 1000.0))
 intvlunit	s
 x_max	680.0
 uv_ranges	8
+sub_dark	True
 specunit	None
 baseline	0
-sub_base	True
 tend	None
 tstart	None
 x_min	430.0

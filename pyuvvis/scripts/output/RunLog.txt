@@ -1,3 +1,3 @@
-Analyzing run directory sam2Loading contents of "sam2", using the timefile/datafile conventional import
+Analyzing run directory 2-2-f2-realgoodLoading contents of folder, 2-2-f2-realgood, multiple raw spectral files 162.
 
-Time to import sam2 to TimeSpectra: 00:00:00Script total runtime: 00:01:13
+Time to import 2-2-f2-realgood to TimeSpectra: 00:00:01Script total runtime: 00:01:23

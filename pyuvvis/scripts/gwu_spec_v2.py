@@ -20,8 +20,6 @@ import matplotlib.pyplot as plt
 
 
 ## This file is local... maybe make my own toolset?
-from imk_utils import make_root_dir, get_files_in_dir, get_shortname
-
 
 ## ASBOLUTE IMPORTS
 from pyuvvis.pyplots.basic_plots import specplot, areaplot, absplot, range_timeplot
@@ -30,12 +28,16 @@ from pyuvvis.core.spec_labeltools import datetime_convert, spec_slice
 from pyuvvis.core.utilities import boxcar
 from pyuvvis.core.baseline import dynamic_baseline
 from pyuvvis.pyplots.plot_utils import _df_colormapper, cmget
-from pyuvvis.IO.gwu_interfaces import from_timefile_datafile, get_files_in_dir, from_spec_files
+from pyuvvis.IO.gwu_interfaces import from_timefile_datafile, from_spec_files
+from pyuvvis.core.imk_utils import get_files_in_dir, make_root_dir
 from pyuvvis.core.baseline import dynamic_baseline
 from pyuvvis.core.corr import ca2d, make_ref, sync_3d, async_3d
 from pyuvvis.core.timespectra import mload, mloads, Idic
 from pyuvvis.custom_errors import badkey_check
 
+### Import some parameters
+from usb_2000 import params as p2000
+from usb_650 import params as p650
 
 def plt_clrsave(outpath, outname): # dpi=600):
     ''' Save plot then clear afterwards.  dpi=600 saves a nicer quality picture for publication.'''
@@ -83,7 +85,7 @@ def core_analysis():
     'tend':None,
     
     ### Baseline Correction   
-    'sub_base':True,
+    'sub_dark':True,
     'line_fit':True,
     'fit_regions':((345.0, 395.0), (900.0, 1000.0)),
     
@@ -241,7 +243,7 @@ def core_analysis():
         _lgfile(lf, options.verb, "Analyzing run directory %s"%folder)
 
         wd=inroot+'/'+folder
-        infiles=get_files_in_dir(wd)
+        infiles=get_files_in_dir(wd, sort=True)
 
         ### Remove pre-made images from the indirectory (for backwards compatibility)
         if options.ignore:
@@ -283,11 +285,14 @@ def core_analysis():
                     raise IOError('Timefile not found.  File must contain word "time"')                    
 
             else:
+                 
+                ### CUT INFILES HERE [0::10] IF ERROR OCCURS
                 try:
-                    _lgfile(lf, options.verb,'Loading contents of folder, %s, multiple raw spectral files %s.\n\n'%(folder, len(infiles)))                         
+                    infiles=infiles[0::4]
                     ts_full=from_spec_files(infiles)
+                    _lgfile(lf, options.verb,'Loading contents of folder, %s, multiple raw spectral files %s.\n\n'%(folder, len(infiles)))                                             
                 except Exception as E:
-                    _lgfile(lf, options.verb,'SCRIPT ERROR: Could not load contents of %s'%folder)
+                    _lgfile(lf, options.verb,'SCRIPT ERROR: Could not load contents of %s.\n Following exception was returned:\n%s'%(folder, E))
                     continue
 
                 
@@ -305,21 +310,11 @@ def core_analysis():
         except IOError:
             raise IOError('Root output directory %s already exists.\n\n  To overwrite, use option -c True.  Use with caution\n\n\
             preexisting data will be deleted from directory!'%(outroot))        
-        
-        ### DELTE ME
-        ######
-        ###
-        
+
         ### Output the pickled dataframe   
         ts_full.save(outroot+'/rundata.pickle')  
-        
-        ### Set Baseline/specunit/intvlunit
-        if params.has_key('baseline'):
-            ts_full.baseline=params['baseline']
-        else:
-            ts_full.baseline=0
             
-            
+        ### Set specunit/intvlunit       
         try:
             ts_full.specunit=params['specunit']
         except AttributeError:
@@ -329,16 +324,11 @@ def core_analysis():
         try:
             ts_full.intvlunit=params['intvlunit'] #Take from params file  
         except AttributeError:
-            ts_full.intvlunit='intvl'        
-        
-        ### CUT OUT ERRONEOUS 351.0 portion of baseline    
-        ts_full=ts_full.ix[351.0::]
-            
-        
+            ts_full.intvlunit='intvl'               
 
         ### Subtract the dark spectrum if it has one.  Note that all programs should produce an attribute for darkseries,
         ### which may be None, but the attribute should still be here.
-        if hasattr(ts_full, 'darkseries') and params['sub_base']==True:
+        if hasattr(ts_full, 'darkseries') and params['sub_dark']==True:
             if isinstance(ts_full.darkseries, type(None) ):
                 ts=ts_full #need this                
                 _lgfile(lf, options.verb,'Warning: darkseries not found in data of run directory %s\n\n'%folder)            
@@ -353,11 +343,6 @@ def core_analysis():
             blines=dynamic_baseline(ts, params['fit_regions'] )
             ts=ts-blines 
 
-            from pandas import DataFrame
-            newbline=dynamic_baseline(DataFrame(ts.baseline), params['fit_regions'])   #THIS IS ALSO NECESSARY
-            ts.baseline=ts.baseline-newbline[newbline.columns[0]]
-             
-
         ### Slice spectra and time start/end points.  Doesn't stop script upon erroringa
         try:
             ts=ts[params['tstart']: params['tend'] ] 
@@ -366,9 +351,16 @@ def core_analysis():
     
         try:
             ts=ts.ix[params['x_min']: params['x_max'] ] 
-      #      ts.baseline=ts.baseline.ix[params['x_min']: params['x_max'] ] 
         except Exception:
             _lgfile(lf, options.verb,'Parameters Error: unable to slice x_min and x_max range in directory %s\n\n'%folder)              
+            
+            
+        ### Set Baseline (MUST SET BASELINE AFTER SLICING RANGES TO AVOID ERRONEOUS BASELINE DATA)
+        if params.has_key('baseline'):
+            ts.baseline=params['baseline']
+        else:
+            ts.baseline=0
+        
 
         ### Set data to interval
         try:
