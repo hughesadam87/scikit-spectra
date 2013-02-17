@@ -11,12 +11,24 @@ __status__ = "Development"
 from operator import attrgetter
 
 def badvalue_error(attribute, allowedvalues):
-    ''' Wrong value of attribute passed.'''
+    ''' Wrong value of argument passed.'''
     return AttributeError('Received attribute, %s, however, allowed values are: %s'%(attribute, allowedvalues))
 
 def badtype_error(attribute, allowedtypes):
-    ''' Wrong type of attribute passed. Provide attribute and allowed types'''
+    ''' Wrong type of argument passed. Provide attribute and allowed types'''
     return TypeError('Received attribute "%s" of type %s; however, allowed types are %s'%(attribute, type(attribute), allowedtypes))
+
+def badcount_error(numallowed, numreceived, numtotal, argnames=None):
+    ''' Function required x of arguments y (out of z arguments total) to work, but user
+        entered wrong amount.  If argnames, error will print the names of attributes required.
+        Argnames should be the names of the total number of arguments (eg if numtotal = 4, argnames 
+        should be 4 strings)'''
+
+    if argnames:
+        return AttributeError('requires %s of %s nonull keywords for %s but received %s.'%(numallowed, numtotal, argnames, numreceived))
+    else:
+        return AttributeError('requires %s of %s nonull keywords but received %s.'%(numallowed, numtotal, numreceived))
+
 
 def badkey_check(key, allowedvalues, case_sensitive=False):
     ''' Either string not passed or wrong value passed.  

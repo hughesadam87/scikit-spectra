@@ -1,7 +1,7 @@
 __docformat__ = 'restructuredtext' #What's this actually do
 
 ### Core classes
-from pyuvvis.core.timespectra import TimeSpectra, mload, mloads
+from pyuvvis.core.timespectra import TimeSpectra
 from pyuvvis.core.specindex import SpecIndex
 from pyuvvis.core.utilities import maxmin_xy
 
@@ -10,10 +10,9 @@ from pyuvvis.pyplots.advanced_plots import spec_surface3d, surf3d, spec_poly3d, 
 from pyuvvis.pyplots.basic_plots import specplot, timeplot, absplot, range_timeplot, areaplot, _genplot    
 from pyuvvis.pyplots.plot_utils import _df_colormapper, cmget  #???
 
-### Pandas utilities
-#---------------- Deprecated
-#from pyuvvis.pandas_utils.dataframeserial import df_load, df_dump
-#from pyuvvis.pandas_utils.df_attrhandler import transfer_attr
+### MetaDataframe utilities
+from pyuvvis.pandas_utils.metadframe import mload as tsload
+from pyuvvis.pandas_utils.metadframe import mloads as tsloads
 
 ### Spectral utilities
 from pyuvvis.core.spec_labeltools import spec_slice, datetime_convert, spectral_convert, spec_slice

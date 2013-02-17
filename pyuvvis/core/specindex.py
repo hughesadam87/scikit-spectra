@@ -18,6 +18,7 @@
        strange, will be very compatable with monkey-patched DataFrames, to ensure correct default behaviors and stuff.'''
 
 import pandas
+import numpy as np
 from collections import Iterable 
 
 from pandas import DatetimeIndex
@@ -47,7 +48,7 @@ speccats={'Wavelength':('m','nm','cm', 'um'), 'Wavenumber':('k', 'nm-1'), 'Energ
 def SpecError(value):
     ''' Custom Error for when user tries to pass a bad spectral unit.  Implementation actually defers user
     to see an attribute in the dataframe rather that calling list_sunits directly'''
-    return NameError('Invalid spectral unit, "%s".  See df.list_sunits for valid spectral units'%value)
+    return NameError('Invalid spectral unit, "%s".  See TimeSpectra.list_sunits for valid spectral units'%value)
 
 def get_spec_category(unit):
     ''' Given a unit key ('m', 'f' etc...), returns the key in speccats to which it belongs.'''
@@ -126,6 +127,14 @@ def __unicode__(self):
     else:
         sout=self.unit
     return 'Spectra(%s): %s'%(sout, self.old__unicode__())
+
+### Utilities ###
+
+def set_sindex(start, stop, numpts, unit=None):
+    '''Wrapper to np.linspace that returns a specindex object.  Supplemented
+     by timespectra method, set_specindex() which imposed further restraints
+     on the call signature and shape concerns.'''
+    return SpecIndex(np.linspace(start, stop, numpts), unit=unit)
 
                 
 ### Assign custom methods            

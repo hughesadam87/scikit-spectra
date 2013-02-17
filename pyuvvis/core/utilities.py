@@ -24,8 +24,7 @@ from pyuvvis.custom_errors import badvalue_error
 
 def countNaN(obj):
     ''' Returns counts of nans in an object'''
-    return np.isnan(obj.sum()).sum()
-    
+    return np.isnan(obj.sum()).sum()   
 
 ### Rather deprecated due to TimeSpectra.baseline/iunit
 def divby(df, divisor=0, axis=0, sameshape=True):
