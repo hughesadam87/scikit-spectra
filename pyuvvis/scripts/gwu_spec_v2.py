@@ -26,7 +26,7 @@ import numpy as np
 from pyuvvis.pyplots.basic_plots import specplot, areaplot, absplot, range_timeplot
 from pyuvvis.pyplots.advanced_plots import spec_surface3d, surf3d, spec_poly3d, plot2d, plot3d
 from pyuvvis.core.spec_labeltools import datetime_convert, spec_slice
-from pyuvvis.core.utilities import boxcar, hasNaN
+from pyuvvis.core.utilities import boxcar, countNaN
 from pyuvvis.core.baseline import dynamic_baseline
 from pyuvvis.pyplots.plot_utils import _df_colormapper, cmget
 from pyuvvis.IO.gwu_interfaces import from_timefile_datafile, from_spec_files
@@ -386,7 +386,7 @@ def core_analysis():
         ## TEST FOR NAN VALUES BEFORE CONTINUING  #####
         ###############################################
         
-        if hasNaN(ts):
+        if countNaN(ts): #0 will evaluate to false
             _lgfile(lf, options.verb,'NaNs found in %s during some step in preprocessing.  Could not perform analysis!'
                     %(ts.__class__.__name__))
             continue                        

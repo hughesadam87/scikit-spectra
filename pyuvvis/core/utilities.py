@@ -19,13 +19,12 @@ import numpy as np
 from scipy import integrate
 
 from pyuvvis.pandas_utils.dataframeserial import _get_metadict
-from pyuvvis.pandas_utils.dr_reader import df_from_directory
 from pyuvvis.custom_errors import badvalue_error
 
 
-def hasNaN(obj):
-    ''' Returns True or False if any NaN values are found in a np/pandas/pyuvvis object.'''
-    return any(np.isnan(x) for x in obj.values.flatten())
+def countNaN(obj):
+    ''' Returns counts of nans in an object'''
+    return np.isnan(obj.sum()).sum()
     
 
 ### Rather deprecated due to TimeSpectra.baseline/iunit
