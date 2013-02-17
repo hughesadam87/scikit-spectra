@@ -1,3 +1,5 @@
-Analyzing run directory 2-2-f2-realgoodLoading contents of folder, 2-2-f2-realgood, multiple raw spectral files 162.
+Analyzing run directory LeafsampleLoading contents of folder, Leafsample, multiple raw spectral files 576.Time to import Leafsample to TimeSpectra: 00:00:05Warning: darkseries not found in data of run directory Leafsample
 
-Time to import 2-2-f2-realgood to TimeSpectra: 00:00:01Script total runtime: 00:01:23
+
+Analyzing run directory 12nm_batch1Loading contents of folder, 12nm_batch1, multiple raw spectral files 13.Time to import 12nm_batch1 to TimeSpectra: 00:00:29Parameters _valid_range criteria not met, changing to p650NaNs found in TimeSpectra during some step in preprocessing.  Could not perform analysis!
+Script total runtime: 00:00:29

@@ -22,6 +22,12 @@ from pyuvvis.pandas_utils.dataframeserial import _get_metadict
 from pyuvvis.pandas_utils.dr_reader import df_from_directory
 from pyuvvis.custom_errors import badvalue_error
 
+
+def hasNaN(obj):
+    ''' Returns True or False if any NaN values are found in a np/pandas/pyuvvis object.'''
+    return any(np.isnan(x) for x in obj.values.flatten())
+    
+
 ### Rather deprecated due to TimeSpectra.baseline/iunit
 def divby(df, divisor=0, axis=0, sameshape=True):
     ''' Small wrapper around pandas.divide() that takes in either column integers, names,

@@ -3,10 +3,11 @@ outtypes	(None, 'r', 'a')
 line_fit	True
 fit_regions	((345.0, 395.0), (900.0, 1000.0))
 intvlunit	s
+_valid_minmax	(339.0, 1024.0)
 x_max	680.0
 uv_ranges	8
 sub_dark	True
-specunit	None
+specunit	nm
 baseline	0
 tend	None
 tstart	None

@@ -17,6 +17,7 @@ import collections
 from optparse import OptionParser
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 ## This file is local... maybe make my own toolset?
@@ -25,7 +26,7 @@ import matplotlib.pyplot as plt
 from pyuvvis.pyplots.basic_plots import specplot, areaplot, absplot, range_timeplot
 from pyuvvis.pyplots.advanced_plots import spec_surface3d, surf3d, spec_poly3d, plot2d, plot3d
 from pyuvvis.core.spec_labeltools import datetime_convert, spec_slice
-from pyuvvis.core.utilities import boxcar
+from pyuvvis.core.utilities import boxcar, hasNaN
 from pyuvvis.core.baseline import dynamic_baseline
 from pyuvvis.pyplots.plot_utils import _df_colormapper, cmget
 from pyuvvis.IO.gwu_interfaces import from_timefile_datafile, from_spec_files
@@ -36,8 +37,8 @@ from pyuvvis.core.timespectra import mload, mloads, Idic
 from pyuvvis.custom_errors import badkey_check
 
 ### Import some parameters
-from usb_2000 import params as p2000
-from usb_650 import params as p650
+from pyuvvis.scripts.usb_2000 import params as p2000
+from pyuvvis.scripts.usb_650 import params as p650
 
 def plt_clrsave(outpath, outname): # dpi=600):
     ''' Save plot then clear afterwards.  dpi=600 saves a nicer quality picture for publication.'''
@@ -68,31 +69,8 @@ def currenttime(tstart):
 def core_analysis():
     img_ignore=['png', 'jpeg', 'tif', 'bmp'] 
     
-    #######################################################
-    ### Default configuration parameters in the script ####
-    #######################################################
-    
-    params={
-    ### Spectral output types.
-    'outtypes':(None, 'r', 'a'),
-    'baseline':0,  #This is set to 0 automatically if user doesn't explicitly overwrite (even from external parms file)
-    'specunit':None,
-    'intvlunit':'s',  #This will actually force data into interval represnetationkl         
-    ### slicing ###
-    'x_min':430.0,     #Define range over which data is used in file
-    'x_max':680.0,
-    'tstart':None,  #In units of timeunit
-    'tend':None,
-    
-    ### Baseline Correction   
-    'sub_dark':True,
-    'line_fit':True,
-    'fit_regions':((345.0, 395.0), (900.0, 1000.0)),
-    
-    ### Ranged Timeplot parms    
-    #'uv_ranges':((430.0,450.0), (450.0,515.0), (515.0, 570.0), (570.0,620.0), (620.0,680.0)),
-    'uv_ranges':8,
-    }
+    ### Default configuration parameters    
+    params=p2000 #Don't change to p650 without modifying _valid_range test later in script!
     
     ################################################################################################
     ### Option Parser to catch indirectory, outdirectory, wheter to ignore images in a directory,  #
@@ -152,38 +130,51 @@ def core_analysis():
 
 
     (options, kwargs) = parser.parse_args()
-        
+
+    ##############################
+    ### Configuration parameters #
+    ##############################
     ### If user enters configuration parameters file
     if options.cfig:
-        ### Use absolute path
-        cfig=os.path.abspath(options.cfig)
-        basename=os.path.basename(cfig)         
-                
-        ### Ensure path/file exists
-        if not os.path.exists(cfig):
-            raise IOError('Cannot find config filepath: "%s"'%cfig)
         
-        ### Split.py extension (Needed for imp.fine_module() to work correctly
-        cfig, ext=os.path.splitext(cfig)
-        if ext != '.py':
-            raise IOError('%s must be a .py file: %s'%basename)
-                    
-        sys.path.append(os.path.dirname(cfig))
-        try:
-            cbase=basename.split('.')[0]  
-            cfile=imp.load_source(cbase, os.path.abspath(options.cfig))
-        except Exception as E:
-            raise Exception('Could not import config file "%s".  The following import error was returned: %s'%(basename,E))
-
-        ### Try to load parameters from params
-        try:
-            cparms=cfile.params
-        except AttributeError:
-            raise AttributeError('Cannot find "params" dictionary in config file, %s'%basename)
-
-        ### Overwrite defaults completely.  Does not force user to have every relevant parameter.
+        ### If user enters keys to builtin params style
+        if options.cfig.lower() in ['usb650', '650']:
+            params=p2000
+        elif options.cfig.lower() in ['usb2000', '2000']:
+            params=p650
+        
+        ### If user enters parms from config file
         else:
-            params=cparms
+        
+            ### Use absolute path
+            cfig=os.path.abspath(options.cfig)
+            basename=os.path.basename(cfig)         
+                    
+            ### Ensure path/file exists
+            if not os.path.exists(cfig):
+                raise IOError('Cannot find config filepath: "%s"'%cfig)
+            
+            ### Split.py extension (Needed for imp.fine_module() to work correctly
+            cfig, ext=os.path.splitext(cfig)
+            if ext != '.py':
+                raise IOError('%s must be a .py file: %s'%basename)
+                        
+            sys.path.append(os.path.dirname(cfig))
+            try:
+                cbase=basename.split('.')[0]  
+                cfile=imp.load_source(cbase, os.path.abspath(options.cfig))
+            except Exception as E:
+                raise Exception('Could not import config file "%s".  The following import error was returned: %s'%(basename,E))
+    
+            ### Try to load parameters from params
+            try:
+                cparms=cfile.params
+            except AttributeError:
+                raise AttributeError('Cannot find "params" dictionary in config file, %s'%basename)
+    
+            ### Overwrite defaults completely.  Does not force user to have every relevant parameter.
+            else:
+                params=cparms
     
     ### Overwrite parameters from commandline variable keyword args
     ### Args are list [x,y,z] but enforcing kwarg from input of form ['x=3', 'y=5']    
@@ -239,8 +230,13 @@ def core_analysis():
     if not rootdirs:
         raise IOError('"%s" directory is empty.'%rootpath)
     
-    for folder in rootdirs:    
-        _lgfile(lf, options.verb, "Analyzing run directory %s"%folder)
+    for iteration, folder in enumerate(rootdirs):
+        ### Format first iteration differently for aesthetics
+        if iteration==0:
+            print '\n'
+            _lgfile(lf, options.verb, "Analyzing run directory %s"%folder)
+        else:
+            _lgfile(lf, options.verb, "\n\nAnalyzing run directory %s"%folder)
 
         wd=inroot+'/'+folder
         infiles=get_files_in_dir(wd, sort=True)
@@ -256,11 +252,11 @@ def core_analysis():
         picklefile=[afile for afile in infiles if afile.split('.')[-1]=='pickle']
 
         if len(picklefile)>1:
-            _lgfile(lf, options.verb,'Failed to load in folder, %s, had more than one .pickle files.\n\n'%folder)
+            _lgfile(lf, options.verb,'Failed to load in folder, %s, had more than one .pickle files.\n'%folder)
             raise IOError('Indirectory must contain only one pickle file if you want to use it!!!')
 
         elif len(picklefile)==1:
-            _lgfile(lf, options.verb,'Loaded contents of folder, %s, using the ".pickle" file, %s.\n\n'%(folder, get_shortname(picklefile[0])))            
+            _lgfile(lf, options.verb,'Loaded contents of folder, %s, using the ".pickle" file, %s.'%(folder, get_shortname(picklefile[0])))            
             ts_full=mload(picklefile[0])        
 
         ### If no picklefile found try reading in datafile directly
@@ -268,7 +264,7 @@ def core_analysis():
             if len(infiles) == 2:
                 timefile=[afile for afile in infiles if 'time' in afile.lower()]
                 if len(timefile) == 1:
-                    _lgfile(lf, options.verb,'Loading contents of "%s", using the timefile/datafile conventional import\n\n'%folder)                       
+                    _lgfile(lf, options.verb,'Loading contents of "%s", using the timefile/datafile conventional import'%folder)                       
                     infiles.remove(timefile[0])
                     ts_full=from_timefile_datafile(datafile=infiles[0], timefile=timefile[0])
 
@@ -276,21 +272,19 @@ def core_analysis():
                 elif len(timefile) == 0:
                     _lgfile(lf, options.verb,'Loading contents of folder "%s" multiple raw spectral files %s.  (If these were \
                     supposed to be datafile/timefile and not raw files, couldnt find word "time" in filename.) \
-                    \n\n'%(folder, len(infiles)))                     
+                    \n'%(folder, len(infiles)))                     
                     ts_full=from_spec_files(infiles)
 
 
                 else:
-                    _lgfile(lf, options.verb,'Failure: multiple timefile matches found in folder %s\n\n'%folder)                                
+                    _lgfile(lf, options.verb,'Failure: multiple timefile matches found in folder %s'%folder)                                
                     raise IOError('Timefile not found.  File must contain word "time"')                    
 
             else:
                  
-                ### CUT INFILES HERE [0::10] IF ERROR OCCURS
                 try:
-                    infiles=infiles[0::4]
                     ts_full=from_spec_files(infiles)
-                    _lgfile(lf, options.verb,'Loading contents of folder, %s, multiple raw spectral files %s.\n\n'%(folder, len(infiles)))                                             
+                    _lgfile(lf, options.verb,'Loading contents of folder, %s, multiple raw spectral files %s.'%(folder, len(infiles)))                                             
                 except Exception as E:
                     _lgfile(lf, options.verb,'SCRIPT ERROR: Could not load contents of %s.\n Following exception was returned:\n%s'%(folder, E))
                     continue
@@ -298,6 +292,25 @@ def core_analysis():
                 
 
         _lgfile(lf, options.verb, 'Time to import %s to TimeSpectra: %s'%(folder, currenttime(start))) 
+        
+        ### Attempt to catch error if user enteres p650 data but uses p2000 setting and vice versa
+        ### Only works if user didn't specify config file or manual cfig params
+        if not options.cfig and not kwargs:
+            dmin, dmax=ts_full.index[0], ts_full.index[-1]
+            pmin, pmax=params['_valid_minmax']
+            
+            ### Try usb 650 parms
+            if  dmin < pmin or dmax > pmax:
+                _lgfile(lf, options.verb,'Parameters _valid_range criteria not met, changing to p650')                
+                params=p650
+                pmin, pmax=params['_valid_minmax']
+                
+                ### 
+                if  dmin < pmin or dmax > pmax:
+                    _lgfile(lf, options.verb,'Failure: multiple timefile matches found in folder %s'%folder)                                
+                    raise IOError('%s index limits %s, are not contained within the range of of config ranges %s.'
+                                  %(ts_full.__class__.__name__, (pmin, pmax), (dmin, dmax)))                        
+                
                 
                 
         #############################
@@ -308,11 +321,9 @@ def core_analysis():
         try:
             outroot=make_root_dir(outroot+'/'+folder, overwrite=options.clean)  ## BE VERY CAREFUL WITH THIS
         except IOError:
-            raise IOError('Root output directory %s already exists.\n\n  To overwrite, use option -c True.  Use with caution\n\n\
+            raise IOError('Root output directory %s already exists.\n  To overwrite, use option -c True.  Use with caution\n\
             preexisting data will be deleted from directory!'%(outroot))        
 
-        ### Output the pickled dataframe   
-        ts_full.save(outroot+'/rundata.pickle')  
             
         ### Set specunit/intvlunit       
         try:
@@ -325,18 +336,21 @@ def core_analysis():
             ts_full.intvlunit=params['intvlunit'] #Take from params file  
         except AttributeError:
             ts_full.intvlunit='intvl'               
+            
+        ### Output the pickled dataframe   
+        ts_full.save(outroot+'/rundata.pickle')         
 
         ### Subtract the dark spectrum if it has one.  Note that all programs should produce an attribute for darkseries,
         ### which may be None, but the attribute should still be here.
         if hasattr(ts_full, 'darkseries') and params['sub_dark']==True:
             if isinstance(ts_full.darkseries, type(None) ):
                 ts=ts_full #need this                
-                _lgfile(lf, options.verb,'Warning: darkseries not found in data of run directory %s\n\n'%folder)            
+                _lgfile(lf, options.verb,'Warning: darkseries not found in data of run directory %s\n'%folder)            
             else:    
                 ts=ts_full.sub(ts_full.darkseries, axis='index') 
         else:
             ts=ts_full #need this
-            _lgfile(lf, options.verb,'Warning: darkseries attribute is not found on dataframe in folder %s!\n\n'%folder)            
+            _lgfile(lf, options.verb,'Warning: darkseries attribute is not found on dataframe in folder %s!\n'%folder)            
     
         ### Fit first order baselines automatically?
         if params['line_fit']:
@@ -347,12 +361,12 @@ def core_analysis():
         try:
             ts=ts[params['tstart']: params['tend'] ] 
         except Exception:
-            _lgfile(lf, options.verb,'Parameters Error: unable to slice tstart and tend to specified range in directory %s\n\n'%folder)           
+            _lgfile(lf, options.verb,'Parameters Error: unable to slice tstart and tend to specified range in directory %s\n'%folder)           
     
         try:
             ts=ts.ix[params['x_min']: params['x_max'] ] 
         except Exception:
-            _lgfile(lf, options.verb,'Parameters Error: unable to slice x_min and x_max range in directory %s\n\n'%folder)              
+            _lgfile(lf, options.verb,'Parameters Error: unable to slice x_min and x_max range in directory %s\n'%folder)              
             
             
         ### Set Baseline (MUST SET BASELINE AFTER SLICING RANGES TO AVOID ERRONEOUS BASELINE DATA)
@@ -368,6 +382,14 @@ def core_analysis():
         except KeyError:
             ts.to_interval()
             
+        ###############################################
+        ## TEST FOR NAN VALUES BEFORE CONTINUING  #####
+        ###############################################
+        
+        if hasNaN(ts):
+            _lgfile(lf, options.verb,'NaNs found in %s during some step in preprocessing.  Could not perform analysis!'
+                    %(ts.__class__.__name__))
+            continue                        
             
         ###########################################
         ### Intensity-unit dependent operations  ##
@@ -385,7 +407,7 @@ def core_analysis():
             
             ts=ts.as_iunit(iu) #ts.iunit should also work but rather make copies
        
-            ##### Basic spectral and absorbance plots    
+            ###### Basic spectral and absorbance plots    
             specplot(ts, title=options.rname+'Full spectrum')
             plt_clrsave(od, options.rname+'full_spectrum')
     
