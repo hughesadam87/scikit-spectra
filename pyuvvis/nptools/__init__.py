@@ -1,3 +1,4 @@
-__docformat__ = 'restructuredtext'
+__docformat__ = 'restructuredtext' #What's this actually do
 
-from haiss_functions import haiss_m1, haiss_m2, haiss_m3, haiss_conc
+### Core classes
+from haiss import quick_haiss_m1, quick_haiss_m2, haiss_m1, haiss_m2, haiss_m3

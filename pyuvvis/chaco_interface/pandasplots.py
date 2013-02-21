@@ -1,6 +1,6 @@
 ### Enthought tool suite imports 
-from traits.api import Instance, Str, Enum, Range, HasTraits, Button, Enum, Property, Bool
-from traitsui.api import Item, View, HGroup, VGroup, Group, Include
+from traits.api import Instance, Str, Enum, Range, HasTraits, Button, Enum, Property, Bool, Any
+from traitsui.api import Item, View, HGroup, VGroup, Group, Include, ShellEditor
 from enable.api import ComponentEditor
 from chaco.api import LabelAxis, Plot, ToolbarPlot
 from chaco.tools.api import BetterSelectingZoom, PanTool
@@ -8,19 +8,22 @@ from random import randint
 from copy import deepcopy
 from pandas import DataFrame
 
+from chaco.tools.api import RangeSelection, RangeSelectionOverlay
+
 ### For testing 
 import numpy as np
 from time import sleep
 
 ### For pyuvvis imports
-from pyuvvis import get_csvdataframe
-from pyuvvis import wavelength_slices
-from pyuvvis import datetime_convert
-from pyuvvis.pandas_utils.rebin import rebin
+#from pyuvvis import get_csvdataframe
+#from pyuvvis import wavelength_slices
+#from pyuvvis import datetime_convert
 from pandas.stats.moments import rolling_mean
 
 ### Local import 
 from pandasplotdatav2 import PandasPlotData
+   
+    
 
 ### Add a method to relable rows/columns in place?
 class PandasPlot(HasTraits):
@@ -59,8 +62,7 @@ class PandasPlot(HasTraits):
         ### Initialize plot first time dataframe is passed into the class.  Boolean listeners
         ### for dataframe behave oddly, so uses self.plotdata for entry condition.
         if not self.plotdata:
-            self.plotdata=PandasPlotData(dataframe=new, primaryaxis=self.primaryaxis, primaryname=self.columnname,\
-                                         secondaryname=self.indexname, add_labels_to_extras=True)
+            self.plotdata=PandasPlotData(df=new)
             
             self.originaldata=new
 
@@ -76,6 +78,8 @@ class PandasPlot(HasTraits):
             self._draw_lines() 
 
             return
+        
+        
         ### Decide to update columns or completely redraw dataframe.  
         else:
             labelold=self._getlabelarray(old)	    
@@ -91,7 +95,7 @@ class PandasPlot(HasTraits):
                 self._overwrite_plotdata
             else:
                 print 'updating frame'
-                self.plotdata.update_dataframe(new)
+                self.plotdata.set_df(new)
 
     ### Properties ###	
     def _get__primaryaxis(self):
@@ -135,6 +139,10 @@ class PandasPlot(HasTraits):
             plot=ToolbarPlot(self.plotdata, **pltkws)
         else:
             plot=Plot(self.plotdata, **pltkws)
+            
+ #       plot.active_tool = RangeSelection(plot)
+ #       plot.overlays.append(RangeSelectionOverlay(component=plot))    
+        
         plot.title = self.plot_title
         plot.padding = 50
         plot.legend.visible=False
@@ -196,10 +204,37 @@ class PandasPlot(HasTraits):
     )
 
     traits_view=View( Include('main_group') )
+    
+    
+
+class WithShell(HasTraits):
+    df=Instance(DataFrame)
+    shell=Any()
+    plot=Instance(PandasPlot)
+    
+    def __init__(self):
+        self.df=DataFrame([1,2,3])
+        self.plot=PandasPlot()
+        self.plot.df=self.df
+        
+    def _df_changed(self):
+        self.plot.df=self.df
+        
+        
+    main_group=Group(
+        Item('plot', show_label=False, style='custom'),
+     #   Item('df_new'), Item('df_change'), 
+        Item('shell', editor=ShellEditor(), style='simple'),
+        #Include('sample_group'),
+        #Include('axis_traits_group')
+    )
+
+    traits_view=View( Include('main_group'), resizable=True)
 
 if __name__=='__main__':
     
-    df=get_csvdataframe('spectra.pickle')
+  #  df=get_csvdataframe('spectra.pickle')
+    df=DataFrame([1,2,3,4,5])
 
 
     ### THIS WILL INDUCE A FAILURE IN THE PLOT.PLOT call
@@ -208,9 +243,14 @@ if __name__=='__main__':
 
     ### resample dataframe to be a bit less dense, makes plot changes more fluid ###
     
-    df=df.ix[300.0:800.0:5.0, 0:150:5]
+#    df=df.ix[300.0:800.0:5.0, 0:150:5]
  
     theplot=PandasPlot()   
-    theplot.dataframe=df   
+    theplot.df=df   
     theplot.configure_traits()
+    
+#    test=WithShell()
+#    test.df=df
+#    test.configure_traits()
+    
 

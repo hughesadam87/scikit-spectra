@@ -33,7 +33,8 @@ from pyuvvis.IO.gwu_interfaces import from_timefile_datafile, from_spec_files
 from pyuvvis.core.imk_utils import get_files_in_dir, make_root_dir
 from pyuvvis.core.baseline import dynamic_baseline
 from pyuvvis.core.corr import ca2d, make_ref, sync_3d, async_3d
-from pyuvvis.core.timespectra import mload, mloads, Idic
+from pyuvvis.core.timespectra import Idic
+from pyuvvis.pandas_utils.metadframe import mload, mloads
 from pyuvvis.custom_errors import badkey_check
 
 ### Import some parameters
@@ -319,10 +320,10 @@ def core_analysis():
   
         ### Eventually make this overwrite if directory 
         try:
-            outroot=make_root_dir(outroot+'/'+folder, overwrite=options.clean)  ## BE VERY CAREFUL WITH THIS
+            outpath=make_root_dir(outroot+'/'+folder, overwrite=options.clean)  ## BE VERY CAREFUL WITH THIS
         except IOError:
             raise IOError('Root output directory %s already exists.\n  To overwrite, use option -c True.  Use with caution\n\
-            preexisting data will be deleted from directory!'%(outroot))        
+            preexisting data will be deleted from directory!'%(outpath))        
 
             
         ### Set specunit/intvlunit       
@@ -338,7 +339,7 @@ def core_analysis():
             ts_full.intvlunit='intvl'               
             
         ### Output the pickled dataframe   
-        ts_full.save(outroot+'/rundata.pickle')         
+        ts_full.save(outpath+'/rundata.pickle')         
 
         ### Subtract the dark spectrum if it has one.  Note that all programs should produce an attribute for darkseries,
         ### which may be None, but the attribute should still be here.
@@ -400,9 +401,9 @@ def core_analysis():
             iunits=[iunits]
 
         for iu in iunits:
-            od=outroot+'/'+Idic[iu]
+            od=outpath+'/'+Idic[iu]
             if iu=='r':
-                od=outroot+'/'+'Relative Inverse'  # The (1/T) messes up directory structure!
+                od=outpath+'/'+'Relative Inverse'  # The (1/T) messes up directory structure!
             os.mkdir(od)             
             
             ts=ts.as_iunit(iu) #ts.iunit should also work but rather make copies

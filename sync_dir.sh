@@ -11,7 +11,7 @@ python setup.py install --home='..'
 #Go to '../lib/python'
 #record both directory and filename
 #Go to site packages
-#If found pyuvis directory or egg file (delete)
+#If found pyuvis directory delete (maybe just leave eggfile as it will change with version and manually click replace when prompt shows)
 #paste
 
 

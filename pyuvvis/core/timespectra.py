@@ -1188,7 +1188,6 @@ if __name__ == '__main__':
     ts=TimeSpectra(abs(np.random.randn(300,30)), columns=testdates, index=spec)  
     t2=TimeSpectra(abs(np.random.randn(300,30)), columns=testdates2, index=spec) 
     ts.baseline=0
-    ts.set_specindex(start=500, stop=50, unit='k')
     #ts._baseline.x='I WORK'
     #ts._baseline.name='joe'
 ##    ts.darkseries=Series([20,30,50,50], index=[400., 500., 600., 700.])
@@ -1201,11 +1200,20 @@ if __name__ == '__main__':
     
     #ts.cnsvdmeth='name'
     
+    from pyuvvis.pandas_utils.metadframe import mload
+    from pyuvvis import areaplot, absplot
+    ts=mload('rundata.pickle')
+    ts=ts.as_interval('m')
+    ts.baseline=0
+    ts.iunit='a'
+#    bline=ts[ts.columns[0]]
+#    ts=ts.ix[:,25.0:30.0]
+#    ts.baseline=bline
+ 
     uv_ranges=((430.0,450.0))#, (450.0,515.0), (515.0, 570.0), (570.0,620.0), (620.0,680.0))
     
     tssliced=ts.wavelength_slices(uv_ranges, apply_fcn='mean')
         
-    ts.a
     from pyuvvis.core.utilities import find_nearest
     x=ts.ix[500.:510, 0]
     b=maxmin_xy(x)

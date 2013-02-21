@@ -89,7 +89,7 @@ def absplot(ts, default='a', **pltkwds):
     pltkwds['linewidth']=pltkwds.pop('linewidth', 1.0 )   
     
     xlabel=pltkwds.pop('xlabel', ts.full_specunit)  
-    ylabel=pltkwds.pop('ylabel', ts.full_timeunit)    
+    ylabel=pltkwds.pop('ylabel', ts.full_iunit)    
     title=pltkwds.pop('title', 'Absorbance: '+str(ts.name) )    
         
     return _genplot(ts, xlabel, ylabel, title, **pltkwds)

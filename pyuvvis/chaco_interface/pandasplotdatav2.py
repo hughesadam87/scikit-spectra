@@ -166,8 +166,10 @@ class PandasPlotData(AbstractPlotData):
             new_data = np.array(new_data) #Convert to array data
 
         event = {}
+        
         ### If entry is in data frame, change it.  Doesn not allow for addition 
-        ### to mimic behavior of dataframe.
+        ### to mimic behavior of dataframe (eg user should change dataframe and replot).
+
         try:
             self.arrays[str(name)]=(name, len(self.extras)+1, new_data)  #Overwrite whole entry
             event['changed']=[str(name)]
