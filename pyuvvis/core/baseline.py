@@ -1,4 +1,4 @@
-''' Various dataframe-compatible baseline utilities. '''
+''' Various dataframe-compatible reference utilities. '''
 
 __author__ = "Adam Hughes"
 __copyright__ = "Copyright 2012, GWU Physics"
@@ -16,12 +16,12 @@ def _find_nearest(array, value):
     return idx, array[idx]      
 
 def dynamic_baseline(df, slices, style='linear', weightstyle=None, axis=1):
-    '''Applies a dynamically calculated baseline correction to a dataframe.  User passes in index values, either ranges
+    '''Applies a dynamically calculated reference correction to a dataframe.  User passes in index values, either ranges
     or points, then a linear fit is applied through these points.  Each column in the dataframe is scaled its corresponding
-    curve, which is then subracted off.  Essentially, this subracts a baseline that can be lopsided- useful for assymetric data, and
-    is usually how crude ATR-IR baseline correction is performed.  
+    curve, which is then subracted off.  Essentially, this subracts a reference that can be lopsided- useful for assymetric data, and
+    is usually how crude ATR-IR reference correction is performed.  
     
-    For now, program only works for index values as the baseline.
+    For now, program only works for index values as the reference.
     
     df- DataFrame.
     
@@ -33,7 +33,7 @@ def dynamic_baseline(df, slices, style='linear', weightstyle=None, axis=1):
     style- Fitting style to connect the dots between slice regions.  For now, only linear fit is used.  Not sure if higher order
            will ever be useful, so I left this in here as a reminder.
            
-    axis-  Axis overwhich to do this baseline correction.  For now, ONLY INDEX IS IMPLEMENTED.
+    axis-  Axis overwhich to do this reference correction.  For now, ONLY INDEX IS IMPLEMENTED.
     
     weightstyle- Tries to account for idea that if I pass slices, and one slice contains more points, then the line of best fit will be weighted
                  more strongly to this region.  For now, I haven't implemented this, but would have to actually use poly1d to call more points to the
@@ -42,15 +42,15 @@ def dynamic_baseline(df, slices, style='linear', weightstyle=None, axis=1):
                  mean of the data along that axis anyway.
                  
     returns-
-       DataFrame of fitted baselines.'''
+       DataFrame of fitted references.'''
     
     ### Test for proper input ###
     if style != 'linear' or axis != 1:
-        raise NotImplementedError('Baseline correction only support linear fitting style and index axis iteration only.')
+        raise NotImplementedError('reference correction only support linear fitting style and index axis iteration only.')
     
     if weightstyle:
         if weightstyle != 'midpoint':
-            raise NotImplemented('weightstyle attribute in baseline_correction must be either None or "midpoint" but %s was entered'%weightstyle)
+            raise NotImplemented('weightstyle attribute in reference_correction must be either None or "midpoint" but %s was entered'%weightstyle)
 
     xp=[] #xpoints
     
@@ -71,7 +71,7 @@ def dynamic_baseline(df, slices, style='linear', weightstyle=None, axis=1):
             
             
         else:
-            raise AttributeError('In baseline correction, slices must 1 or 2 items large,\
+            raise AttributeError('In reference correction, slices must 1 or 2 items large,\
             you entered %s of len %s'%(val, len(val)))
     
     ### Apply 1-d connect the dots curvefit to each column, then subtract this from said column
@@ -82,8 +82,8 @@ def dynamic_baseline(df, slices, style='linear', weightstyle=None, axis=1):
         z=np.polyfit(xp, curve[xp], 1)  
         p=np.poly1d(z)        
         array=p(np.asarray(list(curve.index) ) )   
-        baseline=Series(array, name=col, index=curve.index) #curve.index instead of df.index                            
-        bout[col]=baseline #incase index is getting recast for nans or some behavior I may not be aware of
+        reference=Series(array, name=col, index=curve.index) #curve.index instead of df.index                            
+        bout[col]=reference #incase index is getting recast for nans or some behavior I may not be aware of
     
     bout=DataFrame(bout)
     bout.reindex(columns=df.columns) #Columns are automatically if they are datetimes

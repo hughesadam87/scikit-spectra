@@ -145,7 +145,7 @@ class MetaDataFrame(object):
         DataFrame method that returns a new DataFrame will actually return a TimeSpectra object
         instead.  It does so by typechecking the return of attr().
 
-        **kwargs: use_base - If true, program attempts to call attribute on the baseline.  Baseline ought
+        **kwargs: use_base - If true, program attempts to call attribute on the reference.  reference ought
         to be maintained as a series, and Series/Dataframe API's must be same.
 
         *fcnargs and **fcnkwargs are passed to the dataframe method.

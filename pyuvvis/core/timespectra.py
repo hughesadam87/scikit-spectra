@@ -23,6 +23,9 @@ from pyuvvis.custom_errors import badkey_check, badcount_error
 from pandas import date_range
 import matplotlib.pyplot as plt
 
+
+from pyuvvis.nptools.haiss import *
+
 from pandas import read_csv as df_read_csv
 
 tunits={'ns':'Nanoseconds', 'us':'Microseconds', 'ms':'Milliseconds', 's':'Seconds', 
@@ -33,11 +36,11 @@ tunits={'ns':'Nanoseconds', 'us':'Microseconds', 'ms':'Milliseconds', 's':'Secon
 ##Custom Errors##
 #################
 
-def BaselineError(index, timespectra):
+def RefError(index, timespectra):
     ''' Error raised when a user-supplied iterable does not have same spectral values as those of the timespectra.'''
     sunit=timespectra.specunit
-    return Exception('Cannot resolve length %s baseline (%s%s - %s%s) and length %s %s (%s%s - %s%s)'\
-                      %(len(index), index[0], sunit,  index[-1], sunit, len(timespectra.baseline), \
+    return Exception('Cannot resolve length %s reference (%s%s - %s%s) and length %s %s (%s%s - %s%s)'\
+                      %(len(index), index[0], sunit,  index[-1], sunit, len(timespectra.reference), \
                         timespectra.name, timespectra.df.index[0], sunit, timespectra.df.index[-1], sunit) )
    
 
@@ -141,7 +144,9 @@ class TimeSpectra(MetaDataFrame):
         iunit=dfkwargs.pop('iunit', None)
 
         ###Time index-related keywords  (note, the are only used if a DatetimeIndex is not passed in)
-        baseline=dfkwargs.pop('baseline', None)
+        reference=dfkwargs.pop('reference', None)
+        
+        bline=dfkwargs.pop('baseline', None)
         
         
         ### NEED TO WORK OUT LOGIC OF THIS INITIALIZATION?
@@ -171,7 +176,7 @@ class TimeSpectra(MetaDataFrame):
         self._itype=iunit
         
         ### This has to be done AFTER self._df has been set
-        self._baseline=self._baseline_valid(baseline)#SHOULD DEFAULT TO NONE SO USER CAN PASS NORMALIZED DATA WITHOUT REF        
+        self._reference=self._reference_valid(reference)#SHOULD DEFAULT TO NONE SO USER CAN PASS NORMALIZED DATA WITHOUT REF        
 
         ###Set Index as spectral variables, take care of 4 cases of initialization.
         if not hasattr(self._df.index, '_convert_spectra'):  #Better to find method than index.unit attribute
@@ -194,13 +199,20 @@ class TimeSpectra(MetaDataFrame):
                 if old_unit != specunit:
                     print 'Alert: SpecIndex unit was changed internally from "%s" to "%s"'%(old_unit, specunit)
                 
+        ### Baseline Initialization (UNTESTED)
+        self._base_sub=False 
+        self._baseline=None  
         
+        if not isinstance(bline, NoneType):
+            self.set_baseline(bline)
+        
+               
         ###Store intrinsic attributes for output later by listattr methods
         self._intrinsic=self.__dict__.keys()
         self._intrinsic.remove('name') #Not a private attr
         
         ###Which attributes/methods are manipulated along with the dataframe
-        self._cnsvdattr=['_baseline', 'darkseries']
+        self._cnsvdattr=['_reference', 'baseline']
         self._cnsvdmeth=['_slice', 'boxcar'] #_slice is ix
 
 
@@ -218,7 +230,7 @@ class TimeSpectra(MetaDataFrame):
         for (k,v) in sorted(outdic.items()):
             print k,delim,v
         print '\n'
-
+        
     def list_tunits(self, delim='\t'):
         ''' Print out all available temporal units in a nice format'''
         self._list_out(tunits, delim=delim)
@@ -337,58 +349,58 @@ class TimeSpectra(MetaDataFrame):
         return self.as_dataframe()
 
     ###############################
-    ### Baseline related operations
+    ### reference related operations
     ###############################
     
     @property
-    def baseline(self):
+    def reference(self):
         ''' This is stored as a Series unless user has set it otherwise.'''
-        return self._baseline
+        return self._reference
 
-    @baseline.setter
-    def baseline(self, baseline, force_series=True):  
-        ''' Before changing baseline, first validates.  Then considers various cases, and changes 
+    @reference.setter
+    def reference(self, reference, force_series=True):  
+        ''' Before changing reference, first validates.  Then considers various cases, and changes 
         class attributes and dataframe values appropriately.'''
 
-        ### Adding or changing baseline
-        if not isinstance(baseline, NoneType):
+        ### Adding or changing reference
+        if not isinstance(reference, NoneType):
 
             ### If data is in raw/full mode (itype=None)
             if self._itype == None:
-                baseline=self._baseline_valid(baseline, force_series=force_series)                  
+                reference=self._reference_valid(reference, force_series=force_series)                  
                 
-                self._baseline=baseline
+                self._reference=reference
 
             ### Let _set_itype() do lifting.  Basically convert to full and back to current itype. 
             else:
-                self._set_itype(self._itype, ref=baseline)
+                self._set_itype(self._itype, ref=reference)
 
-        ### Removing baseline.  
+        ### Removing reference.  
         else:
-            ### If current baseline is not None, convert
-            if not isinstance(self._baseline, NoneType):  #Can't do if array==None
-                self._set_itype(None, ref=self._baseline)
-                self._baseline=None
+            ### If current reference is not None, convert
+            if not isinstance(self._reference, NoneType):  #Can't do if array==None
+                self._set_itype(None, ref=self._reference)
+                self._reference=None
 
-    def remove_baseline(self):
+    def dropref(self):
         ''' Convience method for setting to None'''
-        self.baseline=None
+        self.reference=None
         
-    def _baseline_valid(self, ref, force_series=True, zero_warn=True, nan_warn=True):
+    def _reference_valid(self, ref, force_series=True, zero_warn=True, nan_warn=True):
         ''' Helper method for to handles various scenarios of valid references.  Eg user wants to 
         convert the spectral representation, this evaluates manually passed ref vs. internally stored one.
 
         Parameters:
         -----------
-        ref: Baseline object for inspection.   See notes for more details of validation process.
-        force_series:  If true, baseline is forced to a Series type.
-        zero_warn: If true, a warning is raised if baseline contains zeros.
-        nan_warn:  If true, a warning is raised if baseline contains nans.
+        ref: reference object for inspection.   See notes for more details of validation process.
+        force_series:  If true, reference is forced to a Series type.
+        zero_warn: If true, a warning is raised if reference contains zeros.
+        nan_warn:  If true, a warning is raised if reference contains nans.
         
         Notes:
         ------
         
-        This goes through several cases to determine baseline.  In order, it attempts to get the baseline from:
+        This goes through several cases to determine reference.  In order, it attempts to get the reference from:
             1. Column name from dataframe.
             2. Column index from dataframe.
             3. Uses ref itself.
@@ -396,12 +408,12 @@ class TimeSpectra(MetaDataFrame):
                b. If dataframe, ensures proper index and shape (1-d) and converts to series (if force_series True).
                c. If iterable, converts to series (if force_series True)
                
-        Errors will be thrown if new baseline does not have identical spectral values to self._df.index as evaluated by
+        Errors will be thrown if new reference does not have identical spectral values to self._df.index as evaluated by
         numpy.np.array_equal()
         
         Zero_warn and nan_warn are useful when the user plans on changing intensity units of the data.  For example,
         converting from raw data to absorbance data, a relative division will result in hard-to-spot errors due to
-        the 0's and nans in the original baseline. 
+        the 0's and nans in the original reference. 
         '''
         
         
@@ -422,7 +434,7 @@ class TimeSpectra(MetaDataFrame):
         ### Finally if ref is itself a series, make sure it has the correct spectral index
         elif isinstance(ref, Series):
             if np.array_equal(ref.index, self._df.index) == False:
-                raise BaselineError(ref.index, self)
+                raise RefError(ref.index, self)
             else:
                 rout=ref
             
@@ -433,16 +445,16 @@ class TimeSpectra(MetaDataFrame):
                 ### If user passes dataframe, downconvert to series 
                 if isinstance(ref, DataFrame):
                     if ref.shape[1] != 1:
-                        raise TypeError('Baseline must be a dataframe of a single column with index values equivalent to those of %s'%self._name)
+                        raise TypeError('reference must be a dataframe of a single column with index values equivalent to those of %s'%self._name)
                     if ref.index.all() != self._df.index.all():
-                        raise BaselineError(ref, self)                    
+                        raise RefError(ref, self)                    
                     else:
                         rout=Series(ref[ref.columns[0]], index=ref.index) 
    
                 ### Add index to current iterable 
                 else:
                     if len(ref) != len(self._df.index):
-                        raise BaselineError(ref, self)
+                        raise RefError(ref, self)
                     else:
                         rout=Series(ref, index=self._df.index)
 
@@ -452,12 +464,12 @@ class TimeSpectra(MetaDataFrame):
                 
         if nan_warn:
             if np.isnan(np.sum(rout)):  #Fast way to check for nan's
-                raise Warning('Zero values found in baseline')
+                raise Warning('Zero values found in reference')
                 
                 
         if zero_warn:
             if 0.0 in rout:
-                raise Warning('Zero values found in baseline')
+                raise Warning('Zero values found in reference')
 
         return rout  #MAKES MORE SENSE TO MAKE THIS A 1D DATAFRAME
     
@@ -542,11 +554,6 @@ class TimeSpectra(MetaDataFrame):
                 
         return self._transfer(DataFrame(dflist, index=snames))
         
-                ### THESE ACTUALLY YIELD SERIES
-                    ###APPLY INTEGRAL, NORMALIZED SUM, NORMALIZED AREA?    
-                    
-                
-#        return dataframe
 
     def boxcar(self, binwidth, axis=1):
         '''Performs boxcar averaging by binning data.
@@ -605,7 +612,7 @@ class TimeSpectra(MetaDataFrame):
         return specunits
     
     ### Temporal/column related functionality
-    def set_daterange(*date_range_args):
+    def set_daterange(self, **date_range_args):
         ''' Wrapper around pandas.date_range to reset the column
         values on of the data on the fly. See pandas.date_range()
         for use.  In brief:
@@ -621,7 +628,7 @@ class TimeSpectra(MetaDataFrame):
             timespectra.set_daterange('1/1/2012', period=5, freq='H')
         '''
         
-        rng=date_range(*date_range_args)
+        rng=date_range(**date_range_args)
         self._df.columns=rng        
         self._dtindex=rng
         self._interval=False
@@ -828,7 +835,79 @@ class TimeSpectra(MetaDataFrame):
         array_truthtest(self._dtindex, errorstring=_dtmissing)
         return self._dtindex
     
+    ###################################
+    ### Baseline related operations ###
+    ###################################
+
+    def _base_gate(self):
+        ''' Quick check to see if self._baseline is found or missing.  If missing,
+            raises error.  If found, passes.'''
+        if isinstance(self._baseline, NoneType):
+            raise AttributeError('Baseline not found.')        
     
+    def sub_base(self):
+        ''' Subtracts baseline from entire dataset.
+        
+            Notes:
+            -----
+              Does have to call self._df.  Just doing self.sub will not work, even though
+              calling ts.sub() from an outside program does in fact work.  Behavior is due
+              to way in which python classes deal with overwrites of self.'''
+
+        ### self._baseline is not none
+        self._base_gate()
+
+        ### Only subtract if baseline isn't currently subtracted
+        if not self._base_sub:
+            self._df=self._df.sub(self._baseline, axis=0)
+            self._base_sub=True     
+        else:
+            print 'raise waring? already subbed'
+        
+    def add_base(self):
+        ''' Adds baseline to data that currently has it subtracted.'''
+
+        ### self._baseline is not none
+        self._base_gate()
+        
+        ### Only add if baseline is currently in a subtracted state
+        if self._base_sub:
+            self._df=self._df.add(self._baseline, axis=0)        
+            self._base_sub=False
+            
+        else:
+            print 'raise waring? already subbed'        
+            
+    @property
+    def base_sub(self):
+        ''' Is baseline currently subtracted from spectral data.'''
+        self._base_gate()
+        return self._base_sub
+        
+           
+    @property
+    def baseline(self):
+        return self._baseline
+    
+    def set_baseline(self, baseline):
+        ''' Allows user to set a baseline curve with a variety of options.'''
+        self._baseline=baseline
+        print 'WARNING UPDATE THE LOGIC HERE'
+#        raise NotImplemented
+
+        ## Logic.  Need validation for various cases.
+        # Depending on type/length, force or set index?  What about non-equal length types,
+        # try an interpolation?
+        # End th "valid_base" 
+ 
+        # No current baseline or current baseline but not subtracted:
+             #self._baseline=valid_base
+ 
+        # Current baseline and subtracted
+             #self.add_base()
+             #self._baseline=valid_base
+             #self.sub_base()
+             
 
     ### Spectral Intensity related attributes/conversions
     @property
@@ -849,15 +928,15 @@ class TimeSpectra(MetaDataFrame):
         self._set_itype(unit)        
 
 
-    def as_iunit(self, unit, baseline=None):
+    def as_iunit(self, unit, reference=None):
         ''' Returns new TimeSpectra of modified iunit.  Useful if in-place operation not desirable.  
-        Also has the option of manually passing a new baseline for on-the-fly rereferencing.'''
+        Also has the option of manually passing a new reference for on-the-fly rereferencing.'''
         if isinstance(unit, basestring):
             if unit.lower() in ['none', 'full']:
                 unit=None
 
         tsout=self.deepcopy()        
-        tsout._set_itype(unit, baseline)
+        tsout._set_itype(unit, reference)
         return tsout
 
     def _set_itype(self, sout, ref=None):
@@ -868,7 +947,7 @@ class TimeSpectra(MetaDataFrame):
         sin=self._itype
         df=self._df #Could also work just by calling self...
 
-        # Corner case, for compatibility with baseline.setter
+        # Corner case, for compatibility with reference.setter
         if sin==None and sout==None:
             return
 
@@ -876,16 +955,16 @@ class TimeSpectra(MetaDataFrame):
         ### Case 1: User converting from full data down to referenced data.#####
         ########################################################################
         if sin==None and sout != None:
-            rout=self._baseline_valid(ref)
+            rout=self._reference_valid(ref)
 
             ### If user tries to downconvert but doesn't pass reference, use stored one
             if rout == None:
-                rout=self._baseline
+                rout=self._reference
 
-            ### If ref not passed, use current baseline.  Want to make sure it is 
+            ### If ref not passed, use current reference.  Want to make sure it is 
             ### not none, but have to roundabout truthtest
             if isinstance(rout, NoneType):
-                raise TypeError('Cannot convert spectrum to iunit %s without a baseline'%sout)                
+                raise TypeError('Cannot convert spectrum to iunit %s without a reference'%sout)                
             else:
                 df=divby(df, divisor=rout)
                 df=df.apply(from_T[sout])                    
@@ -899,18 +978,18 @@ class TimeSpectra(MetaDataFrame):
         elif sin !=None and sout != None:
 
             ### If user changing reference on the fly, need to change ref ###
-            if not isinstance(ref, NoneType): #and ref != self._baseline:
-                rout=self._baseline_valid(ref)
+            if not isinstance(ref, NoneType): #and ref != self._reference:
+                rout=self._reference_valid(ref)
 
-                ### Make this it's own method called change baseline?
+                ### Make this it's own method called change reference?
                 df=df.apply(to_T[sin])
-                df=df.mul(self._baseline, axis=0)  
+                df=df.mul(self._reference, axis=0)  
                 df=divby(df, divisor=rout)
                 df=df.apply(from_T[sout])                        
 
 
             else:
-                rout=self._baseline #For sake of consistent transferring at end of this function
+                rout=self._reference #For sake of consistent transferring at end of this function
                 df=df.apply(to_T[sin])
                 df=df.apply(from_T[sout])        
 
@@ -919,15 +998,15 @@ class TimeSpectra(MetaDataFrame):
         ### Case 3: User converting referenced data up to full data.#
         #############################################################
         elif sin !=None and sout==None:
-            rout=self._baseline_valid(ref)
+            rout=self._reference_valid(ref)
             
             if rout == None:
-                rout=self._baseline
+                rout=self._reference
             
             df=df.apply(to_T[sin])
             df=df.mul(rout, axis=0)  #Multiply up!
 
-        self._baseline=rout       
+        self._reference=rout       
         self._itype=sout        
         self._df=df    
 
@@ -987,13 +1066,13 @@ class TimeSpectra(MetaDataFrame):
     def _dfgetattr(self, attr, *fcnargs, **fcnkwargs):
         ''' This is overwritten from MetaDataFrame to allow special attributes to
         be manipulated under dataframe operations.  For example, if a user slices the dataframe,
-        then the baseline auto get sliced on the return array; otherwise, get tough-to-track
+        then the reference auto get sliced on the return array; otherwise, get tough-to-track
         length mismatch issues.
         
         Notes:
         -----
         Since new series items always have a name by default, an originally unnamed series
-        attribute (such as baseline) will end with a name=_baseline afterwards.  Added a hack
+        attribute (such as reference) will end with a name=_reference afterwards.  Added a hack
         to intercept this highly common attribute and apply to output.'''
  
         out=getattr(self._df, attr)(*fcnargs, **fcnkwargs)
@@ -1087,6 +1166,34 @@ class TimeSpectra(MetaDataFrame):
 
         outline='**',outname,'**', delim, 'Spectral unit:', specunitout, delim, 'Time unit:', 'Not Implemented','\n'   
         return ''.join(outline)+'\n'+self._df.__repr__()    
+    
+    ######################
+    ### CUSTOM SLICING ###
+    ######################
+        
+    def tidx(self, *sliceargs):
+        ''' Column slicing by index'''
+        return self.ts[ts.columns[slice(*sliceargs)]]
+    
+    def xidx(self, *sliceargs):
+        ''' Row slicing by index'''
+        return self.ts.ix[ts.index[slice(*sliceargs)]]    
+       
+    def xval(self, *sliceargs):
+        ''' Row slicing by value '''
+        return self.ts.ix[slice(*sliceargs), :]
+    
+    def tval(self, *sliceargs):
+        ''' Column slicing by value.
+        
+        Notes:
+        -----
+           This is not straightforward as ts['c1:c4'] tends to query rows for 
+           convienence.  Thanks to Jeff Reback for his suggestion of the private _slice().'''
+        return self.ts._slice(slice(*sliceargs), 1)
+
+        
+ 
     
                    
     #################
@@ -1187,11 +1294,20 @@ if __name__ == '__main__':
     
     ts=TimeSpectra(abs(np.random.randn(300,30)), columns=testdates, index=spec)  
     t2=TimeSpectra(abs(np.random.randn(300,30)), columns=testdates2, index=spec) 
-    ts.baseline=0
-    #ts._baseline.x='I WORK'
-    #ts._baseline.name='joe'
-##    ts.darkseries=Series([20,30,50,50], index=[400., 500., 600., 700.])
-##    t2.darkseries=ts.darkseries
+    ts.reference=0
+    d={'start':2/22/12, 'periods':len(ts.columns), 'freq':'45s'}
+    ts.set_daterange(start='2/22/12', periods=len(ts.columns), freq='45s')
+    
+    ts._baseline=ts.reference
+    ts.sub_base()
+    
+    t3=TimeSpectra(abs(np.random.randn(300,30)), columns=testdates, index=spec, baseline=ts._baseline)  
+    
+       
+    #ts._reference.x='I WORK'
+    #ts._reference.name='joe'
+##    ts.baseline=Series([20,30,50,50], index=[400., 500., 600., 700.])
+##    t2.baseline=ts.baseline
     #ts._df.ix[:, 0:4]
     #ts.ix[:,0:4]
     #ts.boxcar(binwidth=20, axis=1)
@@ -1199,16 +1315,22 @@ if __name__ == '__main__':
     #y=t2.ix[500.:650.]
     
     #ts.cnsvdmeth='name'
-    
+        
     from pyuvvis.pandas_utils.metadframe import mload
-    from pyuvvis import areaplot, absplot
-    ts=mload('rundata.pickle')
+    #from pyuvvis import areaplot, absplot
+    ts=mload('rundata.pickle')    
     ts=ts.as_interval('m')
-    ts.baseline=0
-    ts.iunit='a'
+    ts.reference=0
+    ts=ts[ts.columns[800.0::]]
+    ts=ts.ix[400.0:800.0]
+    c=haiss_m2(ts, peak_width=2.0, ref_width=2.0)
+    a=haiss_m3(ts, 0.000909, peak_width=None, dilution=0.1)
+    b=haiss_conc(ts, 12.0)
+    b2=haiss_conc(ts, 12.0, dilution=0.2)
+    
 #    bline=ts[ts.columns[0]]
 #    ts=ts.ix[:,25.0:30.0]
-#    ts.baseline=bline
+#    ts.reference=bline
  
     uv_ranges=((430.0,450.0))#, (450.0,515.0), (515.0, 570.0), (570.0,620.0), (620.0,680.0))
     

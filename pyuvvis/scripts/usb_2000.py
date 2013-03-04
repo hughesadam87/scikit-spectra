@@ -9,7 +9,7 @@ params={
 
 ### Spectral output types.
 'outtypes':(None, 'r', 'a'),
-'baseline':0,  #This is set to 0 automatically if user doesn't explicitly overwrite (even from external parms file)
+'reference':0,  #This is set to 0 automatically if user doesn't explicitly overwrite (even from external parms file)
 'specunit':'nm',
 'intvlunit':'s',  #This will actually force data into interval represnetationkl         
 
@@ -19,9 +19,9 @@ params={
 'tstart':None,  #In units of timeunit
 'tend':None,
 
-### Baseline Correction   
-'sub_dark':True,
-'line_fit':True,
+### reference Correction   
+'sub_base':True,
+'bline_fit':True,
 'fit_regions':((345.0, 395.0), (900.0, 1000.0)),
 
 ### Ranged Timeplot parms    

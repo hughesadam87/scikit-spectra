@@ -341,20 +341,20 @@ def core_analysis():
         ### Output the pickled dataframe   
         ts_full.save(outpath+'/rundata.pickle')         
 
-        ### Subtract the dark spectrum if it has one.  Note that all programs should produce an attribute for darkseries,
+        ### Subtract the dark spectrum if it has one.  Note that all programs should produce an attribute for baseline,
         ### which may be None, but the attribute should still be here.
-        if hasattr(ts_full, 'darkseries') and params['sub_dark']==True:
-            if isinstance(ts_full.darkseries, type(None) ):
+        if hasattr(ts_full, 'baseline') and params['sub_base']==True:
+            if isinstance(ts_full.baseline, type(None) ):
                 ts=ts_full #need this                
-                _lgfile(lf, options.verb,'Warning: darkseries not found in data of run directory %s\n'%folder)            
+                _lgfile(lf, options.verb,'Warning: baseline not found in data of run directory %s\n'%folder)            
             else:    
-                ts=ts_full.sub(ts_full.darkseries, axis='index') 
+                ts=ts_full.sub(ts_full.baseline, axis='index') 
         else:
             ts=ts_full #need this
-            _lgfile(lf, options.verb,'Warning: darkseries attribute is not found on dataframe in folder %s!\n'%folder)            
+            _lgfile(lf, options.verb,'Warning: baseline attribute is not found on dataframe in folder %s!\n'%folder)            
     
-        ### Fit first order baselines automatically?
-        if params['line_fit']:
+        ### Fit first order references automatically?
+        if params['bline_fit']:
             blines=dynamic_baseline(ts, params['fit_regions'] )
             ts=ts-blines 
 
@@ -370,11 +370,11 @@ def core_analysis():
             _lgfile(lf, options.verb,'Parameters Error: unable to slice x_min and x_max range in directory %s\n'%folder)              
             
             
-        ### Set Baseline (MUST SET BASELINE AFTER SLICING RANGES TO AVOID ERRONEOUS BASELINE DATA)
-        if params.has_key('baseline'):
-            ts.baseline=params['baseline']
+        ### Set reference (MUST SET reference AFTER SLICING RANGES TO AVOID ERRONEOUS reference DATA)
+        if params.has_key('reference'):
+            ts.reference=params['reference']
         else:
-            ts.baseline=0
+            ts.reference=0
         
 
         ### Set data to interval

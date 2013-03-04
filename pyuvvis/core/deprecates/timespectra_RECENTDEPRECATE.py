@@ -41,11 +41,11 @@ def ItypeError(value):
     ''' Custom Error for when user tries to pass a bad spectral intensity style (T, %T, A etc...)'''
     return NameError('Invalid intensity type "%s".  See df.list_iunits() for valid spectral intenisty styles'%value)
 
-def BaselineError(index, timespectra):
+def RefError(index, timespectra):
     ''' Error raised when a user-supplied iterable does not have same spectral values as those of the timespectra.'''
     sunit=timespectra.specunit
-    return Exception('Cannot resolve length %s baseline (%s%s - %s%s) and length %s %s (%s%s - %s%s)'\
-                      %(len(index), index[0], sunit,  index[-1], sunit, len(timespectra.baseline), \
+    return Exception('Cannot resolve length %s reference (%s%s - %s%s) and length %s %s (%s%s - %s%s)'\
+                      %(len(index), index[0], sunit,  index[-1], sunit, len(timespectra.reference), \
                         timespectra.name, timespectra.df.index[0], sunit, timespectra.df.index[-1], sunit) )
 
 
@@ -123,7 +123,7 @@ class TimeSpectra(object):
         stop= dfkwargs.pop('stop', None)    
         periods=dfkwargs.pop('periods',None)
         timeunit=dfkwargs.pop('timeunit',None) #Not the same as freq, but inferred from it
-        baseline=dfkwargs.pop('baseline', None)
+        reference=dfkwargs.pop('reference', None)
         
 
         if stop and periods:
@@ -166,7 +166,7 @@ class TimeSpectra(object):
         self.df=df
         
         ### This has to be done AFTER self.df has been set
-        self._baseline=self._baseline_valid(baseline)#SHOULD DEFAULT TO NONE SO USER CAN PASS NORMALIZED DATA WITHOUT REF        
+        self._reference=self._reference_valid(reference)#SHOULD DEFAULT TO NONE SO USER CAN PASS NORMALIZED DATA WITHOUT REF        
 
         ###Set Index as spectral variables
         self.specunit = specunit  #This will automatically convert to a spectral index
@@ -217,41 +217,41 @@ class TimeSpectra(object):
 
 
     @property
-    def baseline(self):
+    def reference(self):
         ''' This is stored as a Series unless user has set it otherwise.'''
-        return self._baseline
+        return self._reference
 
-    @baseline.setter
-    def baseline(self, baseline, force_series=True):  
-        ''' Before changing baseline, first validates.  Then considers various cases, and changes 
+    @reference.setter
+    def reference(self, reference, force_series=True):  
+        ''' Before changing reference, first validates.  Then considers various cases, and changes 
         class attributes and dataframe values appropriately.'''
 
-        ### Adding or changing baseline
-        if not isinstance(baseline, NoneType):
+        ### Adding or changing reference
+        if not isinstance(reference, NoneType):
 
             ### If data is in raw/full mode (itype=None)
             if self._itype == None:
-                baseline=self._baseline_valid(baseline, force_series=force_series)                  
-                self._baseline=baseline
+                reference=self._reference_valid(reference, force_series=force_series)                  
+                self._reference=reference
 
             ### Let _set_itype() do lifting.  Basically convert to full and back to current itype. 
             else:
-                self._set_itype(self._itype, ref=baseline)
+                self._set_itype(self._itype, ref=reference)
 
 
 
-        ### Removing baseline.  
+        ### Removing reference.  
         else:
-            ### If current baseline is not None, convert
-            if not isinstance(self._baseline, NoneType):  #Can't do if array==None
-                self._set_itype(None, ref=self._baseline)
-                self._baseline=None
+            ### If current reference is not None, convert
+            if not isinstance(self._reference, NoneType):  #Can't do if array==None
+                self._set_itype(None, ref=self._reference)
+                self._reference=None
 
 
 
-    def remove_baseline(self):
+    def remove_reference(self):
         ''' Convience method for setting to None'''
-        self.baseline=None
+        self.reference=None
         
     def as_dataframe(self):
         ''' Convience method for self.df'''
@@ -305,15 +305,15 @@ class TimeSpectra(object):
         self._set_itype(unit)        
 
 
-    def as_iunit(self, unit, baseline=None):
+    def as_iunit(self, unit, reference=None):
         ''' Returns new TimeSpectra of modified iunit.  Useful if in-place operation not desirable.  
-        Also has the option of manually passing a new baseline for on-the-fly rereferencing.'''
+        Also has the option of manually passing a new reference for on-the-fly rereferencing.'''
         if isinstance(unit, basestring):
             if unit.lower() in ['none', 'full']:
                 unit=None
 
         tsout=self.deepcopy()        
-        tsout._set_itype(unit, baseline)
+        tsout._set_itype(unit, reference)
         return tsout
 
     def _set_itype(self, sout, ref=None):
@@ -324,7 +324,7 @@ class TimeSpectra(object):
         sin=self._itype
         df=self.df #for convienence/back compatibility
 
-        # Corner case, for compatibility with baseline.setter
+        # Corner case, for compatibility with reference.setter
         if sin==None and sout==None:
             return
 
@@ -332,16 +332,16 @@ class TimeSpectra(object):
         ### Case 1: User converting from full data down to referenced data.#####
         ########################################################################
         if sin==None and sout != None:
-            rout=self._baseline_valid(ref)
+            rout=self._reference_valid(ref)
 
             ### If user tries to downconvert but doesn't pass reference, use stored one
             if rout == None:
-                rout=self._baseline
+                rout=self._reference
 
-            ### If ref not passed, use current baseline.  Want to make sure it is 
+            ### If ref not passed, use current reference.  Want to make sure it is 
             ### not none, but have to roundabout truthtest
             if isinstance(rout, NoneType):
-                raise TypeError('Cannot convert spectrum to iunit %s without a baseline'%sout)                
+                raise TypeError('Cannot convert spectrum to iunit %s without a reference'%sout)                
             else:
                 df=divby(df, divisor=rout)
                 df=df.apply(from_T[sout])                    
@@ -355,18 +355,18 @@ class TimeSpectra(object):
         elif sin !=None and sout != None:
 
             ### If user changing reference on the fly, need to change ref ###
-            if not isinstance(ref, NoneType): #and ref != self._baseline:
-                rout=self._baseline_valid(ref)
+            if not isinstance(ref, NoneType): #and ref != self._reference:
+                rout=self._reference_valid(ref)
 
-                ### Make this it's own method called change baseline?
+                ### Make this it's own method called change reference?
                 df=df.apply(to_T[sin])
-                df=df.mul(self._baseline, axis=0)  
+                df=df.mul(self._reference, axis=0)  
                 df=divby(df, divisor=rout)
                 df=df.apply(from_T[sout])                        
 
 
             else:
-                rout=self._baseline #For sake of consistent transferring at end of this function
+                rout=self._reference #For sake of consistent transferring at end of this function
                 df=df.apply(to_T[sin])
                 df=df.apply(from_T[sout])        
 
@@ -375,11 +375,11 @@ class TimeSpectra(object):
         ### Case 3: User converting referenced data up to full data.#
         #############################################################
         elif sin !=None and sout==None:
-            rout=self._baseline_valid(ref)
+            rout=self._reference_valid(ref)
             df=df.apply(to_T[sin])
             df=df.mul(rout, axis=0)  #Multiply up!
 
-        self._baseline=rout       
+        self._reference=rout       
         self._itype=sout        
         self.df=df    
 
@@ -453,7 +453,7 @@ class TimeSpectra(object):
         DataFrame method that returns a new DataFrame will actually return a TimeSpectra object
         instead.  It does so by typechecking the return of attr().
         
-        **kwargs: use_base - If true, program attempts to call attribute on the baseline.  Baseline ought
+        **kwargs: use_base - If true, program attempts to call attribute on the reference.  reference ought
         to be maintained as a series, and Series/Dataframe API's must be same.
         
         *fcnargs and **fcnkwargs are passed to the dataframe method.
@@ -466,22 +466,22 @@ class TimeSpectra(object):
         ### If operation returns a dataframe, return new TimeSpectra
         if isinstance(out, DataFrame):
             
-            ### Should this operation be called on baseline?
+            ### Should this operation be called on reference?
             if use_base == True:
                 try:
-                    baseout=getattr(self.baseline, attr)(*fcnargs, **fcnkwargs)
+                    baseout=getattr(self.reference, attr)(*fcnargs, **fcnkwargs)
                 except Exception:
                     ### There may be cases where df.x() and series.x() aren't available!
-                    raise Exception('Could not successfully perform operation "%s" on baseline.  Please check\
+                    raise Exception('Could not successfully perform operation "%s" on reference.  Please check\
                     Pandas Series API'%attr)            
             
             tsout=self._deepcopy(out)
             if use_base==True:
-                ### Have to convert back down to a series ### (IF FORCED BASELINE TO DATAFRAME)
+                ### Have to convert back down to a series ### (IF FORCED reference TO DATAFRAME)
                 ### and Series(df) does not work correctly!! VERY HACKy
-#                tsout.baseline=Series(baseout[baseout.columns[0]])
+#                tsout.reference=Series(baseout[baseout.columns[0]])
                 
-                tsout.baseline=baseout
+                tsout.reference=baseout
             
             return tsout
         
@@ -567,13 +567,13 @@ class TimeSpectra(object):
     def __iter__(self):
         return self.df.__iter__()
 
-    def _baseline_valid(self, ref, force_series=True):
+    def _reference_valid(self, ref, force_series=True):
         ''' Helper method for to handles various scenarios of valid references.  Eg user wants to 
         convert the spectral representation, this evaluates manually passed ref vs. internally stored one.
 
         **force_seires - If true, program will convert if user explictly passing a non-series iterable.
         
-        This goes through several cases to determine baseline.  In order, it attempts to get the baseline from:
+        This goes through several cases to determine reference.  In order, it attempts to get the reference from:
             1. Column name from dataframe.
             2. Column index from dataframe.
             3. Uses ref itself.
@@ -581,10 +581,10 @@ class TimeSpectra(object):
                b. If dataframe, ensures proper index and shape (1-d) and converts to series (if force_series True).
                c. If iterable, converts to series (if force_series True)
                
-        Errors will be thrown if new baseline does not have identical spectral values to self.df.index as evaluated by
+        Errors will be thrown if new reference does not have identical spectral values to self.df.index as evaluated by
         numpy.array_equal()
 
-        Returns baseline. '''
+        Returns reference. '''
         
         
         if isinstance(ref, NoneType):
@@ -604,7 +604,7 @@ class TimeSpectra(object):
         ### Finally if ref is itself a series, make sure it has the correct spectral index
         elif isinstance(ref, Series):
             if array_equal(ref.index, self.df.index) == False:
-                raise BaselineError(ref.index, self)
+                raise RefError(ref.index, self)
             else:
                 rout=ref
             
@@ -615,16 +615,16 @@ class TimeSpectra(object):
                 ### If user passes dataframe, downconvert to series 
                 if isinstance(ref, DataFrame):
                     if ref.shape[1] != 1:
-                        raise TypeError('Baseline must be a dataframe of a single column with index values equivalent to those of %s'%self.name)
+                        raise TypeError('reference must be a dataframe of a single column with index values equivalent to those of %s'%self.name)
                     if ref.index.all() != self.df.index.all():
-                        raise BaselineError(ref, self)                    
+                        raise RefError(ref, self)                    
                     else:
                         rout=Series(ref[ref.columns[0]], index=ref.index) 
    
                 ### Add index to current iterable 
                 else:
                     if len(ref) != len(self.df.index):
-                        raise BaselineError(ref, self)
+                        raise RefError(ref, self)
                     else:
                         rout=Series(ref, index=self.df.index)
 
@@ -642,7 +642,7 @@ if __name__ == '__main__':
     ### best to generate them in other modules and import them to simulate realisitc usec ase
 
     spec=SpecIndex([400.,500.,600.])
-    ts=TimeSpectra(abs(randn(3,3)), columns=testdates, index=spec, specunit='k', timeunit='s', baseline=[1.,2.,3.])    
+    ts=TimeSpectra(abs(randn(3,3)), columns=testdates, index=spec, specunit='k', timeunit='s', reference=[1.,2.,3.])    
     ts.iunit='t'
     x=ts.as_iunit('a')
     #ts.as_interval()

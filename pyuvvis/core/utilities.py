@@ -1,6 +1,6 @@
 ''' Various utilities used for manipultating custom spectral dataframe objects.
     Some of these may work for any dataframe, but others require special attributes
-    such as "darkseries" and "filedict".  For serialization operations, import 
+    such as "baseline" and "filedict".  For serialization operations, import 
     from spec_serial.py 
     
     FOR ALL TIMESPECTRA-RELATED RETURNS, see ts_utils.py'''
@@ -26,7 +26,7 @@ def countNaN(obj):
     ''' Returns counts of nans in an object'''
     return np.isnan(obj.sum()).sum()   
 
-### Rather deprecated due to TimeSpectra.baseline/iunit
+### Rather deprecated due to TimeSpectra.reference/iunit
 def divby(df, divisor=0, axis=0, sameshape=True):
     ''' Small wrapper around pandas.divide() that takes in either column integers, names,
     or entire arrays as the divisor.  Note, pandas.divide by default is rowwise, but here

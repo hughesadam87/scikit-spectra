@@ -20,7 +20,7 @@ class TempDump(object):
         self.dataframe=dataframe
         self.filedict=dataframe.filedict
         self.metadata=dataframe.metadata
-        self.darkseries=dataframe.darkseries
+        self.baseline=dataframe.baseline
 
 def save_specdata_stream(specdf):
     ''' Save spectral data as a stream into memory.'''
@@ -39,7 +39,7 @@ def load_specdata_fromfile(infile):
     tempobj=cPickle.load(f)
     df.filedict=tempobj.filedict
     df.metadata=tempobj.metadata
-    df.darkseries=tempobj.darkseries
+    df.baseline=tempobj.baseline
     return tempobj
     
 def load_specdata_fromstream(stream):
@@ -48,7 +48,7 @@ def load_specdata_fromstream(stream):
     df=tempobj.dataframe
     df.filedict=tempobj.filedict
     df.metadata=tempobj.metadata
-    df.darkseries=tempobj.darkseries
+    df.baseline=tempobj.baseline
     return df
     
     

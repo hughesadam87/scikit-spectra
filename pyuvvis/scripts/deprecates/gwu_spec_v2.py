@@ -157,20 +157,20 @@ if __name__=='__main__':
         ts_full.save(od+'/rundata.pickle')
         ts_full.to_csv(od+'/rundata.csv') 
 
-        ### Subtract the dark spectrum if it has one.  Note that all programs should produce an attribute for darkseries,
+        ### Subtract the dark spectrum if it has one.  Note that all programs should produce an attribute for baseline,
         ### which may be None, but the attribute should still be here.
-        if hasattr(ts_full, 'darkseries') and sp.sub_base==True:
-            if isinstance(ts_full.darkseries, type(None) ):
+        if hasattr(ts_full, 'baseline') and sp.sub_base==True:
+            if isinstance(ts_full.baseline, type(None) ):
                 ts=ts_full #need this                
-                lf.write('Warning: darkseries not found in data of run directory %s\n\n'%folder)            
+                lf.write('Warning: baseline not found in data of run directory %s\n\n'%folder)            
             else:    
-                ts=ts_full.sub(ts_full.darkseries, axis='index') #U#P#D#A#T#E (Doesn't save spectra anyway... need to make a csv method with header)
+                ts=ts_full.sub(ts_full.baseline, axis='index') #U#P#D#A#T#E (Doesn't save spectra anyway... need to make a csv method with header)
         else:
             ts=ts_full #need this
-            lf.write('Warning: darkseries attribute is not found on dataframe in folder %s!\n\n'%folder)            
+            lf.write('Warning: baseline attribute is not found on dataframe in folder %s!\n\n'%folder)            
 
-        ### Fit first order baselines automatically?
-        if sp.line_fit==True:
+        ### Fit first order references automatically?
+        if sp.bline_fit==True:
             blines=dynamic_baseline(ts, sp.fit_regions )
             ts=ts-blines 
             
@@ -201,7 +201,7 @@ if __name__=='__main__':
             lf.write('Parameters Error: unable to slice x_min and x_max range in directory %s\n\n'%folder)      
    
 
-        ts.baseline=0 
+        ts.reference=0 
 
         ###### Polygon Plot
         spec_poly3d(ts, title=options.rname+'3d Poly Spec')

@@ -4,7 +4,7 @@
  To convert spectral datafiles from Ocean Optics USB2000 and USB650, pas file list in 
  from_spec_files.
  
- Returns a pyuvvis TimeSpectra with custom attributes "metadata", "filedict", "darkseries".
+ Returns a pyuvvis TimeSpectra with custom attributes "metadata", "filedict", "baseline".
  '''
 
 __author__ = "Adam Hughes, Zhaowen Liu"
@@ -23,10 +23,7 @@ import numpy as np
 # PyUvVis imports
 from pyuvvis.core.timespectra import TimeSpectra
 from pyuvvis.core.specindex import SpecIndex
-from pyuvvis.core.imk_utils import get_files_in_dir
-
-# Local imports
-from specrecord import MetaData
+from pyuvvis.core.imk_utils import get_files_in_dir, get_shortname
 
 
 ### Verified OCean Optics month naming conventions (Actually it capitalizes but this call with month.lower() ###
@@ -128,12 +125,12 @@ def from_spec_files(file_list, name=None, skiphead=17, skipfoot=1, check_for_ove
 
             wavedata=np.genfromtxt(darkfile, dtype=spec_dtype, skip_header=skiphead, skip_footer=skipfoot) 
             darktime=_get_datetime_specsuite(header)        
-            darkseries=Series(wavedata['intensity'], index=wavedata['wavelength'], name=darkfile)
+            baseline=Series(wavedata['intensity'], index=wavedata['wavelength'], name=darkfile)
 
             file_list.remove(darkfile)
             f.close()
         else:
-            darkseries=None
+            baseline=None
 
     for infile in file_list:
 
@@ -164,11 +161,11 @@ def from_spec_files(file_list, name=None, skiphead=17, skipfoot=1, check_for_ove
 
         f.close()
 
-    ### Make dataframe, add filenames, darkseries and metadata attributes (note, DateTimeIndex auto sorts!!)
+    ### Make dataframe, add filenames, baseline and metadata attributes (note, DateTimeIndex auto sorts!!)
     dataframe=TimeSpectra(dict_of_series)
     dataframe.specunit='nm'
     dataframe.filedict=time_file_dict
-    dataframe.darkseries=darkseries  #KEEP THIS AS DARK SERIES RECALL IT IS SEPARATE FROM BASELINE OR REFERENCE..
+    dataframe.baseline=baseline  #KEEP THIS AS DARK SERIES RECALL IT IS SEPARATE FROM reference OR REFERENCE..
     if name:
         dataframe.name=name    
 
@@ -239,12 +236,12 @@ def from_timefile_datafile(datafile, timefile, extract_dark=True, name=None):
         darkfile=extract_darkfile(sorted_files, return_null=True)   
 
     if darkfile:    
-        ####Find darkseries by reverse lookup (lookup by value) and get index position
+        ####Find baseline by reverse lookup (lookup by value) and get index position
 
         #darkindex, darktime=[(idx, time) for idx, (time, afile) in enumerate(sorted_tfd) if afile == darkfile][0]
         darkindex=sorted_files.index(darkfile)
         darktime=sorted_times[darkindex]
-        darkseries=Series(data[:,darkindex], index=wavelengths, name=darkfile) 
+        baseline=Series(data[:,darkindex], index=wavelengths, name=darkfile) 
 
 
         del time_file_dict[darktime] #Intentionally remove
@@ -252,14 +249,14 @@ def from_timefile_datafile(datafile, timefile, extract_dark=True, name=None):
         sorted_times.remove(darktime)
         data=np.delete(data, darkindex, 1)  #Delete dark column from numpy data           
     else:
-        darkseries=None
+        baseline=None
 
     dataframe=TimeSpectra(data, columns=sorted_times, index=wavelengths)      
     
 
 
     ### Add field attributes to dataframe
-    dataframe.darkseries=darkseries 
+    dataframe.baseline=baseline 
     dataframe.filedict=time_file_dict
     if name:
         dataframe.name=name
@@ -321,7 +318,7 @@ def from_gwu_chem_UVVIS(filelist, sortnames=False, shortname=True, cut_extension
 
     dataframe.metadata=None
     dataframe.filedict=None
-    dataframe.darkseries=None
+    dataframe.baseline=None
     dataframe.specunit='nm' #This autodetected in plots    
     if name:
         dataframe.name=name

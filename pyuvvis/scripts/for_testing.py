@@ -24,7 +24,7 @@ if __name__=='__main__':
     df=df_loads(df_stream)
     
     ### subtract the dark spectrum
-    df=df.sub(df.darkseries, axis='index')
+    df=df.sub(df.baseline, axis='index')
 
 
     df.columns=datetime_convert(df.columns, return_as='seconds')

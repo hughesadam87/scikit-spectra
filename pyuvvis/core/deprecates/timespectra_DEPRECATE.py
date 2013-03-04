@@ -27,7 +27,7 @@ from testimport import dates as testdates
 ### EVERYTHING NEEDS DEFAULTED TO NONE!  OTHERWISE, ANY OBJECT IMPORTED OR PASSED IN SEEMS TO HAVE THIS VALUE ASSIGNED.  THUS
 ### VALUE ASSIGNMENT NEEDS TO OCCUR WITHIN CONSTRUCTING METHODS AND FUNCTIONS
 pandas.DataFrame.name=None
-pandas.DataFrame.baseline=None
+pandas.DataFrame.reference=None
 
 ### Time related attributes
 pandas.DataFrame.start=None  #MUST BE DATETIME/TIMESTAMPS or w/e is valid in pandas
@@ -137,7 +137,7 @@ def TimeSpectra(*dfargs, **dfkwargs):
 
     ### Pop default DataFrame keywords before initializing###
     name=dfkwargs.pop('name', 'TimeSpectra')
-    baseline=dfkwargs.pop('baseline', None)    
+    reference=dfkwargs.pop('reference', None)    
 
     ###Spectral index-related keywords
     specunit=dfkwargs.pop('specunit', None)
@@ -159,7 +159,7 @@ def TimeSpectra(*dfargs, **dfkwargs):
     
     df=pandas.DataFrame(*dfargs, **dfkwargs)
     df.name=name
-    df.baseline=baseline
+    df.reference=reference
 
     ###Set Index as spectral variables
     set_specunit(df, specunit)  #This will automatically convert to a spectral index
@@ -421,7 +421,7 @@ pandas.DataFrame.boxcar=boxcar
 pandas.DataFrame.wavelength_slices=wavelength_slices
 pandas.DataFrame.divby=divby
 
-#### Baseline
+#### reference
 pandas.DataFrame.dynamic_baseline=dynamic_baseline
 
 ### Correlation Analysis
@@ -436,7 +436,7 @@ if __name__ == '__main__':
     ### best to generate them in other modules and import them to simulate realisitc usec ase
     
     spec=SpecIndex([400,500,600])
-    df=TimeSpectra(randn(3,3), columns=testdates, index=spec, specunit='k', timeunit='s', iunit='t', baseline=[1,2,3])
+    df=TimeSpectra(randn(3,3), columns=testdates, index=spec, specunit='k', timeunit='s', iunit='t', reference=[1,2,3])
     df2=df.as_iunit('full', ref=0)
     df2=TimeSpectra(randn(3,3), columns=testdates, index=spec, specunit='k', timeunit='s')
 
