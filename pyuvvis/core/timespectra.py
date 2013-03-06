@@ -204,7 +204,7 @@ class TimeSpectra(MetaDataFrame):
         self._baseline=None  
         
         if not isinstance(bline, NoneType):
-            self.set_baseline(bline)
+            self.baseline=bline
         
                
         ###Store intrinsic attributes for output later by listattr methods
@@ -212,7 +212,7 @@ class TimeSpectra(MetaDataFrame):
         self._intrinsic.remove('name') #Not a private attr
         
         ###Which attributes/methods are manipulated along with the dataframe
-        self._cnsvdattr=['_reference', 'baseline']
+        self._cnsvdattr=['_reference', '_baseline']
         self._cnsvdmeth=['_slice', 'boxcar'] #_slice is ix
 
 
@@ -480,23 +480,21 @@ class TimeSpectra(MetaDataFrame):
         
         Parameters:
         -----------
-        
             apply_fcn: Chooses the way to collapse data.  Builtin functions include 'mean'
-                     'sum', 'simps', 'trapz', 'romb', 'cumtrapz', but any user function that
-                     results in collapsed data (eg averging function/integrators/etc...) can 
-                     be passed in with any relevant keywords.
-                
+                      'sum', 'simps', 'trapz', 'romb', 'cumtrapz', but any user function that
+                       results in collapsed data (eg averging function/integrators/etc...) can 
+                       be passed in with any relevant keywords.
+                  
             
-         **apply_fcn_kdws: 
-             If user is passing a function to apply_fcn that requires keywords, the get passed in to dfcut.apply() 
+           **apply_fcn_kdws: 
+                       If user is passing a function to apply_fcn that requires keywords, 
+                       the get passed in to dfcut.apply() 
           
-        Notes
-        -----
+        Notes:
+        -----_
             See description of 'df_wavelength_slices' in utilities.py for more information. 
             
-            WHEN PLOTTING, PLOT THE TRANSPOSE OF THE RETURNED DF.  '''   
-#        return self._transfer(df_wavelength_slices(self, ranges, apply_fcn=apply_fcn, **applyfcn_kwds))
-
+            For easy plotting, plot the transpose of the returned timespectra.  '''   
 
         dflist=[]; snames=[]
         
@@ -861,8 +859,8 @@ class TimeSpectra(MetaDataFrame):
         if not self._base_sub:
             self._df=self._df.sub(self._baseline, axis=0)
             self._base_sub=True     
-        else:
-            print 'raise waring? already subbed'
+        #else:
+            #print 'raise waring? already subbed'
         
     def add_base(self):
         ''' Adds baseline to data that currently has it subtracted.'''
@@ -875,8 +873,8 @@ class TimeSpectra(MetaDataFrame):
             self._df=self._df.add(self._baseline, axis=0)        
             self._base_sub=False
             
-        else:
-            print 'raise waring? already subbed'        
+        #else:
+            #print 'raise waring? already added'        
             
     @property
     def base_sub(self):
@@ -884,29 +882,61 @@ class TimeSpectra(MetaDataFrame):
         self._base_gate()
         return self._base_sub
         
+    
+    def _valid_baseline(self, baseline):
+        ''' Validates user-supplied baseline before setting.'''
+        
+        ### If not iterable, return a series of constant values
+        try:
+            baseline.__iter__
+        except AttributeError:
+            return Series(baseline, index=self._df.index)
+        
+        ### If iterable, convert to series
+        else:
+
+        ### If Series compare index values
+            if isinstance(baseline, Series):
+                if np.array_equal(baseline.index, self._df.index):
+                    return baseline
+                else:
+                    raise Exception('Baseline must have the same spectral index as %s'%self.name)
+
+        ### If other type of iterable, make series
+            else:
+                ### Make sure length is correct
+                if len(baseline) == len(self._df.index):
+                    return Series(baseline, index=self._df.index)
+                else:
+                    raise Exception('Baseline must be of length %s to match the current spectral index.'%len(self._df.index))
+
            
     @property
     def baseline(self):
         return self._baseline
+            
     
-    def set_baseline(self, baseline):
+    @baseline.setter
+    def baseline(self, bline):
         ''' Allows user to set a baseline curve with a variety of options.'''
-        self._baseline=baseline
-        print 'WARNING UPDATE THE LOGIC HERE'
-#        raise NotImplemented
-
         ## Logic.  Need validation for various cases.
         # Depending on type/length, force or set index?  What about non-equal length types,
         # try an interpolation?
         # End th "valid_base" 
+
+        bline=self._valid_baseline(bline)
+        
+        # Data does not current contain subtracted baseline
+        if not self._base_sub:
+            print 'no bline/ready to go.'
+            self._baseline=bline
  
-        # No current baseline or current baseline but not subtracted:
-             #self._baseline=valid_base
- 
-        # Current baseline and subtracted
-             #self.add_base()
-             #self._baseline=valid_base
-             #self.sub_base()
+        # Data does contain subtracted baseline
+        else:
+            print 'subbing fool'
+            self.add_base()
+            self._baseline=bline
+            self.sub_base()
              
 
     ### Spectral Intensity related attributes/conversions
@@ -1298,9 +1328,9 @@ if __name__ == '__main__':
     d={'start':2/22/12, 'periods':len(ts.columns), 'freq':'45s'}
     ts.set_daterange(start='2/22/12', periods=len(ts.columns), freq='45s')
     
-    ts._baseline=ts.reference
+    ts.baseline=ts.reference
     ts.sub_base()
-    
+   
     t3=TimeSpectra(abs(np.random.randn(300,30)), columns=testdates, index=spec, baseline=ts._baseline)  
     
        
@@ -1320,43 +1350,45 @@ if __name__ == '__main__':
     #from pyuvvis import areaplot, absplot
     ts=mload('rundata.pickle')    
     ts=ts.as_interval('m')
-    ts.reference=0
-    ts=ts[ts.columns[800.0::]]
-    ts=ts.ix[400.0:800.0]
-    c=haiss_m2(ts, peak_width=2.0, ref_width=2.0)
-    a=haiss_m3(ts, 0.000909, peak_width=None, dilution=0.1)
-    b=haiss_conc(ts, 12.0)
-    b2=haiss_conc(ts, 12.0, dilution=0.2)
+    x=ts.area()    
+    print 'hi', x
+    #ts.reference=0
+    #ts=ts[ts.columns[800.0::]]
+    #ts=ts.ix[400.0:800.0]
+    #c=haiss_m2(ts, peak_width=2.0, ref_width=2.0)
+    #a=haiss_m3(ts, 0.000909, peak_width=None, dilution=0.1)
+    #b=haiss_conc(ts, 12.0)
+    ##b2=haiss_conc(ts, 12.0, dilution=0.2)
     
-#    bline=ts[ts.columns[0]]
-#    ts=ts.ix[:,25.0:30.0]
-#    ts.reference=bline
+##    bline=ts[ts.columns[0]]
+##    ts=ts.ix[:,25.0:30.0]
+##    ts.reference=bline
  
-    uv_ranges=((430.0,450.0))#, (450.0,515.0), (515.0, 570.0), (570.0,620.0), (620.0,680.0))
+    #uv_ranges=((430.0,450.0))#, (450.0,515.0), (515.0, 570.0), (570.0,620.0), (620.0,680.0))
     
-    tssliced=ts.wavelength_slices(uv_ranges, apply_fcn='mean')
+    #tssliced=ts.wavelength_slices(uv_ranges, apply_fcn='mean')
         
-    from pyuvvis.core.utilities import find_nearest
-    x=ts.ix[500.:510, 0]
-    b=maxmin_xy(x)
-    a=find_nearest(x, .15)
-    ts.iunit=None
-    ts.iunit='a'
-    ts.iunit=None
+    #from pyuvvis.core.utilities import find_nearest
+    #x=ts.ix[500.:510, 0]
+    #b=maxmin_xy(x)
+    #a=find_nearest(x, .15)
+    #ts.iunit=None
+    #ts.iunit='a'
+    #ts.iunit=None
     
     
-    ts.to_csv('junk')
-    range_timeplot(ts)
+    #ts.to_csv('junk')
+    #range_timeplot(ts)
 
-    ts.a=50; ts.b='as'
-    ts.iunit='t'
+    #ts.a=50; ts.b='as'
+    #ts.iunit='t'
 
-    ts.list_attr(dfattr=False, methods=False, types=True)    
-    ts.as_iunit('a')
-    x=ts.as_iunit('a')
-    #ts.as_interval()
-    #spec_surface3d(ts)  ##Not working because of axis format problem
-    #plt.show()
-#    ts.rank(use_base=True)
-    x=ts.dumps()
-    ts=mloads(x)
+    #ts.list_attr(dfattr=False, methods=False, types=True)    
+    #ts.as_iunit('a')
+    #x=ts.as_iunit('a')
+    ##ts.as_interval()
+    ##spec_surface3d(ts)  ##Not working because of axis format problem
+    ##plt.show()
+##    ts.rank(use_base=True)
+    #x=ts.dumps()
+    #ts=mloads(x)

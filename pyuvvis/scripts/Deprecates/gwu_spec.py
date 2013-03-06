@@ -159,20 +159,20 @@ if __name__=='__main__':
         df_dump(df_full, od+'/rundata.pickle')
         df_full.to_csv(od+'/rundata.csv')
 
-        ### Subtract the dark spectrum if it has one.  Note that all program should produce an attribute for darkseries,
+        ### Subtract the dark spectrum if it has one.  Note that all program should produce an attribute for baseline,
         ### which may be None, but the attribute should still be here.
-        if hasattr(df_full, 'darkseries') and sp.sub_base==True:
-            if isinstance(df_full.darkseries, type(None) ):
+        if hasattr(df_full, 'baseline') and sp.sub_base==True:
+            if isinstance(df_full.baseline, type(None) ):
                 df=df_full #need this                
-                lf.write('Warning: darkseries not found in data of run directory %s\n\n'%folder)            
+                lf.write('Warning: baseline not found in data of run directory %s\n\n'%folder)            
             else:    
-                df=df_full.sub(df_full.darkseries, axis='index')
+                df=df_full.sub(df_full.baseline, axis='index')
         else:
             df=df_full #need this
-            lf.write('Warning: darkseries attribute is no found on dataframe in folder %s!\n\n'%folder)            
+            lf.write('Warning: baseline attribute is no found on dataframe in folder %s!\n\n'%folder)            
 
-        ### Fit first order baselines automatically?
-        if sp.line_fit:
+        ### Fit first order references automatically?
+        if sp.bline_fit:
             blines=dynamic_baseline(df, sp.fit_regions )
             df=df-blines 
 
