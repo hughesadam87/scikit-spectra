@@ -1,5 +1,6 @@
 from operator import attrgetter
-import os, shutil
+import os
+import shutil
 
 def get_shortname(filepath, cut_extension=False):
     ''' simply get the filename of fullpath.  Cut extension will remove file extension'''

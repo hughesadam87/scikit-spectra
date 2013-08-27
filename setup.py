@@ -9,25 +9,21 @@ setup(
     maintainer='Adam Hughes',
     maintainer_email='hughesadam87@gmail.com',
     author_email='hughesadam87@gmail.com',
-      packages=['pyuvvis',
-                'pyuvvis.chaco_interface',
-                'pyuvvis.core',
-                'pyuvvis.IO',
-   		        'pyuvvis.nptools',
-                'pyuvvis.pandas_utils',
-                'pyuvvis.pyplots',
-                'pyuvvis.tests',
-#                'pyuvvis.example_data',
-                ],
+    packages=['pyuvvis',
+              'pyuvvis.chaco_interface',
+              'pyuvvis.core',
+              'pyuvvis.IO',
+              'pyuvvis.nptools',
+              'pyuvvis.pandas_utils',
+              'pyuvvis.pyplots',
+              'pyuvvis.tests',
+              ],
 
-      # See line in manifest.in that had to be included as well as this.
-      # Can load package data using import pkgutil
-      # data= pkgutil.get_data('pyuvvis', 'data/example_data/specdata.pickle')
-      # Apparently this is useful for impoting using different OS distributions
-      package_data={'pyuvvis' : ['example_data/NPSAM/*', 
-				'example_data/spectra.pickle',
-				'example_data/spectra.csv']
-                    },
+    package_data={'pyuvvis' : ['example_data/NPSAM/*', 
+              'example_data/spectra.pickle',
+              'example_data/spectra.csv']
+                  },
+    
     url='http://pypi.python.org/pypi/PyUvVis/',
     download_url='https://github.com/hugadams/pyuvvis',
     license='LICENSE.txt',

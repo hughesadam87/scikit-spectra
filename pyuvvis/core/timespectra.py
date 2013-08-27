@@ -5,7 +5,8 @@ import cPickle
 from types import NoneType, MethodType
 from operator import itemgetter
 
-from pyuvvis.pandas_utils.metadframe import MetaDataFrame, _MetaIndexer, _NDFrameIndexer
+from pyuvvis.pandas_utils.metadframe import MetaDataFrame, _MetaIndexer, \
+    _NDFrameIndexer
 
 from pandas import DataFrame, DatetimeIndex, Index, Series
 import numpy as np
@@ -1425,7 +1426,8 @@ if __name__ == '__main__':
    
    
     from pyuvvis.IO.gwu_interfaces import from_spec_files, get_files_in_dir
-    ts=from_spec_files(get_files_in_dir('NPSAM', sort=True))
+    from pyuvvis.exampledata import get_exampledata
+    ts=from_spec_files(get_files_in_dir(get_exampledata('NPSAM'), sort=True))
 
     ts.to_interval('s')
     ts=ts.ix[440.0:700.0,0.0:100.0]
@@ -1451,7 +1453,7 @@ if __name__ == '__main__':
        
     #ts._reference.x='I WORK'
     #ts._reference.name='joe'
-##    ts.baseline=Series([20,30,50,50], index=[400., 500., 600., 700.])
+    ts.baseline=Series([20,30,50,50], index=[400., 500., 600., 700.])
 ##    t2.baseline=ts.baseline
     #ts._df.ix[:, 0:4]
     #ts.ix[:,0:4]
