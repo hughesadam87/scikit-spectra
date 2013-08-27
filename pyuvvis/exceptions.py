@@ -25,6 +25,22 @@ class GeneralError(Exception):
             return repr(self.message)
         else:
             return repr(self.default)
+        
+class BaselineError(GeneralError):
+    
+    default = 'Baseline operation failure'
+    
+    
+class RefError(GeneralError):
+    ''' Error raised when a user-supplied iterable does not have same spectral
+    values as those of the timespectra.'''
+    
+    def __init__(self, index, timespectra):
+        sunit = timespectra.specunit
+        self.message = ('Cannot resolve length %s reference (%s%s - %s%s) and length %s %s (%s%s - %s%s)'\
+                      %(len(index), index[0], sunit,  index[-1], sunit, len(timespectra.reference), \
+                        timespectra.name, timespectra.df.index[0], sunit, timespectra.df.index[-1], sunit) )
+    
 
 # Functions 
 def badvalue_error(attribute, allowedvalues):

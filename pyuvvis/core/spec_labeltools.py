@@ -29,8 +29,8 @@ c=299792458.0               #speed of light m/s
 ## use domain specific representations of time such as sidereal time or financial time.
 
 ### Lazy way to cover both kinds of input, short or long unit!
-sec_conversions={'ns':10**-9, 'us':10**-6, 'ms':10**-3, \
-                 's':1.0, 'm':60.0, 'h':3600.0, \
+sec_conversions={'ns':10**-9, 'us':10**-6, 'ms':10**-3, 
+                 's':1.0, 'm':60.0, 'h':3600.0, 
                  'd':86400.0, 'y':31536000.0, 'intvl':None}
 
 intvl_dic={'ns':'Nanoseconds', 'us':'Microseconds', 'ms':'Milliseconds',

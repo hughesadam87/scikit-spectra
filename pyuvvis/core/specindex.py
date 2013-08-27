@@ -17,6 +17,7 @@
        The layout of this Index should be followed if making different types of custom index.  This layout, while
        strange, will be very compatable with monkey-patched DataFrames, to ensure correct default behaviors and stuff.'''
 
+
 import pandas
 import numpy as np
 from collections import Iterable 

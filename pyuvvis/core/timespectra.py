@@ -5,46 +5,35 @@ import cPickle
 from types import NoneType, MethodType
 from operator import itemgetter
 
-from pyuvvis.pandas_utils.metadframe import MetaDataFrame, _MetaIndexer, \
-    _NDFrameIndexer
-
-from pandas import DataFrame, DatetimeIndex, Index, Series
 import numpy as np
+from pandas import DataFrame, DatetimeIndex, Index, Series, date_range
 from scipy import integrate
 #from scikits.learn import PCA
 from pca_scikit import PCA
 
-### Absolute pyuvvis imports (DON'T USE RELATIVE IMPORTS)
-from pyuvvis.core.specindex import SpecIndex, specunits, get_spec_category, set_sindex
-from pyuvvis.core.spec_labeltools import datetime_convert, from_T, to_T, Idic, intvl_dic, spec_slice
+from pyuvvis.pandas_utils.metadframe import MetaDataFrame, _MetaIndexer
+
+from pandas import DataFrame, DatetimeIndex, Index, Series
+from scipy import integrate
+#from scikits.learn import PCA
+from pca_scikit import PCA
+
+# pyuvvis imports 
+from pyuvvis.core.specindex import SpecIndex, specunits, get_spec_category, \
+     set_sindex
+from pyuvvis.core.spec_labeltools import datetime_convert, from_T, to_T, \
+    Idic, intvl_dic, spec_slice
 from pyuvvis.core.utilities import divby, boxcar, maxmin_xy
 from pyuvvis.pyplots.advanced_plots import spec_surface3d
-from pyuvvis.exceptions import badkey_check, badcount_error
 
+# Merge
+from pyuvvis.exceptions import badkey_check, badcount_error, RefError, BaselineError
 
-## For testing 
-from pandas import date_range
-import matplotlib.pyplot as plt
-
-
-from pyuvvis.nptools.haiss import *
-
-from pandas import read_csv as df_read_csv
-
+# Put in a separte file of constants?
 tunits={'ns':'Nanoseconds', 'us':'Microseconds', 'ms':'Milliseconds', 's':'Seconds', 
         'm':'Minutes', 'h':'Hours','d':'Days', 'y':'Years'}  #ADD NULL VALUE? Like None:'No Time Unit' (iunit/specunit do this)
 
 
-#################
-##Custom Errors##
-#################
-
-def RefError(index, timespectra):
-    ''' Error raised when a user-supplied iterable does not have same spectral values as those of the timespectra.'''
-    sunit=timespectra.specunit
-    return Exception('Cannot resolve length %s reference (%s%s - %s%s) and length %s %s (%s%s - %s%s)'\
-                      %(len(index), index[0], sunit,  index[-1], sunit, len(timespectra.reference), \
-                        timespectra.name, timespectra.df.index[0], sunit, timespectra.df.index[-1], sunit) )
    
 
 ##########################################
@@ -52,7 +41,7 @@ def RefError(index, timespectra):
 ##########################################
 _dtmissing='Cannot convert representations without interally stored datetimeindex.'
 
-### Unit validations###
+# Unit validations###
 def _valid_xunit(value, dic):
     ''' Validates existence of key (usually a unit type like spectral unit in a dictionary such as specunits)'''
     if value == None:
@@ -73,32 +62,32 @@ def _valid_intvlunit(sout):
               
 ##########################################
 ## TimeSpectra Public Utilities    #######
-########################################## 
+######################################## 
 
 def array_truthtest(array, raiseerror=False, errorstring=None):
     ''' Truth test array/series attributes, since can't evaluate them with standard python.'''
 
-    ### If error passed, automatically enable error raising
+    # If error passed, automatically enable error raising
     if errorstring:
         raiseerror=True
 
-    ### Evaluates to true or false
+    # Evaluates to true or false
     try:
         return array.any()
-    ### Evaluates to None
+    # Evaluates to None
     except AttributeError as atterror:
         
-        ### Throw custom error or standard error
+        # Throw custom error or standard error
         if raiseerror:
             if errorstring:
                 raise(AttributeError(errorstring))
             else:
                 raise(atterror)
-        ### Return None
+        # Return None
         return None
 
 
-### Wrapper for df_from_directory
+# Wrapper for df_from_directory
 def spec_from_dir(directory, csvargs, sortnames=False, concat_axis=1, shortname=True, cut_extension=False):
     ''' Takes files from a directory, presuming they are identically formatted, and reads them into
     a dataframe by iterating over read_csv().  All arguments that read_csv() would take are passed
@@ -137,7 +126,7 @@ class TimeSpectra(MetaDataFrame):
     Interval representations.  It does this by generating one or the other on the fly, and never relies on the current label object to generate teh next object.'''
 
     def __init__(self, *dfargs, **dfkwargs):
-        ### Pop default DataFrame keywords before initializing###
+        # Pop default DataFrame keywords before initializing###
         self.name=dfkwargs.pop('name', 'TimeSpectra')
         
         ###Spectral index-related keywords
@@ -152,33 +141,33 @@ class TimeSpectra(MetaDataFrame):
         bline=dfkwargs.pop('baseline', None)
         
         
-        ### NEED TO WORK OUT LOGIC OF THIS INITIALIZATION?
-        ### Should I even do anything?
+        # NEED TO WORK OUT LOGIC OF THIS INITIALIZATION?
+        # Should I even do anything?
         self._intervalunit=dfkwargs.pop('intvlunit', None)        
 
         super(TimeSpectra, self).__init__(*dfargs, **dfkwargs)        
 
-        ### If user passes non datetime index to columns, make sure they didn't accidentally pass SpecIndex by mistake.
+        # If user passes non datetime index to columns, make sure they didn't accidentally pass SpecIndex by mistake.
         if not isinstance(self._df.columns, DatetimeIndex):
             try:
                 if self._df.columns._kind == 'spectral':
-                    raise IOError("SpecIndex must be passed as index, not columns.")   ### Can't be an attribute error or next won't be raised             
+                    raise IOError("SpecIndex must be passed as index, not columns.")   # Can't be an attribute error or next won't be raised             
 
-            ### df.columns has no attribute _kind, meaning it is likely a normal pandas index        
+            # df.columns has no attribute _kind, meaning it is likely a normal pandas index        
             except AttributeError:
                 self._interval=None                                                  
 
-        ### If DateimIndex already, store attributes directly from array
+        # If DateimIndex already, store attributes directly from array
         else:
             self._interval=False      
             self._dtindex=self._df.columns
       
-        ### Assign spectral intensity related stuff but 
-        ### DONT CALL _set_itype function
+        # Assign spectral intensity related stuff but 
+        # DONT CALL _set_itype function
         iunit=_valid_iunit(iunit)
         self._itype=iunit
         
-        ### This has to be done AFTER self._df has been set
+        # This has to be done AFTER self._df has been set
         self._reference=self._reference_valid(reference)#SHOULD DEFAULT TO NONE SO USER CAN PASS NORMALIZED DATA WITHOUT REF        
 
         ###Set Index as spectral variables, take care of 4 cases of initialization.
@@ -202,7 +191,7 @@ class TimeSpectra(MetaDataFrame):
                 if old_unit != specunit:
                     print 'Alert: SpecIndex unit was changed internally from "%s" to "%s"'%(old_unit, specunit)
                 
-        ### Baseline Initialization (UNTESTED)
+        # Baseline Initialization (UNTESTED)
         self._base_sub=False 
         self._baseline=None  
         
@@ -219,11 +208,11 @@ class TimeSpectra(MetaDataFrame):
         self._cnsvdmeth=['_slice', 'boxcar'] #_slice is ix
 
 
-    #############################################################################    
-    ### Methods ( @property decorators ensure use can't overwrite methods) ######   
+    ###########################################################################    
+    # Methods ( @property decorators ensure use can't overwrite methods) ####   
     #############################################################################
 
-    ### Unit printouts (change to pretty print?)
+    # Unit printouts (change to pretty print?)
     def _list_out(self, outdic, delim='\t'):
         ''' Generic output method for shortname:longname iterables.  Prints out various
         dictionaries, and is independent of the various datastructures contained'''
@@ -242,7 +231,7 @@ class TimeSpectra(MetaDataFrame):
         ''' Intensity units of dateframe.  Eg %Transmittance vs. Absorbance'''
         self._list_out(Idic, delim=delim)
 
-    ### Self necessary here or additional df stuff gets printed   
+    # Self necessary here or additional df stuff gets printed   
     def list_sunits(self, delim='\t'):
         ''' Print out all available units in a nice format'''
         self._list_out(specunits, delim=delim)         
@@ -256,7 +245,7 @@ class TimeSpectra(MetaDataFrame):
         ''' Formatted output of various quantities pertinent to columns/rows of timespectra.  For more
         comprehensive object output, please refert to list_attr() method.'''
         
-        ### Human-readable form of self._interval
+        # Human-readable form of self._interval
         tstatsdic={True:'Datetime', False:'Interval/Referenced', None:'Unknown'}
         tstyle=tstatsdic[self._interval]
         
@@ -277,7 +266,7 @@ class TimeSpectra(MetaDataFrame):
         print '---------------------\n'
         print '%sspectral category=%s, specunit=%s'%(delim, get_spec_category(self.specunit), self.specunit)
         
-    ### ADD PYTHON STRING FORMATTING TO THIS
+    # ADD PYTHON STRING FORMATTING TO THIS
     def list_attr(self, privattr=False, dfattr=False, methods=False, types=False, delim='\t', sortby='name'): #values=False,):
         ''' Outputs various attributes in the namespace, as well as their types.
         
@@ -297,27 +286,27 @@ class TimeSpectra(MetaDataFrame):
            Refer to label_stats() for more detailed information on certain attributes.
       .'''
 
-        ### Take all attributes in current instance        
+        # Take all attributes in current instance        
         atts=[x for x in dir(self) if '__' not in x]
 
-        ### Remove self._intrinsic (aka class attributes) if desired
+        # Remove self._intrinsic (aka class attributes) if desired
         if privattr==False:
             atts=[attr for attr in atts if attr not in self._intrinsic]        
             filterout=['_intrinsic', 'ix', '_ix', 'list_attr'] #Don't want these as attributes
             for att in filterout:
                 atts.remove(att)
         
-        ### Include dataframe attributes if desired
+        # Include dataframe attributes if desired
         if dfattr==True:
             atts=atts+[x for x in dir(self._df) if '__' not in x]
         
-        ### Remove methods if desired
+        # Remove methods if desired
         if methods==False:
             atts=[attr for attr in atts if isinstance(getattr(self, attr), MethodType) != True]
         else:
             atts.append('ix') #This as an attribute but want it to seem like a method
  
-        ### Should output include types and/or values?
+        # Should output include types and/or values?
         outheader=['Attribute']
         if types==True: 
             outheader=outheader+['Type']
@@ -325,7 +314,7 @@ class TimeSpectra(MetaDataFrame):
             #string operation just does str(<type 'int'>) ---> 'int'
             
 
-            ### Sort output either by name or type
+            # Sort output either by name or type
             badkey_check(sortby, ['name', 'type']) #sortby must be 'name' or 'type'
             
             if sortby=='name':
@@ -333,7 +322,7 @@ class TimeSpectra(MetaDataFrame):
             elif sortby=='type':
                 atts=sorted(atts, key=itemgetter(1))
 
-        ### Output to screen
+        # Output to screen
         print delim.join(outheader)    
         print '--------------------'
         for att in atts:
@@ -352,7 +341,7 @@ class TimeSpectra(MetaDataFrame):
         return self._df
 
     ###############################
-    ### reference related operations
+    # reference related operations
     ###############################
     
     @property
@@ -365,22 +354,22 @@ class TimeSpectra(MetaDataFrame):
         ''' Before changing reference, first validates.  Then considers various cases, and changes 
         class attributes and dataframe values appropriately.'''
 
-        ### Adding or changing reference
+        # Adding or changing reference
         if not isinstance(reference, NoneType):
 
-            ### If data is in raw/full mode (itype=None)
+            # If data is in raw/full mode (itype=None)
             if self._itype == None:
                 reference=self._reference_valid(reference, force_series=force_series)                  
                 
                 self._reference=reference
 
-            ### Let _set_itype() do lifting.  Basically convert to full and back to current itype. 
+            # Let _set_itype() do lifting.  Basically convert to full and back to current itype. 
             else:
                 self._set_itype(self._itype, ref=reference)
 
-        ### Removing reference.  
+        # Removing reference.  
         else:
-            ### If current reference is not None, convert
+            # If current reference is not None, convert
             if not isinstance(self._reference, NoneType):  #Can't do if array==None
                 self._set_itype(None, ref=self._reference)
                 self._reference=None
@@ -423,29 +412,29 @@ class TimeSpectra(MetaDataFrame):
         if isinstance(ref, NoneType):
             return ref
 
-        ### First, try ref is itself a column name
+        # First, try ref is itself a column name
         try:
             rout=self._df[ref]
         except (KeyError, ValueError):  #Value error if ref itself is a dataframe
             pass
 
-        ### If rtemp is an integer, return that column value.  
-        ### NOTE: IF COLUMN NAMES ARE ALSO INTEGERS, THIS CAN BE PROBLEMATIC.
+        # If rtemp is an integer, return that column value.  
+        # NOTE: IF COLUMN NAMES ARE ALSO INTEGERS, THIS CAN BE PROBLEMATIC.
         if isinstance(ref, int):
             rout=self._df[self._df.columns[ref]]        
 
-        ### Finally if ref is itself a series, make sure it has the correct spectral index
+        # Finally if ref is itself a series, make sure it has the correct spectral index
         elif isinstance(ref, Series):
             if np.array_equal(ref.index, self._df.index) == False:
                 raise RefError(ref.index, self)
             else:
                 rout=ref
             
-        ### Finally if array or other iterable, force to a series
+        # Finally if array or other iterable, force to a series
         else:
             if force_series:
                 
-                ### If user passes dataframe, downconvert to series 
+                # If user passes dataframe, downconvert to series 
                 if isinstance(ref, DataFrame):
                     if ref.shape[1] != 1:
                         raise TypeError('reference must be a dataframe of a single column with index values equivalent to those of %s'%self._name)
@@ -454,14 +443,14 @@ class TimeSpectra(MetaDataFrame):
                     else:
                         rout=Series(ref[ref.columns[0]], index=ref.index) 
    
-                ### Add index to current iterable 
+                # Add index to current iterable 
                 else:
                     if len(ref) != len(self._df.index):
                         raise RefError(ref, self)
                     else:
                         rout=Series(ref, index=self._df.index)
 
-            ### Return itrable as is
+            # Return itrable as is
             else:
                 rout=ref
                 
@@ -504,7 +493,7 @@ class TimeSpectra(MetaDataFrame):
         if isinstance(ranges, float) or isinstance(ranges, int):
             ranges=spec_slice(self.index, ranges)           
         
-        ### If single range is passed in, want to make sure it can still be iterated over...
+        # If single range is passed in, want to make sure it can still be iterated over...
         if len(ranges)==2:
             ranges=[ranges]
         
@@ -518,15 +507,15 @@ class TimeSpectra(MetaDataFrame):
                 
                 if isinstance(apply_fcn, str):
         
-                    ### Pandas cython operations ###
+                    # Pandas cython operations ###
                     if apply_fcn.lower() == 'mean': 
                         series=dfcut.mean(axis=0)
                     elif apply_fcn.lower() == 'sum':
                         series=dfcut.sum(axis=0)
                     
                         
-                    ### Integration isn't the same as sum because it takes the units of the x-axis into account through x
-                    ### parameter.  If interval is odd, last interval is used w/ trapezoidal rule
+                    # Integration isn't the same as sum because it takes the units of the x-axis into account through x
+                    # parameter.  If interval is odd, last interval is used w/ trapezoidal rule
                     elif apply_fcn.lower() == 'simps':
                         series=dfcut.apply(integrate.simps, x=dfcut.index, even='last')
                         
@@ -544,13 +533,13 @@ class TimeSpectra(MetaDataFrame):
                         (mean, sum, simps, trapz, romb, cumtrapz) but %s was entered.  Alternatively, you can pass \
                         a function to apply_fcn, with any relevant **kwds')
         
-                ### Try to apply arbirtrary function.  Note, function can't depend on dfcut, since 
-                ### that is created in here
+                # Try to apply arbirtrary function.  Note, function can't depend on dfcut, since 
+                # that is created in here
                 else:
                     series=dfcut.apply(apply_fcn, **applyfcn_kwds)
                     
                     
-                ### OK
+                # OK
                 dflist.append(series)
                 
         return self._transfer(DataFrame(dflist, index=snames))
@@ -588,7 +577,7 @@ class TimeSpectra(MetaDataFrame):
         return self.wavelength_slices((min(self.index), max(self.index)), apply_fcn=apply_fcn)
     
     
-    ### PCA INTERFACE ###    
+    # PCA INTERFACE #    
     _pca=None   #Instance method?
     
     def _pcagate(self, attr):
@@ -651,8 +640,8 @@ class TimeSpectra(MetaDataFrame):
     @property
     def pca_evals(self):
         self._pcagate('eigen values')
-        ### Index is not self.columns because eigenvalues are still computed with
-        ### all timepoints, not a subset of the columns        
+        # Index is not self.columns because eigenvalues are still computed with
+        # all timepoints, not a subset of the columns        
         return Series(self._pca.eigen_values_)
     
     @property
@@ -669,10 +658,10 @@ class TimeSpectra(MetaDataFrame):
             raise AttributeError('Principle components must be <= number of timepoints %s'%len(ts))
 
 
-        ### Decided to put impetus on user to recompute when not using enough principle components
-        ### rather then trying to figure out logic of all use cases.
+        # Decided to put impetus on user to recompute when not using enough principle components
+        # rather then trying to figure out logic of all use cases.
 
-        ### If k > currently stored eigenvectors, recomputes pca
+        # If k > currently stored eigenvectors, recomputes pca
         if self._pca._k:
             if k > len(self.pca_evals):            
                 raise AttributeError('Only %s components were computed.  Please call run_pca() with \
@@ -680,7 +669,7 @@ class TimeSpectra(MetaDataFrame):
 
         return Series(self._pca.eigen_vectors_[:,k], index=self._pca._index) 
         
-    ### Spectral column attributes/properties
+    # Spectral column attributes/properties
     @property
     def specunit(self):
         return self._df.index.unit    #Short name key
@@ -704,7 +693,7 @@ class TimeSpectra(MetaDataFrame):
     def spectypes(self):
         return specunits
     
-    ### Temporal/column related functionality
+    # Temporal/column related functionality
     def set_daterange(self, **date_range_args):
         ''' Wrapper around pandas.date_range to reset the column
         values on of the data on the fly. See pandas.date_range()
@@ -721,10 +710,10 @@ class TimeSpectra(MetaDataFrame):
             timespectra.set_daterange('1/1/2012', period=5, freq='H')
         '''
         
-        rng=date_range(**date_range_args)
-        self._df.columns=rng        
-        self._dtindex=rng
-        self._interval=False
+        rng = date_range(**date_range_args)
+        self._df.columns = rng        
+        self._dtindex = rng
+        self._interval = False
         
         
     def set_specindex(self, start=None, stop=None, spacing=None, unit=None):
@@ -760,28 +749,28 @@ class TimeSpectra(MetaDataFrame):
 
         numpts=float(len(self.index))
         
-        ### If no unit passed, conserve current one
+        # If no unit passed, conserve current one
         if not unit:
             unit=self.specunit
             
-        ### If user wants to force a null unit
+        # If user wants to force a null unit
         else:
             if unit.lower()=='null':
                 unit=None
                 
-        ### Bad keyword cases
+        # Bad keyword cases
         if start and stop and spacing:
             raise badcount_error(2,3,3, argnames='start, stop, keywords')
         
         if not start and not stop and not spacing:
             raise badcount_error(2,0,3, argnames='start, stop, keywords')
       
-        ### User enters start and stop    
+        # User enters start and stop    
         if start and stop:
             start=float(start)            
             stop=float(stop)
             
-        ### User enters spacing and start or spacing and stop.
+        # User enters spacing and start or spacing and stop.
         if spacing:    
             spacing=float(spacing)            
             if start:
@@ -791,7 +780,7 @@ class TimeSpectra(MetaDataFrame):
                 stop=float(stop)
                 start=stop - (spacing * numpts)
 
-        ### If user only entered one keyword, then all three will not be generated by this point 
+        # If user only entered one keyword, then all three will not be generated by this point 
         if not start or not stop:
             raise badcount_error(2,1,3, argnames='start, stop, keywords')
         
@@ -862,7 +851,7 @@ class TimeSpectra(MetaDataFrame):
     def to_interval(self, unit=None):  
         ''' Set columns to interval as computed by datetime_convert function. '''
         
-        ### User calls function with empty call (), if proper attributes, convert it
+        # User calls function with empty call (), if proper attributes, convert it
         if unit==None: 
 
             array_truthtest(self._dtindex, errorstring=_dtmissing)
@@ -871,19 +860,19 @@ class TimeSpectra(MetaDataFrame):
             else:
                 unit='intvl'  #Default if user has not set anything in _intervalunit
                 
-        ### User calls function with unit
+        # User calls function with unit
         else:
             unit=_valid_intvlunit(unit)          
             
-            ### If _df already interval
+            # If _df already interval
             if self._interval==True:
                 if unit==self._intervalunit:
                     return         
                     
             
-            ### If interval is None or False, do the conversion
+            # If interval is None or False, do the conversion
             elif self._interval==None:
-                ### Make sure proper attributes to get back ater in place
+                # Make sure proper attributes to get back ater in place
                 array_truthtest(self._dtindex, errorstring=_dtmissing)
 
                 
@@ -911,11 +900,11 @@ class TimeSpectra(MetaDataFrame):
     def _as_interval(self, unit):
         ''' Return columns as intervals as computed by datetime_convert function.'''
         
-        ### If current columns is DatetimeIndex, convert
+        # If current columns is DatetimeIndex, convert
         if self._interval==False:
             return Index(datetime_convert(self.columns, return_as=unit, cumsum=True))              
     
-        ### If currently already intervals, convert to datetime, then convert that to new units
+        # If currently already intervals, convert to datetime, then convert that to new units
         else:
             newcols=self._as_datetime() #Convert to new unit
             return Index(datetime_convert(newcols, return_as=unit, cumsum=True))          
@@ -924,12 +913,12 @@ class TimeSpectra(MetaDataFrame):
         ''' Return datetimeindex given a timespectra object.  Merely sets the _dtindex
             attribute of a timespectra. '''
     
-        ### Make sure all attributes are set before converting
+        # Make sure all attributes are set before converting
         array_truthtest(self._dtindex, errorstring=_dtmissing)
         return self._dtindex
     
     ###################################
-    ### Baseline related operations ###
+    # Baseline related operations ###
     ###################################
 
     def _base_gate(self):
@@ -947,10 +936,10 @@ class TimeSpectra(MetaDataFrame):
               calling ts.sub() from an outside program does in fact work.  Behavior is due
               to way in which python classes deal with overwrites of self.'''
 
-        ### self._baseline is not none
+        # self._baseline is not none
         self._base_gate()
 
-        ### Only subtract if baseline isn't currently subtracted
+        # Only subtract if baseline isn't currently subtracted
         if not self._base_sub:
             self._df=self._df.sub(self._baseline, axis=0)
             self._base_sub=True     
@@ -960,13 +949,13 @@ class TimeSpectra(MetaDataFrame):
     def add_base(self):
         ''' Adds baseline to data that currently has it subtracted.'''
 
-        ### self._baseline is not none
+        # self._baseline is not none
         self._base_gate()
         
-        ### Only add if baseline is currently in a subtracted state
+        # Only add if baseline is currently in a subtracted state
         if self._base_sub:
-            self._df=self._df.add(self._baseline, axis=0)        
-            self._base_sub=False
+            self._df = self._df.add(self._baseline, axis=0)        
+            self._base_sub = False
             
         #else:
             #print 'raise waring? already added'        
@@ -981,33 +970,33 @@ class TimeSpectra(MetaDataFrame):
     def _valid_baseline(self, baseline):
         ''' Validates user-supplied baseline before setting.'''
         
-        ### If not iterable, return a series of constant values
 
         if baseline is None:
-            return baseline
+            return 
         
+        # If baseline not iterable, return series of constant values
         try:
             baseline.__iter__
         except AttributeError:
             return Series(baseline, index=self._df.index)
         
-        ### If iterable, convert to series
-        else:
 
-        ### If Series compare index values
-            if isinstance(baseline, Series):
-                if np.array_equal(baseline.index, self._df.index):
-                    return baseline
-                else:
-                    raise Exception('Baseline must have the same spectral index as %s'%self.name)
-
-        ### If other type of iterable, make series
+        # If Series compare index values
+        if isinstance(baseline, Series):
+            if np.array_equal(baseline.index, self._df.index):
+                return baseline
             else:
-                ### Make sure length is correct
-                if len(baseline) == len(self._df.index):
-                    return Series(baseline, index=self._df.index)
-                else:
-                    raise Exception('Baseline must be of length %s to match the current spectral index.'%len(self._df.index))
+                raise BaselineError('Baseline must have the same '
+                                           'spectral index as %s'%self.name)
+
+       # If other type of iterable, make series
+        else:
+            # Make sure length is correct
+            if len(baseline) == len(self._df.index):
+                return Series(baseline, index=self._df.index)
+            else:
+                raise BaselineError('Baseline must be of length %s to '
+                    'match the current spectral index.'%len(self._df.index))
 
            
     @property
@@ -1033,12 +1022,12 @@ class TimeSpectra(MetaDataFrame):
         else:
             self.add_base()
             self._baseline=bline
-            ### If baseline is not none, go ahead and re-subtract
+            # If baseline is not none, go ahead and re-subtract
             if bline is not None:
                 self.sub_base()
              
 
-    ### Spectral Intensity related attributes/conversions
+    # Spectral Intensity related attributes/conversions
     @property
     def full_iunit(self):
         return Idic[self._itype]
@@ -1081,17 +1070,17 @@ class TimeSpectra(MetaDataFrame):
             return
 
         ########################################################################
-        ### Case 1: User converting from full data down to referenced data.#####
+        # Case 1: User converting from full data down to referenced data.#####
         ########################################################################
         if sin==None and sout != None:
             rout=self._reference_valid(ref)
 
-            ### If user tries to downconvert but doesn't pass reference, use stored one
+            # If user tries to downconvert but doesn't pass reference, use stored one
             if rout == None:
                 rout=self._reference
 
-            ### If ref not passed, use current reference.  Want to make sure it is 
-            ### not none, but have to roundabout truthtest
+            # If ref not passed, use current reference.  Want to make sure it is 
+            # not none, but have to roundabout truthtest
             if isinstance(rout, NoneType):
                 raise TypeError('Cannot convert spectrum to iunit %s without a reference'%sout)                
             else:
@@ -1101,16 +1090,16 @@ class TimeSpectra(MetaDataFrame):
             #typeerror check of try: if rout == None: raise error
 
 
-        ################################################################   
-        ### Case 2: Changing spectral representation of converted data.#
-        ################################################################     
+        ##############################################################   
+        # Case 2: Changing spectral representation of converted data.#
+        ##############################################################     
         elif sin !=None and sout != None:
 
-            ### If user changing reference on the fly, need to change ref ###
+            # If user changing reference on the fly, need to change ref ###
             if not isinstance(ref, NoneType): #and ref != self._reference:
                 rout=self._reference_valid(ref)
 
-                ### Make this it's own method called change reference?
+                # Make this it's own method called change reference?
                 df=df.apply(to_T[sin])
                 df=df.mul(self._reference, axis=0)  
                 df=divby(df, divisor=rout)
@@ -1123,8 +1112,8 @@ class TimeSpectra(MetaDataFrame):
                 df=df.apply(from_T[sout])        
 
 
-        #############################################################    
-        ### Case 3: User converting referenced data up to full data.#
+        ###########################################################    
+        # Case 3: User converting referenced data up to full data.#
         #############################################################
         elif sin !=None and sout==None:
             rout=self._reference_valid(ref)
@@ -1143,9 +1132,9 @@ class TimeSpectra(MetaDataFrame):
     def itypes(self):
         return Idic
         
-    ############################################## 
+    ############################################ 
     #####Overwrite MetaDataFrame behavior ########
-    ##############################################    
+    ############################################    
     
     
     @property
@@ -1180,7 +1169,7 @@ class TimeSpectra(MetaDataFrame):
     
     @cnsvdmeth.setter
     def cnsvdmeth(self, attrs):
-        ### Do I even want to do anything more than setter?
+        # Do I even want to do anything more than setter?
         if isinstance(attrs, basestring):
             attrs=[attrs]
 
@@ -1206,10 +1195,10 @@ class TimeSpectra(MetaDataFrame):
  
         out=getattr(self._df, attr)(*fcnargs, **fcnkwargs)
                 
-        ### If operation returns a dataframe, return new TimeSpectra
+        # If operation returns a dataframe, return new TimeSpectra
         if isinstance(out, DataFrame):
             
-            ### Are there specially conserved attributes?
+            # Are there specially conserved attributes?
             csvdout=None
             if attr in self._cnsvdmeth:    
                 if self._cnsvdattr:
@@ -1225,7 +1214,7 @@ class TimeSpectra(MetaDataFrame):
                         raise Exception('Could not successfully perform operation "%s" on one or multiple \
                         conserved attributes %s.'%attr, '","'.join(csvdout.columns))                               
             
-            ### Create new timespectra object
+            # Create new timespectra object
             tsout=self._transfer(out)
             
             if not isinstance(csvdout, NoneType):
@@ -1238,18 +1227,18 @@ class TimeSpectra(MetaDataFrame):
                         for attr in restattr:
                             setattr(csvdout[col], attr, _csvdfattrs[col][attr]) 
 
-                        ### Hack to conserve "name" attribute of series return
+                        # Hack to conserve "name" attribute of series return
                         try:
                             setattr(csvdout[col], 'name', _csvdfattrs[col]['name']) 
                         except KeyError:
                             pass
                 
-                    ### Apply conserved attributes to new dataframe                        
+                    # Apply conserved attributes to new dataframe                        
                     setattr(tsout, col, csvdout[col])
             
             return tsout
         
-        ### Otherwise return whatever the method return would be
+        # Otherwise return whatever the method return would be
         else:
             return out
         
@@ -1262,13 +1251,13 @@ class TimeSpectra(MetaDataFrame):
         return newobj
         
     #############################################
-    #### OVERWRITE METADATFRAME MAGIC METHODS ###
+    ## OVERWRITE METADATFRAME MAGIC METHODS ###
     #############################################
     def __setattr__(self, name, value):
         ''' Don't want to let users overwite dataframe columns or index without letting timespectra know it's happening.'''
         super(TimeSpectra, self).__setattr__(name, value)        
  
-        ### Intercept user's column attribute call and set private attributes accordingly.
+        # Intercept user's column attribute call and set private attributes accordingly.
         if name=='columns':
             if isinstance(self.columns, DatetimeIndex):
                 self._dtindex=self.columns
@@ -1297,7 +1286,7 @@ class TimeSpectra(MetaDataFrame):
         return ''.join(outline)+'\n'+self._df.__repr__()    
     
     ######################
-    ### CUSTOM SLICING ###
+    # CUSTOM SLICING ###
     ######################
         
     def tidx(self, *sliceargs):
@@ -1326,7 +1315,7 @@ class TimeSpectra(MetaDataFrame):
     
                    
     #################
-    ### CSV Output###
+    # CSV Output###
     #################
                            
     def to_csv(self, path_or_buff, meta_separate=False, **csv_kwargs):
@@ -1393,27 +1382,34 @@ class TimeSpectra(MetaDataFrame):
             lineList = fileHandle.readlines()
             fileHandle.close()
             meta=cPickle.loads(lineList[-1])        
-            ### This could be buggy if __init__() from all the keywords is working correctly.
+            # This could be buggy if __init__() from all the keywords is working correctly.
             
-            ### Make sure user skips last line in file that was added in addition via meta_sepaarte
+            # Make sure user skips last line in file that was added in addition via meta_sepaarte
             csv_kwargs['skip_footer']=csv_kwargs.pop('skip_footer', 0) + 1
             df=df_read_csv(path_or_buff, **csv_kwargs)
             
-            ### This is hard part, how to set meta data
+            # This is hard part, how to set meta data
         
         elif meta_separate == True:
             raise NotImplementedError("Haven't resolved, but this hsould return meta and df")
         
-        ### Initialize timespectra from meta.  Is this how I want to do it?
+        # Initialize timespectra from meta.  Is this how I want to do it?
         ts=TimeSpectra(df, **meta) 
                 
 
-#### TESTING ###
+## TESTING ###
 if __name__ == '__main__':
 
-    ### Be careful when generating test data from Pandas Index/DataFrame objects, as this module has overwritten their defaul behavior
-    ### best to generate them in other modules and import them to simulate realisitc usec ase
+    # Be careful when generating test data from Pandas Index/DataFrame objects, as this module has overwritten their defaul behavior
+    # best to generate them in other modules and import them to simulate realisitc usec ase
 
+
+    # For testing 
+    import matplotlib.pyplot as plt
+
+
+    from pyuvvis.nptools.haiss import *
+    from pandas import read_csv as df_read_csv
 
 
     spec=SpecIndex(range(400, 700,1) )
@@ -1433,7 +1429,7 @@ if __name__ == '__main__':
     ts=ts.ix[440.0:700.0,0.0:100.0]
     ts.reference=0    
     
-    ### Goes to site packages because using from_spec_files, which is site package module
+    # Goes to site packages because using from_spec_files, which is site package module
     ts.run_pca()
  #   ts.pca_evals
 
@@ -1447,7 +1443,7 @@ if __name__ == '__main__':
     
     ts.baseline=ts.reference
     ts.sub_base()
-   
+    
     t3=TimeSpectra(abs(np.random.randn(300,30)), columns=testdates, index=spec, baseline=ts._baseline)  
     
        
