@@ -12,7 +12,7 @@ import collections
 
 from pandas.core.indexing import _NDFrameIndexer
 
-from pandas import DataFrame, Series
+from pandas import DataFrame, Series, TimeSeries
 
 ## for testing
 from numpy.random import randn
@@ -233,7 +233,11 @@ class MetaDataFrame(object):
         The above works because slicing preserved attributes because the _NDFrameIndexer is a python object 
         subclass.'''
         if self._ix is None:
-            self._ix=_MetaIndexer(self)
+            try:
+                self._ix=_MetaIndexer(self)
+            ### New versions of _NDFrameIndexer require "name" attribute.
+            except TypeError as TE:
+                self._ix=_MetaIndexer(self, '_ix')
         return self._ix        
             
 class _MetaIndexer(_NDFrameIndexer):
@@ -249,7 +253,7 @@ class _MetaIndexer(_NDFrameIndexer):
         out=super(_MetaIndexer, self).__getitem__(key)   
 
         ### Series returns transformed to MetaDataFrame
-        if isinstance(out, Series):
+        if isinstance(out, Series) or isinstance(out, TimeSeries):
             df=DataFrame(out)
             return self.obj._transfer(out)
 
