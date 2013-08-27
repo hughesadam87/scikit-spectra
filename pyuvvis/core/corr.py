@@ -29,7 +29,7 @@ from math import pi
 
 # pyuvvis imports
 from pyuvvis.pyplots.advanced_plots import spec_surface3d
-from pyuvvis.custom_errors import badvalue_error
+from pyuvvis.exceptions import badvalue_error
 
 
 def make_ref(df, method='mean'):

@@ -10,9 +10,27 @@ __status__ = "Development"
 
 from operator import attrgetter
 
+class GeneralError(Exception):
+
+    ''' Default custom error.  Basic interface to define a default error; but
+        easily overwritten when the user wants to pass a custom message.'''
+
+    default = ''
+
+    def __init__(self, msg=None):
+        self.message = msg
+
+    def __str__(self):
+        if self.message:
+            return repr(self.message)
+        else:
+            return repr(self.default)
+
+# Functions 
 def badvalue_error(attribute, allowedvalues):
     ''' Wrong value of argument passed.'''
-    return AttributeError('Received attribute, %s, however, allowed values are: %s'%(attribute, allowedvalues))
+    return AttributeError('Received attribute, %s, however, allowed values are:' 
+    ' %s'%(attribute, allowedvalues))
 
 def badtype_error(attribute, allowedtypes):
     ''' Wrong type of argument passed. Provide attribute and allowed types'''

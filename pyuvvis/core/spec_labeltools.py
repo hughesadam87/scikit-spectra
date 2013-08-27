@@ -18,7 +18,7 @@ import math
 ### 3rd Party Imports
 import numpy as np
 
-from pyuvvis.custom_errors import badkey_check
+from pyuvvis.exceptions import badkey_check
 
 ### Change spectral labels ###
 h=6.626068*10**-34          #Planck's constant m**2 kg / s
