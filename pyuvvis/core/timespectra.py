@@ -10,6 +10,8 @@ from pyuvvis.pandas_utils.metadframe import MetaDataFrame, _MetaIndexer, _NDFram
 from pandas import DataFrame, DatetimeIndex, Index, Series
 import numpy as np
 from scipy import integrate
+#from scikits.learn import PCA
+from pca_scikit import PCA
 
 ### Absolute pyuvvis imports (DON'T USE RELATIVE IMPORTS)
 from pyuvvis.core.specindex import SpecIndex, specunits, get_spec_category, set_sindex
@@ -220,7 +222,7 @@ class TimeSpectra(MetaDataFrame):
     ### Methods ( @property decorators ensure use can't overwrite methods) ######   
     #############################################################################
 
-    ### Unit printouts
+    ### Unit printouts (change to pretty print?)
     def _list_out(self, outdic, delim='\t'):
         ''' Generic output method for shortname:longname iterables.  Prints out various
         dictionaries, and is independent of the various datastructures contained'''
@@ -345,8 +347,8 @@ class TimeSpectra(MetaDataFrame):
 
     @property
     def data(self):
-        ''' Instead of directly accessing self._df.'''
-        return self.as_dataframe()
+        ''' Accesses self._df'''
+        return self._df
 
     ###############################
     ### reference related operations
@@ -583,7 +585,99 @@ class TimeSpectra(MetaDataFrame):
            WHEN PLOTTING, PLOT THE TRANSPOSE OF THE RETURNED DF.
         '''
         return self.wavelength_slices((min(self.index), max(self.index)), apply_fcn=apply_fcn)
-       
+    
+    
+    ### PCA INTERFACE ###    
+    _pca=None   #Instance method?
+    
+    def _pcagate(self, attr):
+        ''' Raise an error if use calls inaccessible PCA method.'''
+        if not self._pca:
+            raise AttributeError('Please run .pca() method before calling %s'%attr)    
+        
+    def run_pca(self, n_components=None, fit_transform=True):# k=None, kernel=None, extern=False):           
+            '''         
+
+            Adaptation of Alexis Mignon's pca.py script
+            
+            Adapted to fit PyUvVis 5/6/2013.  
+            Original credit to Alexis Mignon:
+            Module for Principal Component Analysis.
+    
+            Author: Alexis Mignon (c)
+            Date: 10/01/2012
+            e-mail: alexis.mignon@gmail.com
+            (https://code.google.com/p/pypca/source/browse/trunk/PCA.py)
+                        
+            Constructor arguments:
+            * k: number of principal components to compute. 'None'
+                 (default) means that all components are computed.
+            * kernel: perform PCA on kernel matrices (default is False)
+            * extern: use extern product to perform PCA (default is 
+                   False). Use this option when the number of samples
+                   is much smaller than the number of features.            
+
+            See pca.py constructor for more info.
+            
+            This will initialize PCA class and fit current values of timespectra.
+            
+            Notes:
+            ------
+                The pcakernel.py module is more modular.  These class methods
+                make it easier to perform PCA on a timespectra, but are less 
+                flexible than using the module functions directly.
+            
+                timespectra gets transposed as PCA module expects rows as 
+                samples and columns as features.
+                
+                Changes to timespectra do not retrigger PCA refresh.  This 
+                method should be called each time changes are made to the data.
+                
+                
+            '''
+            self._pca=PCA(n_components=n_components, index=self.index)                
+            if fit_transform:
+                return self._pca.fit_transform(self._df.transpose())
+            else:    
+                self._pca.fit(self._df.transpose())
+                
+                        
+    @property
+    def pca(self):
+        self._pcagate('pca')
+        return self._pca 
+    
+    @property
+    def pca_evals(self):
+        self._pcagate('eigen values')
+        ### Index is not self.columns because eigenvalues are still computed with
+        ### all timepoints, not a subset of the columns        
+        return Series(self._pca.eigen_values_)
+    
+    @property
+    def pca_evecs(self):
+        self._pcagate('eigen vectors')
+        return DataFrame(self._pca.eigen_vectors_)
+            
+    def load_vec(self, k):
+        ''' Return loading vector series for k.  If k > number of components
+            computed with runpca(), this raises an error rather than 
+            recomputing.'''
+        self._pcagate('load_vec')
+        if k > len(ts.columns):
+            raise AttributeError('Principle components must be <= number of timepoints %s'%len(ts))
+
+
+        ### Decided to put impetus on user to recompute when not using enough principle components
+        ### rather then trying to figure out logic of all use cases.
+
+        ### If k > currently stored eigenvectors, recomputes pca
+        if self._pca._k:
+            if k > len(self.pca_evals):            
+                raise AttributeError('Only %s components were computed.  Please call run_pca() with \
+                more principle components returned.'%self._pca._k)
+
+        return Series(self._pca.eigen_vectors_[:,k], index=self._pca._index) 
         
     ### Spectral column attributes/properties
     @property
@@ -887,6 +981,10 @@ class TimeSpectra(MetaDataFrame):
         ''' Validates user-supplied baseline before setting.'''
         
         ### If not iterable, return a series of constant values
+
+        if baseline is None:
+            return baseline
+        
         try:
             baseline.__iter__
         except AttributeError:
@@ -928,15 +1026,15 @@ class TimeSpectra(MetaDataFrame):
         
         # Data does not current contain subtracted baseline
         if not self._base_sub:
-            print 'no bline/ready to go.'
             self._baseline=bline
  
         # Data does contain subtracted baseline
         else:
-            print 'subbing fool'
             self.add_base()
             self._baseline=bline
-            self.sub_base()
+            ### If baseline is not none, go ahead and re-subtract
+            if bline is not None:
+                self.sub_base()
              
 
     ### Spectral Intensity related attributes/conversions
@@ -1324,7 +1422,24 @@ if __name__ == '__main__':
     
     ts=TimeSpectra(abs(np.random.randn(300,30)), columns=testdates, index=spec)  
     t2=TimeSpectra(abs(np.random.randn(300,30)), columns=testdates2, index=spec) 
-    ts.reference=0
+   
+   
+    from pyuvvis.IO.gwu_interfaces import from_spec_files, get_files_in_dir
+    ts=from_spec_files(get_files_in_dir('NPSAM', sort=True))
+
+    ts.to_interval('s')
+    ts=ts.ix[440.0:700.0,0.0:100.0]
+    ts.reference=0    
+    
+    ### Goes to site packages because using from_spec_files, which is site package module
+    ts.run_pca()
+ #   ts.pca_evals
+
+    #from pandas import Panel
+    #Panel._constructor_sliced=TimeSpectra
+    #pdic={'ts':ts}
+    #tp=Panel.from_dict(pdic)
+    
     d={'start':2/22/12, 'periods':len(ts.columns), 'freq':'45s'}
     ts.set_daterange(start='2/22/12', periods=len(ts.columns), freq='45s')
     
