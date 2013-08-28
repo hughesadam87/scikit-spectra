@@ -14,6 +14,7 @@ import shutil
 import sys
 import imp
 import collections 
+import logging
 from optparse import OptionParser
 
 import matplotlib.pyplot as plt
@@ -35,16 +36,22 @@ from pyuvvis.core.baseline import dynamic_baseline
 from pyuvvis.core.corr import ca2d, make_ref, sync_3d, async_3d
 from pyuvvis.core.timespectra import Idic
 from pyuvvis.pandas_utils.metadframe import mload, mloads
-from pyuvvis.custom_errors import badkey_check
+from pyuvvis.exceptions import badkey_check
 
 ### Import some parameters
-from pyuvvis.scripts.usb_2000 import params as p2000
-from pyuvvis.scripts.usb_650 import params as p650
+from usb_2000 import params as p2000
+from usb_650 import params as p650
 
+logger = logging.getLogger(__name__)
+from pyuvvis.logger import log, configure_logger
+
+
+@log(level='debug',log_name=__name__)
 def plt_clrsave(outpath, outname): # dpi=600):
     ''' Save plot then clear afterwards.  dpi=600 saves a nicer quality picture for publication.'''
     plt.savefig('%s/%s' %(outpath, outname)) #, dpi=600 )
     plt.clf()
+
     
 def _lgfile(logfile, verbose, message):
     ''' Writes information to logfile and optionally to screen if user uses --verbose=True 
@@ -56,6 +63,7 @@ def _lgfile(logfile, verbose, message):
     if verbose:
         print message
     logfile.write(message)
+
     
 def currenttime(tstart):
     ''' Return the timedelta in HMS given original time. '''
@@ -67,6 +75,7 @@ def currenttime(tstart):
     return tf
 
 
+@log(log_name=__name__)
 def core_analysis():
     img_ignore=['png', 'jpeg', 'tif', 'bmp', 'ipynb'] 
     
@@ -128,6 +137,11 @@ def core_analysis():
     parser.add_option('--verbose', action='store_true', default=True, #REMOVE
                       dest='verb',
                       help='If true, anything written to logfile will also be printed to screen.')    
+    
+    parser.add_option('-t', action='store_true', default=True, #REMOVE
+                      dest='trace',
+                      help='Traceback.')    
+
 
 
     (options, kwargs) = parser.parse_args()
@@ -136,6 +150,12 @@ def core_analysis():
     ### Configuration parameters #
     ##############################
     ### If user enters configuration parameters file
+
+    if options.verb:
+        configure_logger(screen_level='debug', name = __name__)    
+    else:
+        configure_logger(screen_level='warning', name = __name__)
+     
     if options.cfig:
         
         ### If user enters keys to builtin params style
@@ -176,6 +196,8 @@ def core_analysis():
             ### Overwrite defaults completely.  Does not force user to have every relevant parameter.
             else:
                 params=cparms
+
+    logging.debug("FOO BAR")
     
     ### Overwrite parameters from commandline variable keyword args
     ### Args are list [x,y,z] but enforcing kwarg from input of form ['x=3', 'y=5']    
@@ -280,11 +302,12 @@ def core_analysis():
             picklefile=[afile for afile in infiles if afile.split('.')[-1]=='pickle']
     
             if len(picklefile)>1:
-                _lgfile(lf, options.verb,'Failed to load in folder, %s, had more than one .pickle files.\n'%folder)
-                raise IOError('Indirectory must contain only one pickle file if you want to use it!!!')
+                logger.error('Failed to load in folder, %s, had more than one '
+                '.pickle files.\n'%folder)
     
             elif len(picklefile)==1:
-                _lgfile(lf, options.verb,'Loaded contents of folder, %s, using the ".pickle" file, %s.'%(folder, get_shortname(picklefile[0])))            
+                logger.info('Loaded contents of folder, %s, using the ".pickle" ' 
+                'file, %s.'%(folder, get_shortname(picklefile[0])))            
                 ts_full=mload(picklefile[0])        
     
             ### If no picklefile found try reading in datafile directly
@@ -292,30 +315,30 @@ def core_analysis():
                 if len(infiles) == 2:
                     timefile=[afile for afile in infiles if 'time' in afile.lower()]
                     if len(timefile) == 1:
-                        _lgfile(lf, options.verb,'Loading contents of "%s", using the timefile/datafile conventional import'%folder)                       
+                        logger.info('Loading contents of "%s", using the '
+                            'timefile/datafile conventional import'%folder)                       
                         infiles.remove(timefile[0])
                         ts_full=from_timefile_datafile(datafile=infiles[0], timefile=timefile[0])
     
                     ### ACCOUNT FOR REMOTE POSSIBILITY THAT 2 FILES COULD STILL JUST BE TWO RAW DATA FILES INSTEAD OF DATAFILE/TIMEFILE
                     elif len(timefile) == 0:
-                        _lgfile(lf, options.verb,'Loading contents of folder "%s" multiple raw spectral files %s.  (If these were \
-                        supposed to be datafile/timefile and not raw files, couldnt find word "time" in filename.) \
-                        \n'%(folder, len(infiles)))                     
+                        logger.info('Loading contents of folder "%s" multiple '
+                        'raw spectral files %s.  (If these were supposed to be '
+                        'datafile/timefile and not raw files, couldnt find word'
+                        '"time" in filename.\n' % (folder, len(infiles)))                     
+   
                         ts_full=from_spec_files(infiles)
     
     
                     else:
-                        _lgfile(lf, options.verb,'Failure: multiple timefile matches found in folder %s'%folder)                                
-                        raise IOError('Timefile not found.  File must contain word "time"')                    
+                        logger.error('Failure: multiple timefile matches found'
+                        'in folder %s' % folder)                                
     
                 else:
-                     
-                    try:
-                        ts_full=from_spec_files(infiles)
-                        _lgfile(lf, options.verb,'Loading contents of folder, %s, multiple raw spectral files %s.'%(folder, len(infiles)))                                             
-                    except Exception as E:
-                        _lgfile(lf, options.verb,'SCRIPT ERROR: Could not load contents of %s.\n Following exception was returned:\n%s'%(folder, E))
-                        continue
+                    logger.info('Loading contents of folder, %s, multiple '
+                        'raw spectral files %s.' % (folder, len(infiles)))     
+                    ts_full=from_spec_files(infiles)
+                                        
     
                     
     
@@ -363,7 +386,7 @@ def core_analysis():
             if params['sub_base']:
                 ### If missing baseline
                 if ts_full.baseline is None:
-                    _lgfile(lf, options.verb,'Warning: baseline not found on TimeSpectra')            
+                    logger.warn('Warning: baseline not found on Timespectra (name=%s)' % ts_full.name)            
                 else:    
                     ts.sub_base() 
             else:

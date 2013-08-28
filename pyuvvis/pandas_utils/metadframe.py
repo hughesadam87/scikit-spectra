@@ -43,7 +43,7 @@ def mloads(string):
         
 
 # Log all public/private methods to debug
-@logclass(public_lvl='debug', log_name=__name__)
+@logclass(public_lvl='debug', log_name=__name__, skip=['_transfer'])
 class MetaDataFrame(object):
     ''' Base composition for subclassing dataframe.'''
 

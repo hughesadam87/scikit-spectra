@@ -117,7 +117,7 @@ def spec_from_dir(directory, csvargs, sortnames=False, concat_axis=1, shortname=
     return TimeSpectra(df_from_directory(directory, csvargs, sortnames=sortnames, concat_axis=concat_axis, shortname=shortname, cut_extension=cut_extension))
 
 
-@logclass(log_name=__name__, skip = ['_dfgetattr', '_comment'])
+@logclass(log_name=__name__, skip = ['_dfgetattr', '_comment', '_transfer'])
 class TimeSpectra(MetaDataFrame):
     ''' Provides core TimeSpectra composite pandas DataFrame to represent a set of spectral data.  Enforces spectral data 
     along the index and temporal data as columns.  The spectral index is controlled from the specindex
