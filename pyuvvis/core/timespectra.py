@@ -2,6 +2,7 @@
 
 import string
 import cPickle
+import logging
 from types import NoneType, MethodType
 from operator import itemgetter
 
@@ -12,6 +13,7 @@ from scipy import integrate
 from pca_scikit import PCA
 
 from pyuvvis.pandas_utils.metadframe import MetaDataFrame, _MetaIndexer
+from pyuvvis.logger import log, configure_logger
 
 from pandas import DataFrame, DatetimeIndex, Index, Series
 from scipy import integrate
@@ -33,9 +35,8 @@ from pyuvvis.exceptions import badkey_check, badcount_error, RefError, BaselineE
 tunits={'ns':'Nanoseconds', 'us':'Microseconds', 'ms':'Milliseconds', 's':'Seconds', 
         'm':'Minutes', 'h':'Hours','d':'Days', 'y':'Years'}  #ADD NULL VALUE? Like None:'No Time Unit' (iunit/specunit do this)
 
-
+logger = logging.getLogger(__name__) 
    
-
 ##########################################
 ## TimeSpectra Private Utilities   #######
 ##########################################
@@ -127,7 +128,8 @@ class TimeSpectra(MetaDataFrame):
 
     def __init__(self, *dfargs, **dfkwargs):
         # Pop default DataFrame keywords before initializing###
-        self.name=dfkwargs.pop('name', 'TimeSpectra')
+        self.name=dfkwargs.pop('name', '')
+        logger.info('Initializing %s:%s' % (self.__class__.__name__, self.name))
         
         ###Spectral index-related keywords
         specunit=dfkwargs.pop('specunit', None)
@@ -966,7 +968,7 @@ class TimeSpectra(MetaDataFrame):
         self._base_gate()
         return self._base_sub
         
-    
+    @log(log_name = __name__)
     def _valid_baseline(self, baseline):
         ''' Validates user-supplied baseline before setting.'''
         
@@ -1410,20 +1412,20 @@ if __name__ == '__main__':
 
     from pyuvvis.nptools.haiss import *
     from pandas import read_csv as df_read_csv
-
+    
 
     spec=SpecIndex(range(400, 700,1) )
 #    spec=SpecIndex([400.,500.,600.])
-    testdates=date_range(start='3/3/12',periods=30,freq='h')
-    testdates2=date_range(start='3/3/12',periods=30,freq='45s')
+    testdates = date_range(start='3/3/12',periods=30,freq='h')
+    testdates2 = date_range(start='3/3/12',periods=30,freq='45s')
     
-    ts=TimeSpectra(abs(np.random.randn(300,30)), columns=testdates, index=spec)  
-    t2=TimeSpectra(abs(np.random.randn(300,30)), columns=testdates2, index=spec) 
+    ts=TimeSpectra(abs(np.random.randn(300,30)), columns=testdates, index=spec, name='ts1')  
+    t2=TimeSpectra(abs(np.random.randn(300,30)), columns=testdates2, index=spec, name='ts2') 
    
    
     from pyuvvis.IO.gwu_interfaces import from_spec_files, get_files_in_dir
     from pyuvvis.exampledata import get_exampledata
-    ts=from_spec_files(get_files_in_dir(get_exampledata('NPSAM'), sort=True))
+    ts=from_spec_files(get_files_in_dir(get_exampledata('NPSAM'), sort=True), name='foofromfile')
 
     ts.to_interval('s')
     ts=ts.ix[440.0:700.0,0.0:100.0]
@@ -1444,7 +1446,8 @@ if __name__ == '__main__':
     ts.baseline=ts.reference
     ts.sub_base()
     
-    t3=TimeSpectra(abs(np.random.randn(300,30)), columns=testdates, index=spec, baseline=ts._baseline)  
+    t3=TimeSpectra(abs(np.random.randn(300,30)), columns=testdates, index=spec,
+                   baseline=ts._baseline, name='foobar')  
     
        
     #ts._reference.x='I WORK'

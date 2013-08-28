@@ -161,29 +161,25 @@ def from_spec_files(file_list, name=None, skiphead=17, skipfoot=1, check_for_ove
 
         f.close()
 
-    ### Make dataframe, add filenames, baseline and metadata attributes (note, DateTimeIndex auto sorts!!)
-    dataframe=TimeSpectra(dict_of_series)
-    dataframe.specunit='nm'
-    dataframe.filedict=time_file_dict
-    dataframe.baseline=baseline  #KEEP THIS AS DARK SERIES RECALL IT IS SEPARATE FROM reference OR REFERENCE..
-    if name:
-        dataframe.name=name    
+    ### Make timespec, add filenames, baseline and metadata attributes (note, DateTimeIndex auto sorts!!)
+    timespec=TimeSpectra(dict_of_series, name=name)
+    timespec.specunit='nm'
+    timespec.filedict=time_file_dict
+    timespec.baseline=baseline  #KEEP THIS AS DARK SERIES RECALL IT IS SEPARATE FROM reference OR REFERENCE..  
 
     ### Take metadata from first file in filelist that isn't darkfile
     for infile in file_list:
-        if infile==darkfile:
-            pass
-        else:
+        if infile != darkfile:
             with open(infile) as f:
                 header=[f.next().strip() for x in xrange(skiphead)]         
             meta_partial=_get_metadata_fromheader(header)
             break      
 
-    meta_general=get_headermetadata_dataframe(dataframe, time_file_dict) 
+    meta_general=get_headermetadata_dataframe(timespec, time_file_dict) 
     meta_general.update(meta_partial)
-    dataframe.metadata=meta_general   
+    timespec.metadata=meta_general   
 
-    return dataframe
+    return timespec
 
 def _get_datetime_specsuite(specsuiteheader):
     ''' Special, Ocean-optics specific function to get date information from a their customized header.'''

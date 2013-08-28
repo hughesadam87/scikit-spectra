@@ -40,6 +40,9 @@ class RefError(GeneralError):
         self.message = ('Cannot resolve length %s reference (%s%s - %s%s) and length %s %s (%s%s - %s%s)'\
                       %(len(index), index[0], sunit,  index[-1], sunit, len(timespectra.reference), \
                         timespectra.name, timespectra.df.index[0], sunit, timespectra.df.index[-1], sunit) )
+        
+class LogExit(SystemExit):
+    ''' Used by logger. '''
     
 
 # Functions 
