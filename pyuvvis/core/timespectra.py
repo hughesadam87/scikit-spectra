@@ -13,7 +13,7 @@ from scipy import integrate
 from pca_scikit import PCA
 
 from pyuvvis.pandas_utils.metadframe import MetaDataFrame, _MetaIndexer
-from pyuvvis.logger import log, configure_logger
+from pyuvvis.logger import log, configure_logger, decode_lvl, logclass
 
 from pandas import DataFrame, DatetimeIndex, Index, Series
 from scipy import integrate
@@ -117,6 +117,7 @@ def spec_from_dir(directory, csvargs, sortnames=False, concat_axis=1, shortname=
     return TimeSpectra(df_from_directory(directory, csvargs, sortnames=sortnames, concat_axis=concat_axis, shortname=shortname, cut_extension=cut_extension))
 
 
+@logclass(log_name=__name__, skip = ['_dfgetattr', '_comment'])
 class TimeSpectra(MetaDataFrame):
     ''' Provides core TimeSpectra composite pandas DataFrame to represent a set of spectral data.  Enforces spectral data 
     along the index and temporal data as columns.  The spectral index is controlled from the specindex
@@ -129,19 +130,21 @@ class TimeSpectra(MetaDataFrame):
     def __init__(self, *dfargs, **dfkwargs):
         # Pop default DataFrame keywords before initializing###
         self.name=dfkwargs.pop('name', '')
-        logger.info('Initializing %s:%s' % (self.__class__.__name__, self.name))
         
-        ###Spectral index-related keywords
+        # Spectral index-related keywords
         specunit=dfkwargs.pop('specunit', None)
 
-        ###Intensity data-related stuff
+        # Intensity data-related stuff
         iunit=dfkwargs.pop('iunit', None)
 
-        ###Time index-related keywords  (note, the are only used if a DatetimeIndex is not passed in)
-        reference=dfkwargs.pop('reference', None)
-        
+        # Time index-related keywords  (note, the are only used if a DatetimeIndex is not passed in)
+        reference=dfkwargs.pop('reference', None)        
         bline=dfkwargs.pop('baseline', None)
         
+        # Logging __init__() in @logclass can't access self.name
+        logger.info('Initializing %s' %  '%s:(name = %s)' % 
+                    (self.__class__.__name__, self.name))
+
         
         # NEED TO WORK OUT LOGIC OF THIS INITIALIZATION?
         # Should I even do anything?
@@ -176,38 +179,48 @@ class TimeSpectra(MetaDataFrame):
         if not hasattr(self._df.index, '_convert_spectra'):  #Better to find method than index.unit attribute
             # No index, no specunit
             if specunit == None:
-                self.specunit=None
+                self.specunit = None
             # No index, specunit
             else:
-                self.specunit=specunit   #Property setter will do validation         
+                self.specunit = specunit   #Property setter will do validation         
     
         else:
             # Index, no specunit
             if specunit == None:
-                self.specunit=self._df.index.unit
+                self.specunit = self._df.index.unit
                 
             # Index, specunit---> Convert down
             else:
                 old_unit=self._df.index.unit
                 self.specunit=specunit 
                 if old_unit != specunit:
-                    print 'Alert: SpecIndex unit was changed internally from "%s" to "%s"'%(old_unit, specunit)
+                    logger.warn('SpecIndex unit was changed internally from '
+                                  '"%s" to "%s"'%(old_unit, specunit))
                 
         # Baseline Initialization (UNTESTED)
-        self._base_sub=False 
-        self._baseline=None  
+        self._base_sub = False 
+        self._baseline = None  
         
         if not isinstance(bline, NoneType):
-            self.baseline=bline
+            self.baseline = bline
         
                
-        ###Store intrinsic attributes for output later by listattr methods
+        # Store intrinsic attributes for output later by listattr methods
         self._intrinsic=self.__dict__.keys()
         self._intrinsic.remove('name') #Not a private attr
         
-        ###Which attributes/methods are manipulated along with the dataframe
+        # Which attributes/methods are manipulated along with the dataframe
         self._cnsvdattr=['_reference', '_baseline']
         self._cnsvdmeth=['_slice', 'boxcar'] #_slice is ix
+
+
+    def _comment(self, statement, level='info'):
+        prefix = ''
+        if self.name:
+            prefix = self.name + ': '
+
+        statement = '%s%s' % (prefix, statement)
+        logger.log(decode_lvl(level), statement)
 
 
     ###########################################################################    
@@ -928,7 +941,7 @@ class TimeSpectra(MetaDataFrame):
             raises error.  If found, passes.'''
         if isinstance(self._baseline, NoneType):
             raise AttributeError('Baseline not found.')        
-    
+
     def sub_base(self):
         ''' Subtracts baseline from entire dataset.
         
@@ -947,7 +960,7 @@ class TimeSpectra(MetaDataFrame):
             self._base_sub=True     
         #else:
             #print 'raise waring? already subbed'
-        
+
     def add_base(self):
         ''' Adds baseline to data that currently has it subtracted.'''
 
@@ -961,41 +974,67 @@ class TimeSpectra(MetaDataFrame):
             
         #else:
             #print 'raise waring? already added'        
-            
+
     @property
     def base_sub(self):
         ''' Is baseline currently subtracted from spectral data.'''
         self._base_gate()
         return self._base_sub
         
-    @log(log_name = __name__)
     def _valid_baseline(self, baseline):
-        ''' Validates user-supplied baseline before setting.'''
+        ''' Validates user-supplied baseline before setting.  Mostly,
+            ensures that baseline.index == self._df.index'''
         
 
         if baseline is None:
+            self._comment('Baseline is None')
             return 
         
         # If baseline not iterable, return series of constant values
         try:
             baseline.__iter__
         except AttributeError:
+            self._comment('Baseline is not iterable; filling with constant '
+                         'value %s' % baseline)
             return Series(baseline, index=self._df.index)
         
 
         # If Series compare index values
+        # NEED A SPEC INDEX CLASS, THEN REMOE MOST OF THIS
         if isinstance(baseline, Series):
-            if np.array_equal(baseline.index, self._df.index):
-                return baseline
+            if baseline.shape != self.index.shape:
+                raise BaselineError('Baseline shape mismatch %s vs %s %s'
+                        %(baseline.shape, self.name, self.index.shape))
             else:
-                raise BaselineError('Baseline must have the same '
-                                           'spectral index as %s'%self.name)
+                if np.array_equal(baseline.index, self._df.index):
+                    self._comment('Baseline is a series; has identical index' 
+                                  'to self._df.index')
+                    return baseline
+                else:
+                    self._comment('Baseline is a series; shape identical to'
+                                 ' self.index.shape; but elements are not equal.')
+                    mytype = self._df.index.dtype
+                    bline_type = baseline.index.dtype
+
+                    try:
+                        baseline.index.dtype = mytype
+                    except Exception:
+                        raise BaselineError('Baseline index (%s) could not be cast to  '
+                                'self.index.type (%s)' % (bline_type, mytype))
+                    else:
+                        logger.warn('Baseline index type (%s) converted to self.index '
+                                    'type (%s)' % (bline_type, mytype))
+                        if np.array_equal(baseline.index, self._df.index):
+                            return baseline
+                        else:
+                            raise BaselineError('Baseline index != self._df.index')
 
        # If other type of iterable, make series
         else:
             # Make sure length is correct
             if len(baseline) == len(self._df.index):
-                return Series(baseline, index=self._df.index)
+                self._comment("Baseline is iterable, but not a Series; converting")
+                return Series(baseline, index=self._df.index, dtype=float)
             else:
                 raise BaselineError('Baseline must be of length %s to '
                     'match the current spectral index.'%len(self._df.index))
@@ -1217,13 +1256,13 @@ class TimeSpectra(MetaDataFrame):
                         conserved attributes %s.'%attr, '","'.join(csvdout.columns))                               
             
             # Create new timespectra object
-            tsout=self._transfer(out)
+            tsout = self._transfer(out)
             
             if not isinstance(csvdout, NoneType):
                                 
                 for col in csvdout:
                     
-                    ###Restore custom attributes on the cnsvdattributes
+                    # Restore custom attributes on the cnsvdattributes
                     restattr=[attr for attr in _csvdfattrs[col] if attr not in csvdout[col].__dict__]
                     if restattr:
                         for attr in restattr:
@@ -1397,7 +1436,7 @@ class TimeSpectra(MetaDataFrame):
         
         # Initialize timespectra from meta.  Is this how I want to do it?
         ts=TimeSpectra(df, **meta) 
-                
+              
 
 ## TESTING ###
 if __name__ == '__main__':
@@ -1430,6 +1469,7 @@ if __name__ == '__main__':
     ts.to_interval('s')
     ts=ts.ix[440.0:700.0,0.0:100.0]
     ts.reference=0    
+    print ts._baseline.shape, ts.shape
     
     # Goes to site packages because using from_spec_files, which is site package module
     ts.run_pca()
@@ -1445,9 +1485,12 @@ if __name__ == '__main__':
     
     ts.baseline=ts.reference
     ts.sub_base()
-    
-    t3=TimeSpectra(abs(np.random.randn(300,30)), columns=testdates, index=spec,
+
+    # THIS FAILS WHEN INDEX=SPEC 
+    t3=TimeSpectra(abs(np.random.randn(ts.baseline.shape[0], 30)), columns=\
+                   testdates, 
                    baseline=ts._baseline, name='foobar')  
+
     
        
     #ts._reference.x='I WORK'

@@ -14,8 +14,13 @@ from pandas.core.indexing import _NDFrameIndexer
 
 from pandas import DataFrame, Series, TimeSeries
 
-## for testing
+# for testing
 from numpy.random import randn
+
+# Logging functions
+from pyuvvis.logger import logclass
+import logging
+logger = logging.getLogger(__name__) 
 
 #----------------------------------------------------------------------
 # Store attributes/methods of dataframe for later inspection with __setattr__
@@ -37,6 +42,8 @@ def mloads(string):
     return cPickle.loads(string)        
         
 
+# Log all public/private methods to debug
+@logclass(public_lvl='debug', log_name=__name__)
 class MetaDataFrame(object):
     ''' Base composition for subclassing dataframe.'''
 
