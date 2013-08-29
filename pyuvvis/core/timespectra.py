@@ -332,22 +332,26 @@ class TimeSpectra(MetaDataFrame):
             # Sort output either by name or type
             badkey_check(sortby, ['name', 'type']) #sortby must be 'name' or 'type'
             
-            if sortby=='name':
+            if sortby == 'name':
                 atts=sorted(atts, key=itemgetter(0))
-            elif sortby=='type':
+            elif sortby == 'type':
                 atts=sorted(atts, key=itemgetter(1))
 
         # Output to screen
         print delim.join(outheader)    
         print '--------------------'
         for att in atts:
-            if types==True:
+            if types == True:
                 print string.rjust(delim.join(att), 7) #MAKE '\N' comprehension if string format never works out
             else:
                 print att    
         
         
-        
+    @property  #Make log work with this eventually?
+    def full_name(self):
+        ''' Timespectra:name or Timespectra:unnamed.  Useful for scripts mostly '''
+        outname = getattr(self, 'name', 'unnamed')
+        return '%s:%s' % (self.__class__.__name__, self.name)
         
 
     @property
