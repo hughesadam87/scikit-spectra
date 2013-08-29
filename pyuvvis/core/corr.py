@@ -29,7 +29,7 @@ from math import pi
 
 # pyuvvis imports
 from pyuvvis.pyplots.advanced_plots import spec_surface3d
-from pyuvvis.custom_errors import badvalue_error
+from pyuvvis.exceptions import badvalue_error
 
 
 def make_ref(df, method='mean'):
@@ -78,7 +78,7 @@ def noda_matrix(length):
 
 def ca2d(df, reference):
     '''This actually compuates 2d correlation analysis'''
-    dyn=df.sub(reference, axis=0) #Need to subtract along index this way
+    dyn=df.sub(reference, axis=0) #Need to subtract along index this way (WHAT IS THIS)?
     T_dyn=conj(dyn).transpose()  #Conjugate transpose matrix
     m=len(df.columns)  #confirmed columns
     

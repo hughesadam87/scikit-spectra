@@ -21,7 +21,7 @@ from plot_utils import smart_label, _df_colormapper, cmget
 #sys.path.append('../')
 #from custom_errors import badvalue_error
 
-from pyuvvis.custom_errors import badvalue_error
+from pyuvvis.exceptions import badvalue_error
 
 # Smart float to int conversion
 _ir=lambda(x): int(round(x))
