@@ -19,7 +19,7 @@ import numpy as np
 from scipy import integrate
 
 from pyuvvis.pandas_utils.dataframeserial import _get_metadict
-from pyuvvis.custom_errors import badvalue_error
+from pyuvvis.exceptions import badvalue_error
 
 
 def countNaN(obj):

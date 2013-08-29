@@ -17,7 +17,7 @@ import matplotlib.cm as cm
 #sys.path.append('../')
 #from custom_errors import badvalue_error
 
-from pyuvvis.custom_errors import badvalue_error
+from pyuvvis.exceptions import badvalue_error
 
 def cmget(color):
     ''' Takes in a default cm color name and returns the cm.attribute color mapper for convienence.  Some of the

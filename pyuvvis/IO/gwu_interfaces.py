@@ -69,7 +69,7 @@ def extract_darkfile(filelist, return_null=True):
     else:
         return darkfiles[0]
 
-def get_headermetadata_dataframe(dataframe, time_file_dict, name=None):
+def get_headermetadata_dataframe(dataframe, time_file_dict, name=''):
     ''' After creation of the dataframe and datetime-to-file dic, various metadata attributes 
     come together like filecount, filestart, filend etc...
     **run title becomes name of dataframe and can be adopted by plots'''
@@ -85,7 +85,7 @@ def get_headermetadata_dataframe(dataframe, time_file_dict, name=None):
 ### Below are the 2 main functions to extract the data ###
 ##########################################################
 
-def from_spec_files(file_list, name=None, skiphead=17, skipfoot=1, check_for_overlapping_time=True, extract_dark=True):
+def from_spec_files(file_list, name='', skiphead=17, skipfoot=1, check_for_overlapping_time=True, extract_dark=True):
     ''' Takes in raw files directly from Ocean optics USB2000 and USB650 spectrometers and returns a
     pyuvvis TimeSpectra. If spectral data stored without header, can be called with skiphead=0.
 
@@ -161,29 +161,25 @@ def from_spec_files(file_list, name=None, skiphead=17, skipfoot=1, check_for_ove
 
         f.close()
 
-    ### Make dataframe, add filenames, baseline and metadata attributes (note, DateTimeIndex auto sorts!!)
-    dataframe=TimeSpectra(dict_of_series)
-    dataframe.specunit='nm'
-    dataframe.filedict=time_file_dict
-    dataframe.baseline=baseline  #KEEP THIS AS DARK SERIES RECALL IT IS SEPARATE FROM reference OR REFERENCE..
-    if name:
-        dataframe.name=name    
+    ### Make timespec, add filenames, baseline and metadata attributes (note, DateTimeIndex auto sorts!!)
+    timespec=TimeSpectra(dict_of_series, name=name)
+    timespec.specunit='nm'
+    timespec.filedict=time_file_dict
+    timespec.baseline=baseline  #KEEP THIS AS DARK SERIES RECALL IT IS SEPARATE FROM reference OR REFERENCE..  
 
     ### Take metadata from first file in filelist that isn't darkfile
     for infile in file_list:
-        if infile==darkfile:
-            pass
-        else:
+        if infile != darkfile:
             with open(infile) as f:
                 header=[f.next().strip() for x in xrange(skiphead)]         
             meta_partial=_get_metadata_fromheader(header)
             break      
 
-    meta_general=get_headermetadata_dataframe(dataframe, time_file_dict) 
+    meta_general=get_headermetadata_dataframe(timespec, time_file_dict) 
     meta_general.update(meta_partial)
-    dataframe.metadata=meta_general   
+    timespec.metadata=meta_general   
 
-    return dataframe
+    return timespec
 
 def _get_datetime_specsuite(specsuiteheader):
     ''' Special, Ocean-optics specific function to get date information from a their customized header.'''
@@ -210,7 +206,7 @@ def _get_metadata_fromheader(specsuiteheader):
 ######### Get dataframe from timefile / datafile #####
 ## Authors Zhaowen Liu/Adam Hughes, 10/15/12
 
-def from_timefile_datafile(datafile, timefile, extract_dark=True, name=None): 
+def from_timefile_datafile(datafile, timefile, extract_dark=True, name=''): 
     ''' Converts old-style spectral data from GWU phys lab into  
     a dataframe with timestamp column index and wavelength row indicies.
 
@@ -281,7 +277,7 @@ def from_timefile_datafile(datafile, timefile, extract_dark=True, name=None):
 
     return dataframe
 
-def from_gwu_chem_UVVIS(filelist, sortnames=False, shortname=True, cut_extension=False, name=None):
+def from_gwu_chem_UVVIS(filelist, sortnames=False, shortname=True, cut_extension=False, name=''):
     ''' Format for comma delimited two column data from GWU chemistry's UVVis.  These have no useful metadata
     or dark data and so it is important that users either pass in a correctly sorted filelist.  Once the 
     dataframe is created, on can do df=df.reindex(columns=[correct order]).  
