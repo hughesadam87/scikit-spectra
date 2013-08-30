@@ -40,8 +40,9 @@ from usb_2000 import params as p2000
 from usb_650 import params as p650
 
 logger = logging.getLogger(__name__)
-from pyuvvis.logger import log, configure_logger
+from pyuvvis.logger import log, configure_logger, logclass
 
+SCRIPTNAME = 'gwuspec'
 DEF_CFIG = p2000
 DEF_INROOT = './scriptinput'
 DEF_OUTROOT = './output'
@@ -52,8 +53,11 @@ def _parse_params(namespace):
     ''' Spectra parameters in form "xmin=400" are formatted into a dictionary 
         inplace on namespace object.'''
 
+    # cfig dictionary sets default parameters
+    default = namespace.cfig
+
     if not namespace.params:
-        return 
+        namespace.params=[]
     
     try:
         kwargs = dict (zip( [x.split('=', 1 )[0] for x in namespace.params],
@@ -64,13 +68,21 @@ def _parse_params(namespace):
 
     invalid = []
     for key in kwargs:
-        if key in namespace.params:
-            namespace.params[key] = kwargs[key]
+        if key in default:
+            logger.debug('Overwriting %s parameter from cmdline input' % key)
+            default[key] = kwargs[key]
         else:
             invalid.append(key)
+
     if invalid:
         raise IOError('Parameter(s) "%s" not understood.  Valid parameters:' 
         '\n   %s' % ('","'.join(invalid), '\n   '.join(params.keys()) ) )
+    
+    namespace.params = default
+    delattr(namespace, 'cfig')
+    return
+    
+    
 
 
 def ext(afile):  #get file extension
@@ -132,11 +144,15 @@ class CfigAction(argparse.Action):
             setattr(namespace, self.dest, params)
             return 
 
-#logify?
+#skip class methods
+@logclass(log_name=__name__ , public_lvl='debug',
+          skip=['_ts_from_picklefiles', 'from_namespace'])
 class Controller(object):
     ''' '''
 
-    # Default configuration parameters        
+    name = 'Controller' #For logging
+
+    # Extensions to ignore when looking at files in a directory       
     img_ignore=['png', 'jpeg', 'tif', 'bmp', 'ipynb'] 
     
     # For now, this only takes in a namespace, but could make more flexible in future
@@ -144,22 +160,35 @@ class Controller(object):
         
         # These should go through the setters
         
-        self.inroot = kwargs.pop('inroot', DEF_INROOT) 
-        self.outroot = kwargs.pop('outroot', DEF_OUTROOT)
-        self._params = kwargs.pop('params', None)
-        self.sweepmode = kwargs.pop('sweep', False)
+        self.inroot = kwargs.get('inroot', DEF_INROOT) 
+        self.outroot = kwargs.get('outroot', DEF_OUTROOT)
+        self._params = kwargs.get('params', None)
+        self.sweepmode = kwargs.get('sweep', False)
         
-        self.rname = kwargs.pop('rname', '')
-        self.dryrun = kwargs.pop('dryrun', False) 
-        self.overwrite = kwargs.pop('overwrite', False)
+        self.rname = kwargs.get('rname', '')
+        self.dryrun = kwargs.get('dryrun', False) 
+        self.overwrite = kwargs.get('overwrite', False)
         
         # Configure logger
-        verbosity = kwargs.pop('verbosity', 'warning')
-        trace = kwargs.pop('trace', False)
+        verbosity = kwargs.get('verbosity', 'warning')
+        trace = kwargs.get('trace', False)
+                    
 
         # Add logging later; consider outdirectory conflicts
-        configure_logger(screen_level=verbosity, name = __name__)
-#                         logfile=op.join(self.outroot, 'Runlog.txt'))
+        self.build_outroot()
+        
+        configure_logger(screen_level=verbosity, name = __name__,
+                 logfile=op.join(self.outroot, 'Runlog.txt'), mode='w')
+
+        
+        with open(op.join(self.outroot, 'Parameters'), 'w') as f:
+            f.write('Spectral Parameters')
+            f.write('\n'.join([str(k)+'\t'+str(v) 
+                               for k, v in self.params.items()]))
+        
+            f.write('\nRun Parameters')
+            f.write('\n'.join([(str(k) + '\t' + str(v)) 
+                               for k,v in kwargs.items()]))
                         
         
         
@@ -265,22 +294,17 @@ class Controller(object):
             params['outtypes'] = None  
         self._params = params   
         
-
-    # Public methods
-    def output_params(self, outname='parameters'):
-        '''Write parameters to outroot/outname'''
-        
-        with open(op.join(outroot, outname), 'w') as f:
-            f.write('Run Parameters')
-            f.write('\n'.join([str(k)+'\t'+str(v) 
-                               for k, v in self.params.items()]))
             
     def start_run(self):
+
         if self.sweepmode:
             self.main_walk()
         else:
             self._inpath = self.inroot
             self._outpath = self.outroot
+            #self.build_out()
+            #self.output_params()
+
             self.analyze_dir()
             
 
@@ -318,25 +342,28 @@ class Controller(object):
     def analyze_dir(self):
         ''' Analyze a single directory, do all analysis. '''
 
-        self.build_out()
-        ts_full = self.build_ts()
+        ts_full = self.build_timespectra()
         start = time.time()
         
         logger.info('Time to import %s: %s' % 
                     (ts_full.full_name, start - time.time() ))
         self.validate_ts(ts_full)
         
+        # Makeoutdir/oufolder
+        logger.info('Making directory: %s' % op.join(self.outpath, self.infolder))
+        os.mkdir(op.join(self._outpath, self.infolder))
+        
 
-    def build_out(self):
-        if op.exists(self.outpath):
+    def build_outroot(self):
+        if op.exists(self.outroot):
             if not self.overwrite:
                 raise IOError("Outdirectory already exists!")                
             else:
-                logger.warn('Removing %s and all its contents' % self.outfolder)
-                shutil.rmtree(self.outpath)
-        
-        logger.info('Creating outdirectory %s' % self.outpath)
-        os.mkdir(self.outpath)
+                logger.warn('Directory "%s" and its contents will be overidden' % 
+                            op.basename(self.outroot))
+                shutil.rmtree(self.outroot)
+        logger.info('Creating outdirectory %s' % self.outroot)
+        os.mkdir(self.outroot)        
 
         
     def validate_ts(self, ts):
@@ -350,14 +377,14 @@ class Controller(object):
             ' index (%s,%s); parameters _valid_range (%s,%s)' % (dmin, dmax, pmin,pmax))  
             
         # Set some defaults if params fails
-        self._try_apply('specunit', 'nm')
-        self._try_apply('intvlunit', 'intvl')
+        self._try_apply(ts, 'specunit', 'nm')
+        self._try_apply(ts, 'intvlunit', 'intvl')
      
 
 
     # Let main_walk deal with passing int he correct versions of inpath/outpath 
     # IE THIS SHOULD NOT HAVE A CONCEPT OF INROOT AND OUTROOT
-    def build_ts(self):
+    def build_timespectra(self):
         ''' '''
         
         logger.info("Analyzing run directory %s" % self.infolder)
@@ -380,13 +407,13 @@ class Controller(object):
             return ts_full
         
         # Import from raw specfiles
-        logger.info('Loading contents of folder, %s, multiple raw spectral '
+        logger.info('Loading contents of %s multiple raw spectral '
                     'files %s.' % (self.infolder, len(infiles)))     
-        return from_spec_files(infiles)        
+        return from_spec_files(infiles, name=self.infolder)        
         
         
-    @classmethod
-    def _ts_from_legacy(cls, infiles):
+    
+    def _ts_from_legacy(self, infiles):
         
         if len(infiles) != 2:
             logger.info('Legacy import failed: requires 2 infiles (timefile/darkfile); '
@@ -404,11 +431,12 @@ class Controller(object):
                     'conventional import' % self.infolder)                       
         timefile = timefile[0]
         infiles.remove(timefile) #remaing file is datafile
-        return from_timefile_datafile(datafile=infiles, timefile=timefile)
+        return from_timefile_datafile(datafile=infiles, timefile=timefile, 
+                                      name=self.infolder)
 
        
     @classmethod
-    def _ts_from_picklefiles(cls, infiles, infolder='unknown'):
+    def _ts_from_picklefiles(self, infiles, infolder='unknown'):
         ''' Look in a list of files for .pickle extensions.  Infolder name
             is only used for better logging. '''
 
@@ -429,20 +457,19 @@ class Controller(object):
                        'file, %s.' % (folder, op.basename(picklefile)))            
             return mload(picklefile)     
 
-    @classmethod
-    def _try_apply(cls, ts, attr, default):
+    def _try_apply(self, ts, attr, default):
         
         if not self.params.has_key(attr):
             logger.warn('%s not found in supplied parameters. '  
-            'Automatically setting to %s' % (attr, default))
+            'Automatically setting to "%s"' % (attr, default))
             setattr(ts, attr, default)
         
         else:
             try:
                 setattr(ts, attr, self.params[attr])
-                logger.info('Set %s from parameters value of %s' %
+                logger.info('Set %s from parameters to "%s"' %
                             (attr, self.params[attr]))
-            except AttributeError:
+            except Exception: #Too stringent?
                 logger.warn('Failed to set %s from parameters.  Auomtatically'
                             ' setting to %s' % (attr, default))
                 setattr(ts, attr, default)
@@ -468,8 +495,6 @@ class Controller(object):
                 args=shlex.split(args)
             sys.argv = args               
         
-
-        SCRIPTNAME = 'gwuspec' #move later
         
         parser = argparse.ArgumentParser(SCRIPTNAME, description='GWU PyUvVis fiber data '
         'analysis.', epilog='Additional help not found', 
@@ -502,8 +527,8 @@ class Controller(object):
                             'they already exist')
         
         parser.add_argument('-v', '--verbosity', help='Set screen logging '
-                       'If no argument, defaults to info.', nargs='?',
-                        default='warning', const='info', metavar='')
+                             'If no argument, defaults to info.', nargs='?',
+                             default='warning', const='info', metavar='')
 
                 
         parser.add_argument('-p','--params', nargs='*', help='Overwrite config '
@@ -520,10 +545,10 @@ class Controller(object):
         # Store namespace, parser, runn additional parsing
         ns = parser.parse_args()
 
-        # Run additional parsing based on cfig and "params"
+        # Run additional parsing based on cfig and "params" to set spec params
         _parse_params(ns)   
         
         return cls(inroot=ns.inroot, outroot=ns.outroot, rname=ns.rname, 
-                   verbosity=ns.verbosity, trace=ns.trace, _params=ns.params, 
+                   verbosity=ns.verbosity, trace=ns.trace, params=ns.params, 
                    dryrun=ns.dry, overwrite=ns.overwrite, sweep=ns.sweep)
               
