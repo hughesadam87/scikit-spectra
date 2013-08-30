@@ -9,12 +9,11 @@ __status__ = "Development"
 
 import os
 import os.path as op
-import time
+import datetime as dt 
 import shutil
 import sys
 import imp
 import shlex
-import collections 
 import logging
 import argparse
 import matplotlib.pyplot as plt
@@ -76,7 +75,7 @@ def _parse_params(namespace):
 
     if invalid:
         raise IOError('Parameter(s) "%s" not understood.  Valid parameters:' 
-        '\n   %s' % ('","'.join(invalid), '\n   '.join(params.keys()) ) )
+        '\n   %s' % ('","'.join(invalid), '\n   '.join(default.keys()) ) )
     
     namespace.params = default
     delattr(namespace, 'cfig')
@@ -84,9 +83,17 @@ def _parse_params(namespace):
     
     
 
-
+# Convenience fcns
 def ext(afile):  #get file extension
     return op.splitext(afile)[1]
+
+def timenow():
+    return dt.datetime.now()
+
+def loudmkdir(fullpath):
+    ''' Makes directory path/folder, and logs.'''
+    logger.info('Making directory: %s' % fullpath)
+    os.mkdir(fullpath)
 
 
 class AddUnderscore(argparse.Action):
@@ -145,8 +152,8 @@ class CfigAction(argparse.Action):
             return 
 
 #skip class methods
-@logclass(log_name=__name__ , public_lvl='debug',
-          skip=['_ts_from_picklefiles', 'from_namespace'])
+#@logclass(log_name=__name__ , public_lvl='debug',
+ #         skip=['_ts_from_picklefiles', 'from_namespace'])
 class Controller(object):
     ''' '''
 
@@ -162,7 +169,7 @@ class Controller(object):
         
         self.inroot = kwargs.get('inroot', DEF_INROOT) 
         self.outroot = kwargs.get('outroot', DEF_OUTROOT)
-        self._params = kwargs.get('params', None)
+        self.params = kwargs.get('params', None)
         self.sweepmode = kwargs.get('sweep', False)
         
         self.rname = kwargs.get('rname', '')
@@ -182,12 +189,12 @@ class Controller(object):
 
         
         with open(op.join(self.outroot, 'Parameters'), 'w') as f:
-            f.write('Spectral Parameters')
-            f.write('\n'.join([str(k)+'\t'+str(v) 
+            f.write('Spectral Parameters:\n')
+            f.write('\n'.join(['\t'+str(k)+'\t'+str(v) 
                                for k, v in self.params.items()]))
         
-            f.write('\nRun Parameters')
-            f.write('\n'.join([(str(k) + '\t' + str(v)) 
+            f.write('\n\nRun Parameters:\n')
+            f.write('\n'.join(['\t'+(str(k) + '\t' + str(v)) 
                                for k,v in kwargs.items()]))
                         
         
@@ -282,16 +289,27 @@ class Controller(object):
             self._params = params
             return 
         
-        if not isinstance(dict, params):
+        if not isinstance(params, dict):
             raise AttributeError('"params" must be dict but is %s' % str(type(params)))
  
         if params.has_key('outtypes'):
-            for otype in params['outtypes']:
+            if not hasattr('__iter__', params['outtypes']):
+                params['outtypes'] = params['outtypes'].split()
+                
+                
+            # Make sure all outtypes (a, r, None) are valid; convert "None" to none
+            for idx, otype in enumerate(params['outtypes']):
+                if otype == 'None':
+                    otype = None
+                    params['outtypes'][idx] = otype                    
                 badkey_check(otype, Idic.keys())
+
         else:
-            logger.warn('"outtypes" parameter not found.  Setting to None.  Only'
+            logger.warn('"outtypes" parameter not found.  Setting to [None].  Only'
                         ' rawdata will be analyzed.')
-            params['outtypes'] = None  
+            params['outtypes'] = [None] 
+                
+                
         self._params = params   
         
             
@@ -342,17 +360,33 @@ class Controller(object):
     def analyze_dir(self):
         ''' Analyze a single directory, do all analysis. '''
 
-        ts_full = self.build_timespectra()
-        start = time.time()
+        start = timenow()
+        ts_full = self.build_timespectra()        
+        logger.info('SUCCESSFULLY imported %s in %s seconds' % 
+                (ts_full.full_name, (timenow() - start).seconds))
+        self.validate_ts(ts_full) 
+
         
-        logger.info('Time to import %s: %s' % 
-                    (ts_full.full_name, start - time.time() ))
-        self.validate_ts(ts_full)
+        # rundir = outpath/infolder
+        rundir = op.join(self.outpath, self.infolder)
+        loudmkdir(rundir)
         
-        # Makeoutdir/oufolder
-        logger.info('Making directory: %s' % op.join(self.outpath, self.infolder))
-        os.mkdir(op.join(self._outpath, self.infolder))
+        logger.info('Saving %s as spectra.pickle' % ts_full.full_name)
+        ts_full.save(op.join(rundir, 'spectra.pickle')) 
+
+        # Set ts
+        ts = ts_full  
         
+        # Should rename outtyps to iunits
+        for iu in self.params['outtypes']:
+            od = op.join(rundir , Idic[iu])
+            if iu =='r':
+                od=op.join(rundir+'/'+'Relative Inverse')  # The (1/T) messes up directory structure!
+            loudmkdir(od)
+ 
+            ts=ts.as_iunit(iu)
+            out_tag=ts.full_iunit.split()[0] #Raw, abs etc.. added to outfile
+            
 
     def build_outroot(self):
         if op.exists(self.outroot):
@@ -362,8 +396,7 @@ class Controller(object):
                 logger.warn('Directory "%s" and its contents will be overidden' % 
                             op.basename(self.outroot))
                 shutil.rmtree(self.outroot)
-        logger.info('Creating outdirectory %s' % self.outroot)
-        os.mkdir(self.outroot)        
+        loudmkdir(self.outroot)
 
         
     def validate_ts(self, ts):
@@ -379,6 +412,11 @@ class Controller(object):
         # Set some defaults if params fails
         self._try_apply(ts, 'specunit', 'nm')
         self._try_apply(ts, 'intvlunit', 'intvl')
+        
+        # TEST FOR NAN VALUES BEFORE CONTINUING  #####
+        if countNaN(ts): #0 will evaluate to false
+            raise GeneralError('NaNs found in %s during preprocessing.' 
+                    ' Cannot proceed with analysis.' % ts.full_name)
      
 
 
@@ -409,7 +447,7 @@ class Controller(object):
         # Import from raw specfiles
         logger.info('Loading contents of %s multiple raw spectral '
                     'files %s.' % (self.infolder, len(infiles)))     
-        return from_spec_files(infiles, name=self.infolder)        
+        return from_spec_files(infiles, name=self.infolder.lower())        
         
         
     
@@ -432,7 +470,7 @@ class Controller(object):
         timefile = timefile[0]
         infiles.remove(timefile) #remaing file is datafile
         return from_timefile_datafile(datafile=infiles, timefile=timefile, 
-                                      name=self.infolder)
+                                      name=self.infolder.lower())
 
        
     @classmethod
