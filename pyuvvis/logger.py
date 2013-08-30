@@ -104,6 +104,9 @@ def configure_logger(screenlog=True, logfile=None, screen_level=logging.INFO,
     root_logger = logging.getLogger('')
     root_logger.setLevel(logging.DEBUG)  # Needs to be set; despite handler levels
     
+    # Reset any currnet handlers (useful if multiple files call this)
+    root_logger.handlers = []
+    
     # Add file handler to logger
     if logfile:        
 
@@ -121,16 +124,15 @@ def configure_logger(screenlog=True, logfile=None, screen_level=logging.INFO,
         root_logger.addHandler(screen_handler)
 
     # Better here than getLogger('') so that its root status is retained
-    if name:
-        root_logger.name = name
-
-    root_logger.debug('Logging initialized') #Make informative about settings?
+    root_logger.name = name
+    root_logger.debug('Initialized root logger')
     
     return root_logger
 
 
 #XXX This needs tested more, particularly when wrapping fcn w/ kwargs
-def log(level='info', show_args=True, show_values=True, crop_values=True, log_name=None):
+def log(level='info', show_args=False, show_values=False, crop_values=True,
+        log_name=None, method=False):
     '''  Decorates a function and logs its call signature.
 
     Parameters
@@ -168,87 +170,109 @@ def log(level='info', show_args=True, show_values=True, crop_values=True, log_na
         description
       
     '''
+
+    # Configure logger if it hasn't been done already
+    if not logging.getLogger().handlers:
+        screen_level='warning'
+        if '-debug' in sys.argv:
+            screen_level='debug'
+        elif '-info' in sys.argv:
+            screen_level='info'
+        configure_logger(screen_level=screen_level)
          
     
-    # Either use module logger or 
+    # Either use module logger or (@ so can tell where decorator called)
     if log_name:
         logger = logging.getLogger(log_name)   
     else:
         logger = logging.getLogger(__name__)
+        
+    def _wraps(fcn_name, fcn, *args, **kwargs):
+
+        arg_names = fcn.func_code.co_varnames    
+
+        if show_args:
+            arg_str = arg_names
+        
+        if show_values:
+            val_str = args #kwargs?
+            if crop_values:
+                val_str = [_fmt_word(val, crop_front=False) for val in val_str]
+            
+        if show_args and show_values:
+                
+            # This is failing for functions with *args/**kwargs
+            try:
+                outstr = ', '.join([(str(arg_names[i]) +' = ' + str(val_str[i]) ) \
+                                for i in range(len(args))])
+            except IndexError:
+                logger.debug('LOG WRAPPER FAILED FOR %s' % fcn_name)
+                outstr = arg_str  
+            else:  
+                outstr = '(' + outstr + ')'
+        
+        elif show_args:
+            outstr = arg_str
+            
+        elif show_values:
+            outstr = val_str
+        
+        else:
+            outstr = '()'
+        
+        # Log command ( *@* to distinguish from manually logged commands)
+        logger.log(decode_lvl(level), '%s%s' % (fcn_name, outstr))
+        
+        try:            
+            
+            return fcn(*args, **kwargs)             
+        
+        except Exception as exc:
+            
+            ex_type, ex, tb = sys.exc_info()
+        
+            # TEMPORARILY REPLACE WAY -t USED
+          #  trace = getattr(logging, 'trace', False)                  
+            trace = False
+            if '-t' in sys.argv:
+                trace = True
+            
+            if trace:
+                trc_msg = '{See trace below}'
+            else:
+                trc_msg = '{-t, --trace for full traceback}'            
+        
+            fmt_str = '' if trace else '%s: %s' % (ex.__class__.__name__, exc)
+            logger.error('%s() failed %s %s\n', fcn_name, fmt_str, trc_msg)                
+        
+            if trace:
+                print_exception(ex_type, ex, tb)
+            
+            raise LogExit 
+    
 
     def deco(fcn):
-        ''' Generic logger that writes function name and arugment namesto INFO.  Does
-        not write argument values as these can be too verbose.'''
-
-        fcn_name = fcn.__name__
-        arg_names = fcn.func_code.co_varnames            
-
-        def wraps(*args, **kwargs):  
+        ''' Generic logger that writes function name and arugment namesto INFO. 
+            It also wraps a class method, if the "method" keyword was passed
+            to log().  Its up to the user to make sure actual methods are passed
+            when setting method=True.'''
         
-
-            # For testmode, raise exceptions normally
-            if getattr(logging, 'testmode', False):
-          
-                try:                                
-                    return fcn(*args, **kwargs)             
-                except Exception as exc:
-                    raise            
-                   
+        if method:
             
-            if show_args:
-                arg_str = arg_names
-
-            if show_values:
-                val_str = args #kwargs?
-                if crop_values:
-                    val_str = [_fmt_word(val, crop_front=False) for val in val_str]
-                
-            if show_args and show_values:
+            # Wrap a method, add "self" to args and call function
+            def wraps(self, *args, **kwargs):
+            
+                fcn_name = getattr(self, 'name', '') +'.' + fcn.__name__
+                args = list(args)
+                args.insert(0, self)
+                return _wraps(fcn_name, fcn, *args, **kwargs)
                     
-                # This is failing for functions with *args/**kwargs
-                try:
-                    outstr = ', '.join([(str(arg_names[i]) +' = ' + str(val_str[i]) ) \
-                                    for i in range(len(args))])
-                except IndexError:
-                    logger.debug('LOG WRAPPER FAILED FOR %s' % fcn_name)
-                    outstr = arg_str  
-                else:  
-                    outstr = '(' + outstr + ')'
+        else:
+            def wraps(*args, **kwargs):
+                fcn_name = fcn.__name__
+                return _wraps(fcn_name, fcn, *args, **kwargs)
             
-            elif show_args:
-                outstr = arg_str
-                
-            elif show_values:
-                outstr = val_str
-
-            else:
-                outstr = '()'
-
-            # Log command ( *** to distinguish from manually logged commands)
-            logger.log(decode_lvl(level), '*** %s%s' % (fcn.__name__, outstr))
-
-            try:            
-                
-                return fcn(*args, **kwargs)             
-
-            except Exception as exc:
-                
-                ex_type, ex, tb = sys.exc_info()
-                trace = getattr(logging, 'trace', False)                  
-                
-                if trace:
-                    trc_msg = '{See trace below}'
-                else:
-                    trc_msg = '{-t, --trace for full traceback}'            
-        
-                fmt_str = '' if trace else '%s: %s' % (ex.__class__.__name__, exc)
-                logger.error('%s() failed %s %s\n', fcn_name, fmt_str, trc_msg)                
-    
-                if trace:
-                    print_exception(ex_type, ex, tb)
-                
-                raise LogExit 
-
+                       
         return wraps
     return deco
 
@@ -264,3 +288,34 @@ def decode_lvl(level):
             level = getattr(logging, level.upper())
 
     return level
+
+def logclass(public_lvl='info', private_lvl='debug', skip=[], **logkwargs):
+    ''' Adds a log decorator to all class methods.  Private methods (_foo)
+        are logged to debug.  Public methods are logged to info.  Magic methods
+        (__foo__) are skipped; as well as methods in the "skip" list.
+        
+        Note: This is a class method, so instance attributes like "name"
+              aren't defined.  Individual methods should add more explicit
+              logging for this reason.'''
+
+    def wraps(cls):
+        
+        
+        logkwargs['method'] = True
+        
+        magic = [method for method in dir(cls) if method.startswith('__') and \
+                 method.endswith('__')]
+                    
+        for method in dir(cls):
+            value = getattr(cls, method)
+    
+            # skip attributes, magic methods
+            if not callable(value) or method in magic or method in skip:
+                continue 
+            else:
+                if method.startswith('_'):
+                    setattr(cls, method, log(private_lvl, **logkwargs)(value))  
+                else:
+                    setattr(cls, method, log(public_lvl, **logkwargs)(value)) 
+        return cls
+    return wraps
