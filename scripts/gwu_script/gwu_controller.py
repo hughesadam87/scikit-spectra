@@ -16,8 +16,7 @@ import imp
 import shlex
 import collections 
 import logging
-from argparse import ArgumentParser
-
+import argparse
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -34,7 +33,7 @@ from pyuvvis.core.baseline import dynamic_baseline
 from pyuvvis.core.corr import ca2d, make_ref, sync_3d, async_3d
 from pyuvvis.core.timespectra import Idic
 from pyuvvis.pandas_utils.metadframe import mload, mloads
-from pyuvvis.exceptions import badkey_check, ParserError
+from pyuvvis.exceptions import badkey_check, ParserError, GeneralError
 
 # Import some spectrometer configurations
 from usb_2000 import params as p2000
@@ -73,8 +72,10 @@ def _parse_params(namespace):
         raise IOError('Parameter(s) "%s" not understood.  Valid parameters:' 
         '\n   %s' % ('","'.join(invalid), '\n   '.join(params.keys()) ) )
 
+
 def ext(afile):  #get file extension
     return op.splitext(afile)[1]
+
 
 class AddUnderscore(argparse.Action):
     ''' Adds an underscore to end of value (used in "rootname") '''
@@ -143,14 +144,14 @@ class Controller(object):
         
         # These should go through the setters
         self.inroot = kwargs.pop('inroot', DEF_INROOT) 
-        self.outroot = kwargs.pop('outroot', None)
+        self.outroot = kwargs.pop('outroot', DEF_OUTROOT)
         self.params = kwargs.pop('params', None)
+        self.sweepmode = kwargs.pop('sweep', False)
         
         self.rname = kwargs.pop('rname', '')
         self.dryrun = kwargs.pop('dryrun', False) 
         self.overwrite = kwargs.pop('overwrite', False)
         
-
         # Configure logger
         verbosity = kwargs.pop('verbosity', 'warning')
         trace = kwargs.pop('trace', False)
@@ -158,6 +159,16 @@ class Controller(object):
         # Does this conflict w/ sys.argv configure_logger stuff?                           
         configure_logger(screen_level=verbosity, name = __name__,
                          logfile=op.join(self._outroot, 'Runlog.txt')) 
+        
+        
+    def _valid_inpath(self, value):
+        if value is None:
+            return None
+        else:
+            inroot = op.abspath(value)
+            if not op.exists(inroot):
+                raise IOError('Inroot path does not exist: %s' % inroot)
+            return inpath
 
     @property
     def inroot(self):
@@ -166,16 +177,23 @@ class Controller(object):
         return self._inroot #Abspath applied in setter
 
     
-    @setter
+    @inroot.setter
     def inroot(self, value):
         ''' Ensure inpath exists before setting'''
-        if value is None:
-            self._inroot = None
-        else:
-            inpath = op.abspath(value)
-            if not op.exists(inpath):
-                raise IOError('Inroot path does not exist: %s' % inpath)
-            self._inroot = inpath
+        self._inroot = self._valid_inpath(value)
+
+    @property
+    def inpath(self):
+        if not self._inpath:
+            raise AttributeError('Inpath not set')
+        return self._inpath #Abspath applied in setter
+
+    
+    @inpath.setter
+    def inpath(self, value):
+        ''' Ensure inpath exists before setting'''
+        self._inpath = self._valid_inpath(value)        
+        
         
         
     @property
@@ -185,13 +203,39 @@ class Controller(object):
         return self._outroot
         
 
-    @setter
+    @outroot.setter
     def outroot(self, value):
         if value is None:
             self._outroot = None
         else:
             self._outroot = op.abspath(value)
+ 
+    @property
+    def outpath(self):
+        if not self._outpath:
+            raise AttributeError('Outpath not set')
+        return self._outpath
         
+
+    @outpath.setter
+    def outpath(self, value):
+        if value is None:
+            self._outpath = None
+        else:
+            self._outpath = op.abspath(value)           
+            
+        
+    @property
+    def infolder(self):
+        return op.basename(self.inpath)
+
+
+    @property
+    def outfolder(self):
+        if not self.outpath:
+            raise AttributeError('outfolder not found - outpath not set!')
+        return op.basename(self.outpath)
+
 
     @property
     def params(self):
@@ -200,7 +244,7 @@ class Controller(object):
         return self._params
     
     
-    @setter
+    @params.setter
     def params(self, params):
         if params is None:
             self._params = params
@@ -228,86 +272,115 @@ class Controller(object):
             f.write('\n'.join([str(k)+'\t'+str(v) 
                                for k, v in self.params.items()]))
             
+    def start_run(self):
+        if self.sweepmode:
+            self.main_walk()
+        else:
+            self._inpath = self.inroot
+            self._outpath = self.outroot
+            self.analyze_dir()
+            
 
     # MAYBE JUST HAVE SCRIPT HAVE A WALK MODE        
-    #def main_walk(self):
-        #walker=os.walk(self.inroot, topdown=True, onerror=None, followlinks=False)
-        #(rootpath, rootdirs, rootfiles)= walker.next()   
+    def main_walk(self):
+        walker=os.walk(self.inroot, topdown=True, onerror=None, followlinks=False)
+        (rootpath, rootdirs, rootfiles)= walker.next()   
         
-        #while rootdirs:
+        while rootdirs:
+            logger.info('Entering directory %s' % rootdirs)
+            if not rootdirs:
+                raise IOError("'%s' directory is empty." % rootpath)
+
+            for iteration, folder in enumerate(rootdirs):
+                self._inpath = op.join(rootpath, folder)
+#                self._outpath = #WHAT IS OUTPATH?
+#make_root_dir(outty, overwrite=options.clean)  ## BE VERY CAREFUL WITH THIS
+
+                self.analyze_dir()
 
 
-        ## Move down to next directory.  Need to keep iterating walker until a
-        ## directory is found or until StopIteraion is raised.
-        #rootpath, rootdirs, rootfile=walker.next()
-        #if not rootdirs:
-            #try:
-                #while not rootdirs:
-                    #rootpath, rootdirs, rootfile=walker.next()
-            #except StopIteration:
-                #logger.info('Breaking from walk')
-                #break
+
+        # Move down to next directory.  Need to keep iterating walker until a
+        # directory is found or until StopIteraion is raised.
+            rootpath, rootdirs, rootfile=walker.next()
+            if not rootdirs:
+                try:
+                    while not rootdirs:
+                        rootpath, rootdirs, rootfile=walker.next()
+                except StopIteration:
+                    logger.info('Breaking from walk')
+                    break
 
 
-    # OK DECISION TO MAKE! SINCE INPATH/OUTPATH NEED SHARED, MAKE A SECOND CLASS HERE?
-    # AND HAVE THE REST OF THE PROGRAM CALL IT.  THIS WOULD BUILD TS, STORE WD, OD etc..
-    # AND BASICALLY BE CALLED AS A SINGLE RUN.
-    def analyze_dir(self, inpath, outpath):
+    def analyze_dir(self):
         ''' Analyze a single directory, do all analysis. '''
 
         start = time.time()
-        ts_full = self.build_ts(inpath, outpath)
-        logger.info('Time to import %s to TimeSpectra: %s' %
+        ts_full = self.build_ts(self.inpath, self.outpath)
+        logger.info('Time to import %s: %s' % 
+                    (ts_full.full_name, start - time.time() ))
+        self.validate_ts(ts_full)
         
+        
+    @classmethod
+    def validate_ts(ts):
+        ''' Tries to catch errors in index, as well as sets some defaults.  ''' 
+        
+        logger.info('Testing spectral index bounds against parameters min/max')
+
+        pmin, pmax = params['_valid_minmax']                
+        if  ts.index[0] < pmin or ts.index[-1] > pmax:
+            raise GeneralError('Parameters _valid_range criteria not met.  Data' 
+            ' index (%s,%s); parameters _valid_range (%s,%s)' % (dmin, dmax, pmin,pmax))  
+            
+        # Set some defaults if params fails
+        self._try_apply('specunit', 'nm')
+        self._try_apply('intvlunit', 'intvl')
+     
+
 
     # Let main_walk deal with passing int he correct versions of inpath/outpath 
     # IE THIS SHOULD NOT HAVE A CONCEPT OF INROOT AND OUTROOT
-    def build_ts(self, inpath, outpath):
+    def build_ts(self):
         ''' '''
-        wd = op.abspath(inpath)
-        od = op.abspath(outpath)
         
-        #Short names
-        infolder = op.basename(wd)        
-        outfolder = op.basename(od)
-
-        logger.info("Analyzing run directory %s" % infolder)
+        logger.info("Analyzing run directory %s" % self.infolder)
         
         # Get all the files in working directory, ignore certain extensions
-        infiles = get_files_in_dir(wd, sort=True)
+        infiles = get_files_in_dir(self.inpath, sort=True)
         infiles = [f for f in infiles if not ext(f) in img_ignore]
         
         if not infiles:
-            raise IOError("No valid files found in %s" % infolder)
+            raise IOError("No valid files found in %s" % self.infolder)
         
-        if op.exists(od):
+        if op.exists(self.outpath):
             if not self.overwrite:
                 raise IOError("Outdirectory already exists!")                
             else:
-                logger.warn('Removing %s and all its contents' % outfolder)
+                logger.warn('Removing %s and all its contents' % self.outfolder)
                 shutil.rmtree(outpath)
         
-        logger.info('Creating outdirectory %s' % outfolder)
-        os.mkdir(od)
+        logger.info('Creating outdirectory %s' % self.outfolder)
+        os.mkdir(self.outpath)
         
         # Try get timespectra from picklefiles
-        ts_full = _ts_from_picklefiles(infiles, infolder)
+        ts_full = _ts_from_picklefiles(infiles, self.infolder)
         if ts_full:
             return ts_full
 
         # Try get timespectra from timefile/datafile (legacy)
-        ts_full = _ts_from_legacy(infiles, infolder)
+        ts_full = _ts_from_legacy(infiles, self.infolder)
         if ts_full:
             return ts_full
         
         # Import from raw specfiles
         logger.info('Loading contents of folder, %s, multiple raw spectral '
-                    'files %s.' % (infolder, len(infiles)))     
+                    'files %s.' % (self.infolder), len(infiles))     
         return from_spec_files(infiles)        
         
         
     @classmethod
-    def _ts_from_legacy(infiles, infolder):
+    def _ts_from_legacy(infiles):
         
         if len(infiles) != 2:
             logger.info('Legacy import failed: requires 2 infiles (timefile/darkfile); '
@@ -318,11 +391,11 @@ class Controller(object):
 
         if len(timefile) != 1:
             logger.info('Legacy import failed: required one file with "time" in'
-            ' filenames; found %s' % (infolder, len(infiles)))  
+            ' filenames; found %s' % (self.infolder, len(infiles)))  
             return
         
         logger.info('Loading contents of "%s", using the timefile/datafile '
-                    'conventional import' % infolder)                       
+                    'conventional import' % self.infolder)                       
         timefile = timefile[0]
         infiles.remove(timefile) #remaing file is datafile
         return from_timefile_datafile(datafile=infiles, timefile=timefile)
@@ -349,7 +422,25 @@ class Controller(object):
             logger.info('Loaded contents of folder, %s, using the ".pickle" ' 
                        'file, %s.' % (folder, op.basename(picklefile)))            
             return mload(picklefile)     
- 
+
+    @classmethod
+    def _try_apply(ts, attr, default):
+        
+        if not self.params.has_key(attr):
+            logger.warn('%s not found in supplied parameters. '  
+            'Automatically setting to %s' % (attr, default))
+            setattr(ts, attr, default)
+        
+        else:
+            try:
+                setattr(ts, attr, self.params[attr])
+                logger.info('Set %s from parameters value of %s' %
+                            (attr, self.params[attr]))
+            except AttributeError:
+                logger.warn('Failed to set %s from parameters.  Auomtatically'
+                            ' setting to %s' % (attr, default))
+                setattr(ts, attr, default)
+    
  
     def plots_1d(self, ts):
         NotImplemented
@@ -374,45 +465,53 @@ class Controller(object):
                 args=shlex.split(args)
             sys.argv = args               
         
+
+        SCRIPTNAME = 'gwuspec' #move later
         
-        parser = ArgumentParser('GWUSPEC', description='GWU PyUvVis fiber data '
-        'analysis.', epilog='Additional help not found')
+        parser = argparse.ArgumentParser(SCRIPTNAME, description='GWU PyUvVis fiber data '
+        'analysis.', epilog='Additional help not found', 
+        usage='%s <indir> <outdir> --globals' % SCRIPTNAME)
 
         # Global options
-        parser.add_argument('inroot', metavar='in directory', action='store', default=DEF_INROOT, 
+        parser.add_argument('inroot', metavar='indir', action='store', default=DEF_INROOT, 
                           help='Path to root directory where file FOLDERS are '
                           'located.  Defaults to %s' % DEF_INROOT)
         
-        parser.add_argument('outroot', metavar='out directory', action='store', default = DEF_OUTROOT,  
+        parser.add_argument('outroot', metavar='outdir', action='store', default = DEF_OUTROOT,  
                           help = 'Path to root output directory.  Defaults to %s'
                           % DEF_OUTROOT) 
+        
+        parser.add_argument('-s','--sweep', action='store_true', 
+                            help='Script will recursively analyze directories '
+                            'from the top down of indir')
     
-        parser.add_argument('-r', '--runname', action=TweakRname,
-                          dest='rname', default='', #None causes errors
-                          help='Title of trial/run, used in filenames and other places.',)     
-        
         parser.add_argument('-c', '--config', dest='cfig', default=DEF_CFIG, action=CfigAction,
-                          help='usb650, usb2000, or path to parameter configuration file.  '
-                          'defaults to usb2000' #Set by CFIGDEF
-                          )
+                          help='usb650, usb2000, or path to parameter ' 
+                          'configuration file. defaults to usb2000', metavar='')    
+    
+        parser.add_argument('-r', '--runname', action=AddUnderscore,
+                          dest='rname', default='', metavar='',
+                          help='Trial name; used in outfile names and other places.')     
         
-        parser.add_argument('--overwrite', action='store_true', 
-                            help='Overwrite contents of output directory if '
-                            'it already exists')
+        
+        parser.add_argument('-o','--overwrite', action='store_true', 
+                            help='Overwrite contents of output directories if '
+                            'they already exist')
         
         parser.add_argument('-v', '--verbosity', help='Set screen logging '
-                       'level.  If no argument, defaults to info.',
-                        default='warning', const='info', metavar='VERBOSITY',)
+                       'If no argument, defaults to info.', nargs='?',
+                        default='warning', const='info', metavar='')
 
-        
-        parser.add_argument('-t', '--trace', action='store_true', dest='trace',
-                          help='Show traceback upon errors')   
                 
-        parser.add_argument('--params', nargs='*', help='Overwrite config parameters'
-                            ' manually in form k="value str".'  
-                            'Ex: --params xmin=440.0 xmax=700.0')
+        parser.add_argument('-p','--params', nargs='*', help='Overwrite config '
+                            'parameters manually in form k="foo value" '  
+                            'Ex: --params xmin=440.0 xmax=700.0', metavar='')
     
-        parser.add_argument('--dryrun', dest='dry', action='store_true')
+        parser.add_argument('-d','--dryrun', dest='dry', action='store_true',
+                            help='Not yet implemented')
+
+        parser.add_argument('-t', '--trace', action='store_true', dest='trace',
+                          help='Show traceback upon errors')       
     
     
         # Store namespace, parser, runn additional parsing
@@ -423,5 +522,5 @@ class Controller(object):
         
         return cls(_inroot=ns.inroot, _outroot=ns.outroot, rname=ns.rname, 
                    verbosity=ns.verbosity, trace=ns.trace, spec_parms=ns.params, 
-                   dryrun=ns.dry, overwrite=ns.overwrite)
+                   dryrun=ns.dry, overwrite=ns.overwrite, sweep=ns.sweep)
               
