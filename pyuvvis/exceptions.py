@@ -41,6 +41,12 @@ class RefError(GeneralError):
                       %(len(index), index[0], sunit,  index[-1], sunit, len(timespectra.reference), \
                         timespectra.name, timespectra.df.index[0], sunit, timespectra.df.index[-1], sunit) )
         
+        
+# See grits client to show how to make this indistinguishable from normal argparse error
+class ParserError(GeneralError):
+    
+    default = 'Failed to construct parser'
+        
 class LogExit(SystemExit):
     ''' Used by logger. '''
     
@@ -67,19 +73,20 @@ def badcount_error(numallowed, numreceived, numtotal, argnames=None):
         return AttributeError('requires %s of %s nonull keywords but received %s.'%(numallowed, numtotal, numreceived))
 
 
+# Phase this out?
 def badkey_check(key, allowedvalues, case_sensitive=False):
     ''' Either string not passed or wrong value passed.  
         allowedvalues is a list of values that the key attribute can take on. 
         Useful for case when you want to make sure the keyword has one of x values.
   
-    **case_sensitive: If False, will compare attribute.lower() to allowedvalues.lower().
-    
-    Notes
-    -----
-       Messy because I added option that key can be None type and also string.  This is
-       only useful so far in TimeSpectra iunits dictionary.
-    
-    Returns: None (Raises errors if test fails).'''
+        **case_sensitive: If False, will compare attribute.lower() to allowedvalues.lower().
+        
+        Notes
+        -----
+           Messy because I added option that key can be None type and also string.  This is
+           only useful so far in TimeSpectra iunits dictionary.
+        
+        Returns: None (Raises errors if test fails).'''
     
     ### Handle case of key=None
     if key==None:
