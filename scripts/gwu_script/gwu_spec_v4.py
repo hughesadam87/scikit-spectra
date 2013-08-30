@@ -1,9 +1,9 @@
-''' GWU in-house script for dataanalysis of fiberoptic probe data.'''
+from gwu_controller import Controller
 
-__author__ = "Adam Hughes"
-__copyright__ = "Copyright 2013, GWU Physics"
-__license__ = "Free BSD"
-__maintainer__ = "Adam Hughes"
-__email__ = "hugadams@gwmail.gwu.edu"
-__status__ = "Development"
-
+def main(*args):
+    controller = Controller.from_namespace()
+    controller.start_run()
+    
+    
+if __name__ == '__main__':
+    main()

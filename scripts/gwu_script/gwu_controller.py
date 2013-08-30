@@ -143,9 +143,10 @@ class Controller(object):
     def __init__(self, **kwargs):
         
         # These should go through the setters
+        
         self.inroot = kwargs.pop('inroot', DEF_INROOT) 
         self.outroot = kwargs.pop('outroot', DEF_OUTROOT)
-        self.params = kwargs.pop('params', None)
+        self._params = kwargs.pop('params', None)
         self.sweepmode = kwargs.pop('sweep', False)
         
         self.rname = kwargs.pop('rname', '')
@@ -156,19 +157,20 @@ class Controller(object):
         verbosity = kwargs.pop('verbosity', 'warning')
         trace = kwargs.pop('trace', False)
 
-        # Does this conflict w/ sys.argv configure_logger stuff?                           
-        configure_logger(screen_level=verbosity, name = __name__,
-                         logfile=op.join(self._outroot, 'Runlog.txt')) 
+        # Add logging later; consider outdirectory conflicts
+        configure_logger(screen_level=verbosity, name = __name__)
+#                         logfile=op.join(self.outroot, 'Runlog.txt'))
+                        
         
         
     def _valid_inpath(self, value):
         if value is None:
             return None
         else:
-            inroot = op.abspath(value)
-            if not op.exists(inroot):
-                raise IOError('Inroot path does not exist: %s' % inroot)
-            return inpath
+            path = op.abspath(value)
+            if not op.exists(path):
+                raise IOError('Inroot path does not exist: %s' % path)
+            return path
 
     @property
     def inroot(self):
@@ -209,6 +211,7 @@ class Controller(object):
             self._outroot = None
         else:
             self._outroot = op.abspath(value)
+            
  
     @property
     def outpath(self):
@@ -315,20 +318,33 @@ class Controller(object):
     def analyze_dir(self):
         ''' Analyze a single directory, do all analysis. '''
 
+        self.build_out()
+        ts_full = self.build_ts()
         start = time.time()
-        ts_full = self.build_ts(self.inpath, self.outpath)
+        
         logger.info('Time to import %s: %s' % 
                     (ts_full.full_name, start - time.time() ))
         self.validate_ts(ts_full)
         
+
+    def build_out(self):
+        if op.exists(self.outpath):
+            if not self.overwrite:
+                raise IOError("Outdirectory already exists!")                
+            else:
+                logger.warn('Removing %s and all its contents' % self.outfolder)
+                shutil.rmtree(self.outpath)
         
-    @classmethod
-    def validate_ts(ts):
+        logger.info('Creating outdirectory %s' % self.outpath)
+        os.mkdir(self.outpath)
+
+        
+    def validate_ts(self, ts):
         ''' Tries to catch errors in index, as well as sets some defaults.  ''' 
         
         logger.info('Testing spectral index bounds against parameters min/max')
 
-        pmin, pmax = params['_valid_minmax']                
+        pmin, pmax = self.params['_valid_minmax']                
         if  ts.index[0] < pmin or ts.index[-1] > pmax:
             raise GeneralError('Parameters _valid_range criteria not met.  Data' 
             ' index (%s,%s); parameters _valid_range (%s,%s)' % (dmin, dmax, pmin,pmax))  
@@ -348,39 +364,29 @@ class Controller(object):
         
         # Get all the files in working directory, ignore certain extensions
         infiles = get_files_in_dir(self.inpath, sort=True)
-        infiles = [f for f in infiles if not ext(f) in img_ignore]
+        infiles = [f for f in infiles if not ext(f) in self.img_ignore]
         
         if not infiles:
-            raise IOError("No valid files found in %s" % self.infolder)
-        
-        if op.exists(self.outpath):
-            if not self.overwrite:
-                raise IOError("Outdirectory already exists!")                
-            else:
-                logger.warn('Removing %s and all its contents' % self.outfolder)
-                shutil.rmtree(outpath)
-        
-        logger.info('Creating outdirectory %s' % self.outfolder)
-        os.mkdir(self.outpath)
+            raise IOError("No valid files found in %s" % self.infolder)        
         
         # Try get timespectra from picklefiles
-        ts_full = _ts_from_picklefiles(infiles, self.infolder)
+        ts_full = self._ts_from_picklefiles(infiles)
         if ts_full:
             return ts_full
 
         # Try get timespectra from timefile/datafile (legacy)
-        ts_full = _ts_from_legacy(infiles, self.infolder)
+        ts_full = self._ts_from_legacy(infiles)
         if ts_full:
             return ts_full
         
         # Import from raw specfiles
         logger.info('Loading contents of folder, %s, multiple raw spectral '
-                    'files %s.' % (self.infolder), len(infiles))     
+                    'files %s.' % (self.infolder, len(infiles)))     
         return from_spec_files(infiles)        
         
         
     @classmethod
-    def _ts_from_legacy(infiles):
+    def _ts_from_legacy(cls, infiles):
         
         if len(infiles) != 2:
             logger.info('Legacy import failed: requires 2 infiles (timefile/darkfile); '
@@ -402,7 +408,7 @@ class Controller(object):
 
        
     @classmethod
-    def _ts_from_picklefiles(infiles, infolder='unknown'):
+    def _ts_from_picklefiles(cls, infiles, infolder='unknown'):
         ''' Look in a list of files for .pickle extensions.  Infolder name
             is only used for better logging. '''
 
@@ -424,7 +430,7 @@ class Controller(object):
             return mload(picklefile)     
 
     @classmethod
-    def _try_apply(ts, attr, default):
+    def _try_apply(cls, ts, attr, default):
         
         if not self.params.has_key(attr):
             logger.warn('%s not found in supplied parameters. '  
@@ -451,10 +457,7 @@ class Controller(object):
     def plots_3d(self, ts):
         NotImplemented   
         
-    def build_ts(self):
-        ''' Build a timespectra from various cases '''
-        NotImplemented
-    
+   
 
     @classmethod
     def from_namespace(cls, args=None):
@@ -520,7 +523,7 @@ class Controller(object):
         # Run additional parsing based on cfig and "params"
         _parse_params(ns)   
         
-        return cls(_inroot=ns.inroot, _outroot=ns.outroot, rname=ns.rname, 
-                   verbosity=ns.verbosity, trace=ns.trace, spec_parms=ns.params, 
+        return cls(inroot=ns.inroot, outroot=ns.outroot, rname=ns.rname, 
+                   verbosity=ns.verbosity, trace=ns.trace, _params=ns.params, 
                    dryrun=ns.dry, overwrite=ns.overwrite, sweep=ns.sweep)
               
