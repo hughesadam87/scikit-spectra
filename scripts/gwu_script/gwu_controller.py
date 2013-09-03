@@ -322,7 +322,9 @@ class Controller(object):
         
             
     def start_run(self):
-
+        ''' Analyzes the root directory.  If sweep mode, subdirectories
+            will be analyzed as well.'''
+        
         self._inpath = self.inroot
         self._outpath = op.join(self.outroot, self.infolder)
         self.analyze_dir()
@@ -331,6 +333,7 @@ class Controller(object):
             
 
     def main_walk(self):
+        ''' Walks all the subdirectories of self.inroot'''
         walker = os.walk(self.inroot, topdown=True, onerror=None, followlinks=False)
         (rootpath, rootdirs, rootfiles) = walker.next()   
     
@@ -348,9 +351,6 @@ class Controller(object):
                 
                 self._inpath = wd
                 self._outpath = op.join(self.outroot, outsuffix)
-
-                logger.debug('inpath is: %s' % self._inpath)
-                logger.debug('outpath is: %s' % self._outpath)
                 
                 self.analyze_dir()
 
@@ -366,6 +366,10 @@ class Controller(object):
                     break
 
     def analyze_dir(self):
+        ''' Wraps loging to self._analyze_dir '''
+        
+        logger.debug('inpath is: %s' % self._inpath)
+        logger.debug('outpath is: %s' % self._outpath)        
         try:
             self._analyze_dir()
         except LogExit: #log exit
@@ -375,7 +379,8 @@ class Controller(object):
 
 
     def _analyze_dir(self):
-        ''' Analyze a single directory, do all analysis. '''
+        ''' Analyze a single directory, creates timespectra; performs analysis.
+            Very much the main method in the whole class.'''
 
         logger.info("ANALYZING RUN DIRECTORY: %s\n\n" % self.infolder)
 
