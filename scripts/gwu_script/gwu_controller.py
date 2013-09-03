@@ -27,12 +27,12 @@ from pyuvvis.core.utilities import boxcar, countNaN
 from pyuvvis.core.baseline import dynamic_baseline
 from pyuvvis.pyplots.plot_utils import _df_colormapper, cmget
 from pyuvvis.IO.gwu_interfaces import from_timefile_datafile, from_spec_files
-from pyuvvis.core.imk_utils import get_files_in_dir, get_shortname
+from pyuvvis.core.file_utils import get_files_in_dir, get_shortname
 from pyuvvis.core.baseline import dynamic_baseline
 from pyuvvis.core.corr import ca2d, make_ref, sync_3d, async_3d
 from pyuvvis.core.timespectra import Idic
 from pyuvvis.pandas_utils.metadframe import mload, mloads
-from pyuvvis.exceptions import badkey_check, ParserError, GeneralError
+from pyuvvis.exceptions import badkey_check, ParserError, GeneralError, LogExit
 
 # Import some spectrometer configurations
 from usb_2000 import params as p2000
@@ -82,15 +82,15 @@ def _parse_params(namespace):
     return
     
     
-
 # Convenience fcns
-def ext(afile):  #get file extension
+def ext(afile): 
+    ''' get file extension'''
     return op.splitext(afile)[1]
 
 def timenow():
     return dt.datetime.now()
 
-def loudmkdir(fullpath):
+def logmkdir(fullpath):
     ''' Makes directory path/folder, and logs.'''
     logger.info('Making directory: %s' % fullpath)
     os.mkdir(fullpath)
@@ -354,7 +354,7 @@ class Controller(object):
                 
                 try:
                     self.analyze_dir()
-                except Exception: #log exit
+                except LogExit: #log exit
                     logger.critical('FAILURE: "%s" finished with errors.' % self.infolder) 
                 else:
                     logger.info('SUCCESS: "%s" analyzed successfully' % self.infolder)
@@ -385,16 +385,16 @@ class Controller(object):
         
         # make rundir = outpath/infolder; save
         rundir = op.join(self.outpath)#, self.infolder)
-        loudmkdir(rundir)
+        logmkdir(rundir)
         
         logger.info('Saving %s as %s.pickle' % (ts_full.full_name, self.infolder))
         ts_full.save(op.join(rundir, '%s.pickle' % self.infolder)) 
 
         # Set ts
         ts = ts_full  
-        
         ts = self.apply_parameters(ts)
         
+        #Iterate over various iunits
         for iu in self.params['iunits']:
             od = op.join(rundir , Idic[iu])
             # Rename a few output units for clear directory names
@@ -402,7 +402,7 @@ class Controller(object):
                 od=op.join(rundir, 'Linear_ratio') 
             elif iu == None:
                 od = op.join(rundir, 'Full_data')
-            loudmkdir(od)
+            logmkdir(od)
  
             ts = ts.as_iunit(iu)
             out_tag = ts.full_iunit.split()[0] #Raw, abs etc.. added to outfile
@@ -471,7 +471,7 @@ class Controller(object):
                 logger.warn('Directory "%s" and its contents will be overidden' % 
                             op.basename(self.outroot))
                 shutil.rmtree(self.outroot)
-        loudmkdir(self.outroot)
+        logmkdir(self.outroot)
 
         
     def validate_ts(self, ts):
@@ -501,7 +501,7 @@ class Controller(object):
         # Get all the files in working directory, ignore certain extensions
         infiles = get_files_in_dir(self.inpath, sort=True)
         infiles = [f for f in infiles if not ext(f) in self.img_ignore]
-        
+                
         if not infiles:
             raise IOError("No valid files found in %s" % self.infolder)        
         
@@ -518,7 +518,12 @@ class Controller(object):
         # Import from raw specfiles (name t
         logger.info('Loading contents of %s multiple raw spectral '
                     'files %s.' % (self.infolder, len(infiles)))     
-        return from_spec_files(infiles, name=self.infolder) 
+        try:
+            return from_spec_files(infiles, name=self.infolder) 
+        except Exception as exc:
+            logger.critical('Could not import files from pickle, legacy or' 
+            ' from_spec_files()')
+            raise
         
         
     
@@ -543,9 +548,8 @@ class Controller(object):
         return from_timefile_datafile(datafile=infiles, timefile=timefile, 
                                       name=self.infolder)
 
-       
     @classmethod
-    def _ts_from_picklefiles(self, infiles, infolder='unknown'):
+    def _ts_from_picklefiles(cls, infiles, infolder='unknown'):
         ''' Look in a list of files for .pickle extensions.  Infolder name
             is only used for better logging. '''
 
@@ -658,12 +662,7 @@ class Controller(object):
     
         parser.add_argument('-c', '--config', dest='cfig', default=DEF_CFIG, action=CfigAction,
                           help='usb650, usb2000, or path to parameter ' 
-                          'configuration file. defaults to usb2000', metavar='')    
-    
-        parser.add_argument('-r', '--runname', action=AddUnderscore,
-                          dest='rname', default='', metavar='',
-                          help='Trial name; used in outfile names and other places.')     
-        
+                          'configuration file. defaults to usb2000', metavar='')            
         
         parser.add_argument('-o','--overwrite', action='store_true', 
                             help='Overwrite contents of output directories if '
@@ -681,6 +680,7 @@ class Controller(object):
         parser.add_argument('-d','--dryrun', dest='dry', action='store_true',
                             help='Not yet implemented')
 
+        # This must be "-t, --trace" for logger compatability; don't change!
         parser.add_argument('-t', '--trace', action='store_true', dest='trace',
                           help='Show traceback upon errors')       
         
@@ -693,8 +693,7 @@ class Controller(object):
         # Run additional parsing based on cfig and "params" to set spec params
         _parse_params(ns)   
         
-        return cls(inroot=ns.inroot, outroot=ns.outroot, rname=ns.rname, 
+        return cls(inroot=ns.inroot, outroot=ns.outroot, plot_dpi = ns.dpi,
                    verbosity=ns.verbosity, trace=ns.trace, params=ns.params, 
-                   dryrun=ns.dry, overwrite=ns.overwrite, sweep=ns.sweep, 
-                   plot_dpi = ns.dpi)
+                   dryrun=ns.dry, overwrite=ns.overwrite, sweep=ns.sweep)
               

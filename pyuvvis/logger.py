@@ -231,10 +231,9 @@ def log(level='info', show_args=False, show_values=False, crop_values=True,
             
             ex_type, ex, tb = sys.exc_info()
         
-            # TEMPORARILY REPLACE WAY -t USED
-          #  trace = getattr(logging, 'trace', False)                  
+            # -t USES sys.argv (until fixed; argparse must use -t)
             trace = False
-            if '-t' in sys.argv:
+            if '-t'  or '--trace' in sys.argv:
                 trace = True
             
             if trace:
