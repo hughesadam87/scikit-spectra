@@ -7,7 +7,7 @@ params={
 '_valid_minmax':(200.0, 850.0), #nm
 
 ### Spectral output types.
-'outtypes':(None, 'r', 'a'),
+'iunits':(None, 'r', 'a'),
 'reference':0,  #This is set to 0 automatically if user doesn't explicitly overwrite (even from external parms file)
 'specunit':'nm',
 'intvlunit':'s',  #This will actually force data into interval represnetation         

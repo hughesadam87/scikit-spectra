@@ -26,7 +26,7 @@ from pyuvvis.exceptions import LogExit
 
 logger = logging.getLogger(__name__) 
 
-### STRING FORMATTING
+# STRING FORMATTING
 def _fmt_word(word, max_chars = 60, crop_front=True):
     '''str-convert a word.  If it exceeds max_chars, crop it to max_chars - 3
        and prefix it with "..."  eg:
@@ -261,7 +261,7 @@ def log(level='info', show_args=False, show_values=False, crop_values=True,
             
             # Wrap a method, add "self" to args and call function
             def wraps(self, *args, **kwargs):
-            
+                           
                 fcn_name = getattr(self, 'name', '') +'.' + fcn.__name__
                 args = list(args)
                 args.insert(0, self)
@@ -277,7 +277,7 @@ def log(level='info', show_args=False, show_values=False, crop_values=True,
     return deco
 
         
-### These logging facilities ought to be consolidated into a class.        
+# These logging facilities ought to be consolidated into a class.        
 def decode_lvl(level):
     ''' Converts logging level code ('info, 'debug') to int for logging.log()'''
 
@@ -299,8 +299,6 @@ def logclass(public_lvl='info', private_lvl='debug', skip=[], **logkwargs):
               logging for this reason.'''
 
     def wraps(cls):
-        
-        
         logkwargs['method'] = True
         
         magic = [method for method in dir(cls) if method.startswith('__') and \

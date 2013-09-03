@@ -9,7 +9,11 @@ __status__ = "Development"
 
 import numpy as np
 from pandas import DataFrame, Series
+import logging
 
+logger = logging.getLogger(__name__)
+
+        
 def _find_nearest(array, value):
     '''Find nearest value in an array, return index and array value'''
     idx=(np.abs(array-value)).argmin()
@@ -43,7 +47,7 @@ def dynamic_baseline(df, slices, style='linear', weightstyle=None, axis=1):
                  
     returns-
        DataFrame of fitted references.'''
-    
+        
     ### Test for proper input ###
     if style != 'linear' or axis != 1:
         raise NotImplementedError('reference correction only support linear fitting style and index axis iteration only.')
@@ -53,6 +57,8 @@ def dynamic_baseline(df, slices, style='linear', weightstyle=None, axis=1):
             raise NotImplemented('weightstyle attribute in reference_correction must be either None or "midpoint" but %s was entered'%weightstyle)
 
     xp=[] #xpoints
+    
+    logger.info('Applying dynamic baseline (style=%s)' % style)
     
     for val in slices:
         ### If slice is a single point, find its nearest actual entry in df.index
@@ -71,8 +77,8 @@ def dynamic_baseline(df, slices, style='linear', weightstyle=None, axis=1):
             
             
         else:
-            raise AttributeError('In reference correction, slices must 1 or 2 items large,\
-            you entered %s of len %s'%(val, len(val)))
+            raise AttributeError('In reference correction, slices must 1 or 2 items;'
+                'received %s of len %s'%(val, len(val)))
     
     ### Apply 1-d connect the dots curvefit to each column, then subtract this from said column
     ### Still vectorized, despite loop.  Loop is necessary; too much to use df.apply.

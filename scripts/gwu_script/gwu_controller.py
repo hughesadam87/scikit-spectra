@@ -146,14 +146,15 @@ class CfigAction(argparse.Action):
             try:
                 params = cfile.params
             except AttributeError:
-                raise AttributeError('Cannot find "params" dictionary in config file, %s'%basename)
+                raise AttributeError('Cannot find "params" dictionary in config'
+                                     ' file, %s' % basename)
     
             setattr(namespace, self.dest, params)
             return 
 
 #skip class methods
-#@logclass(log_name=__name__ , public_lvl='debug',
- #         skip=['_ts_from_picklefiles', 'from_namespace'])
+@logclass(log_name=__name__ , public_lvl='debug',
+          skip=['_ts_from_picklefiles', 'from_namespace'])
 class Controller(object):
     ''' '''
 
@@ -171,6 +172,7 @@ class Controller(object):
         self.outroot = kwargs.get('outroot', DEF_OUTROOT)
         self.params = kwargs.get('params', None)
         self.sweepmode = kwargs.get('sweep', False)
+        self._plot_dpi = kwargs.get('plot_dpi', None) #Defaults based on matplotlibrc file
         
         self.rname = kwargs.get('rname', '')
         self.dryrun = kwargs.get('dryrun', False) 
@@ -196,17 +198,21 @@ class Controller(object):
             f.write('\n\nRun Parameters:\n')
             f.write('\n'.join(['\t'+(str(k) + '\t' + str(v)) 
                                for k,v in kwargs.items()]))
+
+        if self._plot_dpi > 600:
+            logger.warn('Plotting dpi is set to %s.  > 600 may result in slow'
+                       ' performance.')
                         
         
         
     def _valid_inpath(self, value):
         if value is None:
-            return None
-        else:
-            path = op.abspath(value)
-            if not op.exists(path):
-                raise IOError('Inroot path does not exist: %s' % path)
-            return path
+            return 
+ 
+        path = op.abspath(value)
+        if not op.exists(path):
+            raise IOError('Inroot path does not exist: %s' % path)
+        return path
 
     @property
     def inroot(self):
@@ -292,24 +298,26 @@ class Controller(object):
         if not isinstance(params, dict):
             raise AttributeError('"params" must be dict but is %s' % str(type(params)))
  
-        if params.has_key('outtypes'):
-            if not hasattr('__iter__', params['outtypes']):
-                params['outtypes'] = params['outtypes'].split()
+        if params.has_key('iunits'):
+            if not hasattr('__iter__', params['iunits']):
+                logger.debug("Converting params['iunits'] from str to list")
+                params['iunits'] = params['iunits'].split()
                 
                 
             # Make sure all outtypes (a, r, None) are valid; convert "None" to none
-            for idx, otype in enumerate(params['outtypes']):
+            for idx, otype in enumerate(params['iunits']):
                 if otype == 'None':
+                    logger.debug('Changing "None" string to None')
                     otype = None
-                    params['outtypes'][idx] = otype                    
+                    params['iunits'][idx] = otype                    
                 badkey_check(otype, Idic.keys())
 
         else:
             logger.warn('"outtypes" parameter not found.  Setting to [None].  Only'
                         ' rawdata will be analyzed.')
-            params['outtypes'] = [None] 
-                
-                
+            logger.debug("Converting params['iunits'] from str to list")            
+            params['iunits'] = [None] 
+                                
         self._params = params   
         
             
@@ -319,31 +327,37 @@ class Controller(object):
             self.main_walk()
         else:
             self._inpath = self.inroot
-            self._outpath = self.outroot
-            #self.build_out()
-            #self.output_params()
-
+            self._outpath = op.join(self.outroot, self.infolder)
             self.analyze_dir()
             
 
-    # MAYBE JUST HAVE SCRIPT HAVE A WALK MODE        
     def main_walk(self):
-        walker=os.walk(self.inroot, topdown=True, onerror=None, followlinks=False)
-        (rootpath, rootdirs, rootfiles)= walker.next()   
-        
+        walker = os.walk(self.inroot, topdown=True, onerror=None, followlinks=False)
+        (rootpath, rootdirs, rootfiles) = walker.next()   
+    
+        if not rootdirs:
+            raise IOError('"%s" directory is empty.' % op.basename(rootpath))    
+    
         while rootdirs:
-            logger.info('Entering directory %s' % rootdirs)
-            if not rootdirs:
-                raise IOError("'%s' directory is empty." % rootpath)
 
             for iteration, folder in enumerate(rootdirs):
-                self._inpath = op.join(rootpath, folder)
-#                self._outpath = #WHAT IS OUTPATH?
-#make_root_dir(outty, overwrite=options.clean)  ## BE VERY CAREFUL WITH THIS
+                
+                # Outsuffix is working folder minus inroot (eg inroot/foo/bar --> foo/bar)
+                wd = op.join(rootpath, folder)
+                outsuffix = wd.split(self.inroot)[-1].lstrip('/') 
+                
+                self._inpath = wd
+                self._outpath = op.join(self.outroot, outsuffix)
 
-                self.analyze_dir()
-
-
+                logger.debug('inpath is: %s' % self._inpath)
+                logger.debug('outpath is: %s' % self._outpath)
+                
+                try:
+                    self.analyze_dir()
+                except Exception: #log exit
+                    logger.critical('FAILURE: "%s" finished with errors.' % self.infolder) 
+                else:
+                    logger.info('SUCCESS: "%s" analyzed successfully' % self.infolder)
 
         # Move down to next directory.  Need to keep iterating walker until a
         # directory is found or until StopIteraion is raised.
@@ -353,40 +367,101 @@ class Controller(object):
                     while not rootdirs:
                         rootpath, rootdirs, rootfile=walker.next()
                 except StopIteration:
-                    logger.info('Breaking from walk')
+                    logger.info('Reached end of directory tree.')
                     break
 
 
     def analyze_dir(self):
         ''' Analyze a single directory, do all analysis. '''
 
+        logger.info("ANALYZING RUN DIRECTORY: %s\n\n" % self.infolder)
+
         start = timenow()
         ts_full = self.build_timespectra()        
-        logger.info('SUCCESSFULLY imported %s in %s seconds' % 
+        logger.info('SUCCESS imported %s in %s seconds' % 
                 (ts_full.full_name, (timenow() - start).seconds))
-        self.validate_ts(ts_full) 
+        ts_full = self.validate_ts(ts_full) 
 
         
-        # rundir = outpath/infolder
-        rundir = op.join(self.outpath, self.infolder)
+        # make rundir = outpath/infolder; save
+        rundir = op.join(self.outpath)#, self.infolder)
         loudmkdir(rundir)
         
-        logger.info('Saving %s as spectra.pickle' % ts_full.full_name)
-        ts_full.save(op.join(rundir, 'spectra.pickle')) 
+        logger.info('Saving %s as %s.pickle' % (ts_full.full_name, self.infolder))
+        ts_full.save(op.join(rundir, '%s.pickle' % self.infolder)) 
 
         # Set ts
         ts = ts_full  
         
-        # Should rename outtyps to iunits
-        for iu in self.params['outtypes']:
+        ts = self.apply_parameters(ts)
+        
+        for iu in self.params['iunits']:
             od = op.join(rundir , Idic[iu])
+            # Rename a few output units for clear directory names
             if iu =='r':
-                od=op.join(rundir+'/'+'Relative Inverse')  # The (1/T) messes up directory structure!
+                od=op.join(rundir, 'Linear_ratio') 
+            elif iu == None:
+                od = op.join(rundir, 'Full_data')
             loudmkdir(od)
  
-            ts=ts.as_iunit(iu)
-            out_tag=ts.full_iunit.split()[0] #Raw, abs etc.. added to outfile
+            ts = ts.as_iunit(iu)
+            out_tag = ts.full_iunit.split()[0] #Raw, abs etc.. added to outfile
             
+            self.plots_1d(ts, outpath=od, prefix=out_tag)
+            
+
+    def apply_parameters(self, ts):
+        ''' Performs several timespectr manipulations such as slicing, baseline 
+            subtraction etc..  similar to self.validate_ts(), but is performed
+            after the full timespectra object has been changed. '''
+        
+
+        # Subtract the dark spectrum if it has one.  
+        #if self.params['sub_base']:
+            #if ts.baseline is None:
+                #logger.warn('Warning: baseline not found on %s)' % ts.full_name)            
+            #else:    
+                #ts.sub_base() 
+                #logger.info('Baseline has been subtracted')
+        #else:
+            #logger.info('Parameter "sub_base" not set to True.' 
+            #'No baseline subtraction will occur.')            
+    
+        ### Fit first order references automatically?
+        #if self.params['bline_fit']:
+            #blines = dynamic_baseline(ts, self.params['fit_regions'] )
+            #ts = ts - blines 
+            #logger.info('Dynamically fit baselines successfully subtracted.')
+    
+        # Slice spectra and time start/end points.  Doesn't stop script upon erroringa
+        try:
+            tstart, tend = self.params['tstart'], self.params['tend']
+            if tstart and tend:
+                ts = ts[ tstart : tend ] 
+                logger.info('Timesliced %s to (%s, %s)' % (ts.full_name, tstart, tend))                
+        except Exception:
+            logger.warn('unable to timeslice to specified specified by parameters')                   
+            
+        try:
+            xstart, xend = self.params['x_min'], self.params['x_max']
+            if xstart and xend:              
+                ts = ts.ix[ xstart : xend ] 
+                logger.info('Wavelength-sliced %s to (%s, %s)' % (ts.full_name, xstart, xend))                
+        except Exception:
+            logger.warn('unable to slice x_min and x_max range specified by parameters')                          
+            
+            
+        # Set reference (MUST SET reference AFTER SLICING RANGES TO AVOID ERRONEOUS reference DATA)
+        ts = self._try_apply(ts, 'reference', 0)
+    
+        try:
+            ts.to_interval(self.params['intvlunit'])
+        except KeyError:
+            ts.to_interval()        
+            logger.warn('Cannot set "intvlunit" from parameters; running'
+                        ' ts.to_interval()')
+            
+        return ts    
 
     def build_outroot(self):
         if op.exists(self.outroot):
@@ -410,23 +485,19 @@ class Controller(object):
             ' index (%s,%s); parameters _valid_range (%s,%s)' % (dmin, dmax, pmin,pmax))  
             
         # Set some defaults if params fails
-        self._try_apply(ts, 'specunit', 'nm')
-        self._try_apply(ts, 'intvlunit', 'intvl')
+        ts = self._try_apply(ts, 'specunit', 'nm')
+        ts = self._try_apply(ts, 'intvlunit', 'intvl')
         
         # TEST FOR NAN VALUES BEFORE CONTINUING  #####
         if countNaN(ts): #0 will evaluate to false
             raise GeneralError('NaNs found in %s during preprocessing.' 
                     ' Cannot proceed with analysis.' % ts.full_name)
-     
+        return ts
 
 
-    # Let main_walk deal with passing int he correct versions of inpath/outpath 
-    # IE THIS SHOULD NOT HAVE A CONCEPT OF INROOT AND OUTROOT
     def build_timespectra(self):
         ''' '''
-        
-        logger.info("Analyzing run directory %s" % self.infolder)
-        
+                
         # Get all the files in working directory, ignore certain extensions
         infiles = get_files_in_dir(self.inpath, sort=True)
         infiles = [f for f in infiles if not ext(f) in self.img_ignore]
@@ -444,25 +515,25 @@ class Controller(object):
         if ts_full:
             return ts_full
         
-        # Import from raw specfiles
+        # Import from raw specfiles (name t
         logger.info('Loading contents of %s multiple raw spectral '
                     'files %s.' % (self.infolder, len(infiles)))     
-        return from_spec_files(infiles, name=self.infolder.lower())        
+        return from_spec_files(infiles, name=self.infolder) 
         
         
     
     def _ts_from_legacy(self, infiles):
         
         if len(infiles) != 2:
-            logger.info('Legacy import failed: requires 2 infiles (timefile/darkfile); '
+            logger.debug('Legacy import failed: requires 2 infiles (timefile/darkfile); '
             '%s files found' % len(infiles))
             return
 
         timefile=[afile for afile in infiles if 'time' in afile.lower()]            
 
         if len(timefile) != 1:
-            logger.info('Legacy import failed: required one file with "time" in'
-            ' filenames; found %s' % (self.infolder, len(infiles)))  
+            logger.debug('Legacy import failed: required one file with "time" in'
+            ' filenames; found %s' % len(infiles))
             return
         
         logger.info('Loading contents of "%s", using the timefile/datafile '
@@ -470,7 +541,7 @@ class Controller(object):
         timefile = timefile[0]
         infiles.remove(timefile) #remaing file is datafile
         return from_timefile_datafile(datafile=infiles, timefile=timefile, 
-                                      name=self.infolder.lower())
+                                      name=self.infolder)
 
        
     @classmethod
@@ -478,12 +549,12 @@ class Controller(object):
         ''' Look in a list of files for .pickle extensions.  Infolder name
             is only used for better logging. '''
 
-        logger.info('Looking for .pickle files in folder: %s' % infolder)
+        logger.debug('Looking for .pickle files in folder: %s' % infolder)
         
         picklefiles = [f for f in infiles if ext(f) == 'pickle']
         
         if not picklefiles:
-            logger.info('Pickle files not found in %s' % infolder)
+            logger.debug('Pickle files not found in %s' % infolder)
             return
         
         elif len(picklefiles) > 1:
@@ -496,7 +567,9 @@ class Controller(object):
             return mload(picklefile)     
 
     def _try_apply(self, ts, attr, default):
-        
+        '''Boilerplate reduction: sets an attributed on ts based on its value in
+           self.params, and takes a default if not found. '''
+
         if not self.params.has_key(attr):
             logger.warn('%s not found in supplied parameters. '  
             'Automatically setting to "%s"' % (attr, default))
@@ -508,13 +581,41 @@ class Controller(object):
                 logger.info('Set %s from parameters to "%s"' %
                             (attr, self.params[attr]))
             except Exception: #Too stringent?
-                logger.warn('Failed to set %s from parameters.  Auomtatically'
+                logger.warn('Failed to set %s from parameters.  Automatically'
                             ' setting to %s' % (attr, default))
                 setattr(ts, attr, default)
+
+        return ts
     
  
-    def plots_1d(self, ts):
-        NotImplemented
+    def plots_1d(self, ts, outpath, prefix=''):
+        ''' Plots several 1D plots.  User passes in ts w/ proper iunit.
+            outpath: filepath (str)
+            prefix: str
+               Put in front of file name (eg outpath/prefix_area.png) for area plot
+        '''
+        
+        specplot(ts)
+        self.plt_clrsave(op.join(outpath, prefix+'_spectrum'))
+
+        # Area plot using simpson method of integration
+        areaplot(ts, ylabel='Power', xlabel='Time ('+ts.timeunit+')', legend=False,
+                 title='Spectral Power vs. Time (%i - %i %s)' % 
+                    (min(ts.index), max(ts.index), ts.specunit), color='r')
+        self.plt_clrsave(op.join(outpath, prefix+'_area'))
+
+        # Ranged time plot
+        try:
+            uv_ranges = self.params['uv_ranges']   
+        except (KeyError):
+            uv_ranges = 8   
+            logger.warn('Uv_ranges parameter not found: setting to 8.')
+                
+        # Time averaged plot, not scaled to 1 (relative intenisty dependson bin width and actual intensity)
+        tssliced = ts.wavelength_slices(uv_ranges, apply_fcn='mean')
+        range_timeplot(tssliced, ylabel='Average Intensity', xlabel = 
+                       'Time ('+ts.timeunit+')' ) #legstyle =1 for upper left
+        self.plt_clrsave(op.join(outpath, prefix+'_strip'))        
         
     def plots_2d(self, ts):
         NotImplemented
@@ -523,6 +624,10 @@ class Controller(object):
         NotImplemented   
         
    
+    def plt_clrsave(self, outpath):
+        logger.info('Saving plot: %s' % outpath)                
+        plt.savefig(outpath, dpi=self._plot_dpi)
+        plt.clf()       
 
     @classmethod
     def from_namespace(cls, args=None):
@@ -578,6 +683,8 @@ class Controller(object):
 
         parser.add_argument('-t', '--trace', action='store_true', dest='trace',
                           help='Show traceback upon errors')       
+        
+        parser.add_argument('--dpi', type=int, help='Plotting dots per inch.')
     
     
         # Store namespace, parser, runn additional parsing
@@ -588,5 +695,6 @@ class Controller(object):
         
         return cls(inroot=ns.inroot, outroot=ns.outroot, rname=ns.rname, 
                    verbosity=ns.verbosity, trace=ns.trace, params=ns.params, 
-                   dryrun=ns.dry, overwrite=ns.overwrite, sweep=ns.sweep)
+                   dryrun=ns.dry, overwrite=ns.overwrite, sweep=ns.sweep, 
+                   plot_dpi = ns.dpi)
               
