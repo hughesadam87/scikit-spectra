@@ -1,4 +1,17 @@
+import sys
 from distutils.core import setup
+
+NAME='PyUvVis'
+
+# Python >= 2.7 ?
+user_py = sys.version_info
+if user_py < (2, 7):
+    raise SystemExit('%s requires python 2.7 or higher (%s found).' % \
+                     (NAME, '.'.join(str(x) for x in user_py[0:3])))
+
+with open('requirements.txt') as f:
+    required = f.readlines()
+    required = [line.strip() for line in required]
 
 # For now, most of these are in here for testing.  Dependency version 
 #requirements can probably be relaxed, especially chaco.

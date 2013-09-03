@@ -117,7 +117,7 @@ def spec_from_dir(directory, csvargs, sortnames=False, concat_axis=1, shortname=
     return TimeSpectra(df_from_directory(directory, csvargs, sortnames=sortnames, concat_axis=concat_axis, shortname=shortname, cut_extension=cut_extension))
 
 
-@logclass(log_name=__name__, skip = ['_dfgetattr', '_comment', '_transfer'])
+@logclass(log_name=__name__, skip = ['wraps','_dfgetattr', '_comment', '_transfer'])
 class TimeSpectra(MetaDataFrame):
     ''' Provides core TimeSpectra composite pandas DataFrame to represent a set of spectral data.  Enforces spectral data 
     along the index and temporal data as columns.  The spectral index is controlled from the specindex
@@ -129,17 +129,17 @@ class TimeSpectra(MetaDataFrame):
 
     def __init__(self, *dfargs, **dfkwargs):
         # Pop default DataFrame keywords before initializing###
-        self.name=dfkwargs.pop('name', '')
+        self.name = str(dfkwargs.pop('name', ''))
         
         # Spectral index-related keywords
-        specunit=dfkwargs.pop('specunit', None)
+        specunit = dfkwargs.pop('specunit', None)
 
         # Intensity data-related stuff
-        iunit=dfkwargs.pop('iunit', None)
+        iunit = dfkwargs.pop('iunit', None)
 
         # Time index-related keywords  (note, the are only used if a DatetimeIndex is not passed in)
-        reference=dfkwargs.pop('reference', None)        
-        bline=dfkwargs.pop('baseline', None)
+        reference = dfkwargs.pop('reference', None)        
+        bline = dfkwargs.pop('baseline', None)
         
         # Logging __init__() in @logclass can't access self.name
         logger.info('Initializing %s' %  '%s:(name = %s)' % 
@@ -332,22 +332,26 @@ class TimeSpectra(MetaDataFrame):
             # Sort output either by name or type
             badkey_check(sortby, ['name', 'type']) #sortby must be 'name' or 'type'
             
-            if sortby=='name':
+            if sortby == 'name':
                 atts=sorted(atts, key=itemgetter(0))
-            elif sortby=='type':
+            elif sortby == 'type':
                 atts=sorted(atts, key=itemgetter(1))
 
         # Output to screen
         print delim.join(outheader)    
         print '--------------------'
         for att in atts:
-            if types==True:
+            if types == True:
                 print string.rjust(delim.join(att), 7) #MAKE '\N' comprehension if string format never works out
             else:
                 print att    
         
         
-        
+    @property  #Make log work with this eventually?
+    def full_name(self):
+        ''' Timespectra:name or Timespectra:unnamed.  Useful for scripts mostly '''
+        outname = getattr(self, 'name', 'unnamed')
+        return '%s:%s' % (self.__class__.__name__, self.name)
         
 
     @property
@@ -388,10 +392,12 @@ class TimeSpectra(MetaDataFrame):
             if not isinstance(self._reference, NoneType):  #Can't do if array==None
                 self._set_itype(None, ref=self._reference)
                 self._reference=None
+                
 
     def dropref(self):
         ''' Convience method for setting to None'''
-        self.reference=None
+        self.reference = None
+        
         
     def _reference_valid(self, ref, force_series=True, zero_warn=True, nan_warn=True):
         ''' Helper method for to handles various scenarios of valid references.  Eg user wants to 
@@ -471,12 +477,14 @@ class TimeSpectra(MetaDataFrame):
                 
         if nan_warn:
             if np.isnan(np.sum(rout)):  #Fast way to check for nan's
-                raise Warning('Zero values found in reference')
+                logger.error('Nans found in reference.  Error raised because '
+                    '"nan_warn" = True in _reference_valid()')
                 
                 
         if zero_warn:
             if 0.0 in rout:
-                raise Warning('Zero values found in reference')
+                logger.error('Zero values found in reference.  Error raised '
+                    'because "zero_warn" = True in _reference valid()')
 
         return rout  #MAKES MORE SENSE TO MAKE THIS A 1D DATAFRAME
     
@@ -1007,7 +1015,7 @@ class TimeSpectra(MetaDataFrame):
                         %(baseline.shape, self.name, self.index.shape))
             else:
                 if np.array_equal(baseline.index, self._df.index):
-                    self._comment('Baseline is a series; has identical index' 
+                    self._comment('Baseline is a series; has identical index ' 
                                   'to self._df.index')
                     return baseline
                 else:

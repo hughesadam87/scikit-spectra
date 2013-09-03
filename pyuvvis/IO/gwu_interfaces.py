@@ -23,7 +23,7 @@ import numpy as np
 # PyUvVis imports
 from pyuvvis.core.timespectra import TimeSpectra
 from pyuvvis.core.specindex import SpecIndex
-from pyuvvis.core.imk_utils import get_files_in_dir, get_shortname
+from pyuvvis.core.file_utils import get_files_in_dir, get_shortname
 
 
 ### Verified OCean Optics month naming conventions (Actually it capitalizes but this call with month.lower() ###
@@ -35,9 +35,9 @@ spec_dtype = np.dtype([ ('wavelength', float), ('intensity', float) ])
 
 def get_shortname(filepath, cut_extension=False):
     ''' simply get the filename of fullpath.  Cut extension will remove file extension'''
-    shortname=os.path.basename(filepath) 
+    shortname = os.path.basename(filepath) 
     if cut_extension:
-        shortname=os.path.splitext(shortname)[0]  #Cut file extension
+        shortname = os.path.splitext(shortname)[0]
     return shortname
 
 
@@ -204,7 +204,7 @@ def _get_metadata_fromheader(specsuiteheader):
 
 
 ######### Get dataframe from timefile / datafile #####
-## Authors Zhaowen Liu/Adam Hughes, 10/15/12
+# Authors Zhaowen Liu/Adam Hughes, 10/15/12
 
 def from_timefile_datafile(datafile, timefile, extract_dark=True, name=''): 
     ''' Converts old-style spectral data from GWU phys lab into  
