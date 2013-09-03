@@ -323,12 +323,11 @@ class Controller(object):
             
     def start_run(self):
 
+        self._inpath = self.inroot
+        self._outpath = op.join(self.outroot, self.infolder)
+        self.analyze_dir()
         if self.sweepmode:
-            self.main_walk()
-        else:
-            self._inpath = self.inroot
-            self._outpath = op.join(self.outroot, self.infolder)
-            self.analyze_dir()
+            self.main_walk()        
             
 
     def main_walk(self):
@@ -336,7 +335,8 @@ class Controller(object):
         (rootpath, rootdirs, rootfiles) = walker.next()   
     
         if not rootdirs:
-            raise IOError('"%s" directory is empty.' % op.basename(rootpath))    
+            logger.warn('Recursive walk found no further directories after %s'
+                        % self.infolder)    
     
         while rootdirs:
 
@@ -352,12 +352,7 @@ class Controller(object):
                 logger.debug('inpath is: %s' % self._inpath)
                 logger.debug('outpath is: %s' % self._outpath)
                 
-                try:
-                    self.analyze_dir()
-                except LogExit: #log exit
-                    logger.critical('FAILURE: "%s" finished with errors.' % self.infolder) 
-                else:
-                    logger.info('SUCCESS: "%s" analyzed successfully' % self.infolder)
+                self.analyze_dir()
 
         # Move down to next directory.  Need to keep iterating walker until a
         # directory is found or until StopIteraion is raised.
@@ -370,8 +365,16 @@ class Controller(object):
                     logger.info('Reached end of directory tree.')
                     break
 
-
     def analyze_dir(self):
+        try:
+            self._analyze_dir()
+        except LogExit: #log exit
+            logger.critical('FAILURE: "%s" finished with errors.' % self.infolder) 
+        else:
+            logger.info('SUCCESS: "%s" analyzed successfully' % self.infolder)        
+
+
+    def _analyze_dir(self):
         ''' Analyze a single directory, do all analysis. '''
 
         logger.info("ANALYZING RUN DIRECTORY: %s\n\n" % self.infolder)
