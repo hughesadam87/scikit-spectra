@@ -30,6 +30,10 @@ class BaselineError(GeneralError):
     
     default = 'Baseline operation failure'
     
+
+class ParameterError(GeneralError):
+    
+    default = "Parmater unknown"
     
 class RefError(GeneralError):
     ''' Error raised when a user-supplied iterable does not have same spectral
