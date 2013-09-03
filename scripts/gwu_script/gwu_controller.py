@@ -345,7 +345,7 @@ class Controller(object):
 
             for iteration, folder in enumerate(rootdirs):
                 
-                # Outsuffix is working folder minus inroot (eg inroot/foo/bar --> foo/bar)
+         # Outsuffix is working folder minus inroot (inroot/foo/bar --> foo/bar)
                 wd = op.join(rootpath, folder)
                 outsuffix = wd.split(self.inroot)[-1].lstrip('/') 
                 
@@ -504,9 +504,10 @@ class Controller(object):
 
 
     def build_timespectra(self):
-        ''' '''
+        ''' Attempts to build timespectra form picklefile, legacy and finally
+            from the raw datafiles.'''
                 
-        # Get all the files in working directory, ignore certain extensions
+        # Files in working directory, ignore certain extensions; ignore directories
         infiles = get_files_in_dir(self.inpath, sort=True)
         infiles = [f for f in infiles if not ext(f) in self.img_ignore]
                 
