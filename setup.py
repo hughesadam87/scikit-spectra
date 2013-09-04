@@ -1,5 +1,6 @@
 import sys
-from distutils.core import setup
+#from distutils.core import setup
+from setuptools import setup, find_packages
 
 NAME='PyUvVis'
 
@@ -12,30 +13,39 @@ if user_py < (2, 7):
 with open('requirements.txt') as f:
     required = f.readlines()
     required = [line.strip() for line in required]
-
+    
 # For now, most of these are in here for testing.  Dependency version 
 #requirements can probably be relaxed, especially chaco.
 setup(
-    name='PyUvVis',
-    version='0.1.2-1',
-    author='Adam Hughes',
-    maintainer='Adam Hughes',
-    maintainer_email='hughesadam87@gmail.com',
-    author_email='hughesadam87@gmail.com',
-    packages=['pyuvvis',
-              'pyuvvis.chaco_interface',
-              'pyuvvis.core',
-              'pyuvvis.IO',
-              'pyuvvis.nptools',
-              'pyuvvis.pandas_utils',
-              'pyuvvis.pyplots',
-              'pyuvvis.tests',
-              ],
+    name = 'PyUvVis',
+    version = '0.1.2-1',
+    author = 'Adam Hughes',
+    maintainer = 'Adam Hughes',
+    maintainer_email = 'hughesadam87@gmail.com',
+    author_email = 'hughesadam87@gmail.com',
+    packages = find_packages(),
+   
+    # Remove later after tested that not error incurred
+    #packages=['pyuvvis',
+              #'pyuvvis.chaco_interface',
+              #'pyuvvis.core',
+              #'pyuvvis.IO',
+              #'pyuvvis.nptools',
+              #'pyuvvis.pandas_utils',
+              #'pyuvvis.pyplots',
+              #'pyuvvis.tests',
+              #'pyuvvis.scripts',
+              #'pyuvvis.scripts.gwu_scripts',
+              #],
 
-    package_data={'pyuvvis' : ['example_data/NPSAM/*', 
-              'example_data/spectra.pickle',
-              'example_data/spectra.csv']
-                  },
+    #package_data = {'pyuvvis' : ['example_data/NPSAM/*', 
+              #'example_data/spectra.pickle',
+              #'example_data/spectra.csv']
+                  #},
+    
+    entry_points = {'console_scripts': [
+                       'gwuspec = scripts.gwu_script.gwuspec:main']
+                    },
     
     url='http://pypi.python.org/pypi/PyUvVis/',
     download_url='https://github.com/hugadams/pyuvvis',
@@ -44,7 +54,7 @@ setup(
     'UVVis spectra for now.',
     long_description=open('README.rst').read(),
     install_requires=[
-        "pandas >= 12.0",
+        "pandas >= 0.12.0",
 #   	"numpy >= 1.6.0",  #Pandas puts this in
 #        "chaco",
      	"scipy", #Probably too high version requirement
