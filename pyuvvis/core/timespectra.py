@@ -964,10 +964,11 @@ class TimeSpectra(MetaDataFrame):
 
         # Only subtract if baseline isn't currently subtracted
         if not self._base_sub:
-            self._df=self._df.sub(self._baseline, axis=0)
-            self._base_sub=True     
-        #else:
-            #print 'raise waring? already subbed'
+            self._df = self._df.sub(self._baseline, axis=0)
+            self._base_sub = True
+            
+        else:
+            logger.warn('Baseline is already subtracted.')
 
     def add_base(self):
         ''' Adds baseline to data that currently has it subtracted.'''

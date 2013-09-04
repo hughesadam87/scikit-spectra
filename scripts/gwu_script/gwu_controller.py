@@ -367,6 +367,7 @@ class Controller(object):
                 logger.debug('Cannot timeslice: tstart and/or tend not found')
         except Exception:
             logger.warn('unable to timeslice to specified by parameters')                   
+            raise
             
         try:
             xstart, xend = self.params.x_min, self.params.x_max

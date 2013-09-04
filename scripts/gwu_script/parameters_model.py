@@ -35,8 +35,8 @@ class Parameters(object):
     # or((430.0,450.0), (450.0,515.0), (515.0, 570.0),
     #(570.0,620.0), (620.0,680.0))
     
-    tstart_default = None
-    tend_default = None 
+    t_start_default = None
+    t_end_default = None 
     xmin_default = None
     xmax_default = None
 
@@ -64,8 +64,8 @@ class Parameters(object):
         self.intvlunit = self.loud_apply('intvlunit', self.intvlunit_default)
         self.uv_ranges = self.loud_apply('uv_ranges', self.uv_ranges_default)
         
-        self.tstart = self.loud_apply('t_start', self.tstart_default)
-        self.tend = self.loud_apply('t_end', self.tend_default)
+        self.t_start = self.loud_apply('t_start', self.t_start_default)
+        self.t_end = self.loud_apply('t_end', self.t_end_default)
 
         # Slicing wavelengths (not sure how to handle times)
         self.x_min = self.loud_apply('x_min', self.xmin_default)
