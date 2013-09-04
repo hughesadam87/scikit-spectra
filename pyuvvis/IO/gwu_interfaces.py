@@ -26,6 +26,10 @@ from pyuvvis.core.specindex import SpecIndex
 from pyuvvis.core.file_utils import get_files_in_dir, get_shortname
 
 
+import logging
+logger = logging.getLogger(__name__)
+
+
 ### Verified OCean Optics month naming conventions (Actually it capitalizes but this call with month.lower() ###
 spec_suite_months={'jan':1, 'feb':2, 'mar':3, 'apr':4, 'may':5, 'jun':6, 'jul':7,
                    'aug':8, 'sep':9, 'oct':10, 'nov':11, 'dec':12}  
@@ -114,6 +118,8 @@ def from_spec_files(file_list, name='', skiphead=17, skipfoot=1, check_for_overl
 
     dict_of_series={} #Dict of series eventually merged to dataframe   
     time_file_dict={} #Dict of time:filename (darkfile intentionally excluded)
+    
+    _overlap_count = 0 # Tracks if overlapping occurs
 
     ### If looking for a darkfile, this will find it.  Bit redundant but I'm lazy..###
     if extract_dark:
@@ -139,22 +145,25 @@ def from_spec_files(file_list, name='', skiphead=17, skipfoot=1, check_for_overl
         with open(infile) as f:
             header=[f.next().strip() for x in xrange(skiphead)]
 
-        ###Store wavelength, intensity data in a 2-column datatime for easy itemlookup 
-        ###Eg wavedata['wavelength']
+        #Store wavelength, intensity data in a 2-column datatime for easy itemlookup 
+        #Eg wavedata['wavelength']
         wavedata=np.genfromtxt(infile, dtype=spec_dtype, skip_header=skiphead, skip_footer=skipfoot) 
 
-        ### Extract time data from header
+        # Extract time data from header
         datetime=_get_datetime_specsuite(header) 
 
-        ### Make sure timepoints aren't overlapping with any others
+        # Make sure timepoints aren't overlapping with any others
         if check_for_overlapping_time:
             try:
                 time_file_dict[datetime]
             except KeyError:
-                pass
-            else:
-                raise KeyError('Duplicate time %s found in between files %s, %s'\
+                raise IOError('Duplicate time %s found in between files %s, %s.'
+                              ' To overwrite, set check_for_overlapping_time = False.'
                                %(datetime,infile, time_file_dict[datetime]) )
+            
+        if datetime in time_file_dict:
+            _overlap_count += 1
+            
 
         time_file_dict[datetime]=infile
         dict_of_series[datetime]=Series(wavedata['intensity'], index=wavedata['wavelength'])
@@ -179,6 +188,10 @@ def from_spec_files(file_list, name='', skiphead=17, skipfoot=1, check_for_overl
     meta_general.update(meta_partial)
     timespec.metadata=meta_general   
 
+    if _overlap_count:
+        logger.warn('Time duplication found in %s of %s files.  Duplicates were '
+            'removed!' % (_overlap_count, len(file_list)))
+    
     return timespec
 
 def _get_datetime_specsuite(specsuiteheader):

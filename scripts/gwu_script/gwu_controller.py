@@ -341,21 +341,21 @@ class Controller(object):
         
 
         # Subtract the dark spectrum if it has one.  
-        #if self.params.sub_base:
-            #if ts.baseline is None:
-                #logger.warn('Warning: baseline not found on %s)' % ts.full_name)            
-            #else:    
-                #ts.sub_base() 
-                #logger.info('Baseline has been subtracted')
-        #else:
-            #logger.info('Parameter "sub_base" not set to True.' 
-            #'No baseline subtraction will occur.')            
+        if self.params.sub_base:
+            if ts.baseline is None:
+                logger.warn('Warning: baseline not found on %s)' % ts.full_name)            
+            else:    
+                ts.sub_base() 
+                logger.info('Baseline has been subtracted')
+        else:
+            logger.info('Parameter "sub_base" not set to True.' 
+            'No baseline subtraction will occur.')            
     
-        ### Fit first order references automatically?
-        #if self.params.bline_fit:
-            #blines = dynamic_baseline(ts, self.params.it_regions )
-            #ts = ts - blines 
-            #logger.info('Dynamically fit baselines successfully subtracted.')
+        # Fit first order references automatically?
+        if self.params.bline_fit:
+            blines = dynamic_baseline(ts, self.params.fit_regions )
+            ts = ts - blines 
+            logger.info('Dynamically fit baselines successfully subtracted.')
     
         # Slice spectra and time start/end points.  Doesn't stop script upon erroringa
         try:
@@ -445,11 +445,12 @@ class Controller(object):
         if ts_full:
             return ts_full
         
-        # Import from raw specfiles (name t
+        # Import from raw specfiles (overwrite if data < 1s apart)
         logger.info('Loading contents of %s multiple raw spectral '
                     'files %s.' % (self.infolder, len(infiles)))     
         try:
-            return from_spec_files(infiles, name=self.infolder) 
+            return from_spec_files(infiles, name=self.infolder, 
+                                   check_for_overlapping_time=False) 
         except Exception as exc:
             logger.critical('Could not import files from pickle, legacy or' 
             ' from_spec_files()')
