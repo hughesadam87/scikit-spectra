@@ -321,7 +321,17 @@ class Controller(object):
             ts = ts.as_iunit(iu)
             out_tag = ts.full_iunit.split()[0] #Raw, abs etc.. added to outfile
             
+            # 1d Plots
             self.plots_1d(ts, outpath=od, prefix=out_tag)
+            
+            # 2d Plots
+            self.plots_2d(ts, outpath=od, prefix=out_tag)
+            
+            # Correlation analysis   
+            self.corr_analysis(ts, outpath=od, prefix=out_tag)
+          
+            # 3d Plots
+            self.plots_3d(ts, outpath=od, prefix=out_tag)
             
 
     def apply_parameters(self, ts):
@@ -498,13 +508,13 @@ class Controller(object):
         '''
         
         specplot(ts)
-        self.plt_clrsave(op.join(outpath, prefix+'_spectrum'))
+        self.plt_clrsave(op.join(outpath, prefix +'_spectrum'))
 
         # Area plot using simpson method of integration
         areaplot(ts, ylabel='Power', xlabel='Time ('+ts.timeunit+')', legend=False,
                  title='Spectral Power vs. Time (%i - %i %s)' % 
                     (min(ts.index), max(ts.index), ts.specunit), color='r')
-        self.plt_clrsave(op.join(outpath, prefix+'_area'))
+        self.plt_clrsave(op.join(outpath, prefix +'_area'))
 
         # Ranged time plot
         try:
@@ -517,14 +527,47 @@ class Controller(object):
         tssliced = ts.wavelength_slices(uv_ranges, apply_fcn='mean')
         range_timeplot(tssliced, ylabel='Average Intensity', xlabel = 
                        'Time ('+ts.timeunit+')' ) #legstyle =1 for upper left
-        self.plt_clrsave(op.join(outpath, prefix+'_strip'))        
+        self.plt_clrsave(op.join(outpath, prefix +'_strip'))        
         
-    def plots_2d(self, ts):
-        NotImplemented
         
-    def plots_3d(self, ts):
-        NotImplemented   
+    def corr_analysis(self, ts, outpath, prefix=''):
         
+        # Make a 2dCorrAnal Directory
+        corr_out = op.join(outpath, '2dCorrAnal')
+        logmkdir(corr_out)
+    
+        ref = make_ref(ts, method='empty') 
+        S,A = ca2d(ts, ref)
+        sync_3d(S, title='Synchronous Spectrum (%s-%s %s)' % (round(min(ts), 1),
+                round(max(ts),1), ts.full_timeunit)) #min/max by columns      
+        self.plt_clrsave(op.join(corr_out, prefix +'_sync'))        
+        async_3d(A, title='Asynchronous Spectrum (%s-%s %s)' % 
+                 (round(min(ts), 1), round(max(ts),1), ts.full_timeunit))
+        self.plt_clrsave(op.join(corr_out, prefix +'_async'))        
+
+        
+    def plots_2d(self, ts, outpath, prefix=''):
+        
+        plot2d(ts, title='Full Contour', cmap='autumn', contours=7, label=1,
+               colorbar=1, background=1)
+        self.plt_clrsave(op.join(outpath, prefix +'_contour'))    
+        
+        
+    def plots_3d(self, ts, outpath, prefix=''):
+        c_iso = 10 ; r_iso=10
+        kinds = ['contourf', 'contour']
+        views = ( (14, -21), (28, 17), (5, -13), (48, -14), (14,-155) )  #elev, aziumuth
+        for kind in kinds:
+            out3d = op.join(outpath, '3dplots_'+kind)
+            logmkdir(out3d)
+
+            for view in views:        
+                spec_surface3d(ts, kind=kind, c_iso=c_iso, r_iso=r_iso, 
+                    cmap=cmget('gray'), contour_cmap=cmget('autumn'),
+                    elev=view[0], azim=view[1], xlabel='Time ('+ts.timeunit+')'
+                              )
+                self.plt_clrsave(op.join(out3d, prefix + 'elev:azi_%s:%s' %
+                                         (view[0], view[1])))         
    
     def plt_clrsave(self, outpath):
         logger.info('Saving plot: %s' % outpath)                
