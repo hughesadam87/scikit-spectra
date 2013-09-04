@@ -19,7 +19,7 @@ import argparse
 import matplotlib.pyplot as plt
 import numpy as np
 
-# ASBOLUTE IMPORTS
+# PYUVVIS IMPORTS
 from pyuvvis.pyplots.basic_plots import specplot, areaplot, absplot, range_timeplot
 from pyuvvis.pyplots.advanced_plots import spec_surface3d, surf3d, spec_poly3d, plot2d, plot3d
 from pyuvvis.core.spec_labeltools import datetime_convert, spec_slice
@@ -32,55 +32,19 @@ from pyuvvis.core.baseline import dynamic_baseline
 from pyuvvis.core.corr import ca2d, make_ref, sync_3d, async_3d
 from pyuvvis.core.timespectra import Idic
 from pyuvvis.pandas_utils.metadframe import mload, mloads
-from pyuvvis.exceptions import badkey_check, ParserError, GeneralError, LogExit
+from pyuvvis.exceptions import badkey_check, ParserError, GeneralError, \
+     ParameterError, LogExit
 
 # Import some spectrometer configurations
-from usb_2000 import params as p2000
-from usb_650 import params as p650
+from parameters_model import Parameters, USB2000, USB650
 
 logger = logging.getLogger(__name__)
 from pyuvvis.logger import log, configure_logger, logclass
 
 SCRIPTNAME = 'gwuspec'
-DEF_CFIG = p2000
 DEF_INROOT = './scriptinput'
 DEF_OUTROOT = './output'
-
-# Do extra namespace parsing manually (This could be an action, if sure that it will
-# be called after CfigAction (which generates parms based on cfig)
-def _parse_params(namespace):
-    ''' Spectra parameters in form "xmin=400" are formatted into a dictionary 
-        inplace on namespace object.'''
-
-    # cfig dictionary sets default parameters
-    default = namespace.cfig
-
-    if not namespace.params:
-        namespace.params=[]
-    
-    try:
-        kwargs = dict (zip( [x.split('=', 1 )[0] for x in namespace.params],
-                            [x.split('=', 1)[1] for x in namespace.params] ) )
-
-    except Exception:
-        raise IOError('Please enter keyword args in form: x=y')
-
-    invalid = []
-    for key in kwargs:
-        if key in default:
-            logger.debug('Overwriting %s parameter from cmdline input' % key)
-            default[key] = kwargs[key]
-        else:
-            invalid.append(key)
-
-    if invalid:
-        raise IOError('Parameter(s) "%s" not understood.  Valid parameters:' 
-        '\n   %s' % ('","'.join(invalid), '\n   '.join(default.keys()) ) )
-    
-    namespace.params = default
-    delattr(namespace, 'cfig')
-    return
-    
+   
     
 # Convenience fcns
 def ext(afile): 
@@ -102,55 +66,7 @@ class AddUnderscore(argparse.Action):
         if values != '':
             values += '_'
         setattr(namespace, self.dest, values)
-        
-
-class CfigAction(argparse.Action):
-    def __call__(self, parser, namespace, values, option_string=None):
-
-        cfig = values.lower()
-        
-        # Use p650, p2000 files
-        if cfig in ['usb650', '650']:
-            setattr(namespace, self.dest, p650)
-            return                    
- 
-        elif cfig in ['usb2000', '2000']:
-            setattr(namespace, self.dest, p2000)
-            return 
-
-        # Import "params" directly from a file        
-        else:
-
-            cfig = op.abspath(cfig)
-            basename = op.basename(cfig)         
-                    
-            # Ensure path/file exists
-            if not op.exists(cfig):
-                raise IOError('Cannot find config filepath: "%s"' % cfig)
-        
-            # Split.py extension (Needed for imp.fine_module() to work correctly
-            cbase, ext = op.splitext(cfig)
-            if ext != '.py':
-                raise IOError('%s must be a .py file: %s' % basename)
-                    
-            sys.path.append( op.dirname( cfig ) )
-
-            try:
-                cbase=basename.split('.py')[0]  
-                cfile=imp.load_source(cbase, cfig)
-            except Exception as E:
-                raise Exception('Could not import config file "%s". '
-                        'The following was returned: %s'%(basename,E))
-
-            # Try to load parameters from cfile.params
-            try:
-                params = cfile.params
-            except AttributeError:
-                raise AttributeError('Cannot find "params" dictionary in config'
-                                     ' file, %s' % basename)
     
-            setattr(namespace, self.dest, params)
-            return 
 
 #skip class methods
 @logclass(log_name=__name__ , public_lvl='debug',
@@ -170,7 +86,6 @@ class Controller(object):
         
         self.inroot = kwargs.get('inroot', DEF_INROOT) 
         self.outroot = kwargs.get('outroot', DEF_OUTROOT)
-        self.params = kwargs.get('params', None)
         self.sweepmode = kwargs.get('sweep', False)
         self._plot_dpi = kwargs.get('plot_dpi', None) #Defaults based on matplotlibrc file
         
@@ -182,22 +97,25 @@ class Controller(object):
         verbosity = kwargs.get('verbosity', 'warning')
         trace = kwargs.get('trace', False)
                     
+        # Pop kwargs['params'] for output below
+        self.params = kwargs.pop('params', None)
+
 
         # Add logging later; consider outdirectory conflicts
         self.build_outroot()
         
         configure_logger(screen_level=verbosity, name = __name__,
-                 logfile=op.join(self.outroot, 'Runlog.txt'), mode='w')
-
+                 logfile=op.join(self.outroot, 'runlog.txt'), mode='w')
         
-        with open(op.join(self.outroot, 'Parameters'), 'w') as f:
+        # Output the parameters
+        with open(op.join(self.outroot, 'parameters.txt'), 'w') as f:
             f.write('Spectral Parameters:\n')
             f.write('\n'.join(['\t'+str(k)+'\t'+str(v) 
-                               for k, v in self.params.items()]))
+                               for k, v in sorted(self.params.items())]))
         
             f.write('\n\nRun Parameters:\n')
             f.write('\n'.join(['\t'+(str(k) + '\t' + str(v)) 
-                               for k,v in kwargs.items()]))
+                               for k,v in sorted(kwargs.items())]))
 
         if self._plot_dpi > 600:
             logger.warn('Plotting dpi is set to %s.  > 600 may result in slow'
@@ -291,34 +209,21 @@ class Controller(object):
     
     @params.setter
     def params(self, params):
+        ''' Can be None, a dict, or an instance of Parameters. '''
         if params is None:
             self._params = params
-            return 
-        
-        if not isinstance(params, dict):
-            raise AttributeError('"params" must be dict but is %s' % str(type(params)))
- 
-        if params.has_key('iunits'):
-            if not hasattr('__iter__', params['iunits']):
-                logger.debug("Converting params['iunits'] from str to list")
-                params['iunits'] = params['iunits'].split()
-                
-                
-            # Make sure all outtypes (a, r, None) are valid; convert "None" to none
-            for idx, otype in enumerate(params['iunits']):
-                if otype == 'None':
-                    logger.debug('Changing "None" string to None')
-                    otype = None
-                    params['iunits'][idx] = otype                    
-                badkey_check(otype, Idic.keys())
-
+            
         else:
-            logger.warn('"outtypes" parameter not found.  Setting to [None].  Only'
-                        ' rawdata will be analyzed.')
-            logger.debug("Converting params['iunits'] from str to list")            
-            params['iunits'] = [None] 
-                                
-        self._params = params   
+            if isinstance(params, Parameters):
+                self._params = params
+    
+            elif isinstance(params, dict):
+                self._params = Parameters(**params)
+            else:            
+                raise ParameterError('Spectral parameters must be a dictionary '
+                      'or parameters_model.Parameters object.  Got object of type %s'
+                       % type(params))
+            
         
             
     def start_run(self):
@@ -333,7 +238,8 @@ class Controller(object):
             
 
     def main_walk(self):
-        ''' Walks all the subdirectories of self.inroot'''
+        ''' Walks all the subdirectories of self.inroot; runs analyze_dir()'''
+        
         walker = os.walk(self.inroot, topdown=True, onerror=None, followlinks=False)
         (rootpath, rootdirs, rootfiles) = walker.next()   
     
@@ -403,7 +309,7 @@ class Controller(object):
         ts = self.apply_parameters(ts)
         
         #Iterate over various iunits
-        for iu in self.params['iunits']:
+        for iu in self.params.iunits:
             od = op.join(rundir , Idic[iu])
             # Rename a few output units for clear directory names
             if iu =='r':
@@ -415,7 +321,17 @@ class Controller(object):
             ts = ts.as_iunit(iu)
             out_tag = ts.full_iunit.split()[0] #Raw, abs etc.. added to outfile
             
+            # 1d Plots
             self.plots_1d(ts, outpath=od, prefix=out_tag)
+            
+            # 2d Plots
+            self.plots_2d(ts, outpath=od, prefix=out_tag)
+            
+            # Correlation analysis   
+            self.corr_analysis(ts, outpath=od, prefix=out_tag)
+          
+            # 3d Plots
+            self.plots_3d(ts, outpath=od, prefix=out_tag)
             
 
     def apply_parameters(self, ts):
@@ -425,7 +341,7 @@ class Controller(object):
         
 
         # Subtract the dark spectrum if it has one.  
-        #if self.params['sub_base']:
+        #if self.params.sub_base:
             #if ts.baseline is None:
                 #logger.warn('Warning: baseline not found on %s)' % ts.full_name)            
             #else:    
@@ -436,34 +352,39 @@ class Controller(object):
             #'No baseline subtraction will occur.')            
     
         ### Fit first order references automatically?
-        #if self.params['bline_fit']:
-            #blines = dynamic_baseline(ts, self.params['fit_regions'] )
+        #if self.params.bline_fit:
+            #blines = dynamic_baseline(ts, self.params.it_regions )
             #ts = ts - blines 
             #logger.info('Dynamically fit baselines successfully subtracted.')
     
         # Slice spectra and time start/end points.  Doesn't stop script upon erroringa
         try:
-            tstart, tend = self.params['tstart'], self.params['tend']
+            tstart, tend = self.params.t_start, self.params.t_end
             if tstart and tend:
                 ts = ts[ tstart : tend ] 
-                logger.info('Timesliced %s to (%s, %s)' % (ts.full_name, tstart, tend))                
+                logger.info('Timesliced %s to (%s, %s)' % (ts.full_name, tstart, tend))             
+            else:
+                logger.debug('Cannot timeslice: tstart and/or tend not found')
         except Exception:
-            logger.warn('unable to timeslice to specified specified by parameters')                   
+            logger.warn('unable to timeslice to specified by parameters')                   
             
         try:
-            xstart, xend = self.params['x_min'], self.params['x_max']
+            xstart, xend = self.params.x_min, self.params.x_max
             if xstart and xend:              
                 ts = ts.ix[ xstart : xend ] 
                 logger.info('Wavelength-sliced %s to (%s, %s)' % (ts.full_name, xstart, xend))                
+            else:
+                logger.debug('Cannot spectralslice: xstart and/or xend not found')
+
         except Exception:
             logger.warn('unable to slice x_min and x_max range specified by parameters')                          
             
             
         # Set reference (MUST SET reference AFTER SLICING RANGES TO AVOID ERRONEOUS reference DATA)
-        ts = self._try_apply(ts, 'reference', 0)
+        ts.reference = self.params.reference
     
         try:
-            ts.to_interval(self.params['intvlunit'])
+            ts.to_interval(self.params.intvlunit)
         except KeyError:
             ts.to_interval()        
             logger.warn('Cannot set "intvlunit" from parameters; running'
@@ -487,14 +408,14 @@ class Controller(object):
         
         logger.info('Testing spectral index bounds against parameters min/max')
 
-        pmin, pmax = self.params['_valid_minmax']                
+        pmin, pmax = self.params.valid_minmax                
         if  ts.index[0] < pmin or ts.index[-1] > pmax:
             raise GeneralError('Parameters _valid_range criteria not met.  Data' 
-            ' index (%s,%s); parameters _valid_range (%s,%s)' % (dmin, dmax, pmin,pmax))  
+            ' range (%s,%s) - parameters "_valid_range" (%s,%s)' % 
+            (ts.index[0], ts.index[-1], pmin,pmax))  
             
-        # Set some defaults if params fails
-        ts = self._try_apply(ts, 'specunit', 'nm')
-        ts = self._try_apply(ts, 'intvlunit', 'intvl')
+        ts.specunit = self.params.specunit 
+        ts.intvlunit = self.params.intvlunit 
         
         # TEST FOR NAN VALUES BEFORE CONTINUING  #####
         if countNaN(ts): #0 will evaluate to false
@@ -578,28 +499,6 @@ class Controller(object):
             logger.info('Loaded contents of folder, %s, using the ".pickle" ' 
                        'file, %s.' % (folder, op.basename(picklefile)))            
             return mload(picklefile)     
-
-    def _try_apply(self, ts, attr, default):
-        '''Boilerplate reduction: sets an attributed on ts based on its value in
-           self.params, and takes a default if not found. '''
-
-        if not self.params.has_key(attr):
-            logger.warn('%s not found in supplied parameters. '  
-            'Automatically setting to "%s"' % (attr, default))
-            setattr(ts, attr, default)
-        
-        else:
-            try:
-                setattr(ts, attr, self.params[attr])
-                logger.info('Set %s from parameters to "%s"' %
-                            (attr, self.params[attr]))
-            except Exception: #Too stringent?
-                logger.warn('Failed to set %s from parameters.  Automatically'
-                            ' setting to %s' % (attr, default))
-                setattr(ts, attr, default)
-
-        return ts
-    
  
     def plots_1d(self, ts, outpath, prefix=''):
         ''' Plots several 1D plots.  User passes in ts w/ proper iunit.
@@ -609,17 +508,17 @@ class Controller(object):
         '''
         
         specplot(ts)
-        self.plt_clrsave(op.join(outpath, prefix+'_spectrum'))
+        self.plt_clrsave(op.join(outpath, prefix +'_spectrum'))
 
         # Area plot using simpson method of integration
         areaplot(ts, ylabel='Power', xlabel='Time ('+ts.timeunit+')', legend=False,
                  title='Spectral Power vs. Time (%i - %i %s)' % 
                     (min(ts.index), max(ts.index), ts.specunit), color='r')
-        self.plt_clrsave(op.join(outpath, prefix+'_area'))
+        self.plt_clrsave(op.join(outpath, prefix +'_area'))
 
         # Ranged time plot
         try:
-            uv_ranges = self.params['uv_ranges']   
+            uv_ranges = self.params.uv_ranges
         except (KeyError):
             uv_ranges = 8   
             logger.warn('Uv_ranges parameter not found: setting to 8.')
@@ -628,14 +527,47 @@ class Controller(object):
         tssliced = ts.wavelength_slices(uv_ranges, apply_fcn='mean')
         range_timeplot(tssliced, ylabel='Average Intensity', xlabel = 
                        'Time ('+ts.timeunit+')' ) #legstyle =1 for upper left
-        self.plt_clrsave(op.join(outpath, prefix+'_strip'))        
+        self.plt_clrsave(op.join(outpath, prefix +'_strip'))        
         
-    def plots_2d(self, ts):
-        NotImplemented
         
-    def plots_3d(self, ts):
-        NotImplemented   
+    def corr_analysis(self, ts, outpath, prefix=''):
         
+        # Make a 2dCorrAnal Directory
+        corr_out = op.join(outpath, '2dCorrAnal')
+        logmkdir(corr_out)
+    
+        ref = make_ref(ts, method='empty') 
+        S,A = ca2d(ts, ref)
+        sync_3d(S, title='Synchronous Spectrum (%s-%s %s)' % (round(min(ts), 1),
+                round(max(ts),1), ts.full_timeunit)) #min/max by columns      
+        self.plt_clrsave(op.join(corr_out, prefix +'_sync'))        
+        async_3d(A, title='Asynchronous Spectrum (%s-%s %s)' % 
+                 (round(min(ts), 1), round(max(ts),1), ts.full_timeunit))
+        self.plt_clrsave(op.join(corr_out, prefix +'_async'))        
+
+        
+    def plots_2d(self, ts, outpath, prefix=''):
+        
+        plot2d(ts, title='Full Contour', cmap='autumn', contours=7, label=1,
+               colorbar=1, background=1)
+        self.plt_clrsave(op.join(outpath, prefix +'_contour'))    
+        
+        
+    def plots_3d(self, ts, outpath, prefix=''):
+        c_iso = 10 ; r_iso=10
+        kinds = ['contourf', 'contour']
+        views = ( (14, -21), (28, 17), (5, -13), (48, -14), (14,-155) )  #elev, aziumuth
+        for kind in kinds:
+            out3d = op.join(outpath, '3dplots_'+kind)
+            logmkdir(out3d)
+
+            for view in views:        
+                spec_surface3d(ts, kind=kind, c_iso=c_iso, r_iso=r_iso, 
+                    cmap=cmget('gray'), contour_cmap=cmget('autumn'),
+                    elev=view[0], azim=view[1], xlabel='Time ('+ts.timeunit+')'
+                              )
+                self.plt_clrsave(op.join(out3d, prefix + 'elev:azi_%s:%s' %
+                                         (view[0], view[1])))         
    
     def plt_clrsave(self, outpath):
         logger.info('Saving plot: %s' % outpath)                
@@ -669,10 +601,10 @@ class Controller(object):
                             help='Script will recursively analyze directories '
                             'from the top down of indir')
     
-        parser.add_argument('-c', '--config', dest='cfig', default=DEF_CFIG, action=CfigAction,
-                          help='usb650, usb2000, or path to parameter ' 
-                          'configuration file. defaults to usb2000', metavar='')            
-        
+        parser.add_argument('-c', '--config', dest='cfig', metavar='', 
+                           choices=['usb650', 'usb2000'], default='usb2000',
+                           help='usb650, usb2000, defaults to usb2000')            
+         
         parser.add_argument('-o','--overwrite', action='store_true', 
                             help='Overwrite contents of output directories if '
                             'they already exist')
@@ -700,7 +632,24 @@ class Controller(object):
         ns = parser.parse_args()
 
         # Run additional parsing based on cfig and "params" to set spec params
-        _parse_params(ns)   
+        if ns.cfig == 'usb650':
+            model = USB650
+    
+        elif ns.cfig == 'usb2000':
+            model = USB2000
+    
+        if not ns.params:
+            ns.params=[]
+        
+        try:
+            userparams = dict (zip( [x.split('=', 1 )[0] for x in ns.params],
+                                [x.split('=', 1)[1] for x in ns.params] ) )
+    
+        except Exception:
+            raise IOError('Please enter keyword args in form: x=y')
+        
+        ns.params = model(**userparams)
+        delattr(ns, 'cfig')        
         
         return cls(inroot=ns.inroot, outroot=ns.outroot, plot_dpi = ns.dpi,
                    verbosity=ns.verbosity, trace=ns.trace, params=ns.params, 
