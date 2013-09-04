@@ -24,6 +24,8 @@ setup(
     maintainer_email = 'hughesadam87@gmail.com',
     author_email = 'hughesadam87@gmail.com',
     packages = find_packages(),
+   
+    # Remove later after tested that not error incurred
     #packages=['pyuvvis',
               #'pyuvvis.chaco_interface',
               #'pyuvvis.core',
