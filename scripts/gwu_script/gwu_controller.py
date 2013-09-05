@@ -44,7 +44,9 @@ from pyuvvis.logger import log, configure_logger, logclass
 SCRIPTNAME = 'gwuspec'
 DEF_INROOT = './scriptinput'
 DEF_OUTROOT = './output'
-   
+ALL_ANAL = ['1d', '2d', '3d', 'corr']   
+ANAL_DEFAULT = ['1d', '2d']
+
     
 # Convenience fcns
 def ext(afile): 
@@ -59,6 +61,15 @@ def logmkdir(fullpath):
     logger.info('Making directory: %s' % fullpath)
     os.mkdir(fullpath)
 
+def dict_out(header, dic, sort = True):
+    ''' Retures a string of form header \n k \t val '''
+    
+    if sort:
+        return header + ':\n' + '\n'.join(['\t'+(str(k) + '\t' + str(v)) 
+                 for k,v in sorted(dic.items())])
+    else:
+        return header + ':\n' +'\n'.join(['\t'+(str(k) + '\t' + str(v)) 
+                 for k,v in dic.items()])        
 
 class AddUnderscore(argparse.Action):
     ''' Adds an underscore to end of value (used in "rootname") '''
@@ -78,16 +89,16 @@ class Controller(object):
 
     # Extensions to ignore when looking at files in a directory       
     img_ignore=['png', 'jpeg', 'tif', 'bmp', 'ipynb'] 
-    
+        
     # For now, this only takes in a namespace, but could make more flexible in future
     def __init__(self, **kwargs):
-        
-        # These should go through the setters
-        
+              
+        # These should go through the setters        
         self.inroot = kwargs.get('inroot', DEF_INROOT) 
         self.outroot = kwargs.get('outroot', DEF_OUTROOT)
         self.sweepmode = kwargs.get('sweep', False)
         self._plot_dpi = kwargs.get('plot_dpi', None) #Defaults based on matplotlibrc file
+        self.analysis = kwargs.get('analysis', ANAL_DEFAULT)
         
         self.rname = kwargs.get('rname', '')
         self.dryrun = kwargs.get('dryrun', False) 
@@ -108,14 +119,11 @@ class Controller(object):
                  logfile=op.join(self.outroot, 'runlog.txt'), mode='w')
         
         # Output the parameters
-        with open(op.join(self.outroot, 'parameters.txt'), 'w') as f:
-            f.write('Spectral Parameters:\n')
-            f.write('\n'.join(['\t'+str(k)+'\t'+str(v) 
-                               for k, v in sorted(self.params.items())]))
-        
-            f.write('\n\nRun Parameters:\n')
-            f.write('\n'.join(['\t'+(str(k) + '\t' + str(v)) 
-                               for k,v in sorted(kwargs.items())]))
+        with open(op.join(self.outroot, 'run_parameters.txt'), 'w') as f:
+            f.write(dict_out('Spectral Parameters', self.params))
+            f.write(dict_out('\n\nRun Parameters', kwargs))
+
+
 
         if self._plot_dpi > 600:
             logger.warn('Plotting dpi is set to %s.  > 600 may result in slow'
@@ -137,8 +145,32 @@ class Controller(object):
         if not self._inroot:
             raise AttributeError('Root indirectory not set')
         return self._inroot #Abspath applied in setter
-
     
+    @property
+    def analysis(self):
+        return self._analysis
+
+    @analysis.setter
+    def analysis(self, values):
+        ''' Values must be an iterable. '''
+        if not values:
+            self._analysis = ANAL_DEFAULT
+            return
+        
+        values = list(set(values)) #Remove duplicates
+        values = [str(v).lower() for v in values] #String convert 
+                
+        if 'all' in values or values == ['all']:
+            self._analysis = ALL_ANAL
+                
+        else:
+            invalid = [v for v in values if v not in ALL_ANAL]
+            if invalid:
+                raise ParameterError('Invalid analysis parameter(s) received '
+                    '%s.  Choices are %s' % (invalid, ALL_ANAL))
+            self._analysis = values
+            
+                
     @inroot.setter
     def inroot(self, value):
         ''' Ensure inpath exists before setting'''
@@ -303,10 +335,19 @@ class Controller(object):
         
         logger.info('Saving %s as %s.pickle' % (ts_full.full_name, self.infolder))
         ts_full.save(op.join(rundir, '%s.pickle' % self.infolder)) 
+        
+        # Output metadata
+        if getattr(ts_full, 'metadata', None):
+             logger.info('Saving %s metadata' % ts_full.full_name)
+             with open(op.join(rundir, '%s.metadata' % self.infolder), 'w') as f:
+                 f.write(dict_out('Spectral Parameters', ts_full.metadata))
+        else:
+            logger.info('Metadata not found for %s' % ts_full.full_name)
+
 
         # Set ts
         ts = ts_full  
-        ts = self.apply_parameters(ts)
+        ts = self.apply_parameters(ts)       
         
         #Iterate over various iunits
         for iu in self.params.iunits:
@@ -322,16 +363,20 @@ class Controller(object):
             out_tag = ts.full_iunit.split()[0] #Raw, abs etc.. added to outfile
             
             # 1d Plots
-            self.plots_1d(ts, outpath=od, prefix=out_tag)
+            if '1d' in self.analysis:
+                self.plots_1d(ts, outpath=od, prefix=out_tag)
             
             # 2d Plots
-            self.plots_2d(ts, outpath=od, prefix=out_tag)
+            if '2d' in self.analysis:
+                self.plots_2d(ts, outpath=od, prefix=out_tag)
             
-            # Correlation analysis   
-            self.corr_analysis(ts, outpath=od, prefix=out_tag)
+            # Correlation analysis  
+            if 'corr' in self.analysis:
+                self.corr_analysis(ts, outpath=od, prefix=out_tag)
           
             # 3d Plots
-            self.plots_3d(ts, outpath=od, prefix=out_tag)
+            if '3d' in self.analysis:
+                self.plots_3d(ts, outpath=od, prefix=out_tag)
             
 
     def apply_parameters(self, ts):
@@ -340,21 +385,21 @@ class Controller(object):
             after the full timespectra object has been changed. '''
         
 
-        # Subtract the dark spectrum if it has one.  
-        if self.params.sub_base:
-            if ts.baseline is None:
-                logger.warn('Warning: baseline not found on %s)' % ts.full_name)            
-            else:    
-                ts.sub_base() 
-                logger.info('Baseline has been subtracted')
-        else:
-            logger.info('Parameter "sub_base" not set to True.' 
-            'No baseline subtraction will occur.')            
+        ## Subtract the dark spectrum if it has one.  
+        #if self.params.sub_base:
+            #if ts.baseline is None:
+                #logger.warn('Warning: baseline not found on %s)' % ts.full_name)            
+            #else:    
+                #ts.sub_base() 
+                #logger.info('Baseline has been subtracted')
+        #else:
+            #logger.info('Parameter "sub_base" not set to True.' 
+            #'No baseline subtraction will occur.')            
     
         # Fit first order references automatically?
         if self.params.bline_fit:
             blines = dynamic_baseline(ts, self.params.fit_regions )
-            ts = ts - blines 
+            ts = ts.sub(blines, axis=0)
             logger.info('Dynamically fit baselines successfully subtracted.')
     
         # Slice spectra and time start/end points.  Doesn't stop script upon erroringa
@@ -367,6 +412,7 @@ class Controller(object):
                 logger.debug('Cannot timeslice: tstart and/or tend not found')
         except Exception:
             logger.warn('unable to timeslice to specified by parameters')                   
+            raise
             
         try:
             xstart, xend = self.params.x_min, self.params.x_max
@@ -393,6 +439,9 @@ class Controller(object):
         return ts    
 
     def build_outroot(self):
+        if self.outroot == self.inroot:
+            raise ParameterError('Inroot and outroot cannot be the same! '
+                'Input data would be lost...')
         if op.exists(self.outroot):
             if not self.overwrite:
                 raise IOError("Outdirectory already exists!")                
@@ -618,6 +667,11 @@ class Controller(object):
         parser.add_argument('-p','--params', nargs='*', help='Overwrite config '
                             'parameters manually in form k="foo value" '  
                             'Ex: --params xmin=440.0 xmax=700.0', metavar='')
+        
+        parser.add_argument('-a', '--analysis', nargs='*', help='Types of '
+                'analysis to perform.  Choose 1 or more of the following: %s or '
+                '"all".  Defaults to %s.' % (ALL_ANAL, ANAL_DEFAULT), 
+                default=ANAL_DEFAULT, metavar='')
     
         parser.add_argument('-d','--dryrun', dest='dry', action='store_true',
                             help='Not yet implemented')
@@ -654,5 +708,6 @@ class Controller(object):
         
         return cls(inroot=ns.inroot, outroot=ns.outroot, plot_dpi = ns.dpi,
                    verbosity=ns.verbosity, trace=ns.trace, params=ns.params, 
-                   dryrun=ns.dry, overwrite=ns.overwrite, sweep=ns.sweep)
+                   dryrun=ns.dry, overwrite=ns.overwrite, sweep=ns.sweep, 
+                   analysis=ns.analysis)
               
