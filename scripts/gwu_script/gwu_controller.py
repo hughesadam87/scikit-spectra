@@ -119,7 +119,7 @@ class Controller(object):
                  logfile=op.join(self.outroot, 'runlog.txt'), mode='w')
         
         # Output the parameters
-        with open(op.join(self.outroot, 'parameters.txt'), 'w') as f:
+        with open(op.join(self.outroot, 'run_parameters.txt'), 'w') as f:
             f.write(dict_out('Spectral Parameters', self.params))
             f.write(dict_out('\n\nRun Parameters', kwargs))
 
@@ -347,7 +347,7 @@ class Controller(object):
 
         # Set ts
         ts = ts_full  
-        ts = self.apply_parameters(ts)
+        ts = self.apply_parameters(ts)       
         
         #Iterate over various iunits
         for iu in self.params.iunits:
@@ -385,21 +385,21 @@ class Controller(object):
             after the full timespectra object has been changed. '''
         
 
-        # Subtract the dark spectrum if it has one.  
-        if self.params.sub_base:
-            if ts.baseline is None:
-                logger.warn('Warning: baseline not found on %s)' % ts.full_name)            
-            else:    
-                ts.sub_base() 
-                logger.info('Baseline has been subtracted')
-        else:
-            logger.info('Parameter "sub_base" not set to True.' 
-            'No baseline subtraction will occur.')            
+        ## Subtract the dark spectrum if it has one.  
+        #if self.params.sub_base:
+            #if ts.baseline is None:
+                #logger.warn('Warning: baseline not found on %s)' % ts.full_name)            
+            #else:    
+                #ts.sub_base() 
+                #logger.info('Baseline has been subtracted')
+        #else:
+            #logger.info('Parameter "sub_base" not set to True.' 
+            #'No baseline subtraction will occur.')            
     
         # Fit first order references automatically?
         if self.params.bline_fit:
             blines = dynamic_baseline(ts, self.params.fit_regions )
-            ts = ts - blines 
+            ts = ts.sub(blines, axis=0)
             logger.info('Dynamically fit baselines successfully subtracted.')
     
         # Slice spectra and time start/end points.  Doesn't stop script upon erroringa

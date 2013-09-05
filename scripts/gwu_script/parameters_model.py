@@ -71,8 +71,16 @@ class Parameters(object):
         self.x_min = self.loud_apply('x_min', self.xmin_default)
         self.x_max = self.loud_apply('x_max', self.xmax_default)
         
-        # Float-convert slices
-        if self.x_min is not None:
+        # Float-convert slices (should be properties)
+        if isinstance(self.x_min, basestring):
+            if self.x_min.lower() == 'none':
+                self.x_min = None
+                
+        if isinstance(self.x_max, basestring):
+            if self.x_max.lower() == 'none':
+                self.x_max = None                
+                
+        if self.x_min is not None:                    
             self.x_min = float(self.x_min)
         
         if self.x_max is not None:
