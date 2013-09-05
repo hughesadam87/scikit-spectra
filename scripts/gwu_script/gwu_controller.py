@@ -44,7 +44,9 @@ from pyuvvis.logger import log, configure_logger, logclass
 SCRIPTNAME = 'gwuspec'
 DEF_INROOT = './scriptinput'
 DEF_OUTROOT = './output'
-   
+ALL_ANAL = ['1d', '2d', '3d', 'corr']   
+ANAL_DEFAULT = ['1d', '2d']
+
     
 # Convenience fcns
 def ext(afile): 
@@ -87,16 +89,16 @@ class Controller(object):
 
     # Extensions to ignore when looking at files in a directory       
     img_ignore=['png', 'jpeg', 'tif', 'bmp', 'ipynb'] 
-    
+        
     # For now, this only takes in a namespace, but could make more flexible in future
     def __init__(self, **kwargs):
-        
-        # These should go through the setters
-        
+              
+        # These should go through the setters        
         self.inroot = kwargs.get('inroot', DEF_INROOT) 
         self.outroot = kwargs.get('outroot', DEF_OUTROOT)
         self.sweepmode = kwargs.get('sweep', False)
         self._plot_dpi = kwargs.get('plot_dpi', None) #Defaults based on matplotlibrc file
+        self.analysis = kwargs.get('analysis', ANAL_DEFAULT)
         
         self.rname = kwargs.get('rname', '')
         self.dryrun = kwargs.get('dryrun', False) 
@@ -143,8 +145,32 @@ class Controller(object):
         if not self._inroot:
             raise AttributeError('Root indirectory not set')
         return self._inroot #Abspath applied in setter
-
     
+    @property
+    def analysis(self):
+        return self._analysis
+
+    @analysis.setter
+    def analysis(self, values):
+        ''' Values must be an iterable. '''
+        if not values:
+            self._analysis = ANAL_DEFAULT
+            return
+        
+        values = list(set(values)) #Remove duplicates
+        values = [str(v).lower() for v in values] #String convert 
+                
+        if 'all' in values or values == ['all']:
+            self._analysis = ALL_ANAL
+                
+        else:
+            invalid = [v for v in values if v not in ALL_ANAL]
+            if invalid:
+                raise ParameterError('Invalid analysis parameter(s) received '
+                    '%s.  Choices are %s' % (invalid, ALL_ANAL))
+            self._analysis = values
+            
+                
     @inroot.setter
     def inroot(self, value):
         ''' Ensure inpath exists before setting'''
@@ -337,16 +363,20 @@ class Controller(object):
             out_tag = ts.full_iunit.split()[0] #Raw, abs etc.. added to outfile
             
             # 1d Plots
-            self.plots_1d(ts, outpath=od, prefix=out_tag)
+            if '1d' in self.analysis:
+                self.plots_1d(ts, outpath=od, prefix=out_tag)
             
             # 2d Plots
-            self.plots_2d(ts, outpath=od, prefix=out_tag)
+            if '2d' in self.analysis:
+                self.plots_2d(ts, outpath=od, prefix=out_tag)
             
-            # Correlation analysis   
-            self.corr_analysis(ts, outpath=od, prefix=out_tag)
+            # Correlation analysis  
+            if 'corr' in self.analysis:
+                self.corr_analysis(ts, outpath=od, prefix=out_tag)
           
             # 3d Plots
-            self.plots_3d(ts, outpath=od, prefix=out_tag)
+            if '3d' in self.analysis:
+                self.plots_3d(ts, outpath=od, prefix=out_tag)
             
 
     def apply_parameters(self, ts):
@@ -637,6 +667,11 @@ class Controller(object):
         parser.add_argument('-p','--params', nargs='*', help='Overwrite config '
                             'parameters manually in form k="foo value" '  
                             'Ex: --params xmin=440.0 xmax=700.0', metavar='')
+        
+        parser.add_argument('-a', '--analysis', nargs='*', help='Types of '
+                'analysis to perform.  Choose 1 or more of the following: %s or '
+                '"all".  Defaults to %s.' % (ALL_ANAL, ANAL_DEFAULT), 
+                default=ANAL_DEFAULT, metavar='')
     
         parser.add_argument('-d','--dryrun', dest='dry', action='store_true',
                             help='Not yet implemented')
@@ -673,5 +708,6 @@ class Controller(object):
         
         return cls(inroot=ns.inroot, outroot=ns.outroot, plot_dpi = ns.dpi,
                    verbosity=ns.verbosity, trace=ns.trace, params=ns.params, 
-                   dryrun=ns.dry, overwrite=ns.overwrite, sweep=ns.sweep)
+                   dryrun=ns.dry, overwrite=ns.overwrite, sweep=ns.sweep, 
+                   analysis=ns.analysis)
               
