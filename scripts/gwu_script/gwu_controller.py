@@ -59,6 +59,15 @@ def logmkdir(fullpath):
     logger.info('Making directory: %s' % fullpath)
     os.mkdir(fullpath)
 
+def dict_out(header, dic, sort = True):
+    ''' Retures a string of form header \n k \t val '''
+    
+    if sort:
+        return header + ':\n' + '\n'.join(['\t'+(str(k) + '\t' + str(v)) 
+                 for k,v in sorted(dic.items())])
+    else:
+        return header + ':\n' +'\n'.join(['\t'+(str(k) + '\t' + str(v)) 
+                 for k,v in dic.items()])        
 
 class AddUnderscore(argparse.Action):
     ''' Adds an underscore to end of value (used in "rootname") '''
@@ -109,13 +118,10 @@ class Controller(object):
         
         # Output the parameters
         with open(op.join(self.outroot, 'parameters.txt'), 'w') as f:
-            f.write('Spectral Parameters:\n')
-            f.write('\n'.join(['\t'+str(k)+'\t'+str(v) 
-                               for k, v in sorted(self.params.items())]))
-        
-            f.write('\n\nRun Parameters:\n')
-            f.write('\n'.join(['\t'+(str(k) + '\t' + str(v)) 
-                               for k,v in sorted(kwargs.items())]))
+            f.write(dict_out('Spectral Parameters', self.params))
+            f.write(dict_out('\n\nRun Parameters', kwargs))
+
+
 
         if self._plot_dpi > 600:
             logger.warn('Plotting dpi is set to %s.  > 600 may result in slow'
@@ -303,6 +309,15 @@ class Controller(object):
         
         logger.info('Saving %s as %s.pickle' % (ts_full.full_name, self.infolder))
         ts_full.save(op.join(rundir, '%s.pickle' % self.infolder)) 
+        
+        # Output metadata
+        if getattr(ts_full, 'metadata', None):
+             logger.info('Saving %s metadata' % ts_full.full_name)
+             with open(op.join(rundir, '%s.metadata' % self.infolder), 'w') as f:
+                 f.write(dict_out('Spectral Parameters', ts_full.metadata))
+        else:
+            logger.info('Metadata not found for %s' % ts_full.full_name)
+
 
         # Set ts
         ts = ts_full  
@@ -394,6 +409,9 @@ class Controller(object):
         return ts    
 
     def build_outroot(self):
+        if self.outroot == self.inroot:
+            raise ParameterError('Inroot and outroot cannot be the same! '
+                'Input data would be lost...')
         if op.exists(self.outroot):
             if not self.overwrite:
                 raise IOError("Outdirectory already exists!")                
