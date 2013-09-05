@@ -944,6 +944,7 @@ class TimeSpectra(MetaDataFrame):
     # Baseline related operations ###
     ###################################
 
+    # SHOULD ALSO ENFORCE DATATYPES
     def _base_gate(self):
         ''' Quick check to see if self._baseline is found or missing.  If missing,
             raises error.  If found, passes.'''
@@ -964,10 +965,13 @@ class TimeSpectra(MetaDataFrame):
 
         # Only subtract if baseline isn't currently subtracted
         if not self._base_sub:
-            self._df=self._df.sub(self._baseline, axis=0)
-            self._base_sub=True     
-        #else:
-            #print 'raise waring? already subbed'
+            # Index, although should be correct, is type object and is getting falses for entries...
+            logger.critical('Subtracting baseline, but may not have all: elements being equal.  Fix index')
+            self._df = self._df.sub(self._baseline, axis=0)
+            self._base_sub = True
+            
+        else:
+            logger.warn('Baseline is already subtracted.')
 
     def add_base(self):
         ''' Adds baseline to data that currently has it subtracted.'''
