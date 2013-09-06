@@ -1370,6 +1370,14 @@ class TimeSpectra(MetaDataFrame):
     #################
     # CSV Output###
     #################
+    
+    def to_R_df(self):
+        ''' Wraps pandas.rpy.common import convert_to_r_dataframe.'''
+        
+        from pandas.rpy.common import convert_to_r_dataframe
+        logger.info('Converting %s to R dataframe.' % self.full_name)
+        return( convert_to_r_dataframe(self._df) )
+                
                            
     def to_csv(self, path_or_buff, meta_separate=False, **csv_kwargs):
         ''' Output to CSV file.  
@@ -1380,7 +1388,7 @@ class TimeSpectra(MetaDataFrame):
                
                meta_separate: 
                    If None: metadata is lost and self._df.to_csv(**csv_kwargs) is called.
-                   If False: metadata is serialized and output at taile file the path_or_buff file.
+                   If False: metadata is serialized and output at tail file the path_or_buff file.
                    If True: metadata is added to it's own file named path_or_buff.mdf
                        
                csv_kwargs: csv formatting arguments passed directoy to self._df.to_csv()
