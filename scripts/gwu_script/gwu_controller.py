@@ -343,6 +343,12 @@ class Controller(object):
                  f.write(dict_out('Spectral Parameters', ts_full.metadata))
         else:
             logger.info('Metadata not found for %s' % ts_full.full_name)
+            
+
+        # To csv (loses metadata) set to meta_separate to False to preserve metadata
+        logger.info('Outputting to %s.csv.  Metadata will be exluded.' % self.infolder)
+        ts_full.to_csv(op.join(rundir, '%s.csv' % self.infolder), meta_separate=None)
+
 
 
         # Set ts
@@ -354,7 +360,7 @@ class Controller(object):
             od = op.join(rundir , Idic[iu])
             # Rename a few output units for clear directory names
             if iu =='r':
-                od=op.join(rundir, 'Linear_ratio') 
+                od = op.join(rundir, 'Linear_ratio') 
             elif iu == None:
                 od = op.join(rundir, 'Full_data')
             logmkdir(od)
