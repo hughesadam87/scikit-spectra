@@ -151,18 +151,15 @@ def from_spec_files(file_list, name='', skiphead=17, skipfoot=1, check_for_overl
 
         # Extract time data from header
         datetime=_get_datetime_specsuite(header) 
+        
+        if datetime in time_file_dict:
+            _overlap_count += 1        
 
         # Make sure timepoints aren't overlapping with any others
-        if check_for_overlapping_time:
-            try:
-                time_file_dict[datetime]
-            except KeyError:
-                raise IOError('Duplicate time %s found in between files %s, %s.'
-                              ' To overwrite, set check_for_overlapping_time = False.'
-                               %(datetime,infile, time_file_dict[datetime]) )
-            
-        if datetime in time_file_dict:
-            _overlap_count += 1
+        if check_for_overlapping_time and _overlap_count:
+            raise IOError('Duplicate time %s found in between files %s, %s.'
+                          ' To overwrite, set check_for_overlapping_time = False.'
+                           %( datetime, infile, time_file_dict[datetime] ))            
             
 
         time_file_dict[datetime]=infile
@@ -191,7 +188,7 @@ def from_spec_files(file_list, name='', skiphead=17, skipfoot=1, check_for_overl
     if _overlap_count:
         logger.warn('Time duplication found in %s of %s files.  Duplicates were '
             'removed!' % (_overlap_count, len(file_list)))
-    
+            
     return timespec
 
 def _get_datetime_specsuite(specsuiteheader):

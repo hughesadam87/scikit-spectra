@@ -65,8 +65,10 @@ def make_ref(df, method='mean'):
 ### PUT IN SPACING METHOD FOR NON-EVENLY SPACED DATA!
 
 def noda_matrix(length):
-    ''' Length is the number of timepoints/columns in the dataframe.  Returns the hilbert noda Transformation matrix.  How can
-    I vectorize?'''
+    ''' Length is the number of timepoints/columns in the dataframe. 
+       Returns the hilbert noda Transformation matrix.'''
+
+    # XXX: how to vectorize?
     Njk=empty( (length,length))
     for j in range(length):
         for k in range(length):
