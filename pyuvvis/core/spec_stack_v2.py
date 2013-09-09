@@ -3,7 +3,6 @@
     methods, but otherwise is just a container.'''
 
 from collections import OrderedDict, Iterable
-from specpanel import SpecPanel
 from types import FunctionType
 from copy import deepcopy
 
@@ -202,6 +201,7 @@ class SpecStack(AbstractStack):
     def as_3d(self, **kwargs):
         ''' Returns a 3d stack (SpecPanel) of the currently stored items.
             Additional kwargs can be passed directly to SpecPanel constructor.'''
+        from specpanel import SpecPanel      
         return SpecPanel(data=self._data, **kwargs)        
     
     
