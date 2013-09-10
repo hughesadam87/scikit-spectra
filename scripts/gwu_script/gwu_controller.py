@@ -264,10 +264,13 @@ class Controller(object):
         
         self._inpath = self.inroot
         self._outpath = op.join(self.outroot, self.infolder)
+        self._treefile = open(op.join(self.outroot, 'tree'), 'w')
+        
         self.analyze_dir()
         if self.sweepmode:
             self.main_walk()        
-            
+
+        self._treefile.close()
 
     def main_walk(self):
         ''' Walks all the subdirectories of self.inroot; runs analyze_dir()'''
@@ -313,7 +316,22 @@ class Controller(object):
         except LogExit: #log exit
             logger.critical('FAILURE: "%s" finished with errors.' % self.infolder) 
         else:
-            logger.info('SUCCESS: "%s" analyzed successfully' % self.infolder)        
+            # Generate report
+            logger.info('SUCCESS: "%s" analyzed successfully' % self.infolder)       
+            self.run_report()
+                        
+
+    def run_report(self):
+        ''' Tracks a minireport on this particular run. '''
+        
+        report = open(op.join( self.outpath, 'minireport'), 'w')
+        report.write('Test')
+        # Add inpath directory
+                        
+        report.close()
+        
+        logger.debug("Adding %s to tree file." % self.infolder )
+        self._treefile.write(self.outpath.strip(self.outroot) + '\t' + self.outpath)            
 
 
     def _analyze_dir(self):
