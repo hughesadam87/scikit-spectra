@@ -697,8 +697,8 @@ class Controller(object):
                 '"all".  Defaults to %s.' % (ALL_ANAL, ANAL_DEFAULT), 
                 default=ANAL_DEFAULT, metavar='')
     
-        parser.add_argument('-d','--dryrun', dest='dry', action='store_true',
-                            help='Not yet implemented')
+#        parser.add_argument('-d','--dryrun', dest='dry', action='store_true',
+#                            help='Not yet implemented')
 
         # This must be "-t, --trace" for logger compatability; don't change!
         parser.add_argument('-t', '--trace', action='store_true', dest='trace',
