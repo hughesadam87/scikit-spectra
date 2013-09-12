@@ -47,6 +47,8 @@ DEF_OUTROOT = './output'
 ALL_ANAL = ['1d', '2d', '3d', 'corr']   
 ANAL_DEFAULT = ['1d', '2d']
 
+SEC_TEMPLATE = 'templates/section.tex'
+
     
 # Convenience fcns
 def ext(afile): 
@@ -60,6 +62,11 @@ def logmkdir(fullpath):
     ''' Makes directory path/folder, and logs.'''
     logger.info('Making directory: %s' % fullpath)
     os.mkdir(fullpath)
+    
+def latex_path(fullpath):
+    fullpath = fullpath.replace('_', '\\_')
+    return fullpath.decode('string-escape')
+
 
 def dict_out(header, dic, sort = True):
     ''' Retures a string of form header \n k \t val '''
@@ -101,7 +108,6 @@ class Controller(object):
         self.analysis = kwargs.get('analysis', ANAL_DEFAULT)
         
         self.rname = kwargs.get('rname', '')
-        self.dryrun = kwargs.get('dryrun', False) 
         self.overwrite = kwargs.get('overwrite', False)
         
         # Configure logger
@@ -318,20 +324,35 @@ class Controller(object):
         else:
             # Generate report
             logger.info('SUCCESS: "%s" analyzed successfully' % self.infolder)       
-            self.run_report()
+            self.section_report()
                         
 
-    def run_report(self):
+    def section_report(self):
         ''' Tracks a minireport on this particular run. '''
         
-        report = open(op.join( self.outpath, 'minireport'), 'w')
-        report.write('Test')
-        # Add inpath directory
+        
+        sec_name = self.outpath.strip(self.outroot)
+        
+        sec_template = file(SEC_TEMPLATE, 'r').read()
+
+        report_params = {
+            'sec_name':sec_name, 
+            'inpath':latex_path(self.inpath),
+            'outpath':latex_path(self.outpath),                            
+            'areaplotfull': op.join(self.outpath, 'Full_data/Raw_area'),
+            'specplotfull': op.join(self.outpath, 'Full_data/Raw_spectrum'),
+            
+            'specplotabs': op.join(self.outpath,  'Absorbance (base 10)/Absorbance_spectrum'),
+            'areaplotabs': op.join(self.outpath,  'Absorbance (base 10)/Absorbance_area')                       
+                        } 
+
+        report = open(op.join( self.outpath, 'sectionreport.tex'), 'w')
+        report.write( sec_template % report_params )
                         
         report.close()
         
         logger.debug("Adding %s to tree file." % self.infolder )
-        self._treefile.write(self.outpath.strip(self.outroot) + '\t' + self.outpath)            
+        self._treefile.write(sec_name + '\t' + self.outpath)            
 
 
     def _analyze_dir(self):
@@ -366,7 +387,6 @@ class Controller(object):
         # To csv (loses metadata) set to meta_separate to False to preserve metadata
         logger.info('Outputting to %s.csv.  Metadata will be exluded.' % self.infolder)
         ts_full.to_csv(op.join(rundir, '%s.csv' % self.infolder), meta_separate=None)
-
 
 
         # Set ts
@@ -732,6 +752,6 @@ class Controller(object):
         
         return cls(inroot=ns.inroot, outroot=ns.outroot, plot_dpi = ns.dpi,
                    verbosity=ns.verbosity, trace=ns.trace, params=ns.params, 
-                   dryrun=ns.dry, overwrite=ns.overwrite, sweep=ns.sweep, 
+                   overwrite=ns.overwrite, sweep=ns.sweep, 
                    analysis=ns.analysis)
               
