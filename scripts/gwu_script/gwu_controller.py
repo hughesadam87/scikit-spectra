@@ -473,12 +473,16 @@ class Controller(object):
         # Set reference (MUST SET reference AFTER SLICING RANGES TO AVOID ERRONEOUS reference DATA)
         ts.reference = self.params.reference
     
-        try:
-            ts.to_interval(self.params.intvlunit)
-        except KeyError:
-            ts.to_interval()        
-            logger.warn('Cannot set "intvlunit" from parameters; running'
+        if self.params.intvlunit:
+            try:
+                ts.to_interval(self.params.intvlunit)
+            except KeyError:
+                ts.to_interval()        
+                logger.warn('Cannot set "intvlunit" from parameters; running'
                         ' ts.to_interval()')
+        else:
+            logger.info('Intvlunit is None- leaving data as rawtime')
+            
             
         return ts    
 
