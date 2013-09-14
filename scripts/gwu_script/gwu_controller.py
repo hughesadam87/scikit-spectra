@@ -338,12 +338,16 @@ class Controller(object):
         report_params = {
             'sec_name':sec_name, 
             'inpath':latex_path(self.inpath),
-            'outpath':latex_path(self.outpath),                            
+            'outpath':latex_path(self.outpath),        
+            # Hacky way to look for plots (leave it to the tex template) to use 
             'areaplotfull': op.join(self.outpath, 'Full_data/Raw_area'),
             'specplotfull': op.join(self.outpath, 'Full_data/Raw_spectrum'),
             
-            'specplotabs': op.join(self.outpath,  'Absorbance (base 10)/Absorbance_spectrum'),
-            'areaplotabs': op.join(self.outpath,  'Absorbance (base 10)/Absorbance_area')                       
+            'specplotabs': op.join(self.outpath,  'Abs_base10/Absorbance_spectrum'),
+            'areaplotabs': op.join(self.outpath,  'Abs_base10/Absorbance_area'),
+            
+            'specplotrel':op.join(self.outpath, 'Linear_ratio/Relative_area'),
+            'areaplotrel':op.join(self.outpath, 'Linear_ratio/Relative_spect')
                         } 
 
         report = open(op.join( self.outpath, 'sectionreport.tex'), 'w')
@@ -401,6 +405,8 @@ class Controller(object):
                 od = op.join(rundir, 'Linear_ratio') 
             elif iu == None:
                 od = op.join(rundir, 'Full_data')
+            elif iu == 'a':
+                od = op.join(rundir, 'Abs_base10')
             logmkdir(od)
  
             ts = ts.as_iunit(iu)
