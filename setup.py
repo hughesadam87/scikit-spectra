@@ -1,4 +1,5 @@
 import sys
+import os.path as op
 #from distutils.core import setup
 from setuptools import setup, find_packages
 
@@ -10,7 +11,9 @@ if user_py < (2, 7):
     raise SystemExit('%s requires python 2.7 or higher (%s found).' % \
                      (NAME, '.'.join(str(x) for x in user_py[0:3])))
 
-with open('requirements.txt') as f:
+
+#XXX Get current module path and do path.join(requirements)
+with open(op.join(sys.path[0], 'requirements.txt')) as f:
     required = f.readlines()
     required = [line.strip() for line in required]
     
@@ -52,7 +55,7 @@ setup(
     license='LICENSE.txt',
     description='Pandas-based toolkit for spectral data analysis, primarily '
     'UVVis spectra for now.',
-    long_description=open('README.rst').read(),
+    long_description=open(op.join(sys.path[0], 'README.rst')).read(),
     install_requires=[
         "pandas >= 0.12.0",
 #   	"numpy >= 1.6.0",  #Pandas puts this in

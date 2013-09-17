@@ -620,6 +620,14 @@ class Controller(object):
                     (min(ts.index), max(ts.index), ts.specunit), color='r')
         self.plt_clrsave(op.join(outpath, prefix +'_area'))
 
+        # Normalized area plot        
+        areaplot(ts/len(ts.index), ylabel='Power per units %s', xlabel='Time ('+ts.timeunit+')', legend=False,
+                 title='Spectral Power vs. Time (%i - %i %s)' % 
+                    (min(ts.index), max(ts.index), ts.specunit, ts.specunit), color='r')
+        self.plt_clrsave(op.join(outpath, prefix +'_area_normal'))
+        
+        
+
         # Ranged time plot
         try:
             uv_ranges = self.params.uv_ranges

@@ -49,6 +49,3 @@ class Reporter(object):
         # Check for file extension, change to tex
         open('outpath', 'w').write(template_main % main_params) 
         # do I need to close?
-    
-    
-    
