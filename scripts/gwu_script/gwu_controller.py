@@ -47,7 +47,8 @@ DEF_OUTROOT = './output'
 ALL_ANAL = ['1d', '2d', '3d', 'corr']   
 ANAL_DEFAULT = ['1d', '2d']
 
-SEC_TEMPLATE = 'templates/section.tex'
+# Make installable
+SEC_TEMPLATE = '/home/glue/Desktop/PYUVVIS/pyuvvis/scripts/gwu_script/templates/section.tex'
 
     
 # Convenience fcns
@@ -356,7 +357,7 @@ class Controller(object):
         report.close()
         
         logger.debug("Adding %s to tree file." % self.infolder )
-        self._treefile.write(sec_name + '\t' + self.outpath)            
+        self._treefile.write(str({sec_name: report_params}))            
 
 
     def _analyze_dir(self):
@@ -488,8 +489,7 @@ class Controller(object):
                         ' ts.to_interval()')
         else:
             logger.info('Intvlunit is None- leaving data as rawtime')
-            
-            
+                     
         return ts    
 
     def build_outroot(self):
@@ -620,11 +620,14 @@ class Controller(object):
                     (min(ts.index), max(ts.index), ts.specunit), color='r')
         self.plt_clrsave(op.join(outpath, prefix +'_area'))
 
-        # Normalized area plot        
-        areaplot(ts/len(ts.index), ylabel='Power per unit %s', xlabel='Time ('+ts.timeunit+')', legend=False,
-                 title='Normalized Spectral Power vs. Time (%i - %i %s)' % 
-                    (min(ts.index), max(ts.index), ts.specunit, ts.specunit), color='r')
+        # Normalized area plot (divided by number x units)       
+        areaplot(ts/len(ts.index), ylabel='Power per unit %s' % ts.specunit, xlabel='Time (' +
+                 ts.timeunit+')', legend=False, title='Normalized Spectral' 
+                 'Power vs. Time (%i - %i %s)' % 
+                 (min(ts.index), max(ts.index), ts.specunit), color='r')
         self.plt_clrsave(op.join(outpath, prefix +'_area_normal'))
+        
+        # Lambda max vs. t plot
         
         
 

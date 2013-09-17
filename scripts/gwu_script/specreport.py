@@ -2,8 +2,11 @@ import argparse
 import shlex
 import logging
 
+from gwu_reporter import Reporter
+
+import logging
 logger = logging.getLogger(__name__)
-from pyuvvis.logger import logclass
+from pyuvvis.logger import logclass, configure_logger
 
 SCRIPTNAME = 'specreport'
 SEP_DEFAULT = '/'
@@ -36,10 +39,11 @@ def main(args=None):
     
     # TEMPLATE SUBCOMMAND
     p_template = subparsers.add_parser('template', help='template help')
-    p_template.add_argument('sections', nargs='*', help='List of sections to add.'
+    p_template.add_argument('--sections', nargs='*', help='List of sections to add.'
         'or tree file.  If not tree file, default section template will be "template/section" '
-        'section names will auto-break into subsections based on value of --sep') 
-    p_template.add_argument('template_file', default=None) #XXX
+        'section names will auto-break into subsections based on value of --sep',
+        default=[]) 
+    p_template.add_argument('--template_file', default=None) #XXX
     p_template.add_argument('outpath', default='./fooout') #XXX
     
     # BUILD SUBCOMMAND
@@ -64,17 +68,21 @@ def main(args=None):
     p_summary = subparsers.add_parser('summary', help='summary help')
     p_summary.add_argument('bodyfile')
 
-
     ns = parser.parse_args()
+        
+    # No logfile implemented
+    configure_logger(screen_level=ns.verbosity)
+    
+    reporter = Reporter(**ns.__dict__) # Is this ok?
     
     if ns.op == 'template':
-        pass
+        reporter.output_template(ns.outpath)
     
     elif ns.op == 'build':
         pass
     
     else:
-        raise NotImplemented
+        NotImplemented
 
     # Subparsers
     # Put options separaetly, then make global later if common.
