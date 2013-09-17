@@ -39,7 +39,7 @@ from pyuvvis.exceptions import badkey_check, ParserError, GeneralError, \
 from parameters_model import Parameters, USB2000, USB650
 
 logger = logging.getLogger(__name__)
-from pyuvvis.logger import log, configure_logger, logclass
+from pyuvvis.logger import configure_logger, logclass
 
 SCRIPTNAME = 'gwuspec'
 DEF_INROOT = './scriptinput'
@@ -621,8 +621,8 @@ class Controller(object):
         self.plt_clrsave(op.join(outpath, prefix +'_area'))
 
         # Normalized area plot        
-        areaplot(ts/len(ts.index), ylabel='Power per units %s', xlabel='Time ('+ts.timeunit+')', legend=False,
-                 title='Spectral Power vs. Time (%i - %i %s)' % 
+        areaplot(ts/len(ts.index), ylabel='Power per unit %s', xlabel='Time ('+ts.timeunit+')', legend=False,
+                 title='Normalized Spectral Power vs. Time (%i - %i %s)' % 
                     (min(ts.index), max(ts.index), ts.specunit, ts.specunit), color='r')
         self.plt_clrsave(op.join(outpath, prefix +'_area_normal'))
         
