@@ -2,6 +2,7 @@ import argparse
 import shlex
 import logging
 import os
+import os.path as op
 
 from gwu_reporter import Reporter
 
@@ -92,6 +93,7 @@ def main(args=None):
     elif ns.op == 'build':
         reporter.make_report(ns.bodyfile, ns.outpath)
 
+        # If compiling, choose pdflatex or latex
         if ns.compile:
          
             if ns.pdf:
@@ -101,6 +103,16 @@ def main(args=None):
                 latex_type = 'latex'
                 
             os.system('%s %s' % (latex_type, ns.outpath) )
+            
+        # Cleanup latex .toc/.log/.aux files of outfile
+        if ns.clean:
+            outdir, outname = op.split(op.abspath(ns.outpath))
+            outname = op.splitext(outname)[0]
+            for ext in ['toc', 'log', 'aux']:
+                wastefile = op.join(outdir, outname + '.' + ext)
+                if op.isfile(wastefile):
+                    logger.info('Cleaning up file: "%s"' % wastefile)
+                    os.remove(wastefile)
     
     else:
         NotImplemented

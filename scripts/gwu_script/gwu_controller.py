@@ -106,6 +106,7 @@ class Controller(object):
         self.outroot = kwargs.get('outroot', DEF_OUTROOT)
         self.sweepmode = kwargs.get('sweep', False)
         self._plot_dpi = kwargs.get('plot_dpi', None) #Defaults based on matplotlibrc file
+        self._plot_dim = kwargs.get('plot_dim', 'width=6cm')
         self.analysis = kwargs.get('analysis', ANAL_DEFAULT)
         
         self.rname = kwargs.get('rname', '')
@@ -340,6 +341,7 @@ class Controller(object):
             'secname':secname, 
             'inpath':latex_path(self.inpath),
             'outpath':latex_path(self.outpath),        
+            'plot_dim':self._plot_dim,
             # Hacky way to look for plots (leave it to the tex template) to use 
             'areaplotfull': op.join(self.outpath, 'Full_data/Raw_area'),
             'specplotfull': op.join(self.outpath, 'Full_data/Raw_spectrum'),
@@ -750,6 +752,9 @@ class Controller(object):
         parser.add_argument('-t', '--trace', action='store_true', dest='trace',
                           help='Show traceback upon errors')       
         
+        parser.add_argument('--plot_dim', default='width=6cm', help='Defaults to '
+            '"width=6cm"; any valid latex plotsize parameters (\textwidth) are acceptable;' 
+            ' enter directly as they would be in latex "includegraphics[]".')
         parser.add_argument('--dpi', type=int, help='Plotting dots per inch.')
     
     
@@ -778,7 +783,7 @@ class Controller(object):
         
         controller = cls(inroot=ns.inroot, outroot=ns.outroot, plot_dpi = ns.dpi,
                    verbosity=ns.verbosity, trace=ns.trace, params=ns.params, 
-                   overwrite=ns.overwrite, sweep=ns.sweep, 
+                   overwrite=ns.overwrite, sweep=ns.sweep, plot_dim = ns.plot_dim,
                    analysis=ns.analysis)
             
         # Make REPORT/SEM directories for convienence
