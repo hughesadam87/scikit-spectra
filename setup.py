@@ -3,7 +3,7 @@ import os.path as op
 #from distutils.core import setup
 from setuptools import setup, find_packages
 
-NAME='PyUvVis'
+NAME = 'PyUvVis'
 
 # Python >= 2.7 ?
 user_py = sys.version_info
@@ -47,7 +47,8 @@ setup(
                   #},
     
     entry_points = {'console_scripts': [
-                       'gwuspec = scripts.gwu_script.gwuspec:main']
+                       'gwuspec = scripts.gwu_script.gwuspec:main',
+                       'gwureport = scripts.gwu_script.specreport:main']
                     },
     
     url='http://pypi.python.org/pypi/PyUvVis/',

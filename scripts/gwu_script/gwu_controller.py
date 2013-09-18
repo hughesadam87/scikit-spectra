@@ -329,15 +329,15 @@ class Controller(object):
                         
 
     def section_report(self):
-        ''' Tracks a minireport on this particular run. '''
+        ''' Writes a section report for the current inpath.
+            These are tracked via the treefile, for compatability
+            with specreport.py'''
         
-        
-        sec_name = self.outpath.strip(self.outroot)
-        
+        secname = self.outpath.strip(self.outroot)
         sec_template = file(SEC_TEMPLATE, 'r').read()
 
         report_params = {
-            'sec_name':sec_name, 
+            'secname':secname, 
             'inpath':latex_path(self.inpath),
             'outpath':latex_path(self.outpath),        
             # Hacky way to look for plots (leave it to the tex template) to use 
@@ -357,7 +357,7 @@ class Controller(object):
         report.close()
         
         logger.debug("Adding %s to tree file." % self.infolder )
-        self._treefile.write(str({sec_name: report_params}))            
+        self._treefile.write(str({secname: report_params}))            
 
 
     def _analyze_dir(self):
@@ -489,7 +489,8 @@ class Controller(object):
                         ' ts.to_interval()')
         else:
             logger.info('Intvlunit is None- leaving data as rawtime')
-                     
+            
+            
         return ts    
 
     def build_outroot(self):
@@ -737,6 +738,10 @@ class Controller(object):
                 'analysis to perform.  Choose 1 or more of the following: %s or '
                 '"all".  Defaults to %s.' % (ALL_ANAL, ANAL_DEFAULT), 
                 default=ANAL_DEFAULT, metavar='')
+        
+        parser.add_argument('-e', '--extra', action='store_true', 
+            help='Adds report and sem directories to current working directory.'
+            ' Not modular and only a convienence hack')
     
 #        parser.add_argument('-d','--dryrun', dest='dry', action='store_true',
 #                            help='Not yet implemented')
@@ -771,8 +776,19 @@ class Controller(object):
         ns.params = model(**userparams)
         delattr(ns, 'cfig')        
         
-        return cls(inroot=ns.inroot, outroot=ns.outroot, plot_dpi = ns.dpi,
+        controller = cls(inroot=ns.inroot, outroot=ns.outroot, plot_dpi = ns.dpi,
                    verbosity=ns.verbosity, trace=ns.trace, params=ns.params, 
                    overwrite=ns.overwrite, sweep=ns.sweep, 
                    analysis=ns.analysis)
-              
+            
+        # Make REPORT/SEM directories for convienence
+        if ns.extra:
+            for dirname in ['Report', 'SEM']:
+                logger.info('Making directory: "%s"' % dirname)
+                if op.exists(dirname):
+                    logger.critical('Cannot create directory: %s.  Not'
+                        'comfortable overwriting...' % dirname)
+                else:
+                    os.mkdir(dirname)
+                    
+        return controller

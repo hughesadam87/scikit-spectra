@@ -8,12 +8,13 @@ import logging
 logger = logging.getLogger(__name__)
 from pyuvvis.logger import log, configure_logger, logclass
 
+#Also used in gwu_controller.  Make more robust?
 TEMPLATE_DIR = '/home/glue/Desktop/PYUVVIS/pyuvvis/scripts/gwu_script/templates/'
 EXP_TEMPLATE = op.join(TEMPLATE_DIR, 'experiment_main.tex')
 HEADER_TEMPLATE = op.join(TEMPLATE_DIR, 'header.tex')
-SEC_TEMPLATE = op.join(TEMPLATE_DIR, 'section.tex')
+BLANK_SEC_TEMPLATE = op.join(TEMPLATE_DIR, 'blank_section.tex')
 
-logger = configure_logger()
+logger = configure_logger(name=__name__)
 
 @logclass(public_lvl='info')
 class Reporter(object):
@@ -39,9 +40,23 @@ class Reporter(object):
 
         # Handle sections
         self.sections = OrderedDict()
-        self.parse_sections(kwargs.get('sections'))
+        self.parse_sections(kwargs.get('sections', []))
 
+
+    def parse_path(self, outpath):
+        ''' Handles path overwriting of a single file. '''
+
+        outpath = op.abspath(outpath)
         
+        if op.exists(outpath):
+            if not self.overwrite:
+                # Replace these IOErrors everywhere with PathError?
+                raise IOError('Outpath already exists: "%s"', outpath)
+            logger.warn('Overwriting outpath: "%s"' % outpath)
+            os.remove(outpath)
+
+        return outpath
+    
     def parse_sections(self, sections):
         ''' Adds sections to self.sections.  If length 1 iterable and the 
            entry is a file, treats this a a tree files and reads from tree file.
@@ -53,7 +68,7 @@ class Reporter(object):
         # Assumes section is a tree file
         if len(sections) == 1 and op.exists(sections[0]):
             logger.info("Trying to parse sections from treefile!")
-            sections_dict = eval(open(section, 'r').read())
+            sections_dict = eval(open(sections[0], 'r').read())
 
             # REPLACE THIS FUNCTIONALITY WITH ADD_SECTION
             
@@ -69,53 +84,66 @@ class Reporter(object):
     def report(self):
         ''' Concatenates main_tamplate body and self.sections. '''
         body = self.main_template
-        for section in self.sections:
-            body += section
+        for secname, section in self.sections.items():
+            body += section + '\n'
+        return body
             
                 
+    def latex_secname(self, secname):
+        ''' Try to format subsections to something more fancy.  Since templates
+            define the sections themselves, this is not implemented.  Would need
+            to refactor templates to no longer declare \section \subsection etc..'''
+        NotImplemented
+#        return '\SubSection{%s}' % secname
         
     def add_section(self, secname, sectionfile=None):
         ''' If not sectionfile, blank template is used. '''
+        
+    #    secname = self.latex_secname(secname)
 
         if sectionfile:
             logger.info("Appending section file for %s" % secname)
-            self.sections['secname'] = file(section, 'r').read() 
+            self.sections[secname] = str(open(sectionfile, 'r').read())
 
         else:
+            # Need to fill in "secname" via %, while treefile already did this
             logger.info("Appending in blank section %s" % secname)
-            self.sections['secname'] = file(SEC_TEMPLATE, 'r').read()
+            self.sections[secname] = str(open(BLANK_SEC_TEMPLATE, 'r').read() % 
+                                         {'secname':secname})
         
         
     def remove_section(self, secname):
         try:
             del self.sections[secname]
         except KeyError:
-            raise KeyError('%s not found in "sections".  See (WHICH METHOD?)')
+            raise KeyError('%s not found in "sections".  See self.sections')
 
 
     def output_template(self, outpath, add_header=False):
-        if op.exists(outpath):
-            if not self.overwrite:
-                # Replace these IOErrors everywhere with PathError?
-                raise IOError('Outpath already exists: %s', outpath)
-            logger.warn('Overwriting outpath: %s' % outpath)
-            os.remove(outpath)
 
-        file(outpath, 'w').write(self.report)
+        outpath = self.parse_path(outpath)
+        open(outpath, 'w').write(self.report)
+        logger.info('Template written to: "%s"' % outpath)
+
+        
                                                 
-    def make_report(self, template, outpath='test.tex'):
+    def make_report(self, template_file, outpath):
         ''' Joins all the section strings from self.report.values();
             adds a header and mergers tex_params (author, email etc..).'''
         
-        body = ''
-        for section in self.report.values():
-            body += section
-                
-        # Add the full report as the "body" into the header template
-        self.tex_params['body'] = body
+                        
+        if not op.exists(template_file):
+            raise IOError('Template file not found: "%s"' % template_file)
+        
+        # Add the full report as the "body" into the header template_file
+        tex_params = {}
+        tex_params['title'] = self.title
+        tex_params['author'] = self.author
+        tex_params['email'] = self.email
+        tex_params['body'] = open(template_file, 'r').read()
         
         template_main = file(HEADER_TEMPLATE, 'r').read()
-            
-        # Check for file extension, change to tex
-        open('outpath', 'w').write(template_main % self.tex_params) 
-        # do I need to close?
+
+        outpath = self.parse_path(outpath)       
+        open(outpath, 'w').write(template_main % tex_params) 
+        logger.info('Report written to: "%s"' % outpath)
