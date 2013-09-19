@@ -780,7 +780,7 @@ class Controller(object):
         parser.add_argument('-t', '--trace', action='store_true', dest='trace',
                           help='Show traceback upon errors')       
         
-        parser.add_argument('--plot_dim', default='width=6cm', help='Defaults to '
+        parser.add_argument('--plot_dim', metavar='', default='width=6cm', help='Defaults to '
             '"width=6cm"; any valid latex plotsize parameters (\textwidth) are acceptable;' 
             ' enter directly as they would be in latex "includegraphics[]".')
         parser.add_argument('--dpi', type=int, help='Plotting dots per inch.')

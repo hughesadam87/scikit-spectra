@@ -13,7 +13,8 @@ if user_py < (2, 7):
 
 
 #XXX Get current module path and do path.join(requirements)
-with open(op.join(sys.path[0], 'requirements.txt')) as f:
+#with open(op.join(sys.path[0], 'requirements.txt')) as f:
+with open('requirements.txt', 'r') as f:
     required = f.readlines()
     required = [line.strip() for line in required]
     
@@ -51,19 +52,19 @@ setup(
                        'gwureport = scripts.gwu_script.gwureport:main']
                     },
     
-    url='http://pypi.python.org/pypi/PyUvVis/',
-    download_url='https://github.com/hugadams/pyuvvis',
-    license='LICENSE.txt',
-    description='Pandas-based toolkit for spectral data analysis, primarily '
+    url = 'http://pypi.python.org/pypi/PyUvVis/',
+    download_url = 'https://github.com/hugadams/pyuvvis',
+    license = 'LICENSE.txt',
+    description = 'Pandas-based toolkit for spectral data analysis, primarily '
     'UVVis spectra for now.',
-    long_description=open(op.join(sys.path[0], 'README.rst')).read(),
-    install_requires=[
+    long_description = open(op.join(sys.path[0], 'README.rst')).read(),
+    install_requires = [
         "pandas >= 0.12.0",
 #   	"numpy >= 1.6.0",  #Pandas puts this in
 #        "chaco",
      	"scipy", #Probably too high version requirement
                      ],
-      classifiers=[
+      classifiers = [
           'Development Status :: 2 - Pre-Alpha',
           'Environment :: Console',
           'Intended Audience :: Science/Research',
