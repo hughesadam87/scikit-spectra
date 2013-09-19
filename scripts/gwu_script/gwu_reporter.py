@@ -65,15 +65,14 @@ class Reporter(object):
         if not hasattr(sections, '__iter__'):
             raise AttributeError('Reporter.parse_sections must be iterable.')
         
+        
         # Assumes section is a tree file
         if len(sections) == 1 and op.exists(sections[0]):
             logger.info("Trying to parse sections from treefile!")
             sections_dict = eval(open(sections[0], 'r').read())
-
-            # REPLACE THIS FUNCTIONALITY WITH ADD_SECTION
             
-            for secname, section in sections_dict.items():
-                self.add_section(secname, sectionfile=section)
+            for secname, section_file in sections_dict.items():
+                self.add_section(secname, section_file)
 
         # Adds a blank section for each name in order as (section, SEC_TEMPLATE)
         else:
@@ -96,14 +95,14 @@ class Reporter(object):
         NotImplemented
 #        return '\SubSection{%s}' % secname
         
-    def add_section(self, secname, sectionfile=None):
-        ''' If not sectionfile, blank template is used. '''
+    def add_section(self, secname, section_file=None):
+        ''' If not section_file, blank template is used. '''
         
     #    secname = self.latex_secname(secname)
 
-        if sectionfile:
-            logger.info("Appending section file for %s" % secname)
-            self.sections[secname] = str(open(sectionfile, 'r').read())
+        if section_file:
+            logger.info("Appending section string from file file for %s" % secname)
+            self.sections[secname] =str(open(section_file, 'r').read())
 
         else:
             # Need to fill in "secname" via %, while treefile already did this

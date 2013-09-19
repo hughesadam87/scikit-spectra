@@ -48,7 +48,7 @@ setup(
     
     entry_points = {'console_scripts': [
                        'gwuspec = scripts.gwu_script.gwuspec:main',
-                       'gwureport = scripts.gwu_script.specreport:main']
+                       'gwureport = scripts.gwu_script.gwureport:main']
                     },
     
     url='http://pypi.python.org/pypi/PyUvVis/',

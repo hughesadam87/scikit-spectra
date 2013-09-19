@@ -64,20 +64,40 @@ def logmkdir(fullpath):
     logger.info('Making directory: %s' % fullpath)
     os.mkdir(fullpath)
     
-def latex_path(fullpath):
-    fullpath = fullpath.replace('_', '\\_')
-    return fullpath.decode('string-escape')
+def latex_string(string):
+    ''' Replace underscore, newline, tabs to fit latex.'''
 
+    string = string.replace('_', '\\_')
+    string = string.decode('string-escape')
+    
+    string = string.replace('\n', '\\\\')
+    return string.replace('\t', '\hspace{1cm}') #Chosen arbitrarily
 
 def dict_out(header, dic, sort = True):
     ''' Retures a string of form header \n k \t val '''
     
     if sort:
-        return header + ':\n' + '\n'.join(['\t'+(str(k) + '\t' + str(v)) 
+        return header + ':\n\n' + '\n'.join(['\t'+(str(k) + '\t' + str(v)) 
                  for k,v in sorted(dic.items())])
     else:
-        return header + ':\n' +'\n'.join(['\t'+(str(k) + '\t' + str(v)) 
+        return header + ':\n\n' +'\n'.join(['\t'+(str(k) + '\t' + str(v)) 
                  for k,v in dic.items()])        
+
+# This could delete empty folders that were otherwise in the directory that 
+# were there before starting script
+def removeEmptyFolders(path):
+    if os.path.isdir(path):
+  
+        # remove empty subfolders
+        if os.listdir(path):
+            for f in os.listdir(path):
+                fullpath = os.path.join(path, f)
+                if os.path.isdir(fullpath):
+                    removeEmptyFolders(fullpath)
+      
+        else: 
+          logger.info('Removing empty folder: "%s"' % path)
+          os.rmdir(path)
 
 class AddUnderscore(argparse.Action):
     ''' Adds an underscore to end of value (used in "rootname") '''
@@ -136,6 +156,8 @@ class Controller(object):
         if self._plot_dpi > 600:
             logger.warn('Plotting dpi is set to %s.  > 600 may result in slow'
                        ' performance.')
+            
+        self._run_summary = '' 
                         
         
         
@@ -276,7 +298,8 @@ class Controller(object):
         
         self.analyze_dir()
         if self.sweepmode:
-            self.main_walk()        
+            self.main_walk()   
+            removeEmptyFolders(self.outroot)
 
         self._treefile.close()
 
@@ -339,9 +362,10 @@ class Controller(object):
 
         report_params = {
             'secname':secname, 
-            'inpath':latex_path(self.inpath),
-            'outpath':latex_path(self.outpath),        
+            'inpath':latex_string(self.inpath),
+            'outpath':latex_string(self.outpath),        
             'plot_dim':self._plot_dim,
+            'parameters':self._run_summary,
             # Hacky way to look for plots (leave it to the tex template) to use 
             'areaplotfull': op.join(self.outpath, 'Full_data/Raw_area'),
             'specplotfull': op.join(self.outpath, 'Full_data/Raw_spectrum'),
@@ -353,13 +377,13 @@ class Controller(object):
             'areaplotrel':op.join(self.outpath, 'Linear_ratio/Relative_spect')
                         } 
 
-        report = open(op.join( self.outpath, 'sectionreport.tex'), 'w')
-        report.write( sec_template % report_params )
-                        
+        report_path = op.join(self.outpath, 'sectionreport.tex')
+        report = open(report_path, 'w')
+        report.write( sec_template % report_params )                        
         report.close()
         
         logger.debug("Adding %s to tree file." % self.infolder )
-        self._treefile.write(str({secname: report_params}))            
+        self._treefile.write(str({secname: report_path}))            
 
 
     def _analyze_dir(self):
@@ -368,25 +392,27 @@ class Controller(object):
 
         logger.info("ANALYZING RUN DIRECTORY: %s\n\n" % self.infolder)
 
+        # outpath should be correctly set by main_walk()
+        rundir = self.outpath
+        logmkdir(rundir)
+
         start = timenow()
         ts_full = self.build_timespectra()        
         logger.info('SUCCESS imported %s in %s seconds' % 
                 (ts_full.full_name, (timenow() - start).seconds))
         ts_full = self.validate_ts(ts_full) 
-
-        
-        # make rundir = outpath/infolder; save
-        rundir = op.join(self.outpath)#, self.infolder)
-        logmkdir(rundir)
         
         logger.info('Saving %s as %s.pickle' % (ts_full.full_name, self.infolder))
         ts_full.save(op.join(rundir, '%s.pickle' % self.infolder)) 
         
-        # Output metadata
+        # Output metadata to file (read back into _run_summary)
         if getattr(ts_full, 'metadata', None):
-             logger.info('Saving %s metadata' % ts_full.full_name)
-             with open(op.join(rundir, '%s.metadata' % self.infolder), 'w') as f:
-                 f.write(dict_out('Spectral Parameters', ts_full.metadata))
+            logger.info('Saving %s metadata' % ts_full.full_name)
+            with open(op.join(rundir, '%s.metadata' % self.infolder), 'w') as f:
+                f.write(dict_out('Spectral Parameters', ts_full.metadata))
+                
+            with open(op.join(rundir, '%s.metadata' % self.infolder), 'r') as f:
+                self._run_summary += latex_string(f.read())
         else:
             logger.info('Metadata not found for %s' % ts_full.full_name)
             

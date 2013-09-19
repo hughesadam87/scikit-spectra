@@ -2,17 +2,11 @@
 
 \fillin{Any details about the experiment} 
 
-\begin{figure}[h!]
-  \caption{A picture of a gull.}
-  \centering
-  \includegraphics[width=0.5\textwidth]{"%(specplotfull)s"}
-\end{figure}
-
 \begin{figure}[h!]\centering
-\subfigure[]{\includegraphics["%(plot_dim)s"]{"%(specplotfull)s"}}
-\subfigure[]{\includegraphics["%(plot_dim)s"]{{"%(areaplotfull)s"}}
-\subfigure[]{\includegraphics["%(plot_dim)s"]{{"%(specplotabs)s"}}
-\subfigure[]{\includegraphics["%(plot_dim)s"]{{"%(areaplotabs)s"}}
+\subfigure[]{\includegraphics[%(plot_dim)s]{"%(specplotfull)s"}}
+\subfigure[]{\includegraphics[%(plot_dim)s]{"%(areaplotfull)s"}}
+\subfigure[]{\includegraphics[%(plot_dim)s]{"%(specplotabs)s"}}
+\subfigure[]{\includegraphics[%(plot_dim)s]{"%(areaplotabs)s"}}
 \label{fullplots}
 \caption{(a) Full data (b) Absorbance (log 10)}
 \end{figure}
@@ -24,8 +18,6 @@
 \item{}
 \end{itemize}
 
-\end{subsubsection}
-
 \subsubsection{What went poorly}
 
 \begin{itemize}
@@ -33,12 +25,12 @@
 \item{}
 \end{itemize}
 
-\end{subsubsection}
 
+{{\bf \small Data indir:} \tiny %(inpath)s}
 
-{\bf Data indir:} %(inpath)s
-\\
+{{\bf \small Data outdir:} \tiny %(outpath)s}
 
-{\bf Data outdir:} %(outpath)s
-\\
+\fboxsep5mm
+\fcolorbox{black}{gray!20}{\vbox{\hsize=10cm \noindent \small %(parameters)s } }
 
+\newpage
