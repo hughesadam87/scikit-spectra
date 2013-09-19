@@ -86,6 +86,8 @@ def dict_out(header, dic, sort = True):
 # This could delete empty folders that were otherwise in the directory that 
 # were there before starting script
 def removeEmptyFolders(path):
+    ''' Removes any empty folders in path.  Useful because recursive mode
+        of script makes every directory it finds, even if they are empty.'''
     if os.path.isdir(path):
   
         # remove empty subfolders
