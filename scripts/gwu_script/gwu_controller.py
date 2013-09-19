@@ -39,13 +39,16 @@ from pyuvvis.exceptions import badkey_check, ParserError, GeneralError, \
 from parameters_model import Parameters, USB2000, USB650
 
 logger = logging.getLogger(__name__)
-from pyuvvis.logger import log, configure_logger, logclass
+from pyuvvis.logger import configure_logger, logclass
 
 SCRIPTNAME = 'gwuspec'
 DEF_INROOT = './scriptinput'
 DEF_OUTROOT = './output'
 ALL_ANAL = ['1d', '2d', '3d', 'corr']   
 ANAL_DEFAULT = ['1d', '2d']
+
+# Make installable
+SEC_TEMPLATE = '/home/glue/Desktop/PYUVVIS/pyuvvis/scripts/gwu_script/templates/section.tex'
 
     
 # Convenience fcns
@@ -60,16 +63,43 @@ def logmkdir(fullpath):
     ''' Makes directory path/folder, and logs.'''
     logger.info('Making directory: %s' % fullpath)
     os.mkdir(fullpath)
+    
+def latex_string(string):
+    ''' Replace underscore, newline, tabs to fit latex.'''
+
+    string = string.replace('_', '\\_')
+    string = string.decode('string-escape')
+    
+    string = string.replace('\n', '\\\\')
+    return string.replace('\t', '\hspace{1cm}') #Chosen arbitrarily
 
 def dict_out(header, dic, sort = True):
     ''' Retures a string of form header \n k \t val '''
     
     if sort:
-        return header + ':\n' + '\n'.join(['\t'+(str(k) + '\t' + str(v)) 
+        return header + ':\n\n' + '\n'.join(['\t'+(str(k) + '\t' + str(v)) 
                  for k,v in sorted(dic.items())])
     else:
-        return header + ':\n' +'\n'.join(['\t'+(str(k) + '\t' + str(v)) 
+        return header + ':\n\n' +'\n'.join(['\t'+(str(k) + '\t' + str(v)) 
                  for k,v in dic.items()])        
+
+# This could delete empty folders that were otherwise in the directory that 
+# were there before starting script
+def removeEmptyFolders(path):
+    ''' Removes any empty folders in path.  Useful because recursive mode
+        of script makes every directory it finds, even if they are empty.'''
+    if os.path.isdir(path):
+  
+        # remove empty subfolders
+        if os.listdir(path):
+            for f in os.listdir(path):
+                fullpath = os.path.join(path, f)
+                if os.path.isdir(fullpath):
+                    removeEmptyFolders(fullpath)
+      
+        else: 
+          logger.info('Removing empty folder: "%s"' % path)
+          os.rmdir(path)
 
 class AddUnderscore(argparse.Action):
     ''' Adds an underscore to end of value (used in "rootname") '''
@@ -98,10 +128,10 @@ class Controller(object):
         self.outroot = kwargs.get('outroot', DEF_OUTROOT)
         self.sweepmode = kwargs.get('sweep', False)
         self._plot_dpi = kwargs.get('plot_dpi', None) #Defaults based on matplotlibrc file
+        self._plot_dim = kwargs.get('plot_dim', 'width=6cm')
         self.analysis = kwargs.get('analysis', ANAL_DEFAULT)
         
         self.rname = kwargs.get('rname', '')
-        self.dryrun = kwargs.get('dryrun', False) 
         self.overwrite = kwargs.get('overwrite', False)
         
         # Configure logger
@@ -128,6 +158,8 @@ class Controller(object):
         if self._plot_dpi > 600:
             logger.warn('Plotting dpi is set to %s.  > 600 may result in slow'
                        ' performance.')
+            
+        self._run_summary = '' 
                         
         
         
@@ -264,10 +296,14 @@ class Controller(object):
         
         self._inpath = self.inroot
         self._outpath = op.join(self.outroot, self.infolder)
+        self._treefile = open(op.join(self.outroot, 'tree'), 'w')
+        
         self.analyze_dir()
         if self.sweepmode:
-            self.main_walk()        
-            
+            self.main_walk()   
+            removeEmptyFolders(self.outroot)
+
+        self._treefile.close()
 
     def main_walk(self):
         ''' Walks all the subdirectories of self.inroot; runs analyze_dir()'''
@@ -313,7 +349,45 @@ class Controller(object):
         except LogExit: #log exit
             logger.critical('FAILURE: "%s" finished with errors.' % self.infolder) 
         else:
-            logger.info('SUCCESS: "%s" analyzed successfully' % self.infolder)        
+            # Generate report
+            logger.info('SUCCESS: "%s" data analysis complete' % self.infolder)       
+            self.section_report()
+                        
+
+    def section_report(self):
+        ''' Writes a section report for the current inpath.
+            These are tracked via the treefile, for compatability
+            with specreport.py'''
+        
+        # path/to/section ---> section
+        secname = self.outpath.split(self.outroot)[-1].lstrip('/')
+        logger.info('Generating section report for %s' % secname) 
+        sec_template = file(SEC_TEMPLATE, 'r').read()
+
+        report_params = {
+            'secname':secname, 
+            'inpath':latex_string(self.inpath),
+            'outpath':latex_string(self.outpath),        
+            'plot_dim':self._plot_dim,
+            'parameters':self._run_summary,
+            # Hacky way to look for plots (leave it to the tex template) to use 
+            'areaplotfull': op.join(self.outpath, 'Full_data/Raw_area'),
+            'specplotfull': op.join(self.outpath, 'Full_data/Raw_spectrum'),
+            
+            'specplotabs': op.join(self.outpath,  'Abs_base10/Absorbance_spectrum'),
+            'areaplotabs': op.join(self.outpath,  'Abs_base10/Absorbance_area'),
+            
+            'specplotrel':op.join(self.outpath, 'Linear_ratio/Relative_area'),
+            'areaplotrel':op.join(self.outpath, 'Linear_ratio/Relative_spect')
+                        } 
+
+        report_path = op.join(self.outpath, 'sectionreport.tex')
+        report = open(report_path, 'w')
+        report.write( sec_template % report_params )                        
+        report.close()
+        
+        logger.debug("Adding %s to tree file." % self.infolder )
+        self._treefile.write(str({secname: report_path}))            
 
 
     def _analyze_dir(self):
@@ -322,25 +396,27 @@ class Controller(object):
 
         logger.info("ANALYZING RUN DIRECTORY: %s\n\n" % self.infolder)
 
+        # outpath should be correctly set by main_walk()
+        rundir = self.outpath
+        logmkdir(rundir)
+
         start = timenow()
         ts_full = self.build_timespectra()        
         logger.info('SUCCESS imported %s in %s seconds' % 
                 (ts_full.full_name, (timenow() - start).seconds))
         ts_full = self.validate_ts(ts_full) 
-
-        
-        # make rundir = outpath/infolder; save
-        rundir = op.join(self.outpath)#, self.infolder)
-        logmkdir(rundir)
         
         logger.info('Saving %s as %s.pickle' % (ts_full.full_name, self.infolder))
         ts_full.save(op.join(rundir, '%s.pickle' % self.infolder)) 
         
-        # Output metadata
+        # Output metadata to file (read back into _run_summary)
         if getattr(ts_full, 'metadata', None):
-             logger.info('Saving %s metadata' % ts_full.full_name)
-             with open(op.join(rundir, '%s.metadata' % self.infolder), 'w') as f:
-                 f.write(dict_out('Spectral Parameters', ts_full.metadata))
+            logger.info('Saving %s metadata' % ts_full.full_name)
+            with open(op.join(rundir, '%s.metadata' % self.infolder), 'w') as f:
+                f.write(dict_out('Spectral Parameters', ts_full.metadata))
+                
+            with open(op.join(rundir, '%s.metadata' % self.infolder), 'r') as f:
+                self._run_summary += latex_string(f.read())
         else:
             logger.info('Metadata not found for %s' % ts_full.full_name)
             
@@ -348,7 +424,6 @@ class Controller(object):
         # To csv (loses metadata) set to meta_separate to False to preserve metadata
         logger.info('Outputting to %s.csv.  Metadata will be exluded.' % self.infolder)
         ts_full.to_csv(op.join(rundir, '%s.csv' % self.infolder), meta_separate=None)
-
 
 
         # Set ts
@@ -363,6 +438,8 @@ class Controller(object):
                 od = op.join(rundir, 'Linear_ratio') 
             elif iu == None:
                 od = op.join(rundir, 'Full_data')
+            elif iu == 'a':
+                od = op.join(rundir, 'Abs_base10')
             logmkdir(od)
  
             ts = ts.as_iunit(iu)
@@ -435,12 +512,16 @@ class Controller(object):
         # Set reference (MUST SET reference AFTER SLICING RANGES TO AVOID ERRONEOUS reference DATA)
         ts.reference = self.params.reference
     
-        try:
-            ts.to_interval(self.params.intvlunit)
-        except KeyError:
-            ts.to_interval()        
-            logger.warn('Cannot set "intvlunit" from parameters; running'
+        if self.params.intvlunit:
+            try:
+                ts.to_interval(self.params.intvlunit)
+            except KeyError:
+                ts.to_interval()        
+                logger.warn('Cannot set "intvlunit" from parameters; running'
                         ' ts.to_interval()')
+        else:
+            logger.info('Intvlunit is None- leaving data as rawtime')
+            
             
         return ts    
 
@@ -572,6 +653,17 @@ class Controller(object):
                     (min(ts.index), max(ts.index), ts.specunit), color='r')
         self.plt_clrsave(op.join(outpath, prefix +'_area'))
 
+        # Normalized area plot (divided by number x units)       
+        areaplot(ts/len(ts.index), ylabel='Power per unit %s' % ts.specunit, xlabel='Time (' +
+                 ts.timeunit+')', legend=False, title='Normalized Spectral' 
+                 'Power vs. Time (%i - %i %s)' % 
+                 (min(ts.index), max(ts.index), ts.specunit), color='r')
+        self.plt_clrsave(op.join(outpath, prefix +'_area_normal'))
+        
+        # Lambda max vs. t plot
+        
+        
+
         # Ranged time plot
         try:
             uv_ranges = self.params.uv_ranges
@@ -678,14 +770,21 @@ class Controller(object):
                 'analysis to perform.  Choose 1 or more of the following: %s or '
                 '"all".  Defaults to %s.' % (ALL_ANAL, ANAL_DEFAULT), 
                 default=ANAL_DEFAULT, metavar='')
+        
+        parser.add_argument('-e', '--extra', action='store_true', 
+            help='Adds report and sem directories to current working directory.'
+            ' Not modular and only a convienence hack')
     
-        parser.add_argument('-d','--dryrun', dest='dry', action='store_true',
-                            help='Not yet implemented')
+#        parser.add_argument('-d','--dryrun', dest='dry', action='store_true',
+#                            help='Not yet implemented')
 
         # This must be "-t, --trace" for logger compatability; don't change!
         parser.add_argument('-t', '--trace', action='store_true', dest='trace',
                           help='Show traceback upon errors')       
         
+        parser.add_argument('--plot_dim', metavar='', default='width=6cm', help='Defaults to '
+            '"width=6cm"; any valid latex plotsize parameters (\textwidth) are acceptable;' 
+            ' enter directly as they would be in latex "includegraphics[]".')
         parser.add_argument('--dpi', type=int, help='Plotting dots per inch.')
     
     
@@ -712,8 +811,19 @@ class Controller(object):
         ns.params = model(**userparams)
         delattr(ns, 'cfig')        
         
-        return cls(inroot=ns.inroot, outroot=ns.outroot, plot_dpi = ns.dpi,
+        controller = cls(inroot=ns.inroot, outroot=ns.outroot, plot_dpi = ns.dpi,
                    verbosity=ns.verbosity, trace=ns.trace, params=ns.params, 
-                   dryrun=ns.dry, overwrite=ns.overwrite, sweep=ns.sweep, 
+                   overwrite=ns.overwrite, sweep=ns.sweep, plot_dim = ns.plot_dim,
                    analysis=ns.analysis)
-              
+            
+        # Make REPORT/SEM directories for convienence
+        if ns.extra:
+            for dirname in ['Report', 'SEM']:
+                logger.info('Making directory: "%s"' % dirname)
+                if op.exists(dirname):
+                    logger.critical('Cannot create directory: %s.  Not'
+                        'comfortable overwriting...' % dirname)
+                else:
+                    os.mkdir(dirname)
+                    
+        return controller

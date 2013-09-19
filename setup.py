@@ -1,8 +1,9 @@
 import sys
+import os.path as op
 #from distutils.core import setup
 from setuptools import setup, find_packages
 
-NAME='PyUvVis'
+NAME = 'PyUvVis'
 
 # Python >= 2.7 ?
 user_py = sys.version_info
@@ -10,7 +11,10 @@ if user_py < (2, 7):
     raise SystemExit('%s requires python 2.7 or higher (%s found).' % \
                      (NAME, '.'.join(str(x) for x in user_py[0:3])))
 
-with open('requirements.txt') as f:
+
+#XXX Get current module path and do path.join(requirements)
+#with open(op.join(sys.path[0], 'requirements.txt')) as f:
+with open('requirements.txt', 'r') as f:
     required = f.readlines()
     required = [line.strip() for line in required]
     
@@ -44,22 +48,23 @@ setup(
                   #},
     
     entry_points = {'console_scripts': [
-                       'gwuspec = scripts.gwu_script.gwuspec:main']
+                       'gwuspec = scripts.gwu_script.gwuspec:main',
+                       'gwureport = scripts.gwu_script.gwureport:main']
                     },
     
-    url='http://pypi.python.org/pypi/PyUvVis/',
-    download_url='https://github.com/hugadams/pyuvvis',
-    license='LICENSE.txt',
-    description='Pandas-based toolkit for spectral data analysis, primarily '
+    url = 'http://pypi.python.org/pypi/PyUvVis/',
+    download_url = 'https://github.com/hugadams/pyuvvis',
+    license = 'LICENSE.txt',
+    description = 'Pandas-based toolkit for spectral data analysis, primarily '
     'UVVis spectra for now.',
-    long_description=open('README.rst').read(),
-    install_requires=[
+    long_description = open(op.join(sys.path[0], 'README.rst')).read(),
+    install_requires = [
         "pandas >= 0.12.0",
 #   	"numpy >= 1.6.0",  #Pandas puts this in
 #        "chaco",
      	"scipy", #Probably too high version requirement
                      ],
-      classifiers=[
+      classifiers = [
           'Development Status :: 2 - Pre-Alpha',
           'Environment :: Console',
           'Intended Audience :: Science/Research',

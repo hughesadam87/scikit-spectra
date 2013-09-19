@@ -576,7 +576,7 @@ class TimeSpectra(MetaDataFrame):
            binwidth: Width of the slice overwhich to average.
            axis: 1/0 for index/column averaging respectively.
         '''
-        if axis==0 and self._interval==False:
+        if axis == 0 and self._interval == False:
             raise NotImplementedError('Cannot boxcar along DateTime axis.')
         
         return self._transfer(boxcar(self, binwidth=binwidth, axis=axis))
