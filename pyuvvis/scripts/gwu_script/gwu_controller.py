@@ -35,6 +35,8 @@ from pyuvvis.pandas_utils.metadframe import mload, mloads
 from pyuvvis.exceptions import badkey_check, ParserError, GeneralError, \
      ParameterError, LogExit
 
+from pyuvvis.scripts.gwu_script.tex_templates import SECTION
+
 # Import some spectrometer configurations
 from parameters_model import Parameters, USB2000, USB650
 
@@ -45,13 +47,8 @@ SCRIPTNAME = 'gwuspec'
 DEF_INROOT = './scriptinput'
 DEF_OUTROOT = './output'
 ALL_ANAL = ['1d', '2d', '3d', 'corr']   
-ANAL_DEFAULT = ['1d', '2d']
+ANAL_DEFAULT = ['1d']#, '2d']
 
-# Make installable
-SEC_TEMPLATE = '/home/glue/Desktop/PYUVVIS/pyuvvis/scripts/gwu_script/templates/section.tex'
-
-    
-# Convenience fcns
 def ext(afile): 
     ''' get file extension'''
     return op.splitext(afile)[1]
@@ -362,7 +359,6 @@ class Controller(object):
         # path/to/section ---> section
         secname = self.outpath.split(self.outroot)[-1].lstrip('/')
         logger.info('Generating section report for %s' % secname) 
-        sec_template = file(SEC_TEMPLATE, 'r').read()
 
         report_params = {
             'secname':secname, 
@@ -383,7 +379,7 @@ class Controller(object):
 
         report_path = op.join(self.outpath, 'sectionreport.tex')
         report = open(report_path, 'w')
-        report.write( sec_template % report_params )                        
+        report.write( SECTION % report_params )                        
         report.close()
         
         logger.debug("Adding %s to tree file." % self.infolder )
