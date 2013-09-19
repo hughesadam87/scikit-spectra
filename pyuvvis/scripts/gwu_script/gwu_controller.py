@@ -148,7 +148,7 @@ class Controller(object):
         
         # Output the parameters
         with open(op.join(self.outroot, 'run_parameters.txt'), 'w') as f:
-            f.write(dict_out('Spectral Parameters', self.params))
+            f.write(dict_out('Spectrometer Parameters', self.params))
             f.write(dict_out('\n\nRun Parameters', kwargs))
 
 
