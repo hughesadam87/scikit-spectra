@@ -98,6 +98,7 @@ def removeEmptyFolders(path):
           logger.info('Removing empty folder: "%s"' % path)
           os.rmdir(path)
 
+
 class AddUnderscore(argparse.Action):
     ''' Adds an underscore to end of value (used in "rootname") '''
     def __call__(self, parser, namespace, values, option_string=None):
@@ -293,14 +294,15 @@ class Controller(object):
         
         self._inpath = self.inroot
         self._outpath = op.join(self.outroot, self.infolder)
-        self._treefile = open(op.join(self.outroot, 'tree'), 'w')
+        self._treedic = {}
         
         self.analyze_dir()
         if self.sweepmode:
             self.main_walk()   
             removeEmptyFolders(self.outroot)
 
-        self._treefile.close()
+        with open(op.join(self.outroot, 'tree'), 'w') as treefile:
+            treefile.write(str(self._treedic))
 
     def main_walk(self):
         ''' Walks all the subdirectories of self.inroot; runs analyze_dir()'''
@@ -382,8 +384,8 @@ class Controller(object):
         report.write( SECTION % report_params )                        
         report.close()
         
-        logger.debug("Adding %s to tree file." % self.infolder )
-        self._treefile.write(str({secname: report_path}))            
+        logger.debug("Adding %s to tree dic." % self.infolder )
+        self._treedic[secname] = report_path
 
 
     def _analyze_dir(self):
