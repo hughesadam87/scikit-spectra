@@ -62,6 +62,8 @@ class Parameters(object):
         
         self.specunit = self.loud_apply('specunit', self.specunit_default)
         self.intvlunit = self.loud_apply('intvlunit', self.intvlunit_default)
+        if self.intvlunit.lower() == 'none':
+            self.intvlunit=None
         self.uv_ranges = self.loud_apply('uv_ranges', self.uv_ranges_default)
         
         self.t_start = self.loud_apply('t_start', self.t_start_default)
