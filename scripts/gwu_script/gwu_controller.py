@@ -350,7 +350,7 @@ class Controller(object):
             logger.critical('FAILURE: "%s" finished with errors.' % self.infolder) 
         else:
             # Generate report
-            logger.info('SUCCESS: "%s" analyzed successfully' % self.infolder)       
+            logger.info('SUCCESS: "%s" data analysis complete' % self.infolder)       
             self.section_report()
                         
 
@@ -359,7 +359,9 @@ class Controller(object):
             These are tracked via the treefile, for compatability
             with specreport.py'''
         
-        secname = self.outpath.strip(self.outroot)
+        # path/to/section ---> section
+        secname = self.outpath.split(self.outroot)[-1].lstrip('/')
+        logger.info('Generating section report for %s' % secname) 
         sec_template = file(SEC_TEMPLATE, 'r').read()
 
         report_params = {
