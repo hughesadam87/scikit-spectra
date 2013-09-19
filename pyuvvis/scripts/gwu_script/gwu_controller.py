@@ -33,7 +33,7 @@ from pyuvvis.core.corr import ca2d, make_ref, sync_3d, async_3d
 from pyuvvis.core.timespectra import Idic
 from pyuvvis.pandas_utils.metadframe import mload, mloads
 from pyuvvis.exceptions import badkey_check, ParserError, GeneralError, \
-     ParameterError
+     ParameterError, LogExit
 
 from pyuvvis.scripts.gwu_script.tex_templates import SECTION
 

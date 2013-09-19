@@ -92,7 +92,7 @@ class Reporter(object):
         
     def add_section(self, secname, section_file=None):
         ''' If not section_file, blank template is used. '''
-        
+
     #    secname = self.latex_secname(secname)
 
         if section_file:
