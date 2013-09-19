@@ -67,8 +67,8 @@ def main(args=None):
                          ' in outfile')
     p_build.add_argument('--author', default='Adam Hughes', metavar='', 
                          help='Author in outfile')
-    p_build.add_argument('--email', default='Adam Hughes', metavar='', 
-                         help='Author in outfile')
+    p_build.add_argument('--email', default='hugadams@gwmail.gwu.edu', metavar='', 
+                         help='Email in outfile')
             
 
     # Compile and open
