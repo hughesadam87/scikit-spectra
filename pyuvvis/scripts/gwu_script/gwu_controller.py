@@ -45,10 +45,12 @@ SCRIPTNAME = 'gwuspec'
 DEF_INROOT = './scriptinput'
 DEF_OUTROOT = './output'
 ALL_ANAL = ['1d', '2d', '3d', 'corr']   
-ANAL_DEFAULT = ['1d', '2d']
+ANAL_DEFAULT = ['1d']#, '2d']
 
-# Make installable
-SEC_TEMPLATE = '/home/glue/Desktop/PYUVVIS/pyuvvis/scripts/gwu_script/templates/section.tex'
+# GET TEMPLATES DIRECTORY
+import pyuvvis.scripts.gwu_script.templates as tp
+TPDIR = op.dirname(tp.__file__)
+SEC_TEMPLATE = op.join(TPDIR, 'section.tex')#'templates/section.tex'
 
     
 # Convenience fcns

@@ -28,6 +28,8 @@ setup(
     maintainer_email = 'hughesadam87@gmail.com',
     author_email = 'hughesadam87@gmail.com',
     packages = find_packages(),
+
+    # include .tex and .ipynb files
     package_data={
       'pyuvvis.scripts.gwu_script.templates': ['*.tex'],
       'pyuvvis.example_notebooks':['*.ipynb'],
