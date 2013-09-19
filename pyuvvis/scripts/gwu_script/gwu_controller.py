@@ -385,7 +385,7 @@ class Controller(object):
         report.close()
         
         logger.debug("Adding %s to tree dic." % self.infolder )
-        self._treedic[secname] = report_path
+        self._treedic[latex_string(secname)] = report_path
 
 
     def _analyze_dir(self):

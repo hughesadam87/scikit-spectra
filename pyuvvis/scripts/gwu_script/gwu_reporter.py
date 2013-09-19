@@ -80,15 +80,8 @@ class Reporter(object):
         body = self.main_template
         for secname, section in self.sections.items():
             body += section + '\n'
-        return body
+        return body   
             
-                
-    def latex_secname(self, secname):
-        ''' Try to format subsections to something more fancy.  Since templates
-            define the sections themselves, this is not implemented.  Would need
-            to refactor templates to no longer declare \section \subsection etc..'''
-        NotImplemented
-#        return '\SubSection{%s}' % secname
         
     def add_section(self, secname, section_file=None):
         ''' If not section_file, blank template is used. '''
@@ -118,8 +111,7 @@ class Reporter(object):
         open(outpath, 'w').write(self.report)
         logger.info('Template written to: "%s"' % outpath)
 
-        
-                                                
+                                                        
     def make_report(self, template_file, outpath):
         ''' Joins all the section strings from self.report.values();
             adds a header and mergers tex_params (author, email etc..).'''

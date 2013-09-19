@@ -67,6 +67,8 @@ def main(args=None):
                          ' in outfile')
     p_build.add_argument('--author', default='Adam Hughes', metavar='', 
                          help='Author in outfile')
+    p_build.add_argument('--email', default='Adam Hughes', metavar='', 
+                         help='Author in outfile')
             
 
     # Compile and open
@@ -104,8 +106,11 @@ def main(args=None):
 
             else:
                 latex_type = 'latex'
-                
+            
+            # Run latex or pdflatex twice to ensure contents load    
             os.system('%s %s' % (latex_type, ns.outpath) )
+            os.system('%s %s' % (latex_type, ns.outpath) )
+
             
         # Cleanup latex .toc/.log/.aux files of outfile
         if ns.clean:
