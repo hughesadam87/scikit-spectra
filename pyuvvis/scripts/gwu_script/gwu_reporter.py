@@ -1,18 +1,14 @@
 import sys
 import os
 import os.path as op
-
 from collections import OrderedDict
+
+from pyuvvis.scripts.gwu_script.tex_templates import EXPERIMENT_MAIN, HEADER, \
+    BLANK_SECTION
 
 import logging
 logger = logging.getLogger(__name__)
 from pyuvvis.logger import log, configure_logger, logclass
-
-#Also used in gwu_controller.  Make more robust?
-TEMPLATE_DIR = '/home/glue/Desktop/PYUVVIS/pyuvvis/scripts/gwu_script/templates/'
-EXP_TEMPLATE = op.join(TEMPLATE_DIR, 'experiment_main.tex')
-HEADER_TEMPLATE = op.join(TEMPLATE_DIR, 'header.tex')
-BLANK_SEC_TEMPLATE = op.join(TEMPLATE_DIR, 'blank_section.tex')
 
 logger = configure_logger(name=__name__)
 
@@ -32,7 +28,7 @@ class Reporter(object):
             self.main_template = file(template_file, 'r').read() 
 
         else:
-            self.main_template = file(EXP_TEMPLATE, 'r').read() 
+            self.main_template = EXPERIMENT_MAIN
         
         self.title = kwargs.get('title', 'Untitled')
         self.author = kwargs.get('author', 'Adam Hughes')
@@ -64,7 +60,6 @@ class Reporter(object):
 
         if not hasattr(sections, '__iter__'):
             raise AttributeError('Reporter.parse_sections must be iterable.')
-        
         
         # Assumes section is a tree file
         if len(sections) == 1 and op.exists(sections[0]):
@@ -107,8 +102,7 @@ class Reporter(object):
         else:
             # Need to fill in "secname" via %, while treefile already did this
             logger.info("Appending in blank section %s" % secname)
-            self.sections[secname] = str(open(BLANK_SEC_TEMPLATE, 'r').read() % 
-                                         {'secname':secname})
+            self.sections[secname] = BLANK_SECTION  % {'secname':secname}
         
         
     def remove_section(self, secname):
@@ -141,8 +135,6 @@ class Reporter(object):
         tex_params['email'] = self.email
         tex_params['body'] = open(template_file, 'r').read()
         
-        template_main = file(HEADER_TEMPLATE, 'r').read()
-
         outpath = self.parse_path(outpath)       
-        open(outpath, 'w').write(template_main % tex_params) 
+        open(outpath, 'w').write(HEADER % tex_params) 
         logger.info('Report written to: "%s"' % outpath)
