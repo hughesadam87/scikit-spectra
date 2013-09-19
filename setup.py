@@ -28,28 +28,14 @@ setup(
     maintainer_email = 'hughesadam87@gmail.com',
     author_email = 'hughesadam87@gmail.com',
     packages = find_packages(),
-   
-    # Remove later after tested that not error incurred
-    #packages=['pyuvvis',
-              #'pyuvvis.chaco_interface',
-              #'pyuvvis.core',
-              #'pyuvvis.IO',
-              #'pyuvvis.nptools',
-              #'pyuvvis.pandas_utils',
-              #'pyuvvis.pyplots',
-              #'pyuvvis.tests',
-              #'pyuvvis.scripts',
-              #'pyuvvis.scripts.gwu_scripts',
-              #],
-
-    #package_data = {'pyuvvis' : ['example_data/NPSAM/*', 
-              #'example_data/spectra.pickle',
-              #'example_data/spectra.csv']
-                  #},
-    
+    package_data={
+      'pyuvvis.scripts.gwu_script.templates': ['*.tex'],
+      'pyuvvis.example_notebooks':['*.ipynb'],
+   },
+       
     entry_points = {'console_scripts': [
-                       'gwuspec = scripts.gwu_script.gwuspec:main',
-                       'gwureport = scripts.gwu_script.gwureport:main']
+                       'gwuspec = pyuvvis.scripts.gwu_script.gwuspec:main',
+                       'gwureport = pyuvvis.scripts.gwu_script.gwureport:main']
                     },
     
     url = 'http://pypi.python.org/pypi/PyUvVis/',
@@ -62,7 +48,7 @@ setup(
         "pandas >= 0.12.0",
 #   	"numpy >= 1.6.0",  #Pandas puts this in
 #        "chaco",
-     	"scipy", #Probably too high version requirement
+     	"scipy"
                      ],
       classifiers = [
           'Development Status :: 2 - Pre-Alpha',
