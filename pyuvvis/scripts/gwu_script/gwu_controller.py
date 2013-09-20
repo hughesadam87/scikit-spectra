@@ -296,6 +296,8 @@ class Controller(object):
         self._treedic = OrderedDict()
         
         self.analyze_dir()
+        
+        # Remove empty folders that may have been generated during sweep
         if self.sweepmode:
             self.main_walk()   
             removeEmptyFolders(self.outroot)
@@ -316,9 +318,20 @@ class Controller(object):
                         % self.infolder)    
     
         while rootdirs:
+            
+            # if npsam is in folder name, put that folder first.  
+            for idx, folder in enumerate(rootdirs):
+                if 'npsam' in folder.lower():
+                    rootdirs.pop(idx)
+                    rootdirs.insert(0, folder)
+                    logger.info('Found "npsam" matching directory in folder "%s"'
+                                ' resorting alphebatized directories.')
+                    break
+                
+                
 
             for iteration, folder in enumerate(rootdirs):
-                
+                                
          # Outsuffix is working folder minus inroot (inroot/foo/bar --> foo/bar)
                 wd = op.join(rootpath, folder)
                 outsuffix = wd.split(self.inroot)[-1].lstrip('/') 
@@ -370,14 +383,14 @@ class Controller(object):
             'plot_dim':self._plot_dim,
             'parameters':self._run_summary,
             # Hacky way to look for plots (leave it to the tex template) to use 
-            'areaplotfull': op.join(self.outpath, 'Full_data/Raw_area'),
             'specplotfull': op.join(self.outpath, 'Full_data/Raw_spectrum'),
+            'areaplotfull': op.join(self.outpath, 'Full_data/Raw_area'),
             
             'specplotabs': op.join(self.outpath,  'Abs_base10/Absorbance_spectrum'),
             'areaplotabs': op.join(self.outpath,  'Abs_base10/Absorbance_area'),
             
-            'specplotrel':op.join(self.outpath, 'Linear_ratio/Relative_area'),
-            'areaplotrel':op.join(self.outpath, 'Linear_ratio/Relative_spectrum')
+            'specplotrel':op.join(self.outpath, 'Linear_ratio/Relative_spectrum'),
+            'areaplotrel':op.join(self.outpath, 'Linear_ratio/Relative_area')
                         } 
 
         report_path = op.join(self.outpath, 'sectionreport.tex')
