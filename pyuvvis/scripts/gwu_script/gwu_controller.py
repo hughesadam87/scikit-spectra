@@ -374,7 +374,7 @@ class Controller(object):
             'areaplotabs': op.join(self.outpath,  'Abs_base10/Absorbance_area'),
             
             'specplotrel':op.join(self.outpath, 'Linear_ratio/Relative_area'),
-            'areaplotrel':op.join(self.outpath, 'Linear_ratio/Relative_spect')
+            'areaplotrel':op.join(self.outpath, 'Linear_ratio/Relative_spectrum')
                         } 
 
         report_path = op.join(self.outpath, 'sectionreport.tex')
