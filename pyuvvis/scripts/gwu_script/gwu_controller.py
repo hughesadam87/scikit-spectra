@@ -356,8 +356,8 @@ class Controller(object):
             These are tracked via the treefile, for compatability
             with specreport.py'''
         
-        # path/to/section ---> section
-        secname = self.outpath.split(self.outroot)[-1].lstrip('/')
+        # path/to/section/ ---> section [and latex formatted for "_" 
+        secname = latex_string(self.outpath.split(self.outroot)[-1].lstrip('/'))
         logger.info('Generating section report for %s' % secname) 
 
         report_params = {
