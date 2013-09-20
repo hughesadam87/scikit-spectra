@@ -18,6 +18,7 @@ import logging
 import argparse
 import matplotlib.pyplot as plt
 import numpy as np
+from collections import OrderedDict
 
 # PYUVVIS IMPORTS
 from pyuvvis.pyplots.basic_plots import specplot, areaplot, absplot, range_timeplot
@@ -292,7 +293,7 @@ class Controller(object):
         
         self._inpath = self.inroot
         self._outpath = op.join(self.outroot, self.infolder)
-        self._treedic = {}
+        self._treedic = OrderedDict()
         
         self.analyze_dir()
         if self.sweepmode:
@@ -307,7 +308,9 @@ class Controller(object):
         
         walker = os.walk(self.inroot, topdown=True, onerror=None, followlinks=False)
         (rootpath, rootdirs, rootfiles) = walker.next()   
-    
+
+        rootdirs.sort() #Iterate alphebetically
+        
         if not rootdirs:
             logger.warn('Recursive walk found no further directories after %s'
                         % self.infolder)    
