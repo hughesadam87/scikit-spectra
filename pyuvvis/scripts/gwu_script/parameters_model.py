@@ -40,7 +40,7 @@ class Parameters(object):
     xmin_default = None
     xmax_default = None
 
-    iunit_default = [None]
+    iunit_default = [None, 'r', 'a']
     sub_base_default = False
     
     valid_minmax_default = None #nm

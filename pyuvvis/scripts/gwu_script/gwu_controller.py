@@ -159,8 +159,6 @@ class Controller(object):
             
         self._run_summary = '' 
                         
-        
-        
     def _valid_inpath(self, value):
         if value is None:
             return 
