@@ -1376,8 +1376,7 @@ class TimeSpectra(MetaDataFrame):
         
         from pandas.rpy.common import convert_to_r_dataframe
         logger.info('Converting %s to R dataframe.' % self.full_name)
-        return( convert_to_r_dataframe(self._df) )
-                
+        return( convert_to_r_dataframe(self._df) )      
                            
     def to_csv(self, path_or_buff, meta_separate=False, **csv_kwargs):
         ''' Output to CSV file.  
