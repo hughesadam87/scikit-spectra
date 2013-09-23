@@ -27,7 +27,7 @@
    }
 
 \newcommand{\todo}[1]{
-   {\bf\large {\color{red}$\ll\ll$}#1{\color{red}$\gg\gg$} }
+   {\bf\large {\color{red}$\ll\ll$} #1 {\color{red}$\gg\gg$} }
    }
 
 \newcommand{\bad}[1]{
@@ -37,6 +37,14 @@
 \newcommand{\good}[1]{
    {\bf\color{blue}#1}
    }
+
+\newcommand{\quickfig}[2]{
+   \begin{figure}[h!]
+   \centering
+   \includegraphics[width=10cm]{#1}
+   \caption{#2}
+   \end{figure}
+}
    
 \begin{document}
 
