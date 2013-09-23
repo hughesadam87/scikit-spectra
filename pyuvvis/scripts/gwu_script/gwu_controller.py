@@ -75,10 +75,10 @@ def dict_out(header, dic, sort = True):
     ''' Retures a string of form header \n k \t val '''
     
     if sort:
-        return header + ':\n\n' + '\n'.join(['\t'+(str(k) + '\t' + str(v)) 
+        return header + ':\n\n' + '\n'.join(['\t' + (str(k) + '\t' + str(v)) 
                  for k,v in sorted(dic.items())])
     else:
-        return header + ':\n\n' +'\n'.join(['\t'+(str(k) + '\t' + str(v)) 
+        return header + ':\n\n' +'\n'.join(['\t' + (str(k) + '\t' + str(v)) 
                  for k,v in dic.items()])        
 
 # This could delete empty folders that were otherwise in the directory that 
@@ -96,8 +96,8 @@ def removeEmptyFolders(path):
                     removeEmptyFolders(fullpath)
       
         else: 
-          logger.info('Removing empty folder: "%s"' % path)
-          os.rmdir(path)
+            logger.info('Removing empty folder: "%s"' % path)
+            os.rmdir(path)
 
 
 class AddUnderscore(argparse.Action):
@@ -147,10 +147,16 @@ class Controller(object):
                  logfile=op.join(self.outroot, 'runlog.txt'), mode='w')
         
         # Output the parameters
-        self._run_params_file = op.join(self.outroot, 'run_parameters.txt') #For use in report
-        with open(self._run_parms_file) as f:
-            f.write(dict_out('Spectrometer Parameters', self.params))
-            f.write(dict_out('\n\nRun Parameters', kwargs))
+        self._run_params_file = op.join(self.outroot, 'run_parameters.txt')
+        with open(self._run_params_file, 'w') as f:
+            
+            # Hacky way to write latex section from raw string literals
+            f.write(r'\subsection{Script Parameters}')
+            f.write(r'\fboxsep5mm')
+            f.write(r'\fcolorbox{black}{yellow}{\vbox{\hsize=10cm \noindent \scriptsize ')
+            f.write(latex_string(dict_out('PyUvVis Parameters', self.params)))
+            f.write(latex_string(dict_out('\n\nAnalysis Parameters', kwargs)))
+            f.write('}}')
 
         if self._plot_dpi > 600:
             logger.warn('Plotting dpi is set to %s.  > 600 may result in slow'
@@ -301,7 +307,7 @@ class Controller(object):
             removeEmptyFolders(self.outroot)
 
         # Add main run parameters as section to end of treefile
-        self._treedic['Analysis Parameters'] = self._run_params_file.read()
+        self._treedic['Analysis Parameters'] = self._run_params_file
 
         with open(op.join(self.outroot, 'tree'), 'w') as treefile:
             treefile.write(str(self._treedic))
@@ -327,9 +333,7 @@ class Controller(object):
                     rootdirs.insert(0, folder)
                     logger.info('Found "npsam" matching directory in folder "%s"'
                                 ' resorting alphebatized directories.')
-                    break
-                
-                
+                    break                
 
             for iteration, folder in enumerate(rootdirs):
                                 
@@ -430,11 +434,11 @@ class Controller(object):
 
             def _filter_metadata(dic):
                 ''' Return spectrometer parameters of interest. '''
-                return OrderedDict( (k,getattr(ts_full.metadata, k, '')) for k in ['boxcar', \
+                return OrderedDict( (k, (dic.get(k, '') )) for k in ['boxcar', \
                          'spec_avg', 'int_time', 'int_unit', 'spectrometer', 'timeend', \
                          'timestart', 'filecount'])
 
-            with open(op.join(rundir, '%s.full_quickmetadata' % self.infolder), 'w') as f:
+            with open(op.join(rundir, '%s.quick_metadata' % self.infolder), 'w') as f:
                 f.write(dict_out('Spectral Parameters', _filter_metadata(ts_full.metadata)))
                 
             with open(op.join(rundir, '%s.quick_metadata' % self.infolder), 'r') as f:
@@ -615,7 +619,6 @@ class Controller(object):
             raise
         
         
-    
     def _ts_from_legacy(self, infiles):
         
         if len(infiles) != 2:

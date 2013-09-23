@@ -76,7 +76,7 @@ def main(args=None):
                          ' (eg latex outfile.tex)' ) 
     p_build.add_argument('--nopdf', action='store_true', help='When compiling,' 
                          ' will call "latex" instead of "pdflatex"')
-    p_build.add_argument('--clean', action = 'store_true', help='Remove .aux, .log'
+    p_build.add_argument('-c', '--clean', action = 'store_true', help='Remove .aux, .log'
         ' and other latex temporary files.')
 
     
