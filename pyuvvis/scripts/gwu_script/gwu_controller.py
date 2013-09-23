@@ -140,7 +140,6 @@ class Controller(object):
         # Pop kwargs['params'] for output below
         self.params = kwargs.pop('params', None)
 
-
         # Add logging later; consider outdirectory conflicts
         self.build_outroot()
         
@@ -148,11 +147,10 @@ class Controller(object):
                  logfile=op.join(self.outroot, 'runlog.txt'), mode='w')
         
         # Output the parameters
-        with open(op.join(self.outroot, 'run_parameters.txt'), 'w') as f:
+        self._run_params_file = op.join(self.outroot, 'run_parameters.txt') #For use in report
+        with open(self._run_parms_file) as f:
             f.write(dict_out('Spectrometer Parameters', self.params))
             f.write(dict_out('\n\nRun Parameters', kwargs))
-
-
 
         if self._plot_dpi > 600:
             logger.warn('Plotting dpi is set to %s.  > 600 may result in slow'
@@ -302,6 +300,9 @@ class Controller(object):
             self.main_walk()   
             removeEmptyFolders(self.outroot)
 
+        # Add main run parameters as section to end of treefile
+        self._treedic['Analysis Parameters'] = self._run_params_file.read()
+
         with open(op.join(self.outroot, 'tree'), 'w') as treefile:
             treefile.write(str(self._treedic))
 
@@ -424,11 +425,20 @@ class Controller(object):
         # Output metadata to file (read back into _run_summary)
         if getattr(ts_full, 'metadata', None):
             logger.info('Saving %s metadata' % ts_full.full_name)
-            with open(op.join(rundir, '%s.metadata' % self.infolder), 'w') as f:
+            with open(op.join(rundir, '%s.full_metadata' % self.infolder), 'w') as f:
                 f.write(dict_out('Spectral Parameters', ts_full.metadata))
+
+            def _filter_metadata(dic):
+                ''' Return spectrometer parameters of interest. '''
+                return OrderedDict( (k,getattr(ts_full.metadata, k, '')) for k in ['boxcar', \
+                         'spec_avg', 'int_time', 'int_unit', 'spectrometer', 'timeend', \
+                         'timestart', 'filecount'])
+
+            with open(op.join(rundir, '%s.full_quickmetadata' % self.infolder), 'w') as f:
+                f.write(dict_out('Spectral Parameters', _filter_metadata(ts_full.metadata)))
                 
-            with open(op.join(rundir, '%s.metadata' % self.infolder), 'r') as f:
-                self._run_summary += latex_string(f.read())
+            with open(op.join(rundir, '%s.quick_metadata' % self.infolder), 'r') as f:
+                self._run_summary = latex_string(f.read())
         else:
             logger.info('Metadata not found for %s' % ts_full.full_name)
             

@@ -72,10 +72,10 @@ def main(args=None):
             
 
     # Compile and open
-    p_build.add_argument('--compile', action='store_true', help='Compile outfile'
+    p_build.add_argument('--nocompile', action='store_true', help='Do not compile outfile'
                          ' (eg latex outfile.tex)' ) 
-    p_build.add_argument('--pdf', action='store_true', help='If --compile,' 
-                         ' will call "pdflatex" instead of "latex')
+    p_build.add_argument('--nopdf', action='store_true', help='When compiling,' 
+                         ' will call "latex" instead of "pdflatex"')
     p_build.add_argument('--clean', action = 'store_true', help='Remove .aux, .log'
         ' and other latex temporary files.')
 
@@ -99,9 +99,9 @@ def main(args=None):
         reporter.make_report(ns.texfile, ns.outpath)
 
         # If compiling, choose pdflatex or latex
-        if ns.compile:
+        if not ns.nocompile:
          
-            if ns.pdf:
+            if not ns.nopdf:
                 latex_type = 'pdflatex'
 
             else:
