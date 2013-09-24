@@ -456,7 +456,7 @@ class Controller(object):
         if getattr(ts_full, 'metadata', None):
             logger.info('Saving %s metadata' % ts_full.full_name)
             with open(op.join(rundir, '%s.full_metadata' % self.infolder), 'w') as f:
-                f.write(dict_out('Spectral Parameters', ts_full.metadata))
+                f.write(dict_out('Spectrometer Parameters', ts_full.metadata))
 
             def _filter_metadata(dic):
                 ''' Return spectrometer parameters of interest. '''
@@ -465,7 +465,7 @@ class Controller(object):
                          'timestart', 'filecount'])
 
             with open(op.join(rundir, '%s.quick_metadata' % self.infolder), 'w') as f:
-                f.write(dict_out('Spectral Parameters', _filter_metadata(ts_full.metadata)))
+                f.write(dict_out('Spectrometer Parameters', _filter_metadata(ts_full.metadata)))
                 
             with open(op.join(rundir, '%s.quick_metadata' % self.infolder), 'r') as f:
                 self._run_summary = latex_string(f.read())
@@ -878,5 +878,7 @@ class Controller(object):
                         'comfortable overwriting...' % dirname)
                 else:
                     os.mkdir(dirname)
+                if dirname == 'Report':
+                    os.mkdir(op.join(dirname, 'images'))
                     
         return controller
