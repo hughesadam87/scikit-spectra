@@ -162,7 +162,9 @@ class Controller(object):
             logger.warn('Plotting dpi is set to %s.  > 600 may result in slow'
                        ' performance.')
             
+        # Used for storing variables in reports/matlab other uses
         self._run_summary = '' 
+        self._csv_paths = []
                         
     def _valid_inpath(self, value):
         if value is None:
@@ -311,6 +313,30 @@ class Controller(object):
 
         with open(op.join(self.outroot, 'tree'), 'w') as treefile:
             treefile.write(str(self._treedic))
+            
+        self.make_matlab(op.join(self.outroot, 'readfiles.m'))
+            
+
+    def make_matlab(self, outpath):
+        ''' Fills simple.m template from mlab_templates with outpath, using
+            self._csv_paths.'''
+        if op.splitext(outpath)[-1] != '.m':
+            raise IOError('matlab file must end in ".m". '  
+            'Received "%s"' % outpath)
+
+        logger.info('Making matlab script: "%s"' % outpath)
+        from pyuvvis.scripts.gwu_script.mlab_templates import SIMPLE_M
+
+        m_dic={}
+        # Do some hacky string formatting to fit matlab code
+        m_dic['files'] = ',\n'.join("'"+item+"'" for item in self._csv_paths)
+        basenames = [op.splitext(op.basename(path))[0] for path in self._csv_paths]
+        m_dic['attrnames'] = '\n'.join(['%s=myData.%s' % (i,i) for i in basenames])
+        
+        mfile = open(outpath, 'w')
+        mfile.write( SIMPLE_M % m_dic )                        
+        mfile.close()        
+        
 
     def main_walk(self):
         ''' Walks all the subdirectories of self.inroot; runs analyze_dir()'''
@@ -449,7 +475,9 @@ class Controller(object):
 
         # To csv (loses metadata) set to meta_separate to False to preserve metadata
         logger.info('Outputting to %s.csv.  Metadata will be exluded.' % self.infolder)
-        ts_full.to_csv(op.join(rundir, '%s.csv' % self.infolder), meta_separate=None)
+        csv_path = op.join(rundir, '%s.csv' % self.infolder)
+        ts_full.to_csv(csv_path, meta_separate=None)
+        self._csv_paths.append(csv_path)
 
 
         # Set ts
@@ -846,7 +874,7 @@ class Controller(object):
             for dirname in ['Report', 'SEM']:
                 logger.info('Making directory: "%s"' % dirname)
                 if op.exists(dirname):
-                    logger.critical('Cannot create directory: %s.  Not'
+                    logger.critical('Cannot create directory: %s.  Not '
                         'comfortable overwriting...' % dirname)
                 else:
                     os.mkdir(dirname)

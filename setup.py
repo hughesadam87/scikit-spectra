@@ -32,6 +32,7 @@ setup(
     # include .tex and .ipynb files
     package_data={
       'pyuvvis.scripts.gwu_script.tex_templates': ['*.tex'],
+      'pyuvvis.scripts.gwu_script.mlab_templates': ['*.m'],      
       'pyuvvis.example_notebooks':['*.ipynb'],
    },
        
