@@ -34,6 +34,7 @@ setup(
       'pyuvvis.scripts.gwu_script.tex_templates': ['*.tex'],
       'pyuvvis.scripts.gwu_script.mlab_templates': ['*.m'],      
       'pyuvvis.example_notebooks':['*.ipynb'],
+      'pyuvvis.scripts.gwu_script':['*.png']
    },
        
     entry_points = {'console_scripts': [

@@ -2,13 +2,13 @@
 
 \usepackage{gensymb}
 \usepackage{xcolor}
-\usepackage{graphicx}
+\usepackage[pdftex]{graphicx}
 \graphicspath{{images/}}
 \usepackage{subfigure}
 \usepackage[scriptsize]{caption}   
 
 \newcommand{\fillin}[1]{  
-   {\bf \color{orange} .... \emph{#1} ....}
+   {\bf \color{orange} .... \textsc{#1} ....}
    }
 
 \newcommand{\red}[1]{
@@ -28,7 +28,7 @@
    }
 
 \newcommand{\todo}[1]{
-   {\bf\large {\color{red}$\ll\ll$} #1 {\color{red}$\gg\gg$} }
+   {\bf\large \color{red}::::\; {\color{black} #1} \; ::::} 
    }
 
 \newcommand{\bad}[1]{
@@ -48,15 +48,44 @@
 }
    
 \begin{document}
-
 \noindent
 
-\title {\Large \bf %(title)s }
-\author{%(author)s \vspace{.13cm}\\
-%(email)s \vspace{.13cm}\\
-George Washington University (Physics Dept.)}
+\begin{center}
 
-\maketitle
+\includegraphics[width=0.4\textwidth]{"%(logopath)s"}~\\[1cm]
+
+\textsc{\LARGE The George Washington University\vspace{.2cm}
+Physics Department}\\[.4cm]
+
+{\large \today}
+\vspace{.5cm}
+
+\hrule \vspace{.4cm}
+{ \huge \bfseries  %(title)s \\[0.2cm] }
+\hrule \vspace{1.5cm}
+
+\begin{minipage}{0.4\textwidth}
+\begin{flushleft} \large
+\emph{Author:}\\
+%(authorfirstname)s \textsc{%(authorlastname)s\footnotemark[1]}
+\end{flushleft}
+\end{minipage}
+\begin{minipage}{0.4\textwidth}
+\begin{flushright} \large
+\emph{Supervisor:} \\
+Dr.~Mark \textsc{Reeves\footnotemark[2]}
+\end{flushright}
+\end{minipage}
+\end{center}
+
+\vspace{.4cm}
+
+\abstract{\fillin{Abstract goes here}}
+
+\footnotetext[1]{%(email)s}
+\footnotetext[2]{reevesme@gwu.edu}
+
+\newpage
 
 \tableofcontents
 

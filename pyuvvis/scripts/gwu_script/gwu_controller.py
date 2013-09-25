@@ -878,7 +878,7 @@ class Controller(object):
                         'comfortable overwriting...' % dirname)
                 else:
                     os.mkdir(dirname)
-                if dirname == 'Report':
+                if dirname == 'Report' and not op.exists(dirname):
                     os.mkdir(op.join(dirname, 'images'))
                     
         return controller
