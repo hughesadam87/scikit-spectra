@@ -6,6 +6,12 @@ from collections import OrderedDict, Iterable
 from types import FunctionType
 from copy import deepcopy
 
+import logging
+from pyuvvis.logger import logclass
+
+logger = logging.getLogger(__name__) 
+
+@logclass(log_name=__name__, public_lvl='debug')
 class AbstractStack(object):
     ''' Abstract base class to store pandas objects, with special operations to
         return as 3d data (eg panel) and to apply functions itemwise.  Items are
@@ -14,13 +20,15 @@ class AbstractStack(object):
     itemlabel='Item'
     _magic=['__len__', '__iter__', '__reversed__', '__contains__']
     
-    def __init__(self, data, items=None, name=None, sort_items=False):
+    def __init__(self, data, items=None, name='', sort_items=False):
         ## do stuff
         self.name=name
                                 
         ### Dictionary input
         if isinstance(data, dict):
+            logger.debug('Initializing "%s" from dictionary.' % self.full_name)
             if sort_items:
+                logger.debug('Sorting items')
                 self._data=OrderedDict(sorted(data.items(), key=lambda t: t[0]))
 
             else:
@@ -28,31 +36,37 @@ class AbstractStack(object):
 
         else:
             
-            ### If data is not iterable
             if not isinstance(data, Iterable):
+                logger.info('%s constructed from non-iterable... converting '
+                            'data to an iterable' % self.full_name)
                 data=[data]
+                
             if items:
                 if not isinstance(items, Iterable):
-                    items=[items]
+                    logger.info('%s constructed from non-iterable... converting '
+                                'items to an iterable' % self.full_name)
+                    items = [items]
 
                 if len(items) != len(data):
                     raise ValueError('Length mistmatch: items and data (%s,%s)'\
-                    %(len(items), len(data)))
+                        % (len(items), len(data)))
                 
             ### If items not passed, generate them    
             else:
                 items=self._gen_items(len(data))
  
-            self._data=OrderedDict([(items[i],data[i]) for i in range(len(items))]) 
-     
+            self._data=OrderedDict( [ (items[i],data[i]) for i 
+                                      in range(len(items) ) ] ) 
         self.__assign_magic()
       
-    def _gen_items(self, lenght):
+    def _gen_items(self, length):
         ''' Return a list of itemlables (item0, item1 etc...) using
             self.itemlabel and a length'''
+
+        logger.debug('Items not found on %s: generating item list' % self.full_name)
         return [self.itemlabel+str(i) for i in range(length)]                  
                 
-    #### Dictionary Interface ###
+    ### Dictionary Interface ###
     def __getitem__(self, item):
         return self._data[item]
     
@@ -74,6 +88,7 @@ class AbstractStack(object):
             self.Item1, then it returns self['Item1'].  The very rare conflict
             case that a user has named the items a method that may already exist
             in the dictionary (eg items=['a','b','keys'] is addressed.'''
+        
         if attr in self._data.keys():
             if hasattr(self._data, attr):
                 raise AttributeError('"%s attribute" found in both the items\
@@ -85,7 +100,7 @@ class AbstractStack(object):
 
     def __assign_magic(self):
         for meth in self._magic:
-            setattr(self, meth, getattr(self._data, meth))
+            setattr( self, meth, getattr(self._data, meth) )
 
     
  #   def __len__(self):
@@ -193,10 +208,18 @@ class AbstractStack(object):
         else:
             raise AttributeError('func must be a basestring corresponding to\
             an instance method or a function.  %s is invalid.'%type(func))
-          
-               
+        
+
+
+    @property  
+    def full_name(self):
+        ''' Timespectra:name or Timespectra:unnamed.  Useful for scripts mostly '''
+        outname = getattr(self, 'name', 'unnamed')
+        return '%s:%s' % (self.__class__.__name__, self.name)           
+
+@logclass(log_name=__name__)               
 class SpecStack(AbstractStack):
-    ''' Stack for just storing timespectra objects.'''
+    ''' Stack for just storing timespectra objects.'''        
 
     def as_3d(self, **kwargs):
         ''' Returns a 3d stack (SpecPanel) of the currently stored items.
@@ -211,6 +234,7 @@ class SpecStack(AbstractStack):
     @property
     def specunit(self):
         return self._get_unique('specunit')
+
                 
     ### Do I want to make as a _set method to avoid accidental overwrite?
     @specunit.setter
@@ -240,7 +264,7 @@ class SpecStack(AbstractStack):
     @property
     def timeunit(self):
         return self._get_unique('timeunit')   
-    
+   
 
 if __name__=='__main__':
     ### For testing.
@@ -261,7 +285,7 @@ if __name__=='__main__':
     
     ts=TimeSpectra(abs(np.random.randn(30,30)), columns=testdates, index=spec)  
     t2=TimeSpectra(abs(np.random.randn(30,30)), columns=testdates2, index=spec2) 
-    d={'d1':ts, 'd2':t2}
+    d=(('d1', ts), ('d2', t2))
 
     ##x=Panel(d)
     y=SpecStack(d)

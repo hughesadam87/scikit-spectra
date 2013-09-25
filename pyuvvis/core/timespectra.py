@@ -13,7 +13,7 @@ from scipy import integrate
 from pca_scikit import PCA
 
 from pyuvvis.pandas_utils.metadframe import MetaDataFrame, _MetaIndexer
-from pyuvvis.logger import log, configure_logger, decode_lvl, logclass
+from pyuvvis.logger import decode_lvl, logclass
 
 from pandas import DataFrame, DatetimeIndex, Index, Series
 from scipy import integrate
@@ -352,16 +352,15 @@ class TimeSpectra(MetaDataFrame):
         ''' Timespectra:name or Timespectra:unnamed.  Useful for scripts mostly '''
         outname = getattr(self, 'name', 'unnamed')
         return '%s:%s' % (self.__class__.__name__, self.name)
-        
 
     @property
     def data(self):
         ''' Accesses self._df'''
         return self._df
 
-    ###############################
-    # reference related operations
-    ###############################
+    ########################
+    # ts.refrence operations
+    ########################
     
     @property
     def reference(self):

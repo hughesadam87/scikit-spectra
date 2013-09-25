@@ -1,4 +1,5 @@
-''' Interface to make a panel-type object for storing timespectra. '''
+''' Interface to make a panel-type object for storing timespectra.  Allows for
+    axis aliases like "spectral" and "temporal" slicers.'''
 
 from pandas.core.panel import Panel
 from pyuvvis.core.timespectra import TimeSpectra
