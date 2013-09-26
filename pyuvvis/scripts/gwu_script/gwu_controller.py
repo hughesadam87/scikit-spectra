@@ -131,6 +131,7 @@ class Controller(object):
         self._plot_dpi = kwargs.get('plot_dpi', None) #Defaults based on matplotlibrc file
         self._plot_dim = kwargs.get('plot_dim', 'width=6cm')
         self._plot_fontsize = kwargs.get('fontsize', 18)
+        # Ticksize defaults to 15 btw
     
         
         self.rname = kwargs.get('rname', '')
@@ -837,8 +838,8 @@ class Controller(object):
             help='Adds report and sem directories to current working directory.'
             ' Not modular and only a convienence hack')
         
-        parser.add_argument('-f', '--fontsize', type=int,  help='Plot x/y/title fontsize.'
-             'Defaults to 18.  12 is better for smaller plots.')
+        parser.add_argument('-f', '--fontsize', type=int, default=18,
+             help='Plot x/y/title fontsize.  Defaults to 18.  pyplot default = 12.')
     
 #        parser.add_argument('-d','--dryrun', dest='dry', action='store_true',
 #                            help='Not yet implemented')

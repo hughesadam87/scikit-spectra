@@ -34,7 +34,7 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
     
     labelsize = pltkwargs.pop('labelsize', 'medium') #Can also be ints
     titlesize = pltkwargs.pop('titlesize', 'large')
-    ticksize = pltkwargs.pop('ticksize', '')
+    ticksize = pltkwargs.pop('ticksize', '') #Put in default and remove bool gate below
             
     # Make sure don't have "colors" instead of "color"   
     if 'colors' in pltkwargs:
