@@ -126,9 +126,12 @@ class Controller(object):
         self.inroot = kwargs.get('inroot', DEF_INROOT) 
         self.outroot = kwargs.get('outroot', DEF_OUTROOT)
         self.sweepmode = kwargs.get('sweep', False)
+        self.analysis = kwargs.get('analysis', ANAL_DEFAULT)
+
         self._plot_dpi = kwargs.get('plot_dpi', None) #Defaults based on matplotlibrc file
         self._plot_dim = kwargs.get('plot_dim', 'width=6cm')
-        self.analysis = kwargs.get('analysis', ANAL_DEFAULT)
+        self._plot_fontsize = kwargs.get('fontsize', 12)
+    
         
         self.rname = kwargs.get('rname', '')
         self.overwrite = kwargs.get('overwrite', False)
@@ -331,7 +334,9 @@ class Controller(object):
         # Do some hacky string formatting to fit matlab code
         m_dic['files'] = ',\n'.join("'"+item+"'" for item in self._csv_paths)
         basenames = [op.splitext(op.basename(path))[0] for path in self._csv_paths]
+        m_dic['basenames'] = ',\n'.join("'"+item+"'" for item in basenames)
         m_dic['attrnames'] = '\n'.join(['%s=myData.%s' % (i,i) for i in basenames])
+
         
         mfile = open(outpath, 'w')
         mfile.write( SIMPLE_M % m_dic )                        
@@ -697,25 +702,29 @@ class Controller(object):
                Put in front of file name (eg outpath/prefix_area.png) for area plot
         '''
         
-        specplot(ts)
+        # Set plot and tick size larger thand efaul
+        sizeargs = {'labelsize': self._plot_fontsize, 'ticksize':15, 
+            'titlesize':self._plot_fontsize * 1.0}
+        
+        specplot(ts, **sizeargs)
         self.plt_clrsave(op.join(outpath, prefix +'_spectrum'))
 
         # Area plot using simpson method of integration
         areaplot(ts, ylabel='Power', xlabel='Time ('+ts.timeunit+')', legend=False,
                  title='Spectral Power vs. Time (%i - %i %s)' % 
-                    (min(ts.index), max(ts.index), ts.specunit), color='r')
+                    (min(ts.index), max(ts.index), ts.specunit), color='r', **sizeargs)
         self.plt_clrsave(op.join(outpath, prefix +'_area'))
 
         # Normalized area plot (divided by number x units)       
         areaplot(ts/len(ts.index), ylabel='Power per unit %s' % ts.specunit, xlabel='Time (' +
                  ts.timeunit+')', legend=False, title='Normalized Spectral' 
                  'Power vs. Time (%i - %i %s)' % 
-                 (min(ts.index), max(ts.index), ts.specunit), color='r')
+                 (min(ts.index), max(ts.index), ts.specunit), color='r', **sizeargs)
         self.plt_clrsave(op.join(outpath, prefix +'_area_normal'))
         
         # Lambda max vs. t plot
         
-        
+        # XXXXXX?
 
         # Ranged time plot
         try:
@@ -727,7 +736,7 @@ class Controller(object):
         # Time averaged plot, not scaled to 1 (relative intenisty dependson bin width and actual intensity)
         tssliced = ts.wavelength_slices(uv_ranges, apply_fcn='mean')
         range_timeplot(tssliced, ylabel='Average Intensity', xlabel = 
-                       'Time ('+ts.timeunit+')' ) #legstyle =1 for upper left
+                       'Time ('+ts.timeunit+')', **sizeargs ) #legstyle =1 for upper left
         self.plt_clrsave(op.join(outpath, prefix +'_strip'))        
         
         
@@ -827,6 +836,9 @@ class Controller(object):
         parser.add_argument('-e', '--extra', action='store_true', 
             help='Adds report and sem directories to current working directory.'
             ' Not modular and only a convienence hack')
+        
+        parser.add_argument('-f', '--fontsize', type=int,  help='Plot x/y/title fontsize.'
+             'Defautls to 20.  12 is better for smaller plots.')
     
 #        parser.add_argument('-d','--dryrun', dest='dry', action='store_true',
 #                            help='Not yet implemented')
@@ -867,7 +879,7 @@ class Controller(object):
         controller = cls(inroot=ns.inroot, outroot=ns.outroot, plot_dpi = ns.dpi,
                    verbosity=ns.verbosity, trace=ns.trace, params=ns.params, 
                    overwrite=ns.overwrite, sweep=ns.sweep, plot_dim = ns.plot_dim,
-                   analysis=ns.analysis)
+                   analysis=ns.analysis, fontsize=ns.fontsize)
             
         # Make REPORT/SEM directories for convienence
         if ns.extra:

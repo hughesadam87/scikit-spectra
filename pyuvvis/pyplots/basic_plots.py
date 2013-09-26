@@ -13,9 +13,16 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+#XXX UPDATE DOCSTRING
 def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
     ''' Generic wrapper to ts.plot(), that takes in x/y/title as parsed
-    from various calling functions.'''
+    from various calling functions:
+       NEW KEYWORDS:
+           grid
+           color
+           labelsize
+           titlesize
+           ticksize '''
              
     # Add custom legend interface.  Keyword legstyle does custom ones, if pltkwrd legend==True
     # For now this could use improvement  
@@ -24,11 +31,15 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
     
     # Grid (add support for minor grids later)
     grid = pltkwargs.pop('grid', True)
+    
+    labelsize = pltkwargs.pop('labelsize', 'medium') #Can also be ints
+    titlesize = pltkwargs.pop('titlesize', 'large')
+    ticksize = pltkwargs.pop('ticksize', '')
             
     # Make sure don't have "colors" instead of "color"   
     if 'colors' in pltkwargs:
         pltkwargs['color']=pltkwargs.pop('colors')    
-        logger.warn( '_genplot(): overwriting kwarg "colors" to "color"')
+        logger.warn('_genplot(): overwriting kwarg "colors" to "color"')
         
     # If user wants default colors, just drop color keyword altogether. (Could remove this)
     if 'color' in pltkwargs:
@@ -38,10 +49,10 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
     
     ax=ts.plot(**pltkwargs)
         
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
-    ax.set_title(title)       
-        
+    ax.set_xlabel(xlabel, fontsize=labelsize)
+    ax.set_ylabel(ylabel, fontsize=labelsize)
+    ax.set_title(title, fontsize=titlesize)         
+
     if legstyle and pltkwargs['legend'] == True:  #Defaults to False
         if legstyle == 0:
             ax.legend(loc='upper center', ncol=8, shadow=True, fancybox=True)
@@ -52,6 +63,18 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
             
     if grid:
         ax.grid(True)
+        
+
+    if ticksize:
+        logger.info('Adjusting ticksize to "%s"' % ticksize)
+        # Get all x and y ticks in a list
+        allticks = ax.xaxis.get_majorticklabels()
+        allticks.extend(  ax.yaxis.get_majorticklabels() )
+
+        for label in allticks:
+            label.set_fontsize(ticksize)
+         #  label.set_fontname('courier')        
+
     return ax    
 
 	

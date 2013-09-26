@@ -6,11 +6,15 @@ files = {
 %(files)s
 };
 
+basenames = {
+%(basenames)s
+};
+
 for i=1:length(files)
     file = files{i};            
-    myData.(files{i}) = importdata(file);
-    myData.(files{i}).labels = myData.(files{i}).data(:,1);
-    myData.(files{i}).data = myData.(files{i}).data(:,2:end);
+    myData.(basenames{i}) = importdata(file);
+    myData.(basenames{i}).labels = myData.(files{i}).data(:,1);
+    myData.(basenames{i}).data = myData.(files{i}).data(:,2:end);
 end
 
 %(attrnames)s
