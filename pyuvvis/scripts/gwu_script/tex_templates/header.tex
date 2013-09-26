@@ -6,6 +6,7 @@
 \graphicspath{{images/}}
 \usepackage{subfigure}
 \usepackage[scriptsize]{caption}   
+\usepackage{changepage} 
 
 \newcommand{\fillin}[1]{  
    {\bf \color{orange} .... \textsc{#1} ....}
@@ -31,7 +32,7 @@
    {\noindent \bf\large \color{red}::::::::::::::::::::::
     {{\color{black} \\ #1} \\ :::::::::::::::::::::: }}
    }
-
+   
 \newcommand{\bad}[1]{
    {\bf\color{red}#1}
    }
@@ -40,13 +41,9 @@
    {\bf\color{blue}#1}
    }
 
-\newcommand{\quickfig}[2]{
-   \begin{figure}[h!]
-   \centering
-   \includegraphics[width=10cm]{#1}
-   \caption{#2}
-   \end{figure}
-}
+\newcommand{\define}[2]{
+   {\large {\bf #1}:\hspace{.75cm} #2}
+   }
    
 \begin{document}
 \noindent
@@ -93,5 +90,18 @@ Dr.~Mark \textsc{Reeves\footnotemark[2]}
 \newpage
 
 %(body)s
+
+\vspace{.65cm}
+\appendix
+{\huge \bf \noindent APPENDIX}
+\section{Acronyms and Terminology} 
+\vspace{.1cm}
+
+\begin{adjustwidth}{3em}{0pt}
+\define{3-TMSDE}{\href{http://www.sigmaaldrich.com/catalog/product/fluka/06666?lang=en&region=US} {(3-Trimethoxysilylpropyl)-diethylenetriamine}}
+
+\define{MPTMS}{\href{http://www.sigmaaldrich.com/catalog/product/aldrich/175617?lang=en&region=US}{(3-Mercaptopropyl)trimethoxysilane}}
+
+\define{AuNP}{Gold nanoparticle}
 
 \end{document}
