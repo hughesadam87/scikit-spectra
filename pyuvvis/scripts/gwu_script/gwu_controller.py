@@ -671,7 +671,7 @@ class Controller(object):
                     'conventional import' % self.infolder)                       
         timefile = timefile[0]
         infiles.remove(timefile) #remaing file is datafile
-        return from_timefile_datafile(datafile=infiles, timefile=timefile, 
+        return from_timefile_datafile(datafile=infiles[0], timefile=timefile, 
                                       name=self.infolder)
 
     @classmethod
