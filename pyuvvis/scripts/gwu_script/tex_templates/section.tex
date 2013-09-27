@@ -1,17 +1,9 @@
 \subsection{%(secname)s}
 
-\fillin{Any details about the experiment} 
-
-\begin{figure}[h!]\centering
-\subfigure[]{\includegraphics[%(plot_dim)s]{"%(specplotfull)s"}}
-\subfigure[]{\includegraphics[%(plot_dim)s]{"%(areaplotfull)s"}}
-\subfigure[]{\includegraphics[%(plot_dim)s]{"%(specplotrel)s"}}
-\subfigure[]{\includegraphics[%(plot_dim)s]{"%(areaplotrel)s"}}
-\subfigure[]{\includegraphics[%(plot_dim)s]{"%(specplotabs)s"}}
-\subfigure[]{\includegraphics[%(plot_dim)s]{"%(areaplotabs)s"}}
-\label{fullplots}
-\caption{Spectrum / area plots for {\bf(a,b)}rawdata, {\bf(c,d)}linear ratio, {\bf(e,f)}absorbance.}
-\end{figure}
+\begin{itemize}
+\item{step 1}
+\item{step 2}
+\end{itemize}
 
 \subsubsection{What went well}
 
@@ -27,7 +19,6 @@
 \item{}
 \end{itemize}
 
-
 {\scriptsize{\bf  Data indir:}  %(inpath)s}
 
 {\scriptsize{\bf  Data outdir:}  %(outpath)s}
@@ -36,5 +27,16 @@
 
 \fboxsep5mm
 \fcolorbox{black}{gray!20}{\vbox{\hsize=10cm \noindent \scriptsize %(parameters)s } }
+
+\begin{figure}[h!]\centering
+\subfigure[]{\includegraphics[%(plot_dim)s]{"%(specplotfull)s"}}
+\subfigure[]{\includegraphics[%(plot_dim)s]{"%(areaplotfull)s"}}
+\subfigure[]{\includegraphics[%(plot_dim)s]{"%(specplotrel)s"}}
+\subfigure[]{\includegraphics[%(plot_dim)s]{"%(areaplotrel)s"}}
+\subfigure[]{\includegraphics[%(plot_dim)s]{"%(specplotabs)s"}}
+\subfigure[]{\includegraphics[%(plot_dim)s]{"%(areaplotabs)s"}}
+\label{fullplots}
+\caption{Spectrum / area plots for {\bf(a,b)}rawdata, {\bf(c,d)}linear ratio, {\bf(e,f)}absorbance.}
+\end{figure}
 
 \newpage
