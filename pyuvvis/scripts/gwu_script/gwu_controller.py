@@ -66,7 +66,7 @@ def latex_string(string):
     ''' Replace underscore, newline, tabs to fit latex.'''
 
     string = string.replace('_', '\\_')
-    string = string.decode('string-escape')
+#    string = string.decode('string-escape')
     
     string = string.replace('\n', '\\\\')
     return string.replace('\t', '\hspace{1cm}') #Chosen arbitrarily
@@ -80,6 +80,22 @@ def dict_out(header, dic, sort = True):
     else:
         return header + ':\n\n' +'\n'.join(['\t' + (str(k) + '\t' + str(v)) 
                  for k,v in dic.items()])        
+    
+def latex_multicols(dic, title='', cols=2):
+    ''' Hacky: given a list of items, wraps a multicol iterable so that the list
+        will be output as columns.  Title will be added in bold/large'''
+    
+    outstring = ''
+    if title:
+        outstring += r'{\bf\large %s}' % title
+
+    outstring += r'\begin{multicols}{%s}\begin{itemize}' % cols
+    for k, v in dic.items():
+        outstring += '\item{%s:\hspace{.3cm}%s}' % (k, v)
+    outstring += '\end{itemize}\end{multicols}'
+    return outstring
+    
+    
 
 # This could delete empty folders that were otherwise in the directory that 
 # were there before starting script
@@ -465,16 +481,21 @@ class Controller(object):
                 f.write(dict_out('Spectrometer Parameters', ts_full.metadata))
 
             def _filter_metadata(dic):
-                ''' Return spectrometer parameters of interest. '''
-                return OrderedDict( (k, (dic.get(k, '') )) for k in ['boxcar', \
-                         'spec_avg', 'int_time', 'int_unit', 'spectrometer', 'timeend', \
-                         'timestart', 'filecount'])
+                ''' Return spectrometer parameters of interest for report. Changes
+                    format of integration time parameter.'''
+                dic = OrderedDict( (k, (dic.get(k, '') )) for k in ['int_time', 'int_unit', 
+                         'boxcar', 'spec_avg', 'timestart', 'timeend', 'filecount','spectrometer'])
 
-            with open(op.join(rundir, '%s.quick_metadata' % self.infolder), 'w') as f:
-                f.write(dict_out('Spectrometer Parameters', _filter_metadata(ts_full.metadata)))
+                if 'usec' in dic['int_unit']:
+                    dic['int_unit'] = 'usec'
+
+                dic['int_time'] = str(dic['int_time']) + ' ' +  str(dic['int_unit'])
+                del dic['int_unit']
+                return dic
                 
-            with open(op.join(rundir, '%s.quick_metadata' % self.infolder), 'r') as f:
-                self._run_summary = latex_string(f.read())
+            string = latex_multicols(_filter_metadata(ts_full.metadata), title='Spectrometer Parameters')
+            self._run_summary = latex_string(string)
+
         else:
             logger.info('Metadata not found for %s' % ts_full.full_name)
             

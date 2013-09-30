@@ -116,7 +116,7 @@ def main(args=None):
         if ns.clean:
             outdir, outname = op.split(op.abspath(ns.outpath))
             outname = op.splitext(outname)[0]
-            for ext in ['toc', 'log', 'aux']:
+            for ext in ['toc', 'log', 'aux', 'out']:
                 wastefile = op.join(outdir, outname + '.' + ext)
                 if op.isfile(wastefile):
                     logger.info('Cleaning up file: "%s"' % wastefile)
