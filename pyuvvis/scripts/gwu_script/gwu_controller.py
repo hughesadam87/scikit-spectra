@@ -87,13 +87,13 @@ def latex_multicols(dic, title='', cols=2):
     
     outstring = ''
     if title:
-        outstring += r'{\bf\large %s}' % title
+        outstring += r'{\bf \large %s}' % title
 
     outstring += r'\begin{multicols}{%s}\begin{itemize}' % cols
     for k, v in dic.items():
-        outstring += '\item{%s:\hspace{.3cm}%s}' % (k, v)
+        outstring += r'\item{\ttfamily {\bf %s}:\hspace{.3cm}%s}' % (k, v)
     outstring += '\end{itemize}\end{multicols}'
-    return outstring
+    return latex_string(outstring)
     
     
 
@@ -174,8 +174,9 @@ class Controller(object):
             f.write(r'\subsection{Script Parameters}')
             f.write(r'\fboxsep5mm')
             f.write(r'\fcolorbox{black}{yellow}{\vbox{\hsize=10cm \noindent \scriptsize ')
-            f.write(latex_string(dict_out('PyUvVis Parameters', self.params)))
-            f.write(latex_string(dict_out('\n\nAnalysis Parameters', kwargs)))
+  
+            f.write(latex_multicols(self.params, title='PyUvVis Parameters'))
+            f.write(latex_multicols(kwargs, 'Analysis Parameters'))
             f.write('}}')
 
         if self._plot_dpi > 600:
@@ -493,8 +494,7 @@ class Controller(object):
                 del dic['int_unit']
                 return dic
                 
-            string = latex_multicols(_filter_metadata(ts_full.metadata), title='Spectrometer Parameters')
-            self._run_summary = latex_string(string)
+            self._run_summary = latex_multicols(_filter_metadata(ts_full.metadata), title='Spectrometer Parameters')
 
         else:
             logger.info('Metadata not found for %s' % ts_full.full_name)
