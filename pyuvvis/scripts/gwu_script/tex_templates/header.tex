@@ -9,6 +9,8 @@
 \usepackage{changepage} 
 \usepackage{hyperref}
 \usepackage{multicol}
+\usepackage{enumitem}
+\usepackage{geometry}
 \hypersetup{
     colorlinks = false,
     linkbordercolor = {white}
@@ -48,7 +50,7 @@
    }
 
 \newcommand{\define}[2]{
-   {\large {\bf #1}:\hspace{.75cm} #2}
+   {\item{\small {\bf #1}:\hspace{.75cm} #2}}
    }
    
 \begin{document}
@@ -103,13 +105,19 @@ Dr.~Mark \textsc{Reeves\footnotemark[2]}
 \section{Acronyms and Terminology} 
 \vspace{.1cm}
 
-\begin{adjustwidth}{3em}{0pt}
-\define{3-TMSDE}{\href{http://www.sigmaaldrich.com/catalog/product/fluka/06666?lang=en&region=US} {(3-Trimethoxysilylpropyl)-diethylenetriamine}}
+\begin{itemize}[align=left]
+\define{TMSDE}{\href{http://www.sigmaaldrich.com/catalog/product/fluka/06666?lang=en&region=US} {(3-Trimethoxysilylpropyl)-diethylenetriamine}}
 
 \define{MPTMS}{\href{http://www.sigmaaldrich.com/catalog/product/aldrich/175617?lang=en&region=US}{(3-Mercaptopropyl)trimethoxysilane}}
 
 \define{AuNP}{Gold nanoparticle}
 
 \define{BSA}{Bovine Serum Albumin}
+
+\define{DTSSP}{\href{http://www.piercenet.com/product/dsp-lomants-reagent}{Water soluble DSP/Lomant's regagent}}
+
+\define{PBS}{Phosphate Buffered Saline- 0.01M pH 7.4 from Sigma Aldrich powder packet.}
+
+\end{itemize}
 
 \end{document}
