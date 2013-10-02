@@ -2,6 +2,7 @@
 
 \usepackage{gensymb}
 \usepackage{xcolor}
+\usepackage{scrextend}
 \usepackage[pdftex]{graphicx}
 \graphicspath{{images/}}
 \usepackage{subfigure}
@@ -48,6 +49,10 @@
 \newcommand{\good}[1]{
    {\bf\color{blue}#1}
    }
+
+\newcommand{\blockquote}[1]{
+  {\begin{addmargin}[3em]{2em}\vspace{.2cm} \ttfamily #1 \vspace{.2cm} \end{addmargin}}
+  }   
 
 \newcommand{\define}[2]{
    {\item{\small {\bf #1}:\hspace{.75cm} #2}}
