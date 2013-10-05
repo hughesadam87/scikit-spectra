@@ -48,10 +48,14 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
                 pltkwargs.pop('color')          
     
     ax=ts.plot(**pltkwargs)
+    
+    # Add minor ticks through tick parameters  
+    ax.minorticks_on()
         
     ax.set_xlabel(xlabel, fontsize=labelsize)
     ax.set_ylabel(ylabel, fontsize=labelsize)
     ax.set_title(title, fontsize=titlesize)         
+    
 
     if legstyle and pltkwargs['legend'] == True:  #Defaults to False
         if legstyle == 0:
