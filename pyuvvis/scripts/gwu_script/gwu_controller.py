@@ -167,7 +167,7 @@ class Controller(object):
                  logfile=op.join(self.outroot, 'runlog.txt'), mode='w')
         
         # Output the parameters
-        self._run_params_file = op.join(self.outroot, 'run_parameters.txt')
+        self._run_params_file = op.join(self.outroot, 'runparameters.tex')
         with open(self._run_params_file, 'w') as f:
             
             # Hacky way to write latex section from raw string literals
