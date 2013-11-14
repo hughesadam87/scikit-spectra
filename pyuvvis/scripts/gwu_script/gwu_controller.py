@@ -133,7 +133,7 @@ class Controller(object):
     name = 'Controller' #For logging
 
     # Extensions to ignore when looking at files in a directory       
-    img_ignore=['png', 'jpeg', 'tif', 'bmp', 'ipynb'] 
+    img_ignore=['.png', '.jpeg', '.tif', '.bmp', '.ipynb'] 
         
     # For now, this only takes in a namespace, but could make more flexible in future
     def __init__(self, **kwargs):
