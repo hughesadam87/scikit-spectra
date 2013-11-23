@@ -848,7 +848,7 @@ class Controller(object):
                 
         parser.add_argument('-p','--params', nargs='*', help='Overwrite config '
                             'parameters manually in form k="foo value" '  
-                            'Ex: --params xmin=440.0 xmax=700.0', metavar='')
+                            'Ex: --params x_min=440.0 x_max=700.0', metavar='')
         
         parser.add_argument('-a', '--analysis', nargs='*', help='Types of '
                 'analysis to perform.  Choose 1 or more of the following: %s or '
