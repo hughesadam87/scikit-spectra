@@ -47,7 +47,7 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
             if pltkwargs['color'].lower() == 'default':
                 pltkwargs.pop('color')          
     
-    ax=ts.plot(**pltkwargs)
+    ax = ts.plot(**pltkwargs)
     
     # Add minor ticks through tick parameters  
     ax.minorticks_on()
@@ -56,7 +56,6 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
     ax.set_ylabel(ylabel, fontsize=labelsize)
     ax.set_title(title, fontsize=titlesize)         
     
-
     if legstyle and pltkwargs['legend'] == True:  #Defaults to False
         if legstyle == 0:
             ax.legend(loc='upper center', ncol=8, shadow=True, fancybox=True)
@@ -68,7 +67,6 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
     if grid:
         ax.grid(True)
         
-
     if ticksize:
         logger.info('Adjusting ticksize to "%s"' % ticksize)
         # Get all x and y ticks in a list
