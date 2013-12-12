@@ -21,7 +21,7 @@ with open('requirements.txt', 'r') as f:
 # For now, most of these are in here for testing.  Dependency version 
 #requirements can probably be relaxed, especially chaco.
 setup(
-    name = 'PyUvVis',
+    name = NAME,
     version = '0.1.2-1',
     author = 'Adam Hughes',
     maintainer = 'Adam Hughes',
