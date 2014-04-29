@@ -37,9 +37,12 @@ setup(
       'pyuvvis.scripts.gwu_script':['*.png']
    },
        
-    entry_points = {'console_scripts': [
+    entry_points = {'console_scripts': 
+                    [
                        'gwuspec = pyuvvis.scripts.gwu_script.gwuspec:main',
-                       'gwureport = pyuvvis.scripts.gwu_script.gwureport:main']
+                       'gwureport = pyuvvis.scripts.gwu_script.gwureport:main',
+                       'findstring = pyuvvis.scripts.findstring:main'
+                    ]
                     },
     
     url = 'http://pypi.python.org/pypi/PyUvVis/',
