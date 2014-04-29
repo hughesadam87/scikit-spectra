@@ -40,8 +40,7 @@ setup(
     entry_points = {'console_scripts': 
                     [
                        'gwuspec = pyuvvis.scripts.gwu_script.gwuspec:main',
-                       'gwureport = pyuvvis.scripts.gwu_script.gwureport:main',
-                       'findstring = pyuvvis.scripts.findstring:main'
+                       'gwureport = pyuvvis.scripts.gwu_script.gwureport:main'
                     ]
                     },
     
