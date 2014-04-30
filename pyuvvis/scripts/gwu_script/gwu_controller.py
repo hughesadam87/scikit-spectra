@@ -725,8 +725,9 @@ class Controller(object):
         '''
         
         # Set plot and tick size larger than defaul
-        sizeargs = {'labelsize': self._plot_fontsize, 'ticksize':15, 
-            'titlesize':self._plot_fontsize} 
+        sizeargs = {'labelsize': self._plot_fontsize, 
+                    'ticksize':15, 
+                    'titlesize':self._plot_fontsize}
         
         specplot(ts, **sizeargs)
         self.plt_clrsave(op.join(outpath, prefix +'_spectrum'))

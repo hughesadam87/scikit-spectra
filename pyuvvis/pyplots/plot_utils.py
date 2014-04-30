@@ -21,8 +21,7 @@ import numpy as np
 from pyuvvis.exceptions import badvalue_error
 
 def cmget(color):
-    ''' Takes in a default cm color name and returns the cm.attribute color mapper for convienence.  Some of the
-    builtin colors are not lowercase, so can't do color.lower().'''
+    ''' Return colormap from string (eg 'jet')'''
     try:
         cmap=getattr(cm, color)
     except AttributeError:
@@ -43,13 +42,11 @@ def _df_colormapper(df, cmap, axis=0, colorbymax=False, vmin=None, vmax=None):
     
     Notes
     -----
-    Useful for df.plot() which doesn't take a normalized colormap natively.  cmap can be
-    an instance of an RGB color map, or a string which such that cm.string will produce one.
-    Default ones are here:
-      http://dept.astro.lsa.umich.edu/~msshin/science/code/matplotlib_cm/   (is this outdated?)
+    Useful for df.plot() which doesn't take a normalized colormap natively. 
+    cmap can be an instance of an RGB color map, or a string which such that 
+    cm.string will produce one.
     '''
     
-    style=style.lower()
     if isinstance(cmap, basestring): 
         cmap=cmget(cmap)
     

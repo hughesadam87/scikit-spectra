@@ -8,7 +8,7 @@ __maintainer__ = "Adam Hughes"
 __email__ = "hugadams@gwmail.gwu.edu"
 __status__ = "Development"
 
-from plot_utils import _df_colormapper, _uvvis_colors, easy_legend
+from plot_utils import _df_colormapper, _uvvis_colors, easy_legend, cmget
 import logging
 
 logger = logging.getLogger(__name__)
@@ -38,15 +38,18 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
             
     # Make sure don't have "colors" instead of "color"   
     if 'colors' in pltkwargs:
-        pltkwargs['color']=pltkwargs.pop('colors')    
+        pltkwargs['color'] = pltkwargs.pop('colors')    
         logger.warn('_genplot(): overwriting kwarg "colors" to "color"')
         
-    # If user wants default colors, just drop color keyword altogether. (Could remove this)
-    if 'color' in pltkwargs:
-        if isinstance(pltkwargs['color'], basestring):
-            if pltkwargs['color'].lower() == 'default':
-                pltkwargs.pop('color')          
-    
+    # Axis = 0, assumes timeplot has passed transposed array for example
+    pltkwargs['color'] = pltkwargs.pop('color', _df_colormapper(ts, 'jet', axis=0) )         
+    if isinstance(pltkwargs['color'], basestring):
+        # Try color mapping; if none found, retain string (eg 'red')
+        try:
+            pltkwargs['color'] = cmget(pltkwargs['color'])
+        except AttributeError:
+            pass
+ 
     ax = ts.plot(**pltkwargs)
     
     # Add minor ticks through tick parameters  
@@ -84,7 +87,9 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
 # the correct dataframes to fill these plots.
 def specplot(ts, **pltkwds):
     ''' Basically a call to gen plot with special attributes, and a default color mapper.'''
+
     pltkwds['linewidth'] = pltkwds.pop('linewidth', 1.0 )    
+#    pltkwds['color'] = pltkwds.pop('color', _df_colormapper(ts, 'jet', axis=0) )         
            
     xlabel = pltkwds.pop('xlabel', ts.full_specunit)  
     ylabel = pltkwds.pop('ylabel', ts.full_iunit+' (Counts)')    
@@ -97,7 +102,7 @@ def timeplot(ts, **pltkwds):
     ''' Sends transposed dataframe into _genplot(); however, this is only useful if one wants to plot
     every single row in a dataframe.  For ranges of rows, see spec_utilities.wavelegnth_slices and
     range_timeplot() below.'''
-    pltkwds['color']=pltkwds.pop('color', _df_colormapper(ts, 'jet', axis=1) )         
+    
     pltkwds['legend']=pltkwds.pop('legend', True) #Turn legend on
         
     xlabel=pltkwds.pop('xlabel', ts.full_timeunit)  
