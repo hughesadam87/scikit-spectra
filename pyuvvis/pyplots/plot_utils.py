@@ -11,6 +11,7 @@ __status__ = "Development"
 
 from matplotlib.colors import cnames, Normalize
 import matplotlib.cm as cm
+import numpy as np
 
 ### For local use
 #import sys
@@ -29,16 +30,24 @@ def cmget(color):
         the default colormaps available to matplotlib (http://dept.astro.lsa.umich.edu/~msshin/science/code/matplotlib_cm/)') 
     return cmap
 
-def _df_colormapper(df, cmap, axis=0, style='max', vmin=None, vmax=None):
+def _df_colormapper(df, cmap, axis=0, colorbymax=False, vmin=None, vmax=None):
     ''' Maps matplotlibcolors to a dataframe based on the mean value of each curve along that
-    axis.  Useful for df.plot() which doesn't take a normalized colormap natively.  cmap can be
+    axis.  
+      
+    Parameters
+    ----------
+    colorbymax : bool (False)
+        If true, curves are colored based on their maxima value (ie largest
+        curve is max color regardless of where it appears in time). Otherwise,
+        curves are colored chornologically.
+    
+    Notes
+    -----
+    Useful for df.plot() which doesn't take a normalized colormap natively.  cmap can be
     an instance of an RGB color map, or a string which such that cm.string will produce one.
     Default ones are here:
-      http://dept.astro.lsa.umich.edu/~msshin/science/code/matplotlib_cm/   (is this outdated?) 
-      
-    style: should curve be colored based on its average value or max value.
-    
-    Note that mapping paints an entire curve, not points on the curve! '''
+      http://dept.astro.lsa.umich.edu/~msshin/science/code/matplotlib_cm/   (is this outdated?)
+    '''
     
     style=style.lower()
     if isinstance(cmap, basestring): 
@@ -47,26 +56,28 @@ def _df_colormapper(df, cmap, axis=0, style='max', vmin=None, vmax=None):
     if axis != 0 and axis != 1:
         raise badvalue_error(axis, 'integers 0 or 1')
 
+    # Min and max values of color map must be min and max of dataframe
     if not vmin:
         vmin=min(df.min(axis=axis))
-    if not vmax:
+    if not vmax:        
         vmax=max(df.max(axis=axis))
         
     cNorm=Normalize(vmin=vmin, vmax=vmax)
-    scalarmap=cm.ScalarMappable(norm=cNorm, cmap=cmap) 
-    if style=='mean':
-        if axis==0:
-            colors=[scalarmap.to_rgba(df[x].mean()) for x in df.columns]
-        elif axis==1:
-            colors=[scalarmap.to_rgba(df.ix[x].mean()) for x in df.index]    
-            
-    elif style=='max':
-        if axis==0:
+    scalarmap=cm.ScalarMappable(norm=cNorm, cmap=cmap)              
+
+    if axis == 0:
+        if colorbymax:
             colors=[scalarmap.to_rgba(df[x].max()) for x in df.columns]
-        elif axis==1:
-            colors=[scalarmap.to_rgba(df.ix[x].max()) for x in df.index]         
-    else:    
-        raise badvalue_error(style, '"max" or "mean"')         
+        else:
+            colors = [scalarmap.to_rgba(x) for x in 
+                      np.linspace(vmin, vmax, len(df.columns))]
+
+    elif axis == 1:
+        if colorbymax:
+            colors=[scalarmap.to_rgba(df.ix[x].max()) for x in df.index]                
+        else:
+            colors = [scalarmap.to_rgba(x) for x in 
+                      np.linspace(vmin, vmax, len(df.index))]
         
     return colors
     
