@@ -3,7 +3,7 @@ import os.path as op
 #from distutils.core import setup
 from setuptools import setup, find_packages
 
-NAME = 'PyUvVis'
+NAME = 'pyuvvis'
 
 # Python >= 2.7 ?
 user_py = sys.version_info
@@ -22,7 +22,7 @@ with open('requirements.txt', 'r') as f:
 #requirements can probably be relaxed, especially chaco.
 setup(
     name = NAME,
-    version = '0.1.2-1',
+    version = '0.2',
     author = 'Adam Hughes',
     maintainer = 'Adam Hughes',
     maintainer_email = 'hughesadam87@gmail.com',
@@ -32,8 +32,9 @@ setup(
     # include .tex and .ipynb files
     package_data={
       'pyuvvis.scripts.gwu_script.tex_templates': ['*.tex'],
-      'pyuvvis.scripts.gwu_script.mlab_templates': ['*.m'],      
-      'pyuvvis.example_notebooks':['*.ipynb'],
+      'pyuvvis.scripts.gwu_script.mlab_templates': ['*.m'],   
+#      'pyparty.bundled':['*.css'],   
+      'pyuvvis.examples.Notebooks':['*.ipynb'],
       'pyuvvis.scripts.gwu_script':['*.png']
    },
        
@@ -49,13 +50,6 @@ setup(
     license = 'LICENSE.txt',
     description = 'Pandas-based toolkit for spectral data analysis, primarily '
     'UVVis spectra for now.',
-    long_description = open(op.join(sys.path[0], 'README.rst')).read(),
-    install_requires = [
-        "pandas >= 0.12.0",
-#   	"numpy >= 1.6.0",  #Pandas puts this in
-#        "chaco",
-     	"scipy"
-                     ],
       classifiers = [
           'Development Status :: 2 - Pre-Alpha',
           'Environment :: Console',

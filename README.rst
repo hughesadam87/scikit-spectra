@@ -8,6 +8,7 @@
 ==========
 What's New
 ==========
+   - Just released 0.2
 
 ===========================================
 pyuvvis: Tools for explorative spectroscopy
