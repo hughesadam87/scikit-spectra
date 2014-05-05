@@ -1,4 +1,4 @@
-.. image:: pyparty/data/coverimage.png
+.. image:: pyuvvis/data/coverimage.png
    :height: 100px
    :width: 200 px
    :scale: 50 %
@@ -17,11 +17,29 @@ pyuvvis: Tools for explorative spectroscopy
 Getting Started
 ===============
 
+The current documentation (and in-a-pinch test suite) is a series of example notebooks 
+(`iPython Notebook`_), which cover most of the basics. These have been linked below:
+
+   .. _`iPython Notebook`: http://ipython.org/notebook.html?utm_content=buffer83c2c&utm_source=buffer&utm_medium=twitter&utm_campaign=Buffer
+
+- **TUTORIALS**:
+   - 
+   -   
+
+- **MISCELLANEOUS**:
+   - `Matplotlib Color Maps`_
+
+
+   .. _`Matplotlib Color Maps` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/gwu_maps.ipynb?create=1
+
+
 Legacy documentation_ is generously hosted by github_.
 
    .. _github: http://github.com
  
    .. _documentation: http://hugadams.github.com/pyuvvis/
+
+
 
 
 License
@@ -133,15 +151,11 @@ Interested in the Python ecosystem?   Check out some of these related libraries:
    - scikit-image_ (Scipy image processing suite)
    - matplotlib_ (De facto static plotting in Python)
    - pandas_ (Data analysis library : inspired ``pyparty`` ParticleManager API)
-   - ilastik_ (Interactive Learning and Segmentation Tool)
-   - Pillow_ (Python Image Library)
 
-   .. _Pillow: http://python-imaging.github.io/
    .. _NumPy: http://www.numpy.org/
    .. _pandas: http://pandas.pydata.org/
    .. _SciPy: http://scipy.org/
    .. _matplotlib : http://matplotlib.org/
-   .. _ilastik : http://www.ilastik.org/
    
 Coming Soon
 ===========
