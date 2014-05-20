@@ -148,7 +148,6 @@ Interested in the Python ecosystem?   Check out some of these related libraries:
 
    - NumPy_ (Fundamental vectorized numerics in Python)
    - SciPy_ (Collection of core, numpy-based scientific libraries)
-   - scikit-image_ (Scipy image processing suite)
    - matplotlib_ (De facto static plotting in Python)
    - pandas_ (Data analysis library : inspired ``pyparty`` ParticleManager API)
 
