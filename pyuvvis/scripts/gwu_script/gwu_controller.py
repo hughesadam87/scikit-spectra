@@ -733,17 +733,31 @@ class Controller(object):
         self.plt_clrsave(op.join(outpath, prefix +'_spectrum'))
 
         # Area plot using simpson method of integration
-        areaplot(ts, ylabel='Power', xlabel='Time ('+ts.timeunit+')', legend=False,
+        areaplot(ts, 
+                 ylabel='Power',
+                 xlabel='Time ('+ts.timeunit+')',
+                 legend=False,
                  title='Spectral Power vs. Time (%i - %i %s)' % 
                     (min(ts.index), max(ts.index), ts.specunit), color='r', **sizeargs)
         self.plt_clrsave(op.join(outpath, prefix +'_area'))
 
         # Normalized area plot (divided by number x units)       
-        areaplot(ts/len(ts.index), ylabel='Power per unit %s' % ts.specunit, xlabel='Time (' +
-                 ts.timeunit+')', legend=False, title='Normalized Spectral' 
-                 'Power vs. Time (%i - %i %s)' % 
-                 (min(ts.index), max(ts.index), ts.specunit), color='r', **sizeargs)
+        areaplot(ts/len(ts.index),
+                 ylabel='Power per unit %s' % ts.specunit,
+                 xlabel='Time (' + ts.timeunit+')', 
+                 legend=False, 
+                 title='Normalized Spectral Power vs. Time (%i - %i %s)' % 
+                     (min(ts.index), max(ts.index), ts.specunit), color='orange', **sizeargs)
         self.plt_clrsave(op.join(outpath, prefix +'_area_normal'))
+        
+        # Normalized ABSOLUTE areaplot (divided by number x units)       
+        areaplot(np.absolute(ts)/len(ts.index), 
+                 ylabel='Power per unit %s' % ts.specunit, 
+                 xlabel='Time (' + ts.timeunit+')', 
+                 legend=False, 
+                 title='Normalized ABSOLUTE Power vs. Time (%i - %i %s)' % 
+                     (min(ts.index), max(ts.index), ts.specunit), color='purple', **sizeargs)
+        self.plt_clrsave(op.join(outpath, prefix +'_area_normal'))        
         
         # Lambda max vs. t plot
         
