@@ -16,27 +16,10 @@ def gwu():
 def plain():
     return ''
 
-def slender():
-    """ Inspired by slendermeans blog:
-    http://slendermeans.org/better-typography-for-ipython-notebooks.html"""
-    return load('slender.css')
-
-def louic():
-    """ Taken directly from louic's weblog:
-    http://blog.louic.nl/?p=683"""
-    return load('louic.css')
-
-
-def purisa():
-    """ Goofy """
-    return load('purisa.css')
 
 __all__ = {
            'gwu': gwu(),
-           'plain' : plain(),
-           'slender' : slender(),
-           'louic' : louic(),
-           'purisa' : purisa()
+           'plain' : plain()
            }
 
 # In-line function called in the notebook to update the style.  This is the
