@@ -35,7 +35,8 @@ setup(
       'pyuvvis.scripts.gwu_script.mlab_templates': ['*.m'],   
 #      'pyparty.bundled':['*.css'],   
       'pyuvvis.examples.Notebooks':['*.ipynb'],
-      'pyuvvis.scripts.gwu_script':['*.png']
+      'pyuvvis.scripts.gwu_script':['*.png'],
+      'pyuvvis.data':['*']
    },
        
     entry_points = {'console_scripts': 

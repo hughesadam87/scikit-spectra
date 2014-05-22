@@ -1476,8 +1476,15 @@ if __name__ == '__main__':
     testdates = date_range(start='3/3/12',periods=30,freq='h')
     testdates2 = date_range(start='3/3/12',periods=30,freq='45s')
     
-    ts=TimeSpectra(abs(np.random.randn(300,30)), columns=testdates, index=spec, name='ts1')  
-    t2=TimeSpectra(abs(np.random.randn(300,30)), columns=testdates2, index=spec, name='ts2') 
+    ts=TimeSpectra(abs(np.random.randn(300,30)), 
+                   columns=testdates, 
+                   index=spec, 
+                   name='ts1')  
+
+    t2=TimeSpectra(abs(np.random.randn(300,30)), 
+                   columns=testdates2, 
+                   index=spec, 
+                   name='ts2') 
    
    
     from pyuvvis.IO.gwu_interfaces import from_spec_files, get_files_in_dir
