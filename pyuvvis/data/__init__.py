@@ -4,7 +4,6 @@
 
 import os.path as op
 from pyuvvis import data_dir, TimeSpectra
-from pandas import read_csv
 from pyuvvis.pandas_utils.dataframeserial import df_load
 
 __all__ = ['spectra']
@@ -30,32 +29,34 @@ def load_ts(filepath, *args, **kwargs):
 
   
     if ext == '.csv':
-        df = read_csv(filepath)
+        return TimeSpectra.from_csv(filepath, *args, **kwargs)
 
-    # THIS HAS BUGS
+    #  XXX INCOMPLETE FUNCTIONALITY
     elif ext == '.pickle':
         df = df_load(filepath)
+        logger.critical("LOADING FROM PICKLE NOT COMPLETE YET")
 
     else:
         raise DataError('%s must have file extension .csv or .pickle, not '
                              '%s' %(filepath, ext))
  
-    # Custom error handle here?  Do I want to relax to allow for dataframe imports?
-    return TimeSpectra(df, *args, **kwargs)
 
 def _load_gwuspec(filepath, *args, **kwargs):
     """ Loads GWU data from csv, assigns baseline and crops accordingly.
     This is a wrapper to let author use his own data for the example data."""
     
-    # Refactor this to a "_loadgwu sv method"
-    kwargs.setdefault('baseline', 0)
-    kwargs.setdefault('reference', 1)
+    # CSV KWARGS
+    kwargs.setdefault('index_col', 0)
+
+    # TimeSpec KWARGS
+#    kwargs.setdefault('baseline', 0)
+    kwargs.setdefault('reference', 0)
     kwargs.setdefault('specunit', 'nm')
     ts = load_ts(filepath, *args, **kwargs)
 
     # CSV baseline is in dataset, so subtract and then pop
-    ts.sub_base()
-    ts.pop(ts.columns[0])
+#    ts.sub_base()
+#    ts.pop(ts.columns[0])
     return ts
 
 

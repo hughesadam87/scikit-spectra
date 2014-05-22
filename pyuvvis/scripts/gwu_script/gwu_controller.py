@@ -29,7 +29,6 @@ from pyuvvis.core.baseline import dynamic_baseline
 from pyuvvis.pyplots.plot_utils import _df_colormapper, cmget
 from pyuvvis.IO.gwu_interfaces import from_timefile_datafile, from_spec_files
 from pyuvvis.core.file_utils import get_files_in_dir, get_shortname
-from pyuvvis.core.baseline import dynamic_baseline
 from pyuvvis.core.corr import ca2d, make_ref, sync_3d, async_3d
 from pyuvvis.core.timespectra import Idic
 from pyuvvis.pandas_utils.metadframe import mload, mloads

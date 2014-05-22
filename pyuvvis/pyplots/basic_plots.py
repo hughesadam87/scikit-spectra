@@ -42,13 +42,16 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
         logger.warn('_genplot(): overwriting kwarg "colors" to "color"')
         
     # Axis = 0, assumes timeplot has passed transposed array for example
-    pltkwargs['color'] = pltkwargs.pop('color', _df_colormapper(ts, 'jet', axis=0) )         
-    if isinstance(pltkwargs['color'], basestring):
+    pltcolor = pltkwargs.setdefault('color', _df_colormapper(ts, 'jet', axis=0) )         
+    if isinstance(pltcolor, basestring):
         # Try color mapping; if none found, retain string (eg 'red')
         try:
-            pltkwargs['color'] = cmget(pltkwargs['color'])
+            cmget(pltcolor) #Validate color map
         except AttributeError:
             pass
+        else:
+            pltkwargs['color'] = _df_colormapper(ts, pltcolor, axis=0)#cmget(pltkwargs['color'])
+
  
     ax = ts.plot(**pltkwargs)
     
@@ -93,7 +96,9 @@ def specplot(ts, **pltkwds):
            
     xlabel = pltkwds.pop('xlabel', ts.full_specunit)  
     ylabel = pltkwds.pop('ylabel', ts.full_iunit+' (Counts)')    
-    title = pltkwds.pop('title', '(%s) %s' % (ts.full_iunit, ts.name) )    
+#    title = pltkwds.pop('title', '(%s) %s' % (ts.full_iunit, ts.name) )    
+    title=pltkwds.pop('title', ts.name )    
+
         
     return _genplot(ts, xlabel, ylabel, title, **pltkwds)
     

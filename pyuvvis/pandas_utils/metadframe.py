@@ -10,7 +10,7 @@ import functools
 import cPickle
 import collections
 
-from pandas.core.indexing import _NDFrameIndexer
+from pandas.core.indexing import _IXIndexer, _IXIndexer
 
 from pandas import DataFrame, Series, TimeSeries
 
@@ -235,25 +235,25 @@ class MetaDataFrame(object):
         ''' Pandas Indexing.  Note, this has been modified to ensure that series returns (eg ix[3])
         still maintain attributes.  To remove this behavior, replace the following:
         
-        self._ix = _MetaIndexer(self, _NDFrameIndexer(self) ) --> self._ix=_NDFrameIndexer(self)
+        self._ix = _MetaIndexer(self, _IXIndexer(self) ) --> self._ix=_IXIndexer(self)
         
-        The above works because slicing preserved attributes because the _NDFrameIndexer is a python object 
+        The above works because slicing preserved attributes because the _IXIndexer is a python object 
         subclass.'''
         if self._ix is None:
             try:
                 self._ix=_MetaIndexer(self)
-            ### New versions of _NDFrameIndexer require "name" attribute.
+            ### New versions of _IXIndexer require "name" attribute.
             except TypeError as TE:
                 self._ix=_MetaIndexer(self, '_ix')
         return self._ix        
             
-class _MetaIndexer(_NDFrameIndexer):
+class _MetaIndexer(_IXIndexer):
     ''' Intercepts the slicing of ix so Series returns can be handled properly.  In addition,
         it makes sure that the new index is assigned properly.
         
         Notes:
         -----
-          Under the hood pandas called upon _NDFrameIndexer methods, so this merely overwrites the
+          Under the hood pandas called upon _IXIndexer methods, so this merely overwrites the
           ___getitem__() method and leaves all the rest intact'''
     
     def __getitem__(self, key):

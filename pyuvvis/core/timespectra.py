@@ -7,7 +7,7 @@ from types import NoneType, MethodType
 from operator import itemgetter
 
 import numpy as np
-from pandas import DataFrame, DatetimeIndex, Index, Series, date_range
+from pandas import DataFrame, DatetimeIndex, Index, Series, date_range, read_csv
 from scipy import integrate
 #from scikits.learn import PCA
 from pca_scikit import PCA
@@ -117,15 +117,23 @@ def spec_from_dir(directory, csvargs, sortnames=False, concat_axis=1, shortname=
     return TimeSpectra(df_from_directory(directory, csvargs, sortnames=sortnames, concat_axis=concat_axis, shortname=shortname, cut_extension=cut_extension))
 
 
-@logclass(log_name=__name__, skip = ['wraps','_dfgetattr', '_comment', '_transfer'])
+# Ignore all class methods!
+@logclass(log_name=__name__, skip = ['wraps','_dfgetattr', 'from_csv',                                 '_comment', '_transfer'])
 class TimeSpectra(MetaDataFrame):
-    ''' Provides core TimeSpectra composite pandas DataFrame to represent a set of spectral data.  Enforces spectral data 
-    along the index and temporal data as columns.  The spectral index is controlled from the specindex
-    module, which has a psuedo-class called SpecIndex (really a monkey patched Index).  Temporal data is stored using a DatetimeIndex or
-    a modified interval reprentation.  The need to support two types of temporal index, one of which is Pandas builtin DatetimeIndex is what led me
-    to not create a special index object (like SpecIndex).  Other spectral axis types (like Temperature axis) should probably be built close to the manner of 
-    Spec index.  The TimeSpectra dataframe actually stores enough temporal metadatato go back an forth between DatetimeIndex and
-    Interval representations.  It does this by generating one or the other on the fly, and never relies on the current label object to generate teh next object.'''
+    """ Provides core TimeSpectra composite pandas DataFrame to represent a set 
+    of spectral data.  Enforces spectral data along the index and temporal 
+    data as columns.  The spectral index is controlled from the specindex module, 
+    which has a psuedo-class called SpecIndex (really a monkey patched Index). 
+    Temporal data is stored using a DatetimeIndex or a modified interval 
+    reprentation.  The need to support two types of temporal index, one of 
+    which is Pandas builtin DatetimeIndex is what led me to not create a 
+    special index object (like SpecIndex).  Other spectral axis types (like 
+    Temperature axis) should probably be built close to the manner of Spec index.
+    The TimeSpectra dataframe actually stores enough temporal metadatato go back 
+    and forth between DatetimeIndex and Interval representations.  
+    It does this by generating one or the other on the fly, and never relies on 
+    the current label object to generate teh next object.
+    """
 
     def __init__(self, *dfargs, **dfkwargs):
         # Pop default DataFrame keywords before initializing###
@@ -967,6 +975,8 @@ class TimeSpectra(MetaDataFrame):
             # Index, although should be correct, is type object and is getting falses for entries...
             logger.critical('Subtracting baseline, but may not have all: elements being equal.  Fix index')
             self._df = self._df.sub(self._baseline, axis=0)
+            if self._reference is not None:
+                self._reference = self._reference.sub(self._baseline, axis=0)
             self._base_sub = True
             
         else:
@@ -980,8 +990,10 @@ class TimeSpectra(MetaDataFrame):
         
         # Only add if baseline is currently in a subtracted state
         if self._base_sub:
-            self._df = self._df.add(self._baseline, axis=0)        
-            self._base_sub = False
+            self._df = self._df.add(self._baseline, axis=0)   
+            if self._reference is not None:
+                self._reference = self._reference.add(self._baseline, axis=0)
+                self._base_sub = False
             
         #else:
             #print 'raise waring? already added'        
@@ -1409,51 +1421,37 @@ class TimeSpectra(MetaDataFrame):
             o=open(path_or_buff, 'a') #'w'?#
             o.write(meta)
             o.close()
-
-    def from_csv(path_or_buff, meta_separate=False, **csv_kwargs):
-        ''' Read from CSV file.
-        
-            Parameters:
-            ----------
-               path_or_buff: string path to infile destination.
-               
-               meta_separate: 
-                   If None: metadata is lost and self._df.to_csv(**csv_kwargs) is called.
-                   If False: metadata is serialized and output at taile file the path_or_buff file.
-                   If True: metadata is added to it's own file named path_or_buff.mdf
-                       
-               csv_kwargs: csv formatting arguments passed directoy to self._df.to_csv()
-               
-            Notes:
-            ------
-               MetaData is gotten from self.__dict__.
-               In future, may opt to implement the option to choose the meta_separate filename if 
-               output is separated (eg meta_separate=True)
-               
-               
-            Returns: TimeSpectra
-                 '''
-        if meta_separate == None:
-            return TimeSpectra(read_csv(path_or_buff, **csv_kwargs))
-
-        elif meta_separate == False:
-            fileHandle = open(path_or_buff, 'r')
-            lineList = fileHandle.readlines()
-            fileHandle.close()
-            meta=cPickle.loads(lineList[-1])        
-            # This could be buggy if __init__() from all the keywords is working correctly.
             
-            # Make sure user skips last line in file that was added in addition via meta_sepaarte
-            csv_kwargs['skip_footer']=csv_kwargs.pop('skip_footer', 0) + 1
-            df=df_read_csv(path_or_buff, **csv_kwargs)
-            
-            # This is hard part, how to set meta data
+
+    # CLASS METHODS
+    # -------------
+    
+    @classmethod
+    def from_csv(cls, path_or_buff, name=None, specunit=None, iunit=None,
+                 reference=None, baseline=None, intvlunit=None, **csv_kwargs):
+        ''' Read from CSV file.  Wrapping pandas read_csv:
+        http://pandas.pydata.org/pandas-docs/version/0.13.1/  \
+        generated/pandas.io.parsers.read_csv.html
         
-        elif meta_separate == True:
-            raise NotImplementedError("Haven't resolved, but this hsould return meta and df")
+        Parameters:
+        ----------
+        path_or_buff: (from pandas API) string or file handle / StringIO. 
+        The string could be a URL. Valid URL schemes include http, ftp, s3, 
+        and file. For file URLs, a host is expected. For instance, a local 
+        file could be file.
         
-        # Initialize timespectra from meta.  Is this how I want to do it?
-        ts=TimeSpectra(df, **meta) 
+        **csv_kwargs: valid keyword args to Pandas.       
+        
+        
+        Returns: TimeSpectra
+        '''
+        
+        
+
+        df = read_csv(path_or_buff, **csv_kwargs)
+
+        return cls(df, name=name, specunit=specunit, iunit=iunit, 
+                   reference=reference, baseline=baseline, intvlunit=intvlunit) 
               
 
 ## TESTING ###
@@ -1485,6 +1483,8 @@ if __name__ == '__main__':
                    columns=testdates2, 
                    index=spec, 
                    name='ts2') 
+    
+    ts.ix[500:800]
    
    
     from pyuvvis.IO.gwu_interfaces import from_spec_files, get_files_in_dir
