@@ -1,7 +1,10 @@
 # pyuvvis intefrace to plotly:
 # http://nbviewer.ipython.org/github/plotly/python-user-guide/blob/master/s00_homepage/s00_homepage.ipyn
 
+#import requests #bug if not imported
+import logging
 import plotly.graph_objs as grobs
+import numpy as np
 
 def make_trace(x, y, name):#, linecolor):  
     """Trace-generating function (returns a Scatter object) from timespectra"""
@@ -48,9 +51,10 @@ def figure(ts, **layoutkwds):
     lout = layout(ts, **layoutkwds)
     
     for clabel in ts:
-        trace = make_trace(ts.index, ts[clabel], clabel)
+        trace = make_trace(np.array(ts.index), np.array(ts[clabel]), clabel)
         data.append(trace)
-        
+
+    return grobs.Figure(data=data, layout=lout)
     
     
 if __name__ == '__main__':

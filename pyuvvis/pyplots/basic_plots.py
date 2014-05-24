@@ -8,7 +8,7 @@ __maintainer__ = "Adam Hughes"
 __email__ = "hugadams@gwmail.gwu.edu"
 __status__ = "Development"
 
-from plot_utils import _df_colormapper, _uvvis_colors, easy_legend, cmget, \
+from pyuvvis.plotting.plot_utils import _df_colormapper, _uvvis_colors, easy_legend, cmget, \
      _annotate_mappable
 import logging
 import numpy as np

@@ -14,7 +14,7 @@ import matplotlib.cm as cm
 from matplotlib.collections import PolyCollection
 from matplotlib.colors import colorConverter, Normalize
 
-from plot_utils import smart_label, _df_colormapper, cmget
+from pyuvvis.plotting.plot_utils import smart_label, _df_colormapper, cmget
 
 ### USE LOCAL VERSION USE
 #import sys
