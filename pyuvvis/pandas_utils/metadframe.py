@@ -227,6 +227,12 @@ class MetaDataFrame(object):
         return self._df.__iter__()
 
 
+    def iloc(self):
+        raise NotImplementedError
+    
+    def loc(self):
+        raise NotImplementedError
+
     ## Fancy indexing
     _ix=None     
         

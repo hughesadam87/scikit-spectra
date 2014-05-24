@@ -844,24 +844,26 @@ class TimeSpectra(MetaDataFrame):
     def timetypes(self):
         return tunits        
             
+            
     @property
     def timeunit(self):
         ''' Quick reference to current state of time labels.  For comprehensive output, try ts.label_stats()'''
-        if self._interval==True:
+        if self._interval == True:
             return self.intvlunit
-        elif self._interval==False:
+        elif self._interval == False:
             return 'Timestamp'
-        elif self._interval==None:
+        elif self._interval == None:
             return None
+
         
     @property
     def full_timeunit(self):
         ''' Quick reference to current state of time labels, except calls full_intvlunit instead of timeunit'''
-        if self._interval==True:
+        if self._interval == True:
             return self.full_intvlunit
-        elif self._interval==False:
+        elif self._interval == False:
             return 'Timestamp'
-        elif self._interval==None:
+        elif self._interval == None:
             return None
     
     
@@ -1445,11 +1447,8 @@ class TimeSpectra(MetaDataFrame):
         
         Returns: TimeSpectra
         '''
-        
-        
 
         df = read_csv(path_or_buff, **csv_kwargs)
-
         return cls(df, name=name, specunit=specunit, iunit=iunit, 
                    reference=reference, baseline=baseline, intvlunit=intvlunit) 
               
@@ -1484,8 +1483,9 @@ if __name__ == '__main__':
                    index=spec, 
                    name='ts2') 
     
-    ts.ix[500:800]
-   
+    from pyuvvis import specplot, areaplot
+    areaplot(ts)
+    plt.show()
    
     from pyuvvis.IO.gwu_interfaces import from_spec_files, get_files_in_dir
     from pyuvvis.exampledata import get_exampledata

@@ -29,6 +29,28 @@ def cmget(color):
         the default colormaps available to matplotlib (http://dept.astro.lsa.umich.edu/~msshin/science/code/matplotlib_cm/)') 
     return cmap
 
+
+def _annotate_mappable(df, cmap, axis=0, vmin=None, vmax=None):
+    
+    if isinstance(cmap, basestring): 
+        cmap=cmget(cmap)
+    
+    if axis != 0 and axis != 1:
+        raise badvalue_error(axis, 'integers 0 or 1')
+
+    # Min and max values of color map must be min and max of dataframe
+    if not vmin:
+        vmin=min(df.min(axis=axis))
+    if not vmax:        
+        vmax=max(df.max(axis=axis))
+        
+    cNorm = Normalize(vmin=vmin, vmax=vmax)
+    scalarmap = cm.ScalarMappable(norm=cNorm, cmap=cmap)    
+#   http://stackoverflow.com/questions/6600579/colorbar-for-matplotlib-plot-surface-command
+    scalarmap.set_array(np.arange(0,1)) #Thsi can be anything, arbitrary
+    return scalarmap, vmin, vmax
+
+
 def _df_colormapper(df, cmap, axis=0, colorbymax=False, vmin=None, vmax=None):
     ''' Maps matplotlibcolors to a dataframe based on the mean value of each curve along that
     axis.  
@@ -59,9 +81,9 @@ def _df_colormapper(df, cmap, axis=0, colorbymax=False, vmin=None, vmax=None):
     if not vmax:        
         vmax=max(df.max(axis=axis))
         
-    cNorm=Normalize(vmin=vmin, vmax=vmax)
-    scalarmap=cm.ScalarMappable(norm=cNorm, cmap=cmap)              
-
+    cNorm = Normalize(vmin=vmin, vmax=vmax)
+    scalarmap = cm.ScalarMappable(norm=cNorm, cmap=cmap)    
+    
     if axis == 0:
         if colorbymax:
             colors=[scalarmap.to_rgba(df[x].max()) for x in df.columns]

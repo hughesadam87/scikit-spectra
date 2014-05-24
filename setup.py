@@ -36,7 +36,8 @@ setup(
 #      'pyparty.bundled':['*.css'],   
       'pyuvvis.examples.Notebooks':['*.ipynb'],
       'pyuvvis.scripts.gwu_script':['*.png'],
-      'pyuvvis.data':['*']
+      'pyuvvis.data':['*'],
+      'pyuvvis.bundled':['*.css']
    },
        
     entry_points = {'console_scripts': 

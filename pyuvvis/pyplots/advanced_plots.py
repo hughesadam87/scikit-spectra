@@ -76,8 +76,8 @@ def plot2d(df, contours=6, label=None, colorbar=None, background=None, **pltkwds
     else:
         im=None
         
-    xx,yy=np.meshgrid(df.columns, df.index)
-    ax=plt.contour(xx, yy, df, contours, **pltkwds)    #linewidths is a pltkwds arg
+    xx,yy = np.meshgrid(df.columns, df.index)
+    ax = plt.contour(xx, yy, df, contours, **pltkwds)    #linewidths is a pltkwds arg
  
     ### Pick a few label styles to choose from.
     if label:

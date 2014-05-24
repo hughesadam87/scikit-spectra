@@ -49,14 +49,11 @@ def _load_gwuspec(filepath, *args, **kwargs):
     kwargs.setdefault('index_col', 0)
 
     # TimeSpec KWARGS
-#    kwargs.setdefault('baseline', 0)
-    kwargs.setdefault('reference', 0)
+    kwargs.setdefault('reference', 0) #Index col will be removed.
     kwargs.setdefault('specunit', 'nm')
     ts = load_ts(filepath, *args, **kwargs)
 
-    # CSV baseline is in dataset, so subtract and then pop
-#    ts.sub_base()
-#    ts.pop(ts.columns[0])
+    # Baselines removed apriori with dynamic_baseline
     return ts
 
 

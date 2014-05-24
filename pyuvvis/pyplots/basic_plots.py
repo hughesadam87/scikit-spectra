@@ -8,26 +8,45 @@ __maintainer__ = "Adam Hughes"
 __email__ = "hugadams@gwmail.gwu.edu"
 __status__ = "Development"
 
-from plot_utils import _df_colormapper, _uvvis_colors, easy_legend, cmget
+from plot_utils import _df_colormapper, _uvvis_colors, easy_legend, cmget, \
+     _annotate_mappable
 import logging
+import numpy as np
+import matplotlib.pyplot as plt
 
 logger = logging.getLogger(__name__)
+
+class PlotError(Exception):
+    """ """
+
 
 #XXX UPDATE DOCSTRING
 def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
     ''' Generic wrapper to ts.plot(), that takes in x/y/title as parsed
     from various calling functions:
-       NEW KEYWORDS:
-           grid
-           color
-           labelsize
-           titlesize
-           ticksize '''
+    NEW KEYWORDS:
+        grid
+        color
+        labelsize
+        titlesize
+        ticksize 
+    '''
              
     # Add custom legend interface.  Keyword legstyle does custom ones, if pltkwrd legend==True
     # For now this could use improvement  
     pltkwargs.setdefault('legend', False)
-    legstyle = pltkwargs.pop('legstyle', None)          
+    legstyle = pltkwargs.pop('legstyle', None)   
+
+    fig = pltkwargs.pop('fig', None)
+    ax = pltkwargs.pop('ax', None)
+    cbar = pltkwargs.pop('cbar', None)
+    _barlabels = 5 #Number of ticks/labels in colorbar
+    
+    if not ax:
+        f, ax = plt.subplots(1)
+        if not fig:
+            fig = f
+        pltkwargs['ax'] = ax
     
     # Grid (add support for minor grids later)
     grid = pltkwargs.pop('grid', True)
@@ -52,9 +71,21 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
         else:
             pltkwargs['color'] = _df_colormapper(ts, pltcolor, axis=0)#cmget(pltkwargs['color'])
 
- 
+    # Since df.plot takes ax, multi axes inherently supported.
     ax = ts.plot(**pltkwargs)
     
+    if cbar:
+        if not fig:
+            raise PlotError("Color bar requries access to Figure.  Either pass fig"
+                            " keyword or do not pass custom AxesSubplot.")
+        mappable, vmin, vmax = _annotate_mappable(ts, pltcolor, axis=0)
+        cbar = fig.colorbar(mappable, ticks=np.linspace(vmin, vmax, _barlabels))
+        label_indices = np.linspace(0, len(ts.columns), _barlabels)
+        label_indices = [int(round(x)) for x in label_indices]
+        if label_indices[-1] > len(ts.columns)-1:
+            label_indices[-1] = len(ts.columns)-1 #Rounds over max
+        cbar.ax.set_yticklabels([ts.columns[x] for x in label_indices])
+        
     # Add minor ticks through tick parameters  
     ax.minorticks_on()
         
@@ -151,21 +182,23 @@ def range_timeplot(ranged_ts, **pltkwds):
     return _genplot(ranged_ts.transpose(), xlabel, ylabel, title,**pltkwds)   #ts TRANSPOSE
 
 def areaplot(ranged_ts, **pltkwds):
-    ''' Makes plots based on ranged time intervals from spec_utilities.wavelength_slices().
-    Uses a special function, _uvvis_colorss() to map the visible spectrum.  Changes default legend
-    behavior to true.
+    """
+    Makes plots based on ranged time intervals from spec_utilities.wavelength_slices().
+    Uses a special function, _uvvis_colorss() to map the visible spectrum.  
+    Changes default legend behavior to true.
     
     Notes:
     ------
-    Added some extra functionality on 2/13/13, to make it ok if user passed in transposed() or non-transposed(). 
-    Additionally, if user passes non Mx1 dimensional plot, it recomputes the area.  Hence, user can just do areaplot(ts)
-    '''
+    Added some extra functionality on 2/13/13, to make it ok if user passed in 
+    transposed() or non-transposed(). Additionally, if user passes non Mx1
+    dimensional plot, it recomputes the area.  Hence, user can just do areaplot(ts)
+    """
     
     # If not M x 1 shape, recompute area
     rows, cols = ranged_ts.shape
     if cols != 1 and rows != 1:
         try:
-            ranged_ts=ranged_ts.area()
+            ranged_ts = ranged_ts.area()
         except Exception:
             # Often error is if someone passed in transposed area using datetime index
             raise IOError('Could not successfully run .area() on %s object.' % 
@@ -178,6 +211,7 @@ def areaplot(ranged_ts, **pltkwds):
     pltkwds.setdefault('legend', False)
     pltkwds.setdefault('linewidth', 3.0)
     
+
     xlabel = pltkwds.pop('xlabel', ranged_ts.full_timeunit)  
     ylabel = pltkwds.pop('ylabel', ranged_ts.full_iunit)    
     title = pltkwds.pop('title', 'Area Plot: '+ ranged_ts.name )      
