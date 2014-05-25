@@ -100,6 +100,7 @@ def _df_colormapper(df, cmap, axis=0, colorbymax=False, vmin=None, vmax=None):
         
     return colors
     
+# Is this deprecated??
 def _uvvis_colors(df, delim=':'):
     '''    From a dataframe with indicies of ranged wavelengths (eg 450.0:400.0), and builds colormap
     with fixed uv_vis limits (for now 400, 700).  Here are some builtin ones:

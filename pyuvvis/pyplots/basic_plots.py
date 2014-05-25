@@ -19,7 +19,6 @@ logger = logging.getLogger(__name__)
 class PlotError(Exception):
     """ """
 
-
 #XXX UPDATE DOCSTRING
 def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
     ''' Generic wrapper to ts.plot(), that takes in x/y/title as parsed
@@ -231,5 +230,8 @@ def areaplot(ranged_ts, **pltkwds):
     # assign specunit to the index, which is a time index (this causes error in new pandas)
     return _genplot(out, xlabel, ylabel, title, **pltkwds)   #ts TRANSPOSE
     
-
+if __name__ == '__main__':
+    from pyuvvis.data import test_spectra
+    ts = test_spectra()
+    specplot(ts)
     
