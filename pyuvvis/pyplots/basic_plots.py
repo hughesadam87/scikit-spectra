@@ -8,8 +8,7 @@ __maintainer__ = "Adam Hughes"
 __email__ = "hugadams@gwmail.gwu.edu"
 __status__ = "Development"
 
-from pyuvvis.plotting.plot_utils import _df_colormapper, _uvvis_colors, easy_legend, cmget, \
-     _annotate_mappable
+import pyuvvis.plotting.plot_utils as put
 import logging
 import numpy as np
 import matplotlib.pyplot as plt
@@ -60,15 +59,15 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
         logger.warn('_genplot(): overwriting kwarg "colors" to "color"')
         
     # Axis = 0, assumes timeplot has passed transposed array for example
-    pltcolor = pltkwargs.setdefault('color', _df_colormapper(ts, 'jet', axis=0) )         
+    pltcolor = pltkwargs.setdefault('color', put._df_colormapper(ts, 'jet', axis=0) )         
     if isinstance(pltcolor, basestring):
         # Try color mapping; if none found, retain string (eg 'red')
         try:
-            cmget(pltcolor) #Validate color map
+            put.cmget(pltcolor) #Validate color map
         except AttributeError:
             pass
         else:
-            pltkwargs['color'] = _df_colormapper(ts, pltcolor, axis=0)#cmget(pltkwargs['color'])
+            pltkwargs['color'] = put._df_colormapper(ts, pltcolor, axis=0)#put.cmget(pltkwargs['color'])
 
     # Since df.plot takes ax, multi axes inherently supported.
     ax = ts.plot(**pltkwargs)
@@ -77,7 +76,7 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
         if not fig:
             raise PlotError("Color bar requries access to Figure.  Either pass fig"
                             " keyword or do not pass custom AxesSubplot.")
-        mappable, vmin, vmax = _annotate_mappable(ts, pltcolor, axis=0)
+        mappable, vmin, vmax = _put.annotate_mappable(ts, pltcolor, axis=0)
         cbar = fig.colorbar(mappable, ticks=np.linspace(vmin, vmax, _barlabels))
         label_indices = np.linspace(0, len(ts.columns), _barlabels)
         label_indices = [int(round(x)) for x in label_indices]
@@ -98,7 +97,7 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
         elif legstyle == 1:
             ax.legend(loc='upper left', ncol=2, shadow=True, fancybox=True)  
         elif legstyle == 2:
-            ax=easy_legend(ax, position='top', fancy=True)
+            ax=put.easy_legend(ax, position='top', fancy=True)
             
     if grid:
         ax.grid(True)
@@ -122,7 +121,7 @@ def specplot(ts, **pltkwds):
     ''' Basically a call to gen plot with special attributes, and a default color mapper.'''
 
     pltkwds['linewidth'] = pltkwds.pop('linewidth', 1.0 )    
-#    pltkwds['color'] = pltkwds.pop('color', _df_colormapper(ts, 'jet', axis=0) )         
+#    pltkwds['color'] = pltkwds.pop('color', put._df_colormapper(ts, 'jet', axis=0) )         
            
     xlabel = pltkwds.pop('xlabel', ts.full_specunit)  
     ylabel = pltkwds.pop('ylabel', ts.full_iunit+' (Counts)')    
@@ -166,10 +165,10 @@ def absplot(ts, default='a', **pltkwds):
 # Requires ranged dataframe used wavelength slices method
 def range_timeplot(ranged_ts, **pltkwds):
     ''' Makes plots based on ranged time intervals from spec_utilities.wavelength_slices().
-    Uses a special function, _uvvis_colorss() to map the visible spectrum.  Changes default legend
+    Uses a special function, put._uvvis_colorss() to map the visible spectrum.  Changes default legend
     behavior to true.'''
 
-    pltkwds['color'] = pltkwds.pop('color', _uvvis_colors(ranged_ts))
+    pltkwds['color'] = pltkwds.pop('color', put._uvvis_colors(ranged_ts))
     pltkwds['legend'] = pltkwds.pop('legend', True)
     pltkwds['linewidth'] = pltkwds.pop('linewidth', 3.0 )  
           
@@ -183,7 +182,7 @@ def range_timeplot(ranged_ts, **pltkwds):
 def areaplot(ranged_ts, **pltkwds):
     """
     Makes plots based on ranged time intervals from spec_utilities.wavelength_slices().
-    Uses a special function, _uvvis_colorss() to map the visible spectrum.  
+    Uses a special function, put._uvvis_colorss() to map the visible spectrum.  
     Changes default legend behavior to true.
     
     Notes:

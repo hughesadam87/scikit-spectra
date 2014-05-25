@@ -4,7 +4,7 @@
 #import requests #bug if not imported
 import plotly.graph_objs as grobs
 import numpy as np
-from pyuvvis.plotting.plot_utils import _df_colormapper, cmget
+import pyuvvis.plotting.plot_utils as put
 
 def make_linetrace(x, y, **tracekwargs):#, linecolor):  
     """Trace-generating function (returns a Scatter object) from timespectra"""
@@ -75,19 +75,22 @@ def ply_figure(ts, color='jet', **layoutkwds):
     
     # List of colors, either single color or color map
     try:
-        cmapper = cmget(color) #Validate color map
+        cmapper = put.cmget(color) #Validate color map
     except AttributeError:
         cmapper = [color for i in range(len(ts.columns))]
     else:
-        cmapper = _df_colormapper(ts, color, axis=0)        
+        cmapper = put._df_colormapper(ts, color, axis=0)        
         
-    ### REFACTOR COLORS
-    out = []
-    for c in cmapper:
-        r,g,b = c[0:3]
-        out.append('rgb(%s,%s,%s)'%(r*255., g*255., b*255))
-    cmapper = out
+    # Map colors to rgb
+    cmapper = map(put.to_normrgb, cmapper)    
     
+    # Scale by 255 and string format for plotly
+    def _rgbplotlycolor(rgb):
+        r,g,b = rgb
+        return 'rgb(%s, %s, %s)' % (255.0*r, 255.0*g, 255.0*b)
+    
+    cmapper = map(_rgbplotlycolor, cmapper)
+
     for idx, clabel in enumerate(ts):
         trace = make_linetrace(x=np.array(ts.index), 
                            y=np.array(ts[clabel]), 

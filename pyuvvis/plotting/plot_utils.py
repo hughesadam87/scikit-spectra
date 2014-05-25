@@ -12,13 +12,18 @@ __status__ = "Development"
 from matplotlib.colors import cnames, Normalize
 import matplotlib.cm as cm
 import numpy as np
-
+import skimage.color as skcol #BUNDLE THIS!
 ### For local use
 #import sys
 #sys.path.append('../')
 #from custom_errors import badvalue_error
 
 from pyuvvis.exceptions import badvalue_error
+
+DEFCOLOR = (1.0, 0.0, 0.0)
+
+class ColorError(Exception):
+    """ """
 
 def cmget(color):
     ''' Return colormap from string (eg 'jet')'''
@@ -99,8 +104,33 @@ def _df_colormapper(df, cmap, axis=0, colorbymax=False, vmin=None, vmax=None):
                       np.linspace(vmin, vmax, len(df.index))]
         
     return colors
-    
-# Is this deprecated??
+
+def to_normrgb(color):
+    """ Returns an rgb len(3) tuple on range 0.0-1.0 with several input styles; 
+        wraps matplotlib.color.ColorConvert.  If None, returns config.PCOLOR by
+        default."""
+
+    if color is None:
+        color = DEFCOLOR 
+
+    # If iterable, assume 3-channel RGB
+    if hasattr(color, '__iter__'):
+        if len(color) != 3:
+            if len(color) == 4:
+                color = color[0:3]
+             #   logger.warn("4-channel RGBA recieved; ignoring A channel")
+            else:
+                raise ColorError("Multi-channel color must be 3-channel;"
+                             " recieved %s" % len(color))
+        r, g, b = color
+        if r <= 1 and g <= 1 and b <= 1:
+            return (r, g, b)
+
+        # Any thing like (0, 255, 30) ... uses 255 as upper limit!
+        else:
+            r, g, b = map(_pix_norm, (r, g, b) )        
+            return (r, g, b)
+
 def _uvvis_colors(df, delim=':'):
     '''    From a dataframe with indicies of ranged wavelengths (eg 450.0:400.0), and builds colormap
     with fixed uv_vis limits (for now 400, 700).  Here are some builtin ones:
