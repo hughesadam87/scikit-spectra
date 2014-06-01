@@ -102,7 +102,7 @@ def ply_figure(ts, color='jet', **layoutkwds):
 
     for idx, clabel in enumerate(ts):
         trace = make_linetrace(
-            x = np.array(ts.index), 
+            x = np.array(ts.index),               # Not necessary to force to np.array.dtype(float)
             y = np.array(ts[ts.columns[idx]]),
             name=clabel,
             color=cmapper[idx] #marker color
