@@ -1,7 +1,6 @@
 # pyuvvis intefrace to plotly:
 # http://nbviewer.ipython.org/github/plotly/python-user-guide/blob/master/s00_homepage/s00_homepage.ipyn
 
-#import requests #bug if not imported
 import plotly.graph_objs as grobs
 import numpy as np
 import pyuvvis.plotting.plot_utils as put
@@ -47,7 +46,7 @@ def layout(ts, *args, **kwargs):
 
     # Map x,y title into grobs.XAxis and grobs.YAxis
     xtitle = kwargs.pop('xtitle', ts.specunit)
-    ytitle = kwargs.pop('ytitle', ts.iunit)
+    ytitle = kwargs.pop('ytitle', ts.specunit)
     kwargs['xaxis'] = grobs.XAxis(title=xtitle)
     kwargs['yaxis'] = grobs.YAxis(title=ytitle)
     
@@ -92,10 +91,15 @@ def ply_figure(ts, color='jet', **layoutkwds):
     cmapper = map(_rgbplotlycolor, cmapper)
 
     for idx, clabel in enumerate(ts):
-        trace = make_linetrace(x=np.array(ts.index), 
-                           y=np.array(ts[clabel]), 
-                           name=clabel,
-                           color=cmapper[idx]) #marker color
+        trace = make_linetrace(
+            x = list(np.linspace(0,6.28)),
+            y = list(np.sin(np.linspace(0,6.28))),
+            #x = np.array(ts.index).astype(float), 
+            #y = np.array(ts.index).astype(float),
+#                           y = np.array(ts[clabel]), 
+#                           name=clabel,
+#                           color=cmapper[idx]
+            ) #marker color
         data.append(trace)
 
     return grobs.Figure(data=data, layout=lout)
