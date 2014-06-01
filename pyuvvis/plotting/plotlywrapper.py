@@ -37,16 +37,26 @@ def make_pointtrace(x, y, **tracekwargs):#, linecolor):
                          )
 
 
+def _parsenull(value):
+    """ 1.0.22 plotly will error if gets axis titles of None (turns into null)
+    in the json.  Therefore, this replaced values of None with an empty string.
+    This may be fixed in later version of plotly."""
+    if not value:
+        value = ''
+    return value
+
 def layout(ts, *args, **kwargs):
     """ Make a plotly layout from timespectra attributes """    
     
-    kwargs.setdefault('title', ts.name)
+    kwargs.setdefault('title', _parsenull(ts.name))
     kwargs.setdefault('plot_bgcolor', '#EFECEA') #gray
     kwargs.setdefault('showlegend', False)
 
     # Map x,y title into grobs.XAxis and grobs.YAxis
-    xtitle = kwargs.pop('xtitle', ts.specunit)
-    ytitle = kwargs.pop('ytitle', ts.specunit)
+    xtitle = _parsenull(kwargs.pop('xtitle', ts.specunit))
+    ytitle = _parsenull(kwargs.pop('ytitle', ts.iunit))    
+
+   
     kwargs['xaxis'] = grobs.XAxis(title=xtitle)
     kwargs['yaxis'] = grobs.YAxis(title=ytitle)
     
@@ -92,14 +102,11 @@ def ply_figure(ts, color='jet', **layoutkwds):
 
     for idx, clabel in enumerate(ts):
         trace = make_linetrace(
-            x = list(np.linspace(0,6.28)),
-            y = list(np.sin(np.linspace(0,6.28))),
-            #x = np.array(ts.index).astype(float), 
-            #y = np.array(ts.index).astype(float),
-#                           y = np.array(ts[clabel]), 
-#                           name=clabel,
-#                           color=cmapper[idx]
-            ) #marker color
+            x = np.array(ts.index), 
+            y = np.array(ts[ts.columns[idx]]),
+            name=clabel,
+            color=cmapper[idx] #marker color
+            ) 
         data.append(trace)
 
     return grobs.Figure(data=data, layout=lout)
