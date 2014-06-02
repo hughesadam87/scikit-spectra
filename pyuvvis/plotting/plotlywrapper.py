@@ -20,7 +20,7 @@ def make_linetrace(x, y, **tracekwargs):#, linecolor):
                          marker= grobs.Line(**tracekwargs) 
                          )
 
-def make_pointtrace(x, y, **tracekwargs):#, linecolor):  
+def make_pointtrace(x, y, **tracekwargs):  
     """Trace-generating function (returns a Scatter object) from timespectra"""
     # good example of trace options http://plot.ly/python/bubblecharts
     
@@ -28,7 +28,7 @@ def make_pointtrace(x, y, **tracekwargs):#, linecolor):
     tracekwargs.setdefault('color', 'rgb(255,0,0)') #markercolor
     tracekwargs.setdefault('symbol', 'circle')
     tracekwargs.setdefault('opacity', 1.0)
-    tracekwargs.setdefault('size', 12)
+    tracekwargs.setdefault('size', 10)
 
     return grobs.Scatter(x=x,
                          y=y,
@@ -44,6 +44,7 @@ def _parsenull(value):
     if not value:
         value = ''
     return value
+
 
 def layout(ts, *args, **kwargs):
     """ Make a plotly layout from timespectra attributes """    
@@ -80,6 +81,7 @@ def ply_figure(ts, color='jet', **layoutkwds):
     """
     
     data = grobs.Data()
+    points = layoutkwds.pop('points', False)
     lout = layout(ts, **layoutkwds)    
     
     # List of colors, either single color or color map
@@ -100,8 +102,13 @@ def ply_figure(ts, color='jet', **layoutkwds):
     
     cmapper = map(_rgbplotlycolor, cmapper)
 
-    for idx, clabel in enumerate(ts):
-        trace = make_linetrace(
+    if points:
+        tracefcn = make_pointtrace
+    else:
+        tracefcn = make_linetrace
+
+    for idx, clabel in enumerate(ts):            
+        trace = tracefcn(
             x = np.array(ts.index),               # Not necessary to force to np.array.dtype(float)
             y = np.array(ts[ts.columns[idx]]),
             name=clabel,
@@ -120,10 +127,6 @@ if __name__ == '__main__':
     import plotly.plotly as py
     py.sign_in('reeveslab', 'pdtrwl7yjd')
     
-    fig = ply_figure(ts, color='jet')
+    fig = ply_figure(ts, color='black', points=True)
     py.iplot(fig, filename='foo', fileopt='new')    
     print 'FINISHED PLOT 1'
-    
-    fig = ply_figure(ts, color='bone')
-    py.iplot(fig, filename='bar', fileopt='new')        
-    print 'FINISHED PLOT 2'

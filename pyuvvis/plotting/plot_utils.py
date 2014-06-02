@@ -9,18 +9,16 @@ __maintainer__ = "Adam Hughes"
 __email__ = "hugadams@gwmail.gwu.edu"
 __status__ = "Development"
 
-from matplotlib.colors import cnames, Normalize
-import matplotlib.cm as cm
 import numpy as np
-import skimage.color as skcol #BUNDLE THIS!
-### For local use
-#import sys
-#sys.path.append('../')
-#from custom_errors import badvalue_error
+
+import matplotlib.colors as mplcolors
+import matplotlib.cm as cm
 
 from pyuvvis.exceptions import badvalue_error
 
 DEFCOLOR = (1.0, 0.0, 0.0)
+
+_rgb_from_string = mplcolors.ColorConverter().to_rgb
 
 class ColorError(Exception):
     """ """
@@ -49,7 +47,7 @@ def _annotate_mappable(df, cmap, axis=0, vmin=None, vmax=None):
     if not vmax:        
         vmax=max(df.max(axis=axis))
         
-    cNorm = Normalize(vmin=vmin, vmax=vmax)
+    cNorm = mplcolors.Normalize(vmin=vmin, vmax=vmax)
     scalarmap = cm.ScalarMappable(norm=cNorm, cmap=cmap)    
 #   http://stackoverflow.com/questions/6600579/colorbar-for-matplotlib-plot-surface-command
     scalarmap.set_array(np.arange(0,1)) #Thsi can be anything, arbitrary
@@ -86,7 +84,7 @@ def _df_colormapper(df, cmap, axis=0, colorbymax=False, vmin=None, vmax=None):
     if not vmax:        
         vmax=max(df.max(axis=axis))
         
-    cNorm = Normalize(vmin=vmin, vmax=vmax)
+    cNorm = mplcolors.Normalize(vmin=vmin, vmax=vmax)
     scalarmap = cm.ScalarMappable(norm=cNorm, cmap=cmap)    
     
     if axis == 0:
@@ -131,6 +129,29 @@ def to_normrgb(color):
             r, g, b = map(_pix_norm, (r, g, b) )        
             return (r, g, b)
 
+
+    if isinstance(color, str):
+        if color == 'random':
+            raise NotImplementedError("random color generation not supported")
+#            color = rand_color(style='hex')            
+        return _rgb_from_string(color)
+
+    # If single channel --> map accross channels EG 22 --> (22, 22, 22)
+    if isinstance(color, int):
+        color = float(color)
+
+    if isinstance(color, float):
+        if color > 1:
+            color = _pix_norm(color)
+        return (color, color, color)
+
+    if isinstance(color, bool):
+        if color:
+            return (1.,1.,1.)
+        return (0.,0.,0.)
+
+    raise ColorError(ERRORMESSAGE)        
+
 def _uvvis_colors(df, delim=':'):
     '''    From a dataframe with indicies of ranged wavelengths (eg 450.0:400.0), and builds colormap
     with fixed uv_vis limits (for now 400, 700).  Here are some builtin ones:
@@ -138,7 +159,7 @@ def _uvvis_colors(df, delim=':'):
     
     Colors each curve based on the mid value in range. '''
     colors=[]
-    cNorm=Normalize(vmin=350.0, vmax=700.0)
+    cNorm=mplcolors.Normalize(vmin=350.0, vmax=700.0)
     scalarmap=cm.ScalarMappable(norm=cNorm, cmap=cm.jet)  
 
     for rng in df.index:
