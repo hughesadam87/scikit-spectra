@@ -32,8 +32,14 @@ from pyuvvis.pyplots.advanced_plots import spec_surface3d
 from pyuvvis.exceptions import badkey_check, badcount_error, RefError, BaselineError
 
 # Put in a separte file of constants?
-tunits={'ns':'Nanoseconds', 'us':'Microseconds', 'ms':'Milliseconds', 's':'Seconds', 
-        'm':'Minutes', 'h':'Hours','d':'Days', 'y':'Years'}  #ADD NULL VALUE? Like None:'No Time Unit' (iunit/specunit do this)
+tunits={'ns':'Nanoseconds', 
+        'us':'Microseconds',
+        'ms':'Milliseconds', 
+        's':'Seconds', 
+        'm':'Minutes', 
+        'h':'Hours',
+        'd':'Days', 
+        'y':'Years'}  #ADD NULL VALUE? Like None:'No Time Unit' (iunit/specunit do this)
 
 logger = logging.getLogger(__name__) 
    
