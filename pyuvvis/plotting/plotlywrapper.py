@@ -11,14 +11,16 @@ def make_linetrace(x, y, **tracekwargs):#, linecolor):
     
     name = tracekwargs.pop('name', '')
     tracekwargs.setdefault('color', 'rgb(255,0,0)') #markercolor
-    tracekwargs.setdefault('opacity', 1.0) 
-    
+    #tracekwargs.setdefault('opacity', 1.0) 
+    #tracekwargs.setdefault('width', 1.0) 
+        
     return grobs.Scatter(x=x,
                          y=y,          
                          mode='lines',          
                          name=name,          
                          marker= grobs.Line(**tracekwargs) 
                          )
+
 
 def make_pointtrace(x, y, **tracekwargs):  
     """Trace-generating function (returns a Scatter object) from timespectra"""
@@ -27,8 +29,9 @@ def make_pointtrace(x, y, **tracekwargs):
     name = tracekwargs.pop('name', '')    
     tracekwargs.setdefault('color', 'rgb(255,0,0)') #markercolor
     tracekwargs.setdefault('symbol', 'circle')
-    tracekwargs.setdefault('opacity', 1.0)
+    #tracekwargs.setdefault('opacity', 1.0)
     tracekwargs.setdefault('size', 10)
+
 
     return grobs.Scatter(x=x,
                          y=y,
@@ -75,13 +78,28 @@ def layout(ts, *args, **kwargs):
     return layout
     
 
-def ply_figure(ts, color='jet', **layoutkwds):
+def ply_fig(ts, points=False, color='jet', **kwds):
     """ Convert a timespectra to plotly Figure.  Figures can be then directly
-    plotted with plotly.iplot(figure) in the notebook.
+    plotted with plotly.iplot(figure) in the notebook.  Use the layout keyword
+    to specify layout parameters; all other keywords are interpreted as line style
+    keywords (color
+    
+    Parameters
+    ----------
+    
+    points: bool
+        If true, scatter plot; else, lineplots
+        
+    color: str
+        Any valid matplotlib color or colormap.
+    
+    layout: dict
+        Dictionary of keywords that go into layout.  
+        
     """
     
     data = grobs.Data()
-    points = layoutkwds.pop('points', False)
+    layoutkwds = kwds.pop('layout', {})
     lout = layout(ts, **layoutkwds)    
     
     # List of colors, either single color or color map
@@ -112,20 +130,30 @@ def ply_figure(ts, color='jet', **layoutkwds):
             x = np.array(ts.index),               # Not necessary to force to np.array.dtype(float)
             y = np.array(ts[ts.columns[idx]]),
             name=clabel,
-            color=cmapper[idx] #marker color
+            color=cmapper[idx], #marker color
+            **kwds
             ) 
         data.append(trace)
 
     return grobs.Figure(data=data, layout=lout)
+
+
+#def ply_multifig(*figargs):
+    #""" """
+    #for fig in figargs:
+        #ts,  
     
     
 if __name__ == '__main__':
     from pyuvvis.data import test_spectra
     ts = test_spectra()
     out = ply_figure(ts)
+
+    print tls.get_subplots(rows=3, columns=2, print_grid=True)
+
     
     import plotly.plotly as py
-    py.sign_in('reeveslab', 'pdtrwl7yjd')
+    py.sign_in('reeveslab', 'hfpi35mejw')
     
     fig = ply_figure(ts, color='black', points=True)
     py.iplot(fig, filename='foo', fileopt='new')    

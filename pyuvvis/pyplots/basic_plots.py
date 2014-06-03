@@ -33,6 +33,7 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
     # Add custom legend interface.  Keyword legstyle does custom ones, if pltkwrd legend==True
     # For now this could use improvement  
     pltkwargs.setdefault('legend', False)
+    pltkwargs.setdefault('linewidth', 2)
     legstyle = pltkwargs.pop('legstyle', None)   
 
     fig = pltkwargs.pop('fig', None)
@@ -44,7 +45,8 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
         f, ax = plt.subplots(1)
         if not fig:
             fig = f
-        pltkwargs['ax'] = ax
+        
+    pltkwargs['ax'] = ax
     
     # Grid (add support for minor grids later)
     grid = pltkwargs.pop('grid', True)
