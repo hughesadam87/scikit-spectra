@@ -22,6 +22,7 @@ from collections import OrderedDict
 from time import gmtime, strftime
 
 # PYUVVIS IMPORTS
+from pyuvvis.bundled import run_nb_offline
 from pyuvvis.plotting import specplot, areaplot, absplot, range_timeplot
 from pyuvvis.plotting import spec_surface3d, surf3d, spec_poly3d, plot2d, plot3d
 from pyuvvis.core.spec_labeltools import datetime_convert, spec_slice
@@ -534,8 +535,13 @@ class Controller(object):
         template = template.replace('---CREATED---',  strftime("%Y-%m-%d %H:%M:%S", gmtime()))
         template = template.replace('---ROOT---', self.inroot)
         template = template.replace('---PARAMS---', self.params.as_markdownlist())
-        template = template.replace('---CSVPATH---', op.basename(cropped_csv_path))
+        
+        # Pass the full csv file otherwise run_nb_offline won't be in right wd
+        template = template.replace('---CSVPATH---', cropped_csv_path)
         open(NBPATH, 'w').write(template)
+        
+        # Execute the notebook
+        run_nb_offline(NBPATH)
     
         
         #Iterate over various iunits
