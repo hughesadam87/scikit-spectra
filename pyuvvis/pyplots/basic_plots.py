@@ -78,7 +78,7 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
         if not fig:
             raise PlotError("Color bar requries access to Figure.  Either pass fig"
                             " keyword or do not pass custom AxesSubplot.")
-        mappable, vmin, vmax = _put.annotate_mappable(ts, pltcolor, axis=0)
+        mappable, vmin, vmax = put._annotate_mappable(ts, pltcolor, axis=0)
         cbar = fig.colorbar(mappable, ticks=np.linspace(vmin, vmax, _barlabels))
         label_indices = np.linspace(0, len(ts.columns), _barlabels)
         label_indices = [int(round(x)) for x in label_indices]
@@ -181,6 +181,7 @@ def range_timeplot(ranged_ts, **pltkwds):
     # Needs to be more robust and check specunit is index etc...
     return _genplot(ranged_ts.transpose(), xlabel, ylabel, title,**pltkwds)   #ts TRANSPOSE
 
+
 def areaplot(ranged_ts, **pltkwds):
     """
     Makes plots based on ranged time intervals from spec_utilities.wavelength_slices().
@@ -210,10 +211,18 @@ def areaplot(ranged_ts, **pltkwds):
     # Replace w/ set defaults
     pltkwds.setdefault('legend', False)
     pltkwds.setdefault('linewidth', 3.0)
-    
+    pltkwds.setdefault('color', 'black') # If removing, colormap default in _genplot
+                                         # Will cause bug
 
     xlabel = pltkwds.pop('xlabel', ranged_ts.full_timeunit)  
     ylabel = pltkwds.pop('ylabel', ranged_ts.full_iunit)    
+
+    if xlabel is None: 
+        xlabel = ''
+    
+    if ylabel is None:
+        ylabel = ''
+    
     title = pltkwds.pop('title', 'Area Plot: '+ ranged_ts.name )      
 
 
@@ -234,5 +243,6 @@ def areaplot(ranged_ts, **pltkwds):
 if __name__ == '__main__':
     from pyuvvis.data import test_spectra
     ts = test_spectra()
-    specplot(ts)
-    
+#    specplot(ts)
+    areaplot(ts)
+    plt.show()

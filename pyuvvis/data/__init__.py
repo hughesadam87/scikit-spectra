@@ -6,7 +6,7 @@ import os.path as op
 from pyuvvis import data_dir, TimeSpectra
 from pyuvvis.pandas_utils.dataframeserial import df_load
 
-__all__ = ['spectra']
+__all__ = ['test_spectra']
 
 class DataError(Exception):
     """ """

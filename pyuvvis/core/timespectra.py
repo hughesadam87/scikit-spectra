@@ -163,6 +163,7 @@ class TimeSpectra(MetaDataFrame):
         # NEED TO WORK OUT LOGIC OF THIS INITIALIZATION?
         # Should I even do anything?
         self._intervalunit=dfkwargs.pop('intvlunit', None)        
+        self._interval=None                                                  
 
         super(TimeSpectra, self).__init__(*dfargs, **dfkwargs)        
 
@@ -174,7 +175,7 @@ class TimeSpectra(MetaDataFrame):
 
             # df.columns has no attribute _kind, meaning it is likely a normal pandas index        
             except AttributeError:
-                self._interval=None                                                  
+                pass                                                
 
         # If DateimIndex already, store attributes directly from array
         else:
@@ -850,10 +851,13 @@ class TimeSpectra(MetaDataFrame):
     def timetypes(self):
         return tunits        
             
-            
+                    
     @property
     def timeunit(self):
-        ''' Quick reference to current state of time labels.  For comprehensive output, try ts.label_stats()'''
+        """ Quick reference to current state of time labels.  For comprehensive
+        output, try ts.label_stats() 
+        """
+                
         if self._interval == True:
             return self.intvlunit
         elif self._interval == False:
@@ -1340,9 +1344,10 @@ class TimeSpectra(MetaDataFrame):
         
             
     def __repr__(self):
-        ''' Add some header and spectral data information to the standard output of the dataframe.
+        """ Add some header and spectral data information to the standard output of the dataframe.
         Just ads a bit of extra data to the dataframe on printout.  This is called by __repr__, which 
-        can either return unicode or bytes.  This is better than overwriting __repr__()'''
+        can either return unicode or bytes.  This is better than overwriting __repr__()
+        """
         delim='\t'
         if self.specunit==None:
             specunitout='None'
@@ -1474,21 +1479,23 @@ if __name__ == '__main__':
     from pandas import read_csv as df_read_csv
     
 
-    spec=SpecIndex(range(400, 700,1) )
-#    spec=SpecIndex([400.,500.,600.])
-    testdates = date_range(start='3/3/12',periods=30,freq='h')
-    testdates2 = date_range(start='3/3/12',periods=30,freq='45s')
+    #spec=SpecIndex(range(400, 700,1) )
+##    spec=SpecIndex([400.,500.,600.])
+    #testdates = date_range(start='3/3/12',periods=30,freq='h')
+    #testdates2 = date_range(start='3/3/12',periods=30,freq='45s')
     
-    ts=TimeSpectra(abs(np.random.randn(300,30)), 
-                   columns=testdates, 
-                   index=spec, 
-                   name='ts1')  
+    ##ts=TimeSpectra(abs(np.random.randn(300,30)), 
+                   ##columns=testdates, 
+                   ##index=spec, 
+                   ##name='ts1')  
 
-    t2=TimeSpectra(abs(np.random.randn(300,30)), 
-                   columns=testdates2, 
-                   index=spec, 
-                   name='ts2') 
+    #t2=TimeSpectra(abs(np.random.randn(300,30)), 
+                   #columns=testdates2, 
+                   #index=spec, 
+                   #name='ts2') 
     
+    from pyuvvis.data import test_spectra
+    ts = test_spectra()
     from pyuvvis import specplot, areaplot
     areaplot(ts)
     plt.show()

@@ -1,4 +1,4 @@
-''' GWU in-house script for dataanalysis of fiberoptic probe data.'''
+""" GWU in-house script for dataanalysis of fiberoptic probe data."""
 
 __author__ = "Adam Hughes"
 __copyright__ = "Copyright 2013, GWU Physics"
@@ -19,6 +19,7 @@ import argparse
 import matplotlib.pyplot as plt
 import numpy as np
 from collections import OrderedDict
+from time import gmtime, strftime
 
 # PYUVVIS IMPORTS
 from pyuvvis.pyplots.basic_plots import specplot, areaplot, absplot, range_timeplot
@@ -26,7 +27,7 @@ from pyuvvis.pyplots.advanced_plots import spec_surface3d, surf3d, spec_poly3d, 
 from pyuvvis.core.spec_labeltools import datetime_convert, spec_slice
 from pyuvvis.core.utilities import boxcar, countNaN
 from pyuvvis.core.baseline import dynamic_baseline
-from pyuvvis.pyplots.plot_utils import _df_colormapper, cmget
+from pyuvvis.plotting.plot_utils import _df_colormapper, cmget
 from pyuvvis.IO.gwu_interfaces import from_timefile_datafile, from_spec_files
 from pyuvvis.core.file_utils import get_files_in_dir, get_shortname
 from pyuvvis.core.corr import ca2d, make_ref, sync_3d, async_3d
@@ -49,20 +50,23 @@ DEF_OUTROOT = './output'
 ALL_ANAL = ['1d', '2d', '3d', 'corr']   
 ANAL_DEFAULT = ['1d']#, '2d']
 
+# HOW TO READ THIS ABSOLUTE PATH
+IPYNB ='/home/glue/Desktop/PYUVVIS/pyuvvis/pyuvvis/scripts/gwu_script/_script_nb.ipynb'  #IPYTHON NOTEBOOK TEMPLATE
+
 def ext(afile): 
-    ''' get file extension'''
+    """ get file extension"""
     return op.splitext(afile)[1]
 
 def timenow():
     return dt.datetime.now()
 
 def logmkdir(fullpath):
-    ''' Makes directory path/folder, and logs.'''
+    """ Makes directory path/folder, and logs."""
     logger.info('Making directory: %s' % fullpath)
     os.mkdir(fullpath)
     
 def latex_string(string):
-    ''' Replace underscore, newline, tabs to fit latex.'''
+    """ Replace underscore, newline, tabs to fit latex."""
 
     string = string.replace('_', '\\_')
 #    string = string.decode('string-escape')
@@ -71,7 +75,7 @@ def latex_string(string):
     return string.replace('\t', '\hspace{1cm}') #Chosen arbitrarily
 
 def dict_out(header, dic, sort = True):
-    ''' Retures a string of form header \n k \t val '''
+    """ Retures a string of form header \n k \t val """
     
     if sort:
         return header + ':\n\n' + '\n'.join(['\t' + (str(k) + '\t' + str(v)) 
@@ -81,8 +85,8 @@ def dict_out(header, dic, sort = True):
                  for k,v in dic.items()])        
     
 def latex_multicols(dic, title='', cols=2):
-    ''' Hacky: given a list of items, wraps a multicol iterable so that the list
-        will be output as columns.  Title will be added in bold/large'''
+    """ Hacky: given a list of items, wraps a multicol iterable so that the list
+        will be output as columns.  Title will be added in bold/large"""
     
     outstring = ''
     if title:
@@ -99,8 +103,8 @@ def latex_multicols(dic, title='', cols=2):
 # This could delete empty folders that were otherwise in the directory that 
 # were there before starting script
 def removeEmptyFolders(path):
-    ''' Removes any empty folders in path.  Useful because recursive mode
-        of script makes every directory it finds, even if they are empty.'''
+    """ Removes any empty folders in path.  Useful because recursive mode
+        of script makes every directory it finds, even if they are empty."""
     if os.path.isdir(path):
   
         # remove empty subfolders
@@ -116,7 +120,7 @@ def removeEmptyFolders(path):
 
 
 class AddUnderscore(argparse.Action):
-    ''' Adds an underscore to end of value (used in "rootname") '''
+    """ Adds an underscore to end of value (used in "rootname") """
     def __call__(self, parser, namespace, values, option_string=None):
         if values != '':
             values += '_'
@@ -127,7 +131,7 @@ class AddUnderscore(argparse.Action):
 @logclass(log_name=__name__ , public_lvl='debug',
           skip=['_ts_from_picklefiles', 'from_namespace'])
 class Controller(object):
-    ''' '''
+    """ """
 
     name = 'Controller' #For logging
 
@@ -207,7 +211,7 @@ class Controller(object):
 
     @analysis.setter
     def analysis(self, values):
-        ''' Values must be an iterable. '''
+        """ Values must be an iterable. """
         if not values:
             self._analysis = ANAL_DEFAULT
             return
@@ -228,7 +232,7 @@ class Controller(object):
                 
     @inroot.setter
     def inroot(self, value):
-        ''' Ensure inpath exists before setting'''
+        """ Ensure inpath exists before setting"""
         self._inroot = self._valid_inpath(value)
 
     @property
@@ -240,7 +244,7 @@ class Controller(object):
     
     @inpath.setter
     def inpath(self, value):
-        ''' Ensure inpath exists before setting'''
+        """ Ensure inpath exists before setting"""
         self._inpath = self._valid_inpath(value)        
         
         
@@ -296,7 +300,7 @@ class Controller(object):
     
     @params.setter
     def params(self, params):
-        ''' Can be None, a dict, or an instance of Parameters. '''
+        """ Can be None, a dict, or an instance of Parameters. """
         if params is None:
             self._params = params
             
@@ -314,8 +318,8 @@ class Controller(object):
         
             
     def start_run(self):
-        ''' Analyzes the root directory.  If sweep mode, subdirectories
-            will be analyzed as well.'''
+        """ Analyzes the root directory.  If sweep mode, subdirectories
+            will be analyzed as well."""
         
         self._inpath = self.inroot
         self._outpath = op.join(self.outroot, self.infolder)
@@ -337,9 +341,20 @@ class Controller(object):
         self.make_matlab(op.join(self.outroot, 'readfiles.m'))
             
 
+    def save_csv(self, ts, csv_path, meta_separate=None):
+        """ Save timespectra to self.infolder (boilerplate reduction).  Saves
+        csv, pickle and metadata.  This is called at least twice, once for 
+        full unadalterated data, once for baseline/cropped data. """
+
+        logger.info('Outputting csv to %s.  Metadata will be exluded.' % csv_path)
+        ts.to_csv(csv_path, meta_separate=None)
+        self._csv_paths.append(csv_path)
+        
+        
+        
     def make_matlab(self, outpath):
-        ''' Fills simple.m template from mlab_templates with outpath, using
-            self._csv_paths.'''
+        """ Fills simple.m template from mlab_templates with outpath, using
+            self._csv_paths."""
         if op.splitext(outpath)[-1] != '.m':
             raise IOError('matlab file must end in ".m". '  
             'Received "%s"' % outpath)
@@ -361,7 +376,7 @@ class Controller(object):
         
 
     def main_walk(self):
-        ''' Walks all the subdirectories of self.inroot; runs analyze_dir()'''
+        """ Walks all the subdirectories of self.inroot; runs analyze_dir()"""
         
         walker = os.walk(self.inroot, topdown=True, onerror=None, followlinks=False)
         (rootpath, rootdirs, rootfiles) = walker.next()   
@@ -406,7 +421,7 @@ class Controller(object):
                     break
 
     def analyze_dir(self):
-        ''' Wraps loging to self._analyze_dir '''
+        """ Wraps loging to self._analyze_dir """
         
         logger.debug('inpath is: %s' % self._inpath)
         logger.debug('outpath is: %s' % self._outpath)        
@@ -421,9 +436,9 @@ class Controller(object):
                         
 
     def section_report(self):
-        ''' Writes a section report for the current inpath.
+        """ Writes a section report for the current inpath.
             These are tracked via the treefile, for compatability
-            with specreport.py'''
+            with specreport.py"""
         
         # path/to/section/ ---> section [and latex formatted for "_" 
         secname = latex_string(self.outpath.split(self.outroot)[-1].lstrip('/'))
@@ -456,8 +471,8 @@ class Controller(object):
 
 
     def _analyze_dir(self):
-        ''' Analyze a single directory, creates timespectra; performs analysis.
-            Very much the main method in the whole class.'''
+        """ Analyze a single directory, creates timespectra; performs analysis.
+            Very much the main method in the whole class."""
 
         logger.info("ANALYZING RUN DIRECTORY: %s\n\n" % self.infolder)
 
@@ -481,8 +496,8 @@ class Controller(object):
                 f.write(dict_out('Spectrometer Parameters', ts_full.metadata))
 
             def _filter_metadata(dic):
-                ''' Return spectrometer parameters of interest for report. Changes
-                    format of integration time parameter.'''
+                """ Return spectrometer parameters of interest for report. Changes
+                    format of integration time parameter."""
                 dic = OrderedDict( (k, (dic.get(k, '') )) for k in ['int_time', 'int_unit', 
                          'boxcar', 'spec_avg', 'timestart', 'timeend', 'filecount','spectrometer'])
 
@@ -501,14 +516,27 @@ class Controller(object):
 
         # To csv (loses metadata) set to meta_separate to False to preserve metadata
         logger.info('Outputting to %s.csv.  Metadata will be exluded.' % self.infolder)
-        csv_path = op.join(rundir, '%s.csv' % self.infolder)
-        ts_full.to_csv(csv_path, meta_separate=None)
-        self._csv_paths.append(csv_path)
+        
+        self.save_csv(ts_full, op.join(rundir, '%s.csv' % self.infolder))
 
-
-        # Set ts
-        ts = ts_full  
-        ts = self.apply_parameters(ts)       
+        # Set ts, subtract baseline, crop
+        ts = self.apply_parameters(ts_full)     # BASELINE SUBTRACTED/CROPPING HERE   
+        
+        cropped_csv_path =  op.join(rundir, '%s_cropped.csv' % self.infolder)
+        self.save_csv(ts, cropped_csv_path)
+        
+        #IPYTHON NOTEBOOK
+        NBPATH =  op.join(rundir, '%s.ipynb' % self.infolder)
+        logging.info("Copying blank .ipynb template to %s" % NBPATH)
+        template = open(IPYNB, 'r').read()
+        
+        template = template.replace('---FOLDER---', self.infolder)
+        template = template.replace('---CREATED---',  strftime("%Y-%m-%d %H:%M:%S", gmtime()))
+        template = template.replace('---ROOT---', self.inroot)
+        template = template.replace('---PARAMS---', self.params.as_markdownlist())
+        template = template.replace('---CSVPATH---', op.basename(cropped_csv_path))
+        open(NBPATH, 'w').write(template)
+    
         
         #Iterate over various iunits
         for iu in self.params.iunits:
@@ -543,9 +571,9 @@ class Controller(object):
             
 
     def apply_parameters(self, ts):
-        ''' Performs several timespectr manipulations such as slicing, baseline 
+        """ Performs several timespectr manipulations such as slicing, baseline 
             subtraction etc..  similar to self.validate_ts(), but is performed
-            after the full timespectra object has been changed. '''
+            after the full timespectra object has been changed. """
         
 
         ## Subtract the dark spectrum if it has one.  
@@ -620,7 +648,7 @@ class Controller(object):
 
         
     def validate_ts(self, ts):
-        ''' Tries to catch errors in index, as well as sets some defaults.  ''' 
+        """ Tries to catch errors in index, as well as sets some defaults.  """ 
         
         logger.info('Testing spectral index bounds against parameters min/max')
 
@@ -641,8 +669,8 @@ class Controller(object):
 
 
     def build_timespectra(self):
-        ''' Attempts to build timespectra form picklefile, legacy and finally
-            from the raw datafiles.'''
+        """ Attempts to build timespectra form picklefile, legacy and finally
+            from the raw datafiles."""
                 
         # Files in working directory, ignore certain extensions; ignore directories
         infiles = get_files_in_dir(self.inpath, sort=True)
@@ -696,8 +724,8 @@ class Controller(object):
 
     @classmethod
     def _ts_from_picklefiles(cls, infiles, infolder='unknown'):
-        ''' Look in a list of files for .pickle extensions.  Infolder name
-            is only used for better logging. '''
+        """ Look in a list of files for .pickle extensions.  Infolder name
+            is only used for better logging. """
 
         logger.debug('Looking for .pickle files in folder: %s' % infolder)
         
@@ -717,11 +745,11 @@ class Controller(object):
             return mload(picklefile)     
  
     def plots_1d(self, ts, outpath, prefix=''):
-        ''' Plots several 1D plots.  User passes in ts w/ proper iunit.
+        """ Plots several 1D plots.  User passes in ts w/ proper iunit.
             outpath: filepath (str)
             prefix: str
                Put in front of file name (eg outpath/prefix_area.png) for area plot
-        '''
+        """
         
         # Set plot and tick size larger than defaul
         sizeargs = {'labelsize': self._plot_fontsize, 
@@ -822,7 +850,7 @@ class Controller(object):
 
     @classmethod
     def from_namespace(cls, args=None):
-        ''' Create Controller from argparse-generated namespace. '''
+        """ Create Controller from argparse-generated namespace. """
         
         if args:
             if isinstance(args, basestring):

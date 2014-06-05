@@ -13,6 +13,7 @@ import numpy as np
 
 import matplotlib.colors as mplcolors
 import matplotlib.cm as cm
+import matplotlib.pyplot as plt
 
 from pyuvvis.exceptions import badvalue_error
 
@@ -166,6 +167,36 @@ def _uvvis_colors(df, delim=':'):
         start,stop=rng.split(delim)
         colors.append(scalarmap.to_rgba(0.5 * (float(stop)+float(start) ) ) )
     return colors
+
+
+def splot(*args, **kwds):
+    """ Wrapper to plt.subplots(r, c).  Will return flattened axes and discard
+    figure.  'flatten' keyword will not flatten if the plt.subplots() return
+    is not itself flat.  If flatten=False and fig=True, standard plt.subplots
+    behavior is recovered."""
+
+    flatten = kwds.pop('flatten', True)
+    _return_fig = kwds.pop('fig', False)
+
+    fig, args = plt.subplots(*args, **kwds)
+
+    # Seems like sometimes returns flat, sometimes returns list of lists
+    # so either way I flatten    
+    if not hasattr(args, '__iter__'):
+        args = [args]
+
+    try:
+        args = [ax.axes for ax in args] 
+    except Exception:
+        if flatten:
+            args = [ax.axes for row in args for ax in row]
+        else:
+            args = [tuple(ax.axes for ax in row) for row in args]
+
+    if _return_fig:
+        return (fig, args)
+    else:
+        return args
 
                
 def easy_legend(ax, fancy=True, position='top', **legendkwds):

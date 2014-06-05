@@ -34,3 +34,6 @@ from pyuvvis.core.corr import ca2d, make_ref, sync_3d, async_3d  #Think these sh
 pkg_dir = op.abspath(op.dirname(__file__))
 data_dir = op.join(pkg_dir, 'data')
 bundled_dir = op.join(pkg_dir, 'bundled')
+
+#Abspath will merge the .. and go up and into examples
+examples_dir = op.abspath(op.join(pkg_dir, '../examples/Notebooks'))

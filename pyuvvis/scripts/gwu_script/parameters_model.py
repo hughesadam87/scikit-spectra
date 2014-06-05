@@ -25,6 +25,7 @@ def _to_bool(attr, value):
                                  ' received %s' % value)            
     return bool(value)
 
+
 class Parameters(object):
     ''' Defines timespectra scripting parameters. '''
 
@@ -195,8 +196,25 @@ class Parameters(object):
     def items(self):
         return [(attr, getattr(self, attr)) for attr in self.__dict__ 
                 if attr != '_params']
-            
+    
+    
+    def as_markdownlist(self):
+        """ Return parameters for markdown list for .ipynb use:
+            - foo = bar
+            - baz = ing
+        """
 
+        out = ''
+        for k,v in sorted(self.items()):            
+            out += ('\"- **%s:** %s\\n\",\n' % (k,v))
+            
+        # Pain in my ass here...
+        out = out.lstrip('"')
+        out = out.rstrip()
+        out = out.rstrip(',')
+        out = out.rstrip('"')
+        return out
+            
 
 class USB2000(Parameters):
     ''' Define some shared parameters between ocean optics spectrometers.'''
