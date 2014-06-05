@@ -7,11 +7,6 @@ from pyuvvis.core.timespectra import TimeSpectra
 from pyuvvis.core.specindex import SpecIndex
 from pyuvvis.core.utilities import maxmin_xy
 
-### Plotting
-from pyuvvis.pyplots.advanced_plots import spec_surface3d, surf3d, \
-    spec_poly3d, plot2d, plot3d 
-from pyuvvis.pyplots.basic_plots import specplot, timeplot, absplot, \
-   range_timeplot, areaplot, _genplot    
 
 ### MetaDataframe utilities
 from pyuvvis.pandas_utils.metadframe import mload as tsload

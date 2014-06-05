@@ -707,6 +707,8 @@ class TimeSpectra(MetaDataFrame):
         return Series(self._pca.eigen_vectors_[:,k], index=self._pca._index) 
         
     # Spectral column attributes/properties
+    ### SPECUNIT IS JUST CARRIED THROUGH ON DF._INDEX.  ANYCHANGES WILL
+    ### RETURN A NEW INDEX, AND ALSO UPDATE SPECUNIT IN SAID INDEX!
     @property
     def specunit(self):
         return self._df.index.unit    #Short name key
@@ -717,7 +719,8 @@ class TimeSpectra(MetaDataFrame):
 
     @specunit.setter
     def specunit(self, unit):
-        self._df.index=self._df.index._convert_spectra(unit) 
+        self._df.index = self._df.index._convert_spectra(unit) 
+#        self._df.index.unit = unit
     #    self.index=self._df.index #Necessary because this is done sloppily
         
     def as_specunit(self, unit):
@@ -1495,8 +1498,12 @@ if __name__ == '__main__':
                    #name='ts2') 
     
     from pyuvvis.data import test_spectra
-    ts = test_spectra()
-    from pyuvvis import specplot, areaplot
+    ts = read_csv('/home/glue/Desktop/FOOUVDATA/FOO_ANALYSIS/npsam_foo/npsam_foo_cropped.csv', index_col=0)
+#    ts = test_spectra()
+    ts.reference = 0
+    ts.specunit = 'nm'
+#    ts.specunit = 'ev'
+    from pyuvvis.plotting import specplot, areaplot
     areaplot(ts)
     plt.show()
    

@@ -216,13 +216,6 @@ def areaplot(ranged_ts, **pltkwds):
 
     xlabel = pltkwds.pop('xlabel', ranged_ts.full_timeunit)  
     ylabel = pltkwds.pop('ylabel', ranged_ts.full_iunit)    
-
-    if xlabel is None: 
-        xlabel = ''
-    
-    if ylabel is None:
-        ylabel = ''
-    
     title = pltkwds.pop('title', 'Area Plot: '+ ranged_ts.name )      
 
 

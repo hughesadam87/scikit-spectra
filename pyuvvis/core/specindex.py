@@ -46,7 +46,7 @@ _specinverse=dict((v,k) for k,v in specunits.iteritems()) #Used for lookup by va
 speccats={'Wavelength':('m','nm','cm', 'um'), 'Wavenumber':('k', 'nm-1'), 'Energy':('ev'), 'Frequency':('f'), 
           'Ang. Frequency':('w') }
 
-def SpecError(value):
+def UnitError(value):
     ''' Custom Error for when user tries to pass a bad spectral unit.  Implementation actually defers user
     to see an attribute in the dataframe rather that calling list_sunits directly'''
     return NameError('Invalid spectral unit, "%s".  See TimeSpectra.list_sunits for valid spectral units'%value)
@@ -79,7 +79,7 @@ def _unit_valid(unit):
     elif unit in _specinverse:
         return _specinverse[unit]
     else:
-        raise SpecError(unit)
+        raise UnitError(unit)
     
 def SpecIndex(inp, *args, **defattr):
     ''' Lets other programs call this custom Index object.  Index must be called with array values
@@ -97,7 +97,7 @@ def SpecIndex(inp, *args, **defattr):
     ### Assign unit and category
     index.unit=unit 
     if unit:
-        index.name=get_spec_category(unit) 
+        index.name = get_spec_category(unit) 
         
     index._kind='spectral'  #DONT CHANGE
           
@@ -112,13 +112,16 @@ def _convert_spectra(self, outunit, **kwargs):
   
     ###If converting to None, don't change the index values
     if outunit==None or self.unit==None:    
-        self.unit=outunit
-        self.name=get_spec_category(self.unit)
+        self.unit = outunit
+        self.name = get_spec_category(self.unit)
         return self
     
     else:
-        out=spectral_convert(self, self.unit, outunit)
-        return SpecIndex(out, unit=outunit, name=get_spec_category(outunit)) #_kind automatically assigned by SpecIndex
+        out = spectral_convert(self, self.unit, outunit)
+        return SpecIndex(out, 
+                         unit=outunit, 
+                         name=get_spec_category(outunit)
+                         ) #_kind automatically assigned by SpecIndex
                
 def __unicode__(self):
     ''' Add some printout before Index type.  Don't change __name__ which will change between float index, int64 index etc... because this
