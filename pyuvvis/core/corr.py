@@ -28,7 +28,7 @@ from numpy import dot, empty, asarray, conj
 from math import pi
 
 # pyuvvis imports
-from pyuvvis.pyplots.advanced_plots import spec_surface3d
+from pyuvvis.plotting import spec_surface3d
 from pyuvvis.exceptions import badvalue_error
 
 

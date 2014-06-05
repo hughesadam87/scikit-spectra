@@ -22,8 +22,8 @@ from collections import OrderedDict
 from time import gmtime, strftime
 
 # PYUVVIS IMPORTS
-from pyuvvis.pyplots.basic_plots import specplot, areaplot, absplot, range_timeplot
-from pyuvvis.pyplots.advanced_plots import spec_surface3d, surf3d, spec_poly3d, plot2d, plot3d
+from pyuvvis.plotting import specplot, areaplot, absplot, range_timeplot
+from pyuvvis.plotting import spec_surface3d, surf3d, spec_poly3d, plot2d, plot3d
 from pyuvvis.core.spec_labeltools import datetime_convert, spec_slice
 from pyuvvis.core.utilities import boxcar, countNaN
 from pyuvvis.core.baseline import dynamic_baseline
