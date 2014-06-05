@@ -26,7 +26,6 @@ from pyuvvis.core.specindex import SpecIndex, specunits, get_spec_category, \
 from pyuvvis.core.spec_labeltools import datetime_convert, from_T, to_T, \
     Idic, intvl_dic, spec_slice
 from pyuvvis.core.utilities import divby, boxcar, maxmin_xy
-from pyuvvis.pyplots.advanced_plots import spec_surface3d
 
 # Merge
 from pyuvvis.exceptions import badkey_check, badcount_error, RefError, BaselineError

@@ -3,7 +3,7 @@
 
 import plotly.graph_objs as grobs
 import numpy as np
-import pyuvvis.plotting.plot_utils as put
+import plot_utils as put
 
 def make_linetrace(x, y, **tracekwargs):#, linecolor):  
     """Trace-generating function (returns a Scatter object) from timespectra"""

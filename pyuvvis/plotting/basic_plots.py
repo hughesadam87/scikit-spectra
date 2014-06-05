@@ -8,7 +8,7 @@ __maintainer__ = "Adam Hughes"
 __email__ = "hugadams@gwmail.gwu.edu"
 __status__ = "Development"
 
-import pyuvvis.plotting.plot_utils as put
+import plot_utils as put
 import logging
 import numpy as np
 import matplotlib.pyplot as plt
