@@ -24,7 +24,9 @@ The current documentation (and in-a-pinch test suite) is a series of example not
 
 - **TUTORIALS**:
    - 
-   -   
+   - `Interactive Plots with Plotly`_
+
+   .. _`Interactive Plots with Plotly` :   http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/plotly.ipynb?create=1
 
 - **MISCELLANEOUS**:
    - `Matplotlib Color Maps`_
