@@ -5,6 +5,7 @@ import cPickle
 import logging
 from types import NoneType, MethodType
 from operator import itemgetter
+import copy
 
 import numpy as np
 from pandas import DataFrame, DatetimeIndex, Index, Series, date_range, read_csv
@@ -123,7 +124,8 @@ def spec_from_dir(directory, csvargs, sortnames=False, concat_axis=1, shortname=
 
 
 # Ignore all class methods!
-@logclass(log_name=__name__, skip = ['wraps','_dfgetattr', 'from_csv',                                 '_comment', '_transfer'])
+@logclass(log_name=__name__, skip = ['wraps','_dfgetattr', 'from_csv', 
+                                     '_comment', '_transfer'])
 class TimeSpectra(MetaDataFrame):
     """ Provides core TimeSpectra composite pandas DataFrame to represent a set 
     of spectral data.  Enforces spectral data along the index and temporal 
@@ -162,7 +164,8 @@ class TimeSpectra(MetaDataFrame):
         # NEED TO WORK OUT LOGIC OF THIS INITIALIZATION?
         # Should I even do anything?
         self._intervalunit=dfkwargs.pop('intvlunit', None)        
-        self._interval=None                                                  
+        self._interval = None                                                  
+        self._dtindex = None
 
         super(TimeSpectra, self).__init__(*dfargs, **dfkwargs)        
 
@@ -610,6 +613,7 @@ class TimeSpectra(MetaDataFrame):
            
            WHEN PLOTTING, PLOT THE TRANSPOSE OF THE RETURNED DF.
         '''
+      
         return self.wavelength_slices((min(self.index), max(self.index)), apply_fcn=apply_fcn)
     
     
@@ -719,8 +723,8 @@ class TimeSpectra(MetaDataFrame):
     @specunit.setter
     def specunit(self, unit):
         self._df.index = self._df.index._convert_spectra(unit) 
-#        self._df.index.unit = unit
-    #    self.index=self._df.index #Necessary because this is done sloppily
+        #self._df.index.unit = unit
+        #self.index=self._df.index #Necessary because this is done sloppily
         
     def as_specunit(self, unit):
         ''' Returns new dataframe with different spectral unit on the index.'''
@@ -923,6 +927,12 @@ class TimeSpectra(MetaDataFrame):
         self._df.columns=self._as_interval(unit)
         self._interval=True    
         self._intervalunit=unit
+        
+    def deepcopy(self):
+        sunit = self.specunit
+        tsout = copy.deepcopy(self)
+        tsout.specunit = sunit
+        return tsout
         
     def as_interval(self, unit=None):
         ''' Return copy of TimeSpectra as interval.'''
@@ -1131,6 +1141,7 @@ class TimeSpectra(MetaDataFrame):
             if unit.lower() in ['none', 'full']:
                 unit=None
 
+        
         tsout=self.deepcopy()        
         tsout._set_itype(unit, reference)
         return tsout
@@ -1320,11 +1331,13 @@ class TimeSpectra(MetaDataFrame):
         else:
             return out
         
+        
     def _transfer(self, dfnew):
         ''' See metadataframe _transfer for basic use.  Had to overwrite here to add 
         a hack to apply the spectral unit.  See issue #33 on pyuvvis github for explanation. '''
         sunit=self.specunit
         newobj=super(TimeSpectra, self)._transfer(dfnew)   
+        self.specunit = sunit
         newobj.specunit=sunit
         return newobj
         
@@ -1497,101 +1510,110 @@ if __name__ == '__main__':
                    #name='ts2') 
     
     from pyuvvis.data import test_spectra
-    ts = read_csv('/home/glue/Desktop/FOOUVDATA/FOO_ANALYSIS/npsam_foo/npsam_foo_cropped.csv', index_col=0)
-#    ts = test_spectra()
-    ts.reference = 0
-    ts.specunit = 'nm'
+    ts = test_spectra()
+#    ts.as_interval()
+    t2 = ts.as_specunit('ev')
+    t3 = ts.as_iunit('a')
+    t4 = ts.as_datetime()
+    print t2.specunit, 'hi t2'
+    print t3.specunit, 'hi t3'
+    print t2.specunit, 'hi t2'
+
+
+    
+#    a=ts.area()
+#    print 'hi', a.specunit
 #    ts.specunit = 'ev'
-    from pyuvvis.plotting import specplot, areaplot
-    areaplot(ts)
-    plt.show()
+    #from pyuvvis.plotting import specplot, areaplot
+    #areaplot(ts)
+    #plt.show()
    
-    from pyuvvis.IO.gwu_interfaces import from_spec_files, get_files_in_dir
-    from pyuvvis.exampledata import get_exampledata
-    ts=from_spec_files(get_files_in_dir(get_exampledata('NPSAM'), sort=True), name='foofromfile')
+    #from pyuvvis.IO.gwu_interfaces import from_spec_files, get_files_in_dir
+    #from pyuvvis.exampledata import get_exampledata
+    #ts=from_spec_files(get_files_in_dir(get_exampledata('NPSAM'), sort=True), name='foofromfile')
 
-    ts.to_interval('s')
-    ts=ts.ix[440.0:700.0,0.0:100.0]
-    ts.reference=0    
-    print ts._baseline.shape, ts.shape
+    #ts.to_interval('s')
+    #ts=ts.ix[440.0:700.0,0.0:100.0]
+    #ts.reference=0    
+    #print ts._baseline.shape, ts.shape
     
-    # Goes to site packages because using from_spec_files, which is site package module
-    ts.run_pca()
- #   ts.pca_evals
+    ## Goes to site packages because using from_spec_files, which is site package module
+    #ts.run_pca()
+ ##   ts.pca_evals
 
-    #from pandas import Panel
-    #Panel._constructor_sliced=TimeSpectra
-    #pdic={'ts':ts}
-    #tp=Panel.from_dict(pdic)
+    ##from pandas import Panel
+    ##Panel._constructor_sliced=TimeSpectra
+    ##pdic={'ts':ts}
+    ##tp=Panel.from_dict(pdic)
     
-    d={'start':2/22/12, 'periods':len(ts.columns), 'freq':'45s'}
-    ts.set_daterange(start='2/22/12', periods=len(ts.columns), freq='45s')
+    #d={'start':2/22/12, 'periods':len(ts.columns), 'freq':'45s'}
+    #ts.set_daterange(start='2/22/12', periods=len(ts.columns), freq='45s')
     
-    ts.baseline=ts.reference
-    ts.sub_base()
+    #ts.baseline=ts.reference
+    #ts.sub_base()
 
-    # THIS FAILS WHEN INDEX=SPEC 
-    t3=TimeSpectra(abs(np.random.randn(ts.baseline.shape[0], 30)), columns=\
-                   testdates, 
-                   baseline=ts._baseline, name='foobar')  
+    ## THIS FAILS WHEN INDEX=SPEC 
+    #t3=TimeSpectra(abs(np.random.randn(ts.baseline.shape[0], 30)), columns=\
+                   #testdates, 
+                   #baseline=ts._baseline, name='foobar')  
 
     
        
-    #ts._reference.x='I WORK'
-    #ts._reference.name='joe'
-    ts.baseline=Series([20,30,50,50], index=[400., 500., 600., 700.])
-##    t2.baseline=ts.baseline
-    #ts._df.ix[:, 0:4]
-    #ts.ix[:,0:4]
-    #ts.boxcar(binwidth=20, axis=1)
-    #x=ts.ix[450.0:650.]
-    #y=t2.ix[500.:650.]
+    ##ts._reference.x='I WORK'
+    ##ts._reference.name='joe'
+    #ts.baseline=Series([20,30,50,50], index=[400., 500., 600., 700.])
+###    t2.baseline=ts.baseline
+    ##ts._df.ix[:, 0:4]
+    ##ts.ix[:,0:4]
+    ##ts.boxcar(binwidth=20, axis=1)
+    ##x=ts.ix[450.0:650.]
+    ##y=t2.ix[500.:650.]
     
-    #ts.cnsvdmeth='name'
+    ##ts.cnsvdmeth='name'
         
-    from pyuvvis.pandas_utils.metadframe import mload
-    #from pyuvvis import areaplot, absplot
-    ts=mload('rundata.pickle')    
-    ts=ts.as_interval('m')
-    x=ts.area()    
-    print 'hi', x
-    #ts.reference=0
-    #ts=ts[ts.columns[800.0::]]
-    #ts=ts.ix[400.0:800.0]
-    #c=haiss_m2(ts, peak_width=2.0, ref_width=2.0)
-    #a=haiss_m3(ts, 0.000909, peak_width=None, dilution=0.1)
-    #b=haiss_conc(ts, 12.0)
-    ##b2=haiss_conc(ts, 12.0, dilution=0.2)
+    #from pyuvvis.pandas_utils.metadframe import mload
+    ##from pyuvvis import areaplot, absplot
+    #ts=mload('rundata.pickle')    
+    #ts=ts.as_interval('m')
+    #x=ts.area()    
+    #print 'hi', x
+    ##ts.reference=0
+    ##ts=ts[ts.columns[800.0::]]
+    ##ts=ts.ix[400.0:800.0]
+    ##c=haiss_m2(ts, peak_width=2.0, ref_width=2.0)
+    ##a=haiss_m3(ts, 0.000909, peak_width=None, dilution=0.1)
+    ##b=haiss_conc(ts, 12.0)
+    ###b2=haiss_conc(ts, 12.0, dilution=0.2)
     
-##    bline=ts[ts.columns[0]]
-##    ts=ts.ix[:,25.0:30.0]
-##    ts.reference=bline
+###    bline=ts[ts.columns[0]]
+###    ts=ts.ix[:,25.0:30.0]
+###    ts.reference=bline
  
-    #uv_ranges=((430.0,450.0))#, (450.0,515.0), (515.0, 570.0), (570.0,620.0), (620.0,680.0))
+    ##uv_ranges=((430.0,450.0))#, (450.0,515.0), (515.0, 570.0), (570.0,620.0), (620.0,680.0))
     
-    #tssliced=ts.wavelength_slices(uv_ranges, apply_fcn='mean')
+    ##tssliced=ts.wavelength_slices(uv_ranges, apply_fcn='mean')
         
-    #from pyuvvis.core.utilities import find_nearest
-    #x=ts.ix[500.:510, 0]
-    #b=maxmin_xy(x)
-    #a=find_nearest(x, .15)
-    #ts.iunit=None
-    #ts.iunit='a'
-    #ts.iunit=None
+    ##from pyuvvis.core.utilities import find_nearest
+    ##x=ts.ix[500.:510, 0]
+    ##b=maxmin_xy(x)
+    ##a=find_nearest(x, .15)
+    ##ts.iunit=None
+    ##ts.iunit='a'
+    ##ts.iunit=None
     
     
-    #ts.to_csv('junk')
-    #range_timeplot(ts)
+    ##ts.to_csv('junk')
+    ##range_timeplot(ts)
 
-    #ts.a=50; ts.b='as'
-    #ts.iunit='t'
+    ##ts.a=50; ts.b='as'
+    ##ts.iunit='t'
 
-    #ts.list_attr(dfattr=False, methods=False, types=True)    
-    #ts.as_iunit('a')
-    #x=ts.as_iunit('a')
-    ##ts.as_interval()
-    ##spec_surface3d(ts)  ##Not working because of axis format problem
-    ##plt.show()
-##    ts.rank(use_base=True)
-    #x=ts.dumps()
-    #ts=mloads(x)
+    ##ts.list_attr(dfattr=False, methods=False, types=True)    
+    ##ts.as_iunit('a')
+    ##x=ts.as_iunit('a')
+    ###ts.as_interval()
+    ###spec_surface3d(ts)  ##Not working because of axis format problem
+    ###plt.show()
+###    ts.rank(use_base=True)
+    ##x=ts.dumps()
+    ##ts=mloads(x)

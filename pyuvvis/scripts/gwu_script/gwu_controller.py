@@ -522,7 +522,7 @@ class Controller(object):
 
         # Set ts, subtract baseline, crop
         ts = self.apply_parameters(ts_full)     # BASELINE SUBTRACTED/CROPPING HERE   
-        
+         
         cropped_csv_path =  op.join(rundir, '%s_cropped.csv' % self.infolder)
         self.save_csv(ts, cropped_csv_path)
         
@@ -567,9 +567,15 @@ class Controller(object):
             elif iu == 'a':
                 od = op.join(rundir, 'Abs_base10')
             logmkdir(od)
+            
+            print 'here', ts.specunit
  
             ts = ts.as_iunit(iu)
             out_tag = ts.full_iunit.split()[0] #Raw, abs etc.. added to outfile
+            
+            print 'here', ts.specunit
+            sys.exit()
+            
             
             # 1d Plots
             if '1d' in self.analysis:
@@ -606,6 +612,7 @@ class Controller(object):
             #'No baseline subtraction will occur.')            
     
         # Fit first order references automatically?
+        
         if self.params.bline_fit:
             blines = dynamic_baseline(ts, self.params.fit_regions )
             ts = ts.sub(blines, axis=0)
@@ -647,8 +654,7 @@ class Controller(object):
                         ' ts.to_interval()')
         else:
             logger.info('Intvlunit is None- leaving data as rawtime')
-            
-            
+                        
         return ts    
 
     def build_outroot(self):
@@ -774,6 +780,7 @@ class Controller(object):
                     'ticksize':15, 
                     'titlesize':self._plot_fontsize}
         
+    
         specplot(ts, **sizeargs)
         self.plt_clrsave(op.join(outpath, prefix +'_spectrum'))
 

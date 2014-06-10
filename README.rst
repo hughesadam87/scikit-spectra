@@ -26,7 +26,7 @@ The current documentation (and in-a-pinch test suite) is a series of example not
    - 
    - `Interactive Plots with Plotly`_
 
-   .. _`Interactive Plots with Plotly` :   http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/plotly.ipynb?create=1
+   .. _`Interactive Plots with Plotly` :   http://nbviewer.ipython.org/github/hugadams/pyuvvis/blob/master/examples/Notebooks/plotly.ipynb?create=1
 
 - **MISCELLANEOUS**:
    - `Matplotlib Color Maps`_
@@ -82,7 +82,7 @@ Then:
    
     pip install pyuvvis
     
-To install all of the dependencies, download ``pyparty`` from github, navigate
+To install all of the dependencies, download ``pyuvvis`` from github, navigate
 to the base directory and type:
 
     pip install -r requirements.txt
@@ -91,7 +91,7 @@ to the base directory and type:
 Installation from source
 ------------------------
 
-In the ``pyparty`` base directory run:
+In the ``pyuvvis`` base directory run:
 
     python setup.py install
 
@@ -151,16 +151,18 @@ Interested in the Python ecosystem?   Check out some of these related libraries:
    - NumPy_ (Fundamental vectorized numerics in Python)
    - SciPy_ (Collection of core, numpy-based scientific libraries)
    - matplotlib_ (De facto static plotting in Python)
-   - pandas_ (Data analysis library : inspired ``pyparty`` ParticleManager API)
+   - pandas_ (R on steroids)
+   - plotly_ (Interactive/cloud plotting)
 
    .. _NumPy: http://www.numpy.org/
    .. _pandas: http://pandas.pydata.org/
    .. _SciPy: http://scipy.org/
    .. _matplotlib : http://matplotlib.org/
+   .. _plotly : https://plot.ly/
    
 Coming Soon
 ===========
-   -
+   - Plotly streaming API support
    -
    -
    
@@ -175,7 +177,7 @@ About the Author
 I'm a PhD student at GWU (check me out on researchgate_, Linkedin_ or twitter_(@hughesadam87))
 and former Enthought intern. I work in biomolecule sensing and nanophotonics.  
 Like any PhD student, my time is stretched across many projects.  As such,
-the ``pyparty`` source code may is messy in places, and a test suite has
+the ``pyuvvis`` source code may is messy in places, and a test suite has
 yet to be developed.  Developing the iPython notebook tutorials 
 alongside the code helped served as a basic regression test platform.  
 
