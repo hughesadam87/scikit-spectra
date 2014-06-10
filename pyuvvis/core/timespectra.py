@@ -42,13 +42,9 @@ tunits={'ns':'Nanoseconds',
         'y':'Years'}  #ADD NULL VALUE? Like None:'No Time Unit' (iunit/specunit do this)
 
 logger = logging.getLogger(__name__) 
-   
-##########################################
-## TimeSpectra Private Utilities   #######
-##########################################
-_dtmissing='Cannot convert representations without interally stored datetimeindex.'
 
-# Unit validations###
+
+# Unit validations
 def _valid_xunit(value, dic):
     ''' Validates existence of key (usually a unit type like spectral unit in a dictionary such as specunits)'''
     if value == None:
@@ -67,31 +63,9 @@ def _valid_intvlunit(sout):
     return _valid_xunit(sout, intvl_dic)
 
               
-##########################################
-## TimeSpectra Public Utilities    #######
+########################################
+## TimeSpectra Public Utilities    #####
 ######################################## 
-
-def array_truthtest(array, raiseerror=False, errorstring=None):
-    """ Truth test array/series attributes, since can't evaluate them with standard python."""
-    
-    # If error passed, automatically enable error raising
-    if errorstring:
-        raiseerror = True
-
-    # Evaluates to true or false
-    try:
-        return array.any()
-    # Evaluates to None
-    except AttributeError as atterror:
-        
-        # Throw custom error or standard error
-        if raiseerror:
-            if errorstring:
-                raise(AttributeError(errorstring))
-            else:
-                raise(atterror)
-        # Return None
-        return None
 
 
 # Wrapper for df_from_directory
@@ -296,7 +270,7 @@ class TimeSpectra(MetaDataFrame):
         print '-----------------------\n'
         print '%sTime Display Style: %s\n'%(delim, tstyle)
         print '%sDatetimeindex parameters:'%(delim)
-        if array_truthtest(self._dtindex):
+        if self._dtindex is not None:
             print '%s%sstart=%s, stop=%s, freq=%s\n'%(delim, delim, self._dtindex[0], self._dtindex[-1], self._dtindex.freq)
         else:
             print '%s%sDatetimeIndex not stored\n'%(delim, delim)            
@@ -917,7 +891,7 @@ class TimeSpectra(MetaDataFrame):
         # User calls function with empty call (), if proper attributes, convert it
         if unit==None: 
 
-            array_truthtest(self._dtindex, errorstring=_dtmissing)
+            self._parse_dtindex()
             if self._intervalunit != None:
                 unit=self._intervalunit
             else:
@@ -936,7 +910,7 @@ class TimeSpectra(MetaDataFrame):
             # If interval is None or False, do the conversion
             elif self._interval==None:
                 # Make sure proper attributes to get back ater in place
-                array_truthtest(self._dtindex, errorstring=_dtmissing)
+                self._parse_dtindex()
 
                 
         self._df.columns=self._as_interval(unit)
@@ -985,7 +959,7 @@ class TimeSpectra(MetaDataFrame):
             attribute of a timespectra. '''
     
         # Make sure all attributes are set before converting
-        array_truthtest(self._dtindex, errorstring=_dtmissing)
+        self._parse_dtindex()
         return self._dtindex
     
     ###################################
@@ -1044,6 +1018,14 @@ class TimeSpectra(MetaDataFrame):
         ''' Is baseline currently subtracted from spectral data.'''
         self._base_gate()
         return self._base_sub
+
+    def _parse_dtindex(self):
+        """ Raise error if dtindex is none.  Mostly used in cases of user 
+        error, like convert to interval when no datetime is stored."""
+
+        if self._dtindex is None:
+            raise IndexError("Cannot convert representations without interally "
+            "stored datetimeindex.")
         
     def _valid_baseline(self, baseline):
         ''' Validates user-supplied baseline before setting.  Mostly,
@@ -1102,7 +1084,7 @@ class TimeSpectra(MetaDataFrame):
             else:
                 raise BaselineError('Baseline must be of length %s to '
                     'match the current spectral index.'%len(self._df.index))
-
+           
            
     @property
     def baseline(self):
@@ -1369,11 +1351,11 @@ class TimeSpectra(MetaDataFrame):
         # Intercept user's column attribute call and set private attributes accordingly.
         if name=='columns':
             if isinstance(self.columns, DatetimeIndex):
-                self._dtindex=self.columns
-                self._interval=False
+                self._dtindex = self.columns
+                self._interval = False
             else:
-                self._dtindex=None
-                self._interval=None
+                self._dtindex = None
+                self._interval = None
         
             
     def __repr__(self):
