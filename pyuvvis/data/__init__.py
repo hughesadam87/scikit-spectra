@@ -6,7 +6,7 @@ import os.path as op
 from pyuvvis import data_dir, TimeSpectra
 from pyuvvis.pandas_utils.dataframeserial import df_load
 
-__all__ = ['test_spectra']
+__all__ = ['uvvis_spec1', 'uvvis_spec2']
 
 class DataError(Exception):
     """ """
@@ -57,12 +57,25 @@ def _load_gwuspec(filepath, *args, **kwargs):
     return ts
 
 
-def test_spectra(*args, **kwargs):
+def uvvis_spec1(*args, **kwargs):
+    """ Reeveslab data obtained by Adam Hughes of gold nanoparticles on a 
+    glass optical fiber; spectrum corresponds to the specular Reflectance.
+    Please reference pyuvvis if citing.
+    """
+    kwargs.setdefault('name', 'Nanoparticles on Glass')    
+    return _load_gwuspec('uvvis_spec1.csv', *args, **kwargs)
 
-    kwargs.setdefault('name', 'TestSpectra_1')    
-    return _load_gwuspec('test_spectra1.csv', *args, **kwargs)
+
+def uvvis_spec2(*args, **kwargs):
+    """ Reeveslab data obtained by Adam Hughes of gold nanoparticles in water. 
+    UV peak is due to residual citrates from citrate reduction in synthesizing
+    the nanoparticles via the Turkevich method.
+    Please reference pyuvvis if citing.
+    """
+    kwargs.setdefault('name', 'Nanoparticles in Water')    
+    return _load_gwuspec('uvvis_spec2.csv', *args, **kwargs)
 
 if __name__ == '__main__':
-    ts = test_spectra()
+    ts = uvvis_spec1()
     print ts, type(ts)
     

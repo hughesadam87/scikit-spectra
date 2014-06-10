@@ -61,7 +61,7 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
         logger.warn('_genplot(): overwriting kwarg "colors" to "color"')
         
     # Axis = 0, assumes timeplot has passed transposed array for example
-    pltcolor = pltkwargs.setdefault('color', put._df_colormapper(ts, 'jet', axis=0) )         
+    pltcolor = pltkwargs.setdefault('color', 'jet')
     if isinstance(pltcolor, basestring):
         # Try color mapping; if none found, retain string (eg 'red')
         try:
@@ -123,7 +123,6 @@ def specplot(ts, **pltkwds):
     ''' Basically a call to gen plot with special attributes, and a default color mapper.'''
 
     pltkwds['linewidth'] = pltkwds.pop('linewidth', 1.0 )    
-#    pltkwds['color'] = pltkwds.pop('color', put._df_colormapper(ts, 'jet', axis=0) )         
            
     xlabel = pltkwds.pop('xlabel', ts.full_specunit)  
     ylabel = pltkwds.pop('ylabel', ts.full_iunit+' (Counts)')    
@@ -155,6 +154,9 @@ def absplot(ts, default='a', **pltkwds):
     # Make sure ts is absorbance, or readily convertable
     if ts.full_iunit not in ['a', 'a(ln)']:
         ts = ts.as_iunit(default)
+
+    if not ts._base_sub:
+        logger.warn('Spectrum does not have subtracted baseline; could alter absorbance.')
                     
     pltkwds.setdefault('linewidth', 1.0)
  

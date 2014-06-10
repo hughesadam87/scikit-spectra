@@ -30,15 +30,22 @@ from pyuvvis.core.spec_labeltools import spectral_convert
 pandas.Index.unit=None
 pandas.Index._kind=None  #Used to identify SpecIndex by other PyUvVis methods (don't overwrite) (SET TO 'spectral' later)
 
-### Store old printout of specindex for later redefinition
-pandas.Index.old__unicode__=pandas.Index.__unicode__
+# Store old printout of specindex for later redefinition
+pandas.Index.old__unicode__ = pandas.Index.__unicode__
 
-### List of valid units.  Must be identical to that of spectral_convert method (ALL CHARACTERS MUST BE LOWERCASE )
+# List of valid units.  Must be identical to that of spectral_convert method (ALL CHARACTERS MUST BE LOWERCASE )
 
-### Before messing this up, realize that _unit_valid() relies on it!
-specunits={'m':'meters', 'nm':'nanometers', 'cm':'centimeters', 'um':'micrometers', 'k':'wavenumber(cm-1)',
-    'ev':'electron volts', 'nm-1':'nanometers inverse', 'f':'frequency(hz)', 'w':'angular frequency(rad/s)',
-    None:'No Spectral Unit'}
+# Before messing this up, realize that _unit_valid() relies on it!
+specunits={'m':'meters', 
+           'nm':'nanometers', 
+           'cm':'centimeters', 
+           'um':'micrometers', 
+           'k':'wavenumber(cm-1)',
+           'ev':'electron volts', 
+           'nm-1':'nanometers inverse', 
+           'f':'frequency(hz)', 
+           'w':'angular frequency(rad/s)',
+            None:'No Spectral Unit'}
 
 _specinverse=dict((v,k) for k,v in specunits.iteritems()) #Used for lookup by value
 
@@ -46,10 +53,12 @@ _specinverse=dict((v,k) for k,v in specunits.iteritems()) #Used for lookup by va
 speccats={'Wavelength':('m','nm','cm', 'um'), 'Wavenumber':('k', 'nm-1'), 'Energy':('ev'), 'Frequency':('f'), 
           'Ang. Frequency':('w') }
 
+
 def UnitError(value):
     ''' Custom Error for when user tries to pass a bad spectral unit.  Implementation actually defers user
     to see an attribute in the dataframe rather that calling list_sunits directly'''
     return NameError('Invalid spectral unit, "%s".  See TimeSpectra.list_sunits for valid spectral units'%value)
+
 
 def get_spec_category(unit):
     ''' Given a unit key ('m', 'f' etc...), returns the key in speccats to which it belongs.'''
@@ -66,6 +75,7 @@ def get_spec_category(unit):
                         return key
     return None
 
+
 def _unit_valid(unit):
     ''' Checks to make sure unit is valid.  If unit is in specunits.keys(), returns it. 
     If unit is passed by value (like '''
@@ -80,6 +90,7 @@ def _unit_valid(unit):
         return _specinverse[unit]
     else:
         raise UnitError(unit)
+
     
 def SpecIndex(inp, *args, **defattr):
     ''' Lets other programs call this custom Index object.  Index must be called with array values
@@ -102,6 +113,7 @@ def SpecIndex(inp, *args, **defattr):
     index._kind='spectral'  #DONT CHANGE
           
     return index
+
 
 ### DONT CHANGE THE NAME OF THIS METHOD WITHOUT UPDATED TIMESPECTRA() __INIT__ WHICH LOOKS FOR IT!
 def _convert_spectra(self, outunit, **kwargs):
@@ -141,7 +153,7 @@ def set_sindex(start, stop, numpts, unit=None):
     return SpecIndex(np.linspace(start, stop, numpts), unit=unit)
 
                 
-### Assign custom methods            
+#X MONKEY PATCHING: Assign custom methods            
 pandas.Index._convert_spectra=_convert_spectra
 pandas.Index.__unicode__=__unicode__ #Overload the new printout
 

@@ -72,11 +72,11 @@ def _valid_intvlunit(sout):
 ######################################## 
 
 def array_truthtest(array, raiseerror=False, errorstring=None):
-    ''' Truth test array/series attributes, since can't evaluate them with standard python.'''
-
+    """ Truth test array/series attributes, since can't evaluate them with standard python."""
+    
     # If error passed, automatically enable error raising
     if errorstring:
-        raiseerror=True
+        raiseerror = True
 
     # Evaluates to true or false
     try:
@@ -163,7 +163,7 @@ class TimeSpectra(MetaDataFrame):
         
         # NEED TO WORK OUT LOGIC OF THIS INITIALIZATION?
         # Should I even do anything?
-        self._intervalunit=dfkwargs.pop('intvlunit', None)        
+        self._intervalunit = dfkwargs.pop('intvlunit', None)        
         self._interval = None                                                  
         self._dtindex = None
 
@@ -178,15 +178,26 @@ class TimeSpectra(MetaDataFrame):
             # df.columns has no attribute _kind, meaning it is likely a normal pandas index        
             except AttributeError:
                 pass                                                
+            
+            # Try to force coluns to DatetimeIndex THIS MIGHT BE A MISTAKE BECUASE
+            # DATETIME INDEX IS A BIT SOFT ON CHECKS; SHOULD DO EXTRA VALIDATION
+            try:
+                self._df.columns = DatetimeIndex(self._df.columns)
+            except Exception:
+                logger.info("TimeSpectra initialized without DatetimeIndex-"
+                            "compatible column labels.")
+            else:
+                self._interval = False
+                self._dtindex = self._df.columns
 
         # If DateimIndex already, store attributes directly from array
         else:
-            self._interval=False      
-            self._dtindex=self._df.columns
+            self._interval = False      
+            self._dtindex = self._df.columns
       
         # Assign spectral intensity related stuff but 
         # DONT CALL _set_itype function
-        iunit=_valid_iunit(iunit)
+        iunit =_valid_iunit(iunit)
         self._itype=iunit
         
         # This has to be done AFTER self._df has been set
@@ -731,6 +742,7 @@ class TimeSpectra(MetaDataFrame):
         tsout=self.deepcopy()
         tsout.specunit=unit
         return tsout
+    
 
     @property
     def spectypes(self):
@@ -738,20 +750,23 @@ class TimeSpectra(MetaDataFrame):
     
     # Temporal/column related functionality
     def set_daterange(self, **date_range_args):
-        ''' Wrapper around pandas.date_range to reset the column
+        """ Wrapper around pandas.date_range to reset the column
         values on of the data on the fly. See pandas.date_range()
         for use.  In brief:
         
         Parameters
         ----------
-           start: time start.  
-           freq: Frequency unit
-           stop/periods: specifies endpoint given start and freq.
+        start: 
+            time start.  
+        freq: 
+            Frequency unit
+        stop/periods: 
+            specifies endpoint given start and freq.
            
-        Example
-        -------
-            timespectra.set_daterange('1/1/2012', period=5, freq='H')
-        '''
+        Examples
+        --------
+        timespectra.set_daterange('1/1/2012', period=5, freq='H')
+        """
         
         rng = date_range(**date_range_args)
         self._df.columns = rng        
@@ -928,11 +943,13 @@ class TimeSpectra(MetaDataFrame):
         self._interval=True    
         self._intervalunit=unit
         
+        
     def deepcopy(self):
         sunit = self.specunit
         tsout = copy.deepcopy(self)
         tsout.specunit = sunit
         return tsout
+
         
     def as_interval(self, unit=None):
         ''' Return copy of TimeSpectra as interval.'''
@@ -940,14 +957,14 @@ class TimeSpectra(MetaDataFrame):
             if unit.lower() in ['none', 'full']:
                 unit=None
 
-        tsout=self.deepcopy()        
+        tsout = self.deepcopy()        
         tsout.to_interval(unit)
         return tsout        
             
 
     def as_datetime(self):
         ''' Return copy of TimeSpectra as datetime.'''
-        tsout=self.deepcopy()
+        tsout = self.deepcopy()
         tsout.to_datetime()
         return tsout
     
@@ -1142,9 +1159,10 @@ class TimeSpectra(MetaDataFrame):
                 unit=None
 
         
-        tsout=self.deepcopy()        
+        tsout = self.deepcopy()        
         tsout._set_itype(unit, reference)
         return tsout
+    
 
     def _set_itype(self, sout, ref=None):
         '''Function used to change spectral intensity representation in a convertible manner. Not called on
@@ -1509,15 +1527,18 @@ if __name__ == '__main__':
                    #index=spec, 
                    #name='ts2') 
     
-    from pyuvvis.data import test_spectra
-    ts = test_spectra()
+    from pyuvvis.data import uvvis_spec1, uvvis_spec2
+    ts = uvvis_spec1()
 #    ts.as_interval()
+    t1 = ts.as_interval('s')
+    t1.to_datetime()
     t2 = ts.as_specunit('ev')
     t3 = ts.as_iunit('a')
-    t4 = ts.as_datetime()
     print t2.specunit, 'hi t2'
     print t3.specunit, 'hi t3'
     print t2.specunit, 'hi t2'
+    from pyuvvis.plotting import specplot
+    specplot(ts, cbar=True)
 
 
     

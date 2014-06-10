@@ -567,14 +567,9 @@ class Controller(object):
             elif iu == 'a':
                 od = op.join(rundir, 'Abs_base10')
             logmkdir(od)
-            
-            print 'here', ts.specunit
- 
+             
             ts = ts.as_iunit(iu)
             out_tag = ts.full_iunit.split()[0] #Raw, abs etc.. added to outfile
-            
-            print 'here', ts.specunit
-            sys.exit()
             
             
             # 1d Plots
@@ -781,7 +776,7 @@ class Controller(object):
                     'titlesize':self._plot_fontsize}
         
     
-        specplot(ts, **sizeargs)
+        specplot(ts, cbar=True, **sizeargs)
         self.plt_clrsave(op.join(outpath, prefix +'_spectrum'))
 
         # Area plot using simpson method of integration
