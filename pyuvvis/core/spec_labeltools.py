@@ -33,23 +33,53 @@ sec_conversions={'ns':10**-9, 'us':10**-6, 'ms':10**-3,
                  's':1.0, 'm':60.0, 'h':3600.0, 
                  'd':86400.0, 'y':31536000.0, 'intvl':None}
 
-intvl_dic={'ns':'Nanoseconds', 'us':'Microseconds', 'ms':'Milliseconds',
-           's':'Seconds', 'm':'Minutes', 'h':'Hours', 'd':'Days', 'y':'Years',
+intvl_dic={'ns':'Nanoseconds', 
+           'us':'Microseconds', 
+           'ms':'Milliseconds',
+           's':'Seconds', 
+           'm':'Minutes', 
+           'h':'Hours', 
+           'd':'Days', 
+           'y':'Years',
            'intvl':'Interval timestamp'}
 
+
 ### Mapping of various spectral units to meters.  
-spec_dic= { 'm':1.0, 'cm':.01, 'um':.000001, 'nm': .000000001,          
-            'k': .01, 'nm-1':.000000001,'f': c, 'w': 2.0*math.pi*c, 'ev':h*c/(eVtoJ)  }
+spec_dic= { 'm':1.0, 
+            'cm':.01, 
+            'um':.000001, 
+            'nm': .000000001,          
+            'k': .01, 
+            'nm-1':.000000001,
+            'f': c, 
+            'w': 2.0*math.pi*c, 
+            'ev':h*c/(eVtoJ)  }
+
 
 ### Conversions for intensity data.  Note that T= I(t)/Iref
 ### Since it's not really a scaling but a mapping, I use lambda operations and their inverses.  Uses Transmittance
 ### as the base unit, as it is literally curve/ref, hence the natural unit of divby() 
-Idic={None:'Raw data', 't':'Transmittance', '%t':'(%)Transmittance', 'r':'Relative Inverse (1/T)',
-      'a':'Absorbance (base 10)', 'a(ln)':'Absorbance (base e)'} 
+Idic={None:'Counts', 
+      't':'Transmittance', 
+      '%t':'(%)Transmittance', 
+      'r':'Relative Inverse (1/T)',
+      'a':'Absorbance (base 10)', 
+      'a(ln)':'Absorbance (base e)'} 
+
 
 ### Remember, data is already divided by ref before from_T is called, so "r" is base unit, not "t".  
-from_T={'t':lambda x: 1.0/x,  '%t':lambda x: 100.0 * (1.0/ x), 'r':lambda x: x, 'a':lambda x: -np.log10(x), 'a(ln)':lambda x:-np.log(x)}    #Operation
-to_T={'t':lambda x: 1.0/x,  '%t':lambda x: (1.0/ x) / 100.0, 'r':lambda x: x, 'a':lambda x: np.power(10, -x), 'a(ln)':lambda x: np.exp(-x)} #Inverse operation
+from_T={'t':lambda x: 1.0/x, 
+        '%t':lambda x: 100.0 * (1.0/ x), 
+        'r':lambda x: x, 
+        'a':lambda x: -np.log10(x),
+        'a(ln)':lambda x:-np.log(x)}
+
+
+to_T={'t':lambda x: 1.0/x, 
+      '%t':lambda x: (1.0/ x) / 100.0, 
+      'r':lambda x: x, 
+      'a':lambda x: np.power(10, -x), 
+      'a(ln)':lambda x: np.exp(-x)} 
 
 
 ### Index/label utilities.  Leave mapping back to dataframe separate. ###
