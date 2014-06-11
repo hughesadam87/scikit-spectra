@@ -13,8 +13,6 @@ from scipy import integrate
 #from scikits.learn import PCA
 from pca_scikit import PCA
 
-from pyuvvis.pandas_utils.metadframe import MetaDataFrame, _MetaIndexer
-from pyuvvis.logger import decode_lvl, logclass
 
 from pandas import DataFrame, DatetimeIndex, Index, Series
 from scipy import integrate
@@ -29,6 +27,9 @@ from pyuvvis.core.spec_labeltools import datetime_convert, from_T, to_T, \
 from pyuvvis.core.utilities import divby, boxcar, maxmin_xy
 
 # Merge
+from pyuvvis.pandas_utils.metadframe import MetaDataFrame, _MetaIndexer
+from pyuvvis.logger import decode_lvl, logclass
+from pyuvvis.plotting import specplot
 from pyuvvis.exceptions import badkey_check, badcount_error, RefError, BaselineError
 
 # Put in a separte file of constants?
@@ -1086,6 +1087,9 @@ class TimeSpectra(MetaDataFrame):
                     'match the current spectral index.'%len(self._df.index))
            
            
+    def plot(self, *args, **kwargs):
+        return specplot(self, *args, **kwargs)
+           
     @property
     def baseline(self):
         return self._baseline
@@ -1417,7 +1421,7 @@ class TimeSpectra(MetaDataFrame):
         logger.info('Converting %s to R dataframe.' % self.full_name)
         return( convert_to_r_dataframe(self._df) )      
                            
-    def to_csv(self, path_or_buff, meta_separate=False, **csv_kwargs):
+    def to_csv(self, path_or_buff, meta_separate=None, **csv_kwargs):
         ''' Output to CSV file.  
         
             Parameters:
@@ -1446,6 +1450,7 @@ class TimeSpectra(MetaDataFrame):
         elif meta_separate == True:
             raise NotImplemented('Not yet implemented this style of csv output')
         elif meta_separate==False:
+            logger.critical('Adding metadata to csv; feature is UNDER CONSTRUCTION...')
             o=open(path_or_buff, 'a') #'w'?#
             o.write(meta)
             o.close()
@@ -1519,7 +1524,6 @@ if __name__ == '__main__':
     print t2.specunit, 'hi t2'
     print t3.specunit, 'hi t3'
     print t2.specunit, 'hi t2'
-    from pyuvvis.plotting import specplot
     specplot(ts, cbar=True)
 
 

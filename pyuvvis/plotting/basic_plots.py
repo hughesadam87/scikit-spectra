@@ -20,7 +20,7 @@ class PlotError(Exception):
 
 #XXX UPDATE DOCSTRING
 def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
-    ''' Generic wrapper to ts.plot(), that takes in x/y/title as parsed
+    ''' Generic wrapper to ts._df.plot(), that takes in x/y/title as parsed
     from various calling functions:
     NEW KEYWORDS:
         grid
@@ -72,7 +72,7 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
             pltkwargs['color'] = put._df_colormapper(ts, pltcolor, axis=0)#put.cmget(pltkwargs['color'])
 
     # Since df.plot takes ax, multi axes inherently supported.
-    ax = ts.plot(**pltkwargs)
+    ax = ts._df.plot(**pltkwargs)
     
     if cbar:
         if not fig:

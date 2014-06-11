@@ -57,23 +57,23 @@ def _load_gwuspec(filepath, *args, **kwargs):
     return ts
 
 
-def uvvis_spec1(*args, **kwargs):
+def aunps_glass(*args, **kwargs):
     """ Reeveslab data obtained by Adam Hughes of gold nanoparticles on a 
     glass optical fiber; spectrum corresponds to the specular Reflectance.
     Please reference pyuvvis if citing.
     """
-    kwargs.setdefault('name', 'Nanoparticles on Glass')    
-    return _load_gwuspec('uvvis_spec1.csv', *args, **kwargs)
+    kwargs.setdefault('name', 'Gold Nanoparticles on Glass')    
+    return _load_gwuspec('aunps_glass.csv', *args, **kwargs)
 
 
-def uvvis_spec2(*args, **kwargs):
+def aunps_water(*args, **kwargs):
     """ Reeveslab data obtained by Adam Hughes of gold nanoparticles in water. 
     UV peak is due to residual citrates from citrate reduction in synthesizing
     the nanoparticles via the Turkevich method.
     Please reference pyuvvis if citing.
     """
-    kwargs.setdefault('name', 'Nanoparticles in Water')    
-    return _load_gwuspec('uvvis_spec2.csv', *args, **kwargs)
+    kwargs.setdefault('name', 'Gold Nanoparticles in Water')    
+    return _load_gwuspec('aunps_water.csv', *args, **kwargs)
 
 if __name__ == '__main__':
     ts = uvvis_spec1()
