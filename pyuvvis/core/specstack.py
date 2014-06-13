@@ -19,7 +19,8 @@ class Stack(object):
     return as 3d data (eg panel) and to apply functions itemwise.  Items are
     stored in an ordered dict."""
     
-    itemlabel='Item'
+    itemlabel = 'Item'
+    
     _magic=['__len__', 
             '__iter__', 
             '__reversed__',
@@ -63,7 +64,11 @@ class Stack(object):
                     keys, data = zip(*data)
                 except Exception:                
                     keys=self._gen_keys(len(data))
-                    logger.warn("Generating keys %s..." % keys[0])
+                    if len(keys) > 1:
+                        logger.warn("Generating keys %s-%s" % (keys[0], keys[-1]))
+                    else:
+                        logger.warn("Generating key %s" % keys[0])
+
  
             self._data=OrderedDict( [ (keys[i],data[i]) for i 
                                       in range(len(keys) ) ] ) 
@@ -260,6 +265,8 @@ class Stack(object):
 class SpecStack(Stack):
     """ Stack for just storing timespectra objects."""        
 
+    itemlabel='spec_'
+
     def as_3d(self, **kwargs):
         """ Returns a 3d stack (SpecPanel) of the currently stored items.
             Additional kwargs can be passed directly to SpecPanel constructor."""
@@ -304,8 +311,17 @@ class SpecStack(Stack):
     def timeunit(self):
         return self._get_unique('timeunit')   
     
-    #def plot(self):
-        #slice_plot(self.data)
+    def plot(self, *plotargs, **plotkwargs):
+        """Returns multiplot of current stack.  
+        
+        Notes
+        -----
+        Wraps pyuvvis.plotting.multiplots.slice_plot()
+        """
+        
+        plotkwargs.setdefault('title', self.name)        
+        return slice_plot(self.values(), *plotargs, names=self.keys(), **plotkwargs)
+
         
    
 
@@ -329,13 +345,16 @@ if __name__=='__main__':
     d = (('d1', ts), ('d2', t2))
 
     ##x = Panel(d)
-    y = SpecStack(d)
-    y[0:1]
-    y['d1',1]
-    x = y.set_all('specunit', 'cm')
-    y._get_unique('specunit')
-    y.apply('wavelength_slices', 8)
-    y['d1']
+    y = SpecStack(d, name='Slices of Foo')
+    y.plot(color='RdBu')
+    plt.show()
+#    sys.exit()
+    #y[0:1]
+    #y['d1',1]
+    #x = y.set_all('specunit', 'cm')
+    #y._get_unique('specunit')
+    #y.apply('wavelength_slices', 8)
+    #y['d1']
     
     x=y.apply(np.sqrt, axis=1)
     print 'hi'

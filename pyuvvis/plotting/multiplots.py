@@ -1,27 +1,23 @@
-from basic_plots import specplot, absplot, areaplot, range_timeplot
-from plot_utils import splot, multi_axes
+import plot_utils as put
 import matplotlib.pyplot as plt
 from pyuvvis.core.utilities import sample_by
 
-def slice_plot(ts, n=4, *plotargs, **plotkwds):
-    """ """
+def slice_plot(ts_list, names=[], n=4, *plotargs, **plotkwds):
+    """ Pass in a container of timespectra; outputs is subplot for reach. """
 
-    ts_list = sample_by(ts, n)
-    axes, kwargs = multi_axes(len(ts_list), **plotkwds)
+    default_names = ['' for i in range(len(ts_list))]
+    names = put._parse_names(names, default_names)
+    
+    figtitle = plotkwds.pop('title', '')
 
-    #if len(axes) < len(ts_list ):
-        #logger.warn("MultiCanvas has %s canvas, but only %s axes recieved"
-                    #" in show()" % (len(self), len(axes)))
-        #upperlim = len(axes)
 
-    #else:
-        #upperlim = len(ts_list )
-        
-    #pcolors = self._request_plotcolors()
+    # CURRENTLY, DOES NOT TAKE AXIS
+    fig, axes, kwargs = put.multi_axes(len(ts_list), **plotkwds)
     
     for (idx, tspec) in enumerate(ts_list):
-        tspec.plot(ax=axes[idx])
+        tspec.plot(ax=axes[idx], title=names[idx], *plotargs, **plotkwds)
         
+    fig.suptitle(figtitle, fontsize=20)        
     return axes
     
 
@@ -44,7 +40,7 @@ def quad_plot(ts, *plotargs, **plotkwds):
     """
 
     figtitle = plotkwds.pop('figtitle', '')
-    f, axes = splot(2,2, fig=True, figsize=(8,8))
+    f, axes = put.splot(2,2, fig=True, figsize=(8,8))
     f.suptitle(figtitle, fontsize=20)
     
     cmap = plotkwds.pop('color', 'jet')
@@ -63,7 +59,7 @@ def quad_plot(ts, *plotargs, **plotkwds):
              xlabel='seconds', 
              **plotkwds)
 
-    absplot(ts, *plotargs,
+    abput.splot(ts, *plotargs,
             ax=axes[2], 
             color=cmap, 
             title='Absorbance',

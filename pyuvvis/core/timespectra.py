@@ -22,9 +22,10 @@ from pca_scikit import PCA
 # pyuvvis imports 
 from pyuvvis.core.specindex import SpecIndex, specunits, get_spec_category, \
      set_sindex
+from pyuvvis.core.specstack import SpecStack
 from pyuvvis.core.spec_labeltools import datetime_convert, from_T, to_T, \
     Idic, intvl_dic, spec_slice
-from pyuvvis.core.utilities import divby, boxcar, maxmin_xy
+import pyuvvis.core.utilities as pvutils
 
 # Merge
 from pyuvvis.pandas_utils.metadframe import MetaDataFrame, _MetaIndexer
@@ -214,7 +215,7 @@ class TimeSpectra(MetaDataFrame):
         
         # Which attributes/methods are manipulated along with the dataframe
         self._cnsvdattr=['_reference', '_baseline']
-        self._cnsvdmeth=['_slice', 'boxcar'] #_slice is ix
+        self._cnsvdmeth=['_slice', 'pvutils.boxcar'] #_slice is ix
 
 
     def _comment(self, statement, level='info'):
@@ -571,7 +572,7 @@ class TimeSpectra(MetaDataFrame):
         
 
     def boxcar(self, binwidth, axis=1):
-        """Performs boxcar averaging by binning data.
+        """Performs pvutils.boxcar averaging by binning data.
         
         Parameters
         ----------
@@ -579,9 +580,9 @@ class TimeSpectra(MetaDataFrame):
            axis: 1/0 for index/column averaging respectively.
         """
         if axis == 0 and self._interval == False:
-            raise NotImplementedError('Cannot boxcar along DateTime axis.')
+            raise NotImplementedError('Cannot pvutils.boxcar along DateTime axis.')
         
-        return self._transfer(boxcar(self, binwidth=binwidth, axis=axis))
+        return self._transfer(pvutils.boxcar(self, binwidth=binwidth, axis=axis))
     
     def area(self, apply_fcn='simps'):
         """ Returns total area under the spectra vs. time curve.  To choose a slice of the spectrum,
@@ -1177,7 +1178,7 @@ class TimeSpectra(MetaDataFrame):
             if isinstance(rout, NoneType):
                 raise TypeError('Cannot convert spectrum to iunit %s without a reference'%sout)                
             else:
-                df=divby(df, divisor=rout)
+                df=pvutils.divby(df, divisor=rout)
                 df=df.apply(from_T[sout])                    
             #Assumes typeerror is due to rout not being a series/array, but doesn't further test it.  EG do another
             #typeerror check of try: if rout == None: raise error
@@ -1195,7 +1196,7 @@ class TimeSpectra(MetaDataFrame):
                 # Make this it's own method called change reference?
                 df=df.apply(to_T[sin])
                 df=df.mul(self._reference, axis=0)  
-                df=divby(df, divisor=rout)
+                df=pvutils.divby(df, divisor=rout)
                 df=df.apply(from_T[sout])                        
 
 
@@ -1404,6 +1405,22 @@ class TimeSpectra(MetaDataFrame):
            This is not straightforward as ts['c1:c4'] tends to query rows for 
            convienence.  Thanks to Jeff Reback for his suggestion of the private _slice()."""
         return self.ts._slice(slice(*sliceargs), 1)
+    
+    
+    def sample_by(self, n, axis=1, stack=True, **stackkwargs):
+        """ Slice data into n subsets.
+        
+        Notes
+        -----
+        If n does not evenly divide the axis, the final element returned tends
+        to be larger than the others (culmination of rounding down iteratively)
+        and a warning is raised.
+        """
+        ts_split = pvutils.sample_by(self, n, axis=1, astype=list)
+        stackkwargs.setdefault('name', self.name)
+        if stack:
+            ts_split = SpecStack(ts_split, **stackkwargs)
+        return ts_split
 
         
  
@@ -1520,6 +1537,9 @@ if __name__ == '__main__':
 #    ts.as_interval()
     ts[0:5]
     ts.iloc[0:5]
+    stack = ts.sample_by(5)
+    stack.plot(title='Big bad plots')
+    plt.show()
     t1 = ts.as_interval()
     print t1.columns
     t1.plot(cbar=True)
@@ -1578,7 +1598,7 @@ if __name__ == '__main__':
 ###    t2.baseline=ts.baseline
     ##ts._df.ix[:, 0:4]
     ##ts.ix[:,0:4]
-    ##ts.boxcar(binwidth=20, axis=1)
+    ##ts.pvutils.boxcar(binwidth=20, axis=1)
     ##x=ts.ix[450.0:650.]
     ##y=t2.ix[500.:650.]
     
@@ -1608,7 +1628,7 @@ if __name__ == '__main__':
         
     ##from pyuvvis.core.utilities import find_nearest
     ##x=ts.ix[500.:510, 0]
-    ##b=maxmin_xy(x)
+    ##b=pvutils.maxmin_xy(x)
     ##a=find_nearest(x, .15)
     ##ts.iunit=None
     ##ts.iunit='a'

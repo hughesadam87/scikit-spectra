@@ -14,6 +14,7 @@ import numpy as np
 import matplotlib.colors as mplcolors
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
+import pyuvvis.config as cnfg
 
 from pyuvvis.exceptions import badvalue_error
 
@@ -37,7 +38,7 @@ def cmget(color):
 def multi_axes(count, **kwargs):
     """ """
     figsize = kwargs.pop('figsize', None)#, rcParams['figure.figsize'])
-    ncols = kwargs.pop('ncols', 4)
+    ncols = kwargs.pop('ncols', cnfg.multicols)
         
     if count <= ncols:
         nrows = 1
@@ -57,8 +58,37 @@ def multi_axes(count, **kwargs):
 
     while len(fig.axes) > count:
         fig.delaxes(fig.axes[-1])
-    return fig.axes, kwargs
+    return fig, fig.axes, kwargs
 
+
+def _parse_names(names, default_names):
+    """ Boilerplate: user enters *names to overwrite X default names.  
+    For example, if user enters 2 names but 5 unique labels in an image 
+    are found, and vice versa."""
+
+    default_names = list(default_names)
+    names = list(names)
+
+    # Handle various cases of names/values not being the same
+    if names:
+        if len(names) == len(default_names):
+            pass
+            
+        elif len(names) < len(default_names):
+            logger.warn("length : %s names provided but %s unique "
+                       "labels were found" % (len(names), len(default_names)) )              
+            default_names[0:len(names)] = names[:]
+            return default_names
+        
+        else: #len(names) >= len(default_names)
+            logger.warn("length : %s names provided but %s unique "
+                       "labels were found" % (len(names), len(default_names)) )     
+            return names[0:len(default_names)] 
+
+    else:
+        names[:] = default_names[:]
+        
+    return names
 
 def _annotate_mappable(df, cmap, axis=0, vmin=None, vmax=None):
     

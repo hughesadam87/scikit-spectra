@@ -10,7 +10,7 @@ import functools
 import cPickle
 import collections
 
-from pandas.core.indexing import _IXIndexer, _IXIndexer
+from pandas.core.indexing import _IXIndexer, _iLocIndexer
 
 from pandas import DataFrame, Series, TimeSeries
 
@@ -235,6 +235,7 @@ class MetaDataFrame(object):
 
     ## Fancy indexing
     _ix=None     
+    _iloc=None
         
     @property	  	
     def ix(self, *args, **kwargs):      	
@@ -251,7 +252,39 @@ class MetaDataFrame(object):
             ### New versions of _IXIndexer require "name" attribute.
             except TypeError as TE:
                 self._ix=_MetaIndexer(self, '_ix')
-        return self._ix        
+        return self._ix   
+
+    @property	  	
+    def iloc(self, *args, **kwargs):      	
+        ''' Pandas Indexing.  Note, this has been modified to ensure that series returns (eg ix[3])
+        still maintain attributes.  To remove this behavior, replace the following:
+        
+        self._ix = _MetaIndexer(self, _IXIndexer(self) ) --> self._ix=_IXIndexer(self)
+        
+        The above works because slicing preserved attributes because the _IXIndexer is a python object 
+        subclass.'''
+        if self._iloc is None:
+            try:
+                self._iloc =_IlocMeta(self)
+            ### New versions of _IXIndexer require "name" attribute.
+            except TypeError as TE:
+                self._iloc=_IlocMeta(self, '_iloc')
+        return self._iloc        
+                
+
+class _IlocMeta(_IXIndexer):
+    def __getitem__(self, key):
+        out=super(_IlocMeta, self).__getitem__(key)   
+
+        ### Series returns transformed to MetaDataFrame
+        if isinstance(out, Series) or isinstance(out, TimeSeries):
+            df = DataFrame(out)
+            return self.obj._transfer(out)
+
+        ### Make sure the new object's index property is syched to its ._df index.
+        else:
+            return out 
+    
             
 class _MetaIndexer(_IXIndexer):
     ''' Intercepts the slicing of ix so Series returns can be handled properly.  In addition,
@@ -267,7 +300,7 @@ class _MetaIndexer(_IXIndexer):
 
         ### Series returns transformed to MetaDataFrame
         if isinstance(out, Series) or isinstance(out, TimeSeries):
-            df=DataFrame(out)
+            df=  DataFrame(out)
             return self.obj._transfer(out)
 
         ### Make sure the new object's index property is syched to its ._df index.

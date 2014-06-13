@@ -208,7 +208,7 @@ def digitize_by(df, digitized_bins, binarray, axis=0, avg_fcn='mean', weight_max
     return dfout   
 
 
-def sample_by(df, n, axis=1):
+def sample_by(df, n, axis=1, astype=list):
     """ Returns a list of dataframes sampled by n.  For example, a datframe
     of 20 columns, sampled by n=4, will return 5 evenly spaced dataframes.
     If uneven samples, will raise warning.  axis=1 for column sampling, axis=0
