@@ -110,11 +110,20 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
     ax.set_title(title, fontsize=titlesize)         
     
     # Not normazling padding correctly!
+    
+    def _correct_padding(xi,xf):
+        dlt_x = xf-xi
+        boundary = abs(dlt_x *_padding)
+        low_bound = xi-boundary
+        high_bound = xf+boundary
+        return (low_bound, high_bound)
+    
+    
     if not xlim:
-        xlim = (min(ts.index)*(1-_padding), max(ts.index)*(1+_padding)) #index.min() bug
-         
+        xlim = _correct_padding(min(ts.index), max(ts.index))
+                 
     if not ylim:
-        ylim = (ts.min().min()*(1-_padding), ts.max().max()*(1+_padding))
+        ylim = _correct_padding(ts.min().min(), ts.max().max())
         
     ax.set_xlim(xlim)
     ax.set_ylim(ylim)

@@ -62,9 +62,26 @@ def aunps_glass(*args, **kwargs):
     glass optical fiber; spectrum corresponds to the specular Reflectance.
     Please reference pyuvvis if citing.
     """
-    kwargs.setdefault('name', 'Gold Nanoparticles on Glass')    
-    return _load_gwuspec('aunps_glass.csv', *args, **kwargs)
+    style = kwargs.pop('style', 1)
+    
+    if style == 1:
+        kwargs.setdefault('name', 'AuNPs Glass (great)')    
+        return _load_gwuspec('aunps_glass_good.csv', *args, **kwargs)
+        
 
+    elif style == 2:
+        kwargs.setdefault('name', 'AuNPs Glass (fair)')    
+        return _load_gwuspec('aunps_glass_fair.csv', *args, **kwargs)
+
+
+    elif style == 3:
+        kwargs.setdefault('name', 'AuNPs Glass (bad)')   
+        return _load_gwuspec('aunps_glass_bad.csv', *args, **kwargs)
+
+    else:
+        raise DataError("style argument must be '1' '2' or '3', instead got %s" % style)
+
+    
 
 def aunps_water(*args, **kwargs):
     """ Reeveslab data obtained by Adam Hughes of gold nanoparticles in water. 
