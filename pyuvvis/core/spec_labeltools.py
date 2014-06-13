@@ -29,9 +29,15 @@ c=299792458.0               #speed of light m/s
 ## use domain specific representations of time such as sidereal time or financial time.
 
 ### Lazy way to cover both kinds of input, short or long unit!
-sec_conversions={'ns':10**-9, 'us':10**-6, 'ms':10**-3, 
-                 's':1.0, 'm':60.0, 'h':3600.0, 
-                 'd':86400.0, 'y':31536000.0, 'intvl':None}
+sec_conversions={'ns':10**-9,
+		 'us':10**-6, 
+		 'ms':10**-3, 
+                 's':1.0, 
+		 'm':60.0, 
+		 'h':3600.0, 
+                 'd':86400.0, 
+		 'y':31536000.0, 
+		 'intvl':None}
 
 intvl_dic={'ns':'Nanoseconds', 
            'us':'Microseconds', 
@@ -41,7 +47,7 @@ intvl_dic={'ns':'Nanoseconds',
            'h':'Hours', 
            'd':'Days', 
            'y':'Years',
-           'intvl':'Interval timestamp'}
+           'intvl':'Time Delta'}
 
 
 ### Mapping of various spectral units to meters.  
@@ -83,7 +89,7 @@ to_T={'t':lambda x: 1.0/x,
 
 
 ### Index/label utilities.  Leave mapping back to dataframe separate. ###
-def datetime_convert(datetimeindex, return_as='interval', cumsum=True):
+def datetime_convert(datetimeindex, return_as='intvl', cumsum=True):
     ''' Convert a list of datetime labels into either intervals or as rawtime
     seconds, minutes, hours etc... Note, pandas DatetimeIndex has a lot of conversion 
     methods and timespan representations, but this does not rely on them.

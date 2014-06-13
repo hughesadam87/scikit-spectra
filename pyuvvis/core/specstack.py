@@ -1,6 +1,6 @@
-''' Storage class for sets of pandas object.  Similar to a panel, 
+""" Storage class for sets of pandas object.  Similar to a panel, 
     but does inherently store 3d data.  Data can be converted to 3d through
-    methods, but otherwise is just a container.'''
+    methods, but otherwise is just a container."""
 
 from collections import OrderedDict, Iterable
 from types import FunctionType
@@ -8,28 +8,29 @@ from copy import deepcopy
 
 import logging
 from pyuvvis.logger import logclass
+from pyuvvis.plotting.multiplots import slice_plot
+
 
 logger = logging.getLogger(__name__) 
 
 @logclass(log_name=__name__, public_lvl='debug')
-class AbstractStack(object):
-    ''' Abstract base class to store pandas objects, with special operations to
-        return as 3d data (eg panel) and to apply functions itemwise.  Items are
-        stored in an ordered dict.'''
+class Stack(object):
+    """ Base class to store pandas objects, with special operations to
+    return as 3d data (eg panel) and to apply functions itemwise.  Items are
+    stored in an ordered dict."""
     
     itemlabel='Item'
     _magic=['__len__', '__iter__', '__reversed__', '__contains__']
     
-    def __init__(self, data, items=None, name='', sort_items=False):
-        ## do stuff
+    def __init__(self, data, keys=None, name='', sort_items=False):
         self.name=name
                                 
-        ### Dictionary input
+        # Dictionary input
         if isinstance(data, dict):
             logger.debug('Initializing "%s" from dictionary.' % self.full_name)
             if sort_items:
-                logger.debug('Sorting items')
-                self._data=OrderedDict(sorted(data.items(), key=lambda t: t[0]))
+                logger.debug('Sorting keys')
+                self._data=OrderedDict(sorted(data.keys(), key=lambda t: t[0]))
 
             else:
                 self._data=OrderedDict(data)
@@ -41,27 +42,27 @@ class AbstractStack(object):
                             'data to an iterable' % self.full_name)
                 data=[data]
                 
-            if items:
-                if not isinstance(items, Iterable):
+            if keys:
+                if not isinstance(keys, Iterable):
                     logger.info('%s constructed from non-iterable... converting '
-                                'items to an iterable' % self.full_name)
-                    items = [items]
+                                'keys to an iterable' % self.full_name)
+                    keys = [keys]
 
-                if len(items) != len(data):
-                    raise ValueError('Length mistmatch: items and data (%s,%s)'\
-                        % (len(items), len(data)))
+                if len(keys) != len(data):
+                    raise ValueError('Length mistmatch: keys and data (%s,%s)'\
+                        % (len(keys), len(data)))
                 
-            ### If items not passed, generate them    
+            # If keys not passed, generate them    
             else:
-                items=self._gen_items(len(data))
+                keys=self._gen_keys(len(data))
  
-            self._data=OrderedDict( [ (items[i],data[i]) for i 
-                                      in range(len(items) ) ] ) 
+            self._data=OrderedDict( [ (keys[i],data[i]) for i 
+                                      in range(len(keys) ) ] ) 
         self.__assign_magic()
       
-    def _gen_items(self, length):
-        ''' Return a list of itemlables (item0, item1 etc...) using
-            self.itemlabel and a length'''
+    def _gen_keys(self, length):
+        """ Return a list of itemlables (item0, item1 etc...) using
+            self.itemlabel and a length"""
 
         logger.debug('Items not found on %s: generating item list' % self.full_name)
         return [self.itemlabel+str(i) for i in range(length)]                  
@@ -75,19 +76,20 @@ class AbstractStack(object):
         
     #### Do I want to allow overwrite without restriction?    
     def __setitem__(self, item, value):
-        ''' Changes item while preserving sort order.  If new item, 
-            appended to end.'''
+        """ Changes item while preserving sort order.  If new item, 
+            appended to end."""
         self._data[item]=value     
                 
     def __getattr__(self, attr):
-        ''' If attribute not found, try attribute lookup in dictionary.  If
-            that is not found, try finding attribute on self._data.
-            
-            For example, self.keys() will first look for self['keys'].  Since
-            this isn't found, it calls self._data.keys().  But if I do 
-            self.Item1, then it returns self['Item1'].  The very rare conflict
-            case that a user has named the items a method that may already exist
-            in the dictionary (eg items=['a','b','keys'] is addressed.'''
+        """ If attribute not found, try attribute lookup in dictionary.  If
+        that is not found, try finding attribute on self._data.
+        
+        For example, self.keys() will first look for self['keys'].  Since
+        this isn't found, it calls self._data.keys().  But if I do 
+        self.Item1, then it returns self['Item1'].  The very rare conflict
+        case that a user has named the items a method that may already exist
+        in the dictionary (eg items=['a','b','keys'] is addressed.
+        """
         
         if attr in self._data.keys():
             if hasattr(self._data, attr):
@@ -119,15 +121,17 @@ class AbstractStack(object):
         #return self._data.__missing__(key)
         
         
-    
     def as_3d(self):
-        ''' Return 3d structure of data.  Default is panel.'''
+        """ Return 3d structure of data.  Default is panel."""
         raise Panel(data=self._data)
                  
         ### Data types without labels    
+
     
+    #Is this realy necessary?  See pyparty.ParticleManger for possibly more consistent implementation
     def get_all(self, attr, ordered=False):
-        '''Returns a tuple of (item, attribute) pairs for a given attribute.'''
+        """Returns a tuple of (item, attribute) pairs for a given attribute."""
+
         gen=((item[0], getattr(item[1], attr)) for item in self.items())
         if ordered:
             return OrderedDict(gen)
@@ -135,9 +139,9 @@ class AbstractStack(object):
     
                 
     def _get_unique(self, attr):
-        ''' Inspects Stack itemwise for an attribute for unique values.
-            If non-unique value for the attributes are found, returns
-            "mixed". '''
+        """ Inspects Stack itemwise for an attribute for unique values.
+        If non-unique value for the attributes are found, returns
+        "mixed". """
         unique=set(self.get_all(attr).values())
         if len(unique) > 1:
             return 'mixed'
@@ -146,8 +150,8 @@ class AbstractStack(object):
         
         
     def set_all(self, attr, val, inplace=False):
-        ''' Set attributes itemwise.  
-            If not inplace, returns new instance of self'''
+        """ Set attributes itemwise.  
+            If not inplace, returns new instance of self"""
         if inplace:
             for item in self:
                 try:           
@@ -158,32 +162,33 @@ class AbstractStack(object):
         else:
             out=deepcopy(self._data) #DEEPCOPY            
             for item in out:
-                setattr(out[item], attr, val)
-                
+                setattr(out[item], attr, val)                
             return self.__class__(out)
 
+
     def apply(self, func, *args, **kwargs):
-        ''' Applies a user-passed function, or calls an instance method itemwise.
+        """ Applies a user-passed function, or calls an instance method itemwise.
         
         
         Parameters:
         -----------
-            func: If string, must correspond to a method on the object stored 
-                  itemwise in the stack.  If a function, appliked itemwise to
-                  objects stored.  
-                  
-           inplace:  Special kwarg.  If true, self._data modified inplace, 
-                     otherwise new specstack is returned.
-                             
-           *args, **kwargs: 
-                  Passed into the function directly if it requries additional
-                  arguments.
+        func: str or function
+            If string, must correspond to a method on the object stored 
+            itemwise in the stack.  If a function, appliked itemwise to
+            objects stored.  
+              
+        inplace: False 
+            Special kwarg.  If true, self._data modified inplace, 
+            otherwise new specstack is returned.
+                         
+        *args, **kwargs: 
+            func arguments.
           
         Returns:
-        -----
-            If not inplace, returns SpecStack after itemwise application.
+        --------
+        If not inplace, returns SpecStack after itemwise application.
             
-            '''   
+        """   
 
         inplace=kwargs.pop('inplace', False)
         
@@ -210,20 +215,21 @@ class AbstractStack(object):
             an instance method or a function.  %s is invalid.'%type(func))
         
 
-
     @property  
     def full_name(self):
-        ''' Timespectra:name or Timespectra:unnamed.  Useful for scripts mostly '''
+        """ Timespectra:name or Timespectra:unnamed.  Useful for scripts mostly """
         outname = getattr(self, 'name', 'unnamed')
         return '%s:%s' % (self.__class__.__name__, self.name)           
 
+
+
 @logclass(log_name=__name__)               
-class SpecStack(AbstractStack):
-    ''' Stack for just storing timespectra objects.'''        
+class SpecStack(Stack):
+    """ Stack for just storing timespectra objects."""        
 
     def as_3d(self, **kwargs):
-        ''' Returns a 3d stack (SpecPanel) of the currently stored items.
-            Additional kwargs can be passed directly to SpecPanel constructor.'''
+        """ Returns a 3d stack (SpecPanel) of the currently stored items.
+            Additional kwargs can be passed directly to SpecPanel constructor."""
         from specpanel import SpecPanel      
         return SpecPanel(data=self._data, **kwargs)        
     
@@ -239,7 +245,7 @@ class SpecStack(AbstractStack):
     ### Do I want to make as a _set method to avoid accidental overwrite?
     @specunit.setter
     def specunit(self, unit):
-        ''' Sets specunit for every stored TimeSpectra.'''
+        """ Sets specunit for every stored TimeSpectra."""
         self.set_all('specunit', unit, inplace=True)
     
     @property
@@ -248,7 +254,7 @@ class SpecStack(AbstractStack):
     
     @iunit.setter
     def iunit(self, unit):
-        ''' Sets iunit for every stored TimeSpectra.'''
+        """ Sets iunit for every stored TimeSpectra."""
         self.set_all('iunit', unit, inplace=True)    
         
     @property
@@ -257,13 +263,17 @@ class SpecStack(AbstractStack):
     
     @reference.setter
     def reference(self, ref):
-        ''' Set reference itemwise.  No getter, use get_all() instead.'''
+        """ Set reference itemwise.  No getter, use get_all() instead."""
         self.set_all('reference', ref, inplace=True)
 
     ### This shouldn't have a setter
     @property
     def timeunit(self):
         return self._get_unique('timeunit')   
+    
+    #def plot(self):
+        #slice_plot(self.data)
+        
    
 
 if __name__=='__main__':

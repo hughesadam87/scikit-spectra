@@ -27,8 +27,8 @@ from pandas import DatetimeIndex
 from pyuvvis.core.spec_labeltools import spectral_convert
 
 ### Define new attributes (default values provided in SpecIndex())
-pandas.Index.unit=None
-pandas.Index._kind=None  #Used to identify SpecIndex by other PyUvVis methods (don't overwrite) (SET TO 'spectral' later)
+pandas.Index.unit = None
+pandas.Index._kind = None  #Used to identify SpecIndex by other PyUvVis methods (don't overwrite) (SET TO 'spectral' later)
 
 # Store old printout of specindex for later redefinition
 pandas.Index.old__unicode__ = pandas.Index.__unicode__
@@ -103,7 +103,10 @@ def SpecIndex(inp, *args, **defattr):
     ### Transfer unit key to actual unit name
     unit=_unit_valid(unit)
     
-    index=pandas.Index(inp, *args, **defattr)  #Enforce dtype=Float?
+    # FLOAT CONVERTS RIGHT HERE TO 9 DECIMAL PRECISION
+    #inp = np.asarray(inp).astype(float)
+
+    index = pandas.Index(inp, *args, **defattr)  #Enforce dtype=Float?
 
     ### Assign unit and category
     index.unit=unit 
@@ -157,14 +160,3 @@ def set_sindex(start, stop, numpts, unit=None):
 pandas.Index._convert_spectra=_convert_spectra
 pandas.Index.__unicode__=__unicode__ #Overload the new printout
 
-if __name__ == '__main__':
-    x=SpecIndex([200,300,400])
-    print x
-    x=x._convert_spectra('centimeters')
-    x=x._convert_spectra('ev')
-    print x
-    
-    ## DONT EVER SET UNIT USING INDEX.UNIT DIRECTLY
-
-    
-    

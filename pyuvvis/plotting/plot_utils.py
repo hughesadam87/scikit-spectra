@@ -34,6 +34,32 @@ def cmget(color):
     return cmap
 
 
+def multi_axes(count, **kwargs):
+    """ """
+    figsize = kwargs.pop('figsize', None)#, rcParams['figure.figsize'])
+    ncols = kwargs.pop('ncols', 4)
+        
+    if count <= ncols:
+        nrows = 1
+        ncols = count
+
+    else:  
+#       ncols = _mod_closest(count)
+        nrows = int(count/ncols)         
+        if count % ncols: #If not perfect division
+            nrows += 1
+    
+    if figsize:
+        fig, axes = splot(nrows, ncols, figsize=figsize, fig=True)
+    else:
+        fig, axes = splot(nrows, ncols,fig=True)
+        
+
+    while len(fig.axes) > count:
+        fig.delaxes(fig.axes[-1])
+    return fig.axes, kwargs
+
+
 def _annotate_mappable(df, cmap, axis=0, vmin=None, vmax=None):
     
     if isinstance(cmap, basestring): 

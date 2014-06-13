@@ -21,6 +21,12 @@ from scipy import integrate
 from pyuvvis.pandas_utils.dataframeserial import _get_metadict
 from pyuvvis.exceptions import badvalue_error
 
+import logging
+logger = logging.getLogger(__name__) 
+
+
+class UtilsError(Exception):
+    """ """
 
 def countNaN(obj):
     ''' Returns counts of nans in an object'''
@@ -175,6 +181,33 @@ def digitize_by(df, digitized_bins, binarray, axis=0, avg_fcn='mean', weight_max
         
     return dfout   
 
+
+def sample_by(df, n, axis=1):
+    """ Returns a list of dataframes sampled by n.  For example, a datframe
+    of 20 columns, sampled by n=4, will return 5 evenly spaced dataframes.
+    If uneven samples, will raise warning.  axis=1 for column sampling, axis=0
+    for row sampling.
+    """
+    
+    if n > df.shape[1]:
+        raise UtilsError("Requested samplesize (n=%s) exceeds size along axis %s"
+                         % (n,axis))
+    
+    # Integery guarantees rounding down
+    m = int(float(df.shape[axis]) / n)
+    df_out=[]
+    for i in range(n):
+        if i==n-1:
+            df_out.append(df[df.columns[i*m::]])
+        else:
+            df_out.append(df[df.columns[i*m:(i+1)*m]])
+
+    if n % df.shape[axis]:
+        logger.warn("Returning uneven sampling for (n=%s) along axis %s"
+                    "of size %s" % (n, axis, df.shape[axis]))
+                    
+    return df_out     
+    
 
 def rebin(df, binwidth, axis=0, avg_fcn='weighted', weight_max=None):
     ''' Pass in an array, this slices and averages it along some spacing increment (bins).

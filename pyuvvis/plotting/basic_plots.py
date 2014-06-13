@@ -12,13 +12,14 @@ import plot_utils as put
 import logging
 import numpy as np
 import matplotlib.pyplot as plt
+import pyuvvis.config as puc
 
 logger = logging.getLogger(__name__)
 
 class PlotError(Exception):
     """ """
 
-#XXX UPDATE DOCSTRING
+#XXX UPDATE DOCSTRING (HOW TO REFERENCE SPECPLOT TO THIS ONE)
 def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
     ''' Generic wrapper to ts._df.plot(), that takes in x/y/title as parsed
     from various calling functions:
@@ -28,6 +29,10 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
         labelsize
         titlesize
         ticksize 
+        xlim/ylabel
+        cbar
+        ax
+        fig
     '''
              
     # Add custom legend interface.  Keyword legstyle does custom ones, if pltkwrd legend==True
@@ -40,7 +45,11 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
     ax = pltkwargs.pop('ax', None)
     cbar = pltkwargs.pop('cbar', None)
     _barlabels = 5 #Number of ticks/labels in colorbar
-    
+
+    xlim = pltkwargs.pop('xlim', None)
+    ylim = pltkwargs.pop('ylim', None)
+    _padding = 0.05
+            
     if not ax:
         f, ax = plt.subplots(1)
         if not fig:
@@ -80,11 +89,18 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
                             " keyword or do not pass custom AxesSubplot.")
         mappable, vmin, vmax = put._annotate_mappable(ts, pltcolor, axis=0)
         cbar = fig.colorbar(mappable, ticks=np.linspace(vmin, vmax, _barlabels))
+        cbar.set_label(r'%s$\rightarrow$'%ts.full_timeunit)
+        
         label_indices = np.linspace(0, len(ts.columns), _barlabels)
         label_indices = [int(round(x)) for x in label_indices]
         if label_indices[-1] > len(ts.columns)-1:
             label_indices[-1] = len(ts.columns)-1 #Rounds over max
-        cbar.ax.set_yticklabels([ts.columns[x] for x in label_indices])
+        
+        labels = [ts.columns[x] for x in label_indices]
+        if ts._interval and ts._intervalunit != 'intvl':
+            labels = [round(float(x),puc.float_display_units) for x in label_indices]
+            
+        cbar.ax.set_yticklabels(labels)
         
     # Add minor ticks through tick parameters  
     ax.minorticks_on()
@@ -92,6 +108,16 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
     ax.set_xlabel(xlabel, fontsize=labelsize)
     ax.set_ylabel(ylabel, fontsize=labelsize)
     ax.set_title(title, fontsize=titlesize)         
+    
+    # Not normazling padding correctly!
+    if not xlim:
+        xlim = (min(ts.index)*(1-_padding), max(ts.index)*(1+_padding)) #index.min() bug
+         
+    if not ylim:
+        ylim = (ts.min().min()*(1-_padding), ts.max().max()*(1+_padding))
+        
+    ax.set_xlim(xlim)
+    ax.set_ylim(ylim)
     
     if legstyle and pltkwargs['legend'] == True:  #Defaults to False
         if legstyle == 0:
@@ -125,7 +151,7 @@ def specplot(ts, **pltkwds):
     pltkwds['linewidth'] = pltkwds.pop('linewidth', 1.0 )    
            
     xlabel = pltkwds.pop('xlabel', ts.full_specunit)  
-    ylabel = pltkwds.pop('ylabel', ts.full_iunit+' (Counts)')    
+    ylabel = pltkwds.pop('ylabel', ts.full_iunit)    
 #    title = pltkwds.pop('title', '(%s) %s' % (ts.full_iunit, ts.name) )    
     title=pltkwds.pop('title', ts.name )    
 

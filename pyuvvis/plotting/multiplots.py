@@ -1,7 +1,29 @@
 from basic_plots import specplot, absplot, areaplot, range_timeplot
-from plot_utils import splot
+from plot_utils import splot, multi_axes
 import matplotlib.pyplot as plt
+from pyuvvis.core.utilities import sample_by
 
+def slice_plot(ts, n=4, *plotargs, **plotkwds):
+    """ """
+
+    ts_list = sample_by(ts, n)
+    axes, kwargs = multi_axes(len(ts_list), **plotkwds)
+
+    #if len(axes) < len(ts_list ):
+        #logger.warn("MultiCanvas has %s canvas, but only %s axes recieved"
+                    #" in show()" % (len(self), len(axes)))
+        #upperlim = len(axes)
+
+    #else:
+        #upperlim = len(ts_list )
+        
+    #pcolors = self._request_plotcolors()
+    
+    for (idx, tspec) in enumerate(ts_list):
+        tspec.plot(ax=axes[idx])
+        
+    return axes
+    
 
 def quad_plot(ts, *plotargs, **plotkwds):
     """ Output a matplotlib figure with full spectra, absorbance, area and 
