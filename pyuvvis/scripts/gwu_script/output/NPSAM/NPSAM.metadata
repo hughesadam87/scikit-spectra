@@ -1,0 +1,20 @@
+Spectral Parameters:
+	boxcar	10
+	dark_spec_pres	Yes
+	detector_nonlin_correct	No
+	electric_dark_correct	No
+	filecount	99
+	fileend	/home/glue/Desktop/PYUVVIS/pyuvvis/pyuvvis/example_data/NPSAM/f1_npsam00098.txt
+	filestart	/home/glue/Desktop/PYUVVIS/pyuvvis/pyuvvis/example_data/NPSAM/f1_npsam00000.txt
+	int_time	337000
+	int_unit	(usec):
+	pix_in_spec	2048
+	ref_spec_pres	No
+	spec_avg	10
+	specend	1023.65
+	specstart	339.09
+	spectrometer	USB2E7196
+	stray_light_correct	No
+	strobe_lamp	No
+	timeend	2013-09-04 17:34:09
+	timestart	2013-09-04 17:28:31

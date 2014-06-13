@@ -190,12 +190,12 @@ class Stack(object):
         """ Set attributes itemwise.  
             If not inplace, returns new instance of self"""
         if inplace:
-            for item in self:
+            for (key, item) in self.items():
                 try:           
-                    setattr(self[item], attr, val)    
+                    setattr(item, attr, val)    
                 except Exception as E:
-                    raise Exception('Could not set %s in %s.  Received the following \
-                     exception:\n "%s"'%(attr, item, E))
+                    raise Exception('Could not set %s in "%s".  Received the following \
+                     exception:\n "%s"'%(attr, key, E))
         else:
             out=deepcopy(self._data) #DEEPCOPY            
             for item in out:
@@ -320,6 +320,8 @@ class SpecStack(Stack):
         """
         
         plotkwargs.setdefault('title', self.name)        
+        if 'cbar' in plotkwargs:
+            raise NotImplementedError("Colorbar on stack plot not yet supported")
         return slice_plot(self.values(), *plotargs, names=self.keys(), **plotkwargs)
 
         
@@ -346,7 +348,9 @@ if __name__=='__main__':
 
     ##x = Panel(d)
     y = SpecStack(d, name='Slices of Foo')
-    y.plot(color='RdBu')
+    y.reference = 0
+    y.iunit='a'
+    y.plot()
     plt.show()
 #    sys.exit()
     #y[0:1]

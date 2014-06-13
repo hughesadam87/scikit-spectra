@@ -1530,15 +1530,18 @@ if __name__ == '__main__':
                    #index=spec, 
                    #name='ts2') 
     
-    from pyuvvis.data import aunps_glass
-    ts = aunps_glass()
+    from pyuvvis.data import aunps_water
+    ts = aunps_water()
 
 
 #    ts.as_interval()
     ts[0:5]
     ts.iloc[0:5]
-    stack = ts.sample_by(5)
-    stack.plot(title='Big bad plots')
+    stack = ts.sample_by(1)
+    stack.iunit = 'a'
+#    stack.plot(title='Big bad plots')
+    from pyuvvis.plotting import quad_plot
+    quad_plot(ts)
     plt.show()
     t1 = ts.as_interval()
     print t1.columns

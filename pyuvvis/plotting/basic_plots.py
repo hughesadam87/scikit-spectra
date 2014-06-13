@@ -38,12 +38,12 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
     # Add custom legend interface.  Keyword legstyle does custom ones, if pltkwrd legend==True
     # For now this could use improvement  
     pltkwargs.setdefault('legend', False)
-    pltkwargs.setdefault('linewidth', 2)
+    pltkwargs.setdefault('linewidth', 1)
     legstyle = pltkwargs.pop('legstyle', None)   
 
     fig = pltkwargs.pop('fig', None)
     ax = pltkwargs.pop('ax', None)
-    cbar = pltkwargs.pop('cbar', None)
+    cbar = pltkwargs.pop('cbar', False)
     _barlabels = 5 #Number of ticks/labels in colorbar
 
     xlim = pltkwargs.pop('xlim', None)
@@ -120,13 +120,20 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
     
     
     if not xlim:
-        xlim = _correct_padding(min(ts.index), max(ts.index))
+        try:
+            xlim = _correct_padding(min(ts.index), max(ts.index))
+            ax.set_xlim(xlim)
+        # Padding not inferrable from string indicies like in time plots 
+        except Exception:
+            pass
                  
     if not ylim:
-        ylim = _correct_padding(ts.min().min(), ts.max().max())
+        try:
+            ylim = _correct_padding(ts.min().min(), ts.max().max())
+            ax.set_ylim(ylim)
+        except Exception:
+            pass
         
-    ax.set_xlim(xlim)
-    ax.set_ylim(ylim)
     
     if legstyle and pltkwargs['legend'] == True:  #Defaults to False
         if legstyle == 0:
@@ -156,15 +163,12 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
 # the correct dataframes to fill these plots.
 def specplot(ts, **pltkwds):
     ''' Basically a call to gen plot with special attributes, and a default color mapper.'''
-
-    pltkwds['linewidth'] = pltkwds.pop('linewidth', 1.0 )    
-           
+          
     xlabel = pltkwds.pop('xlabel', ts.full_specunit)  
     ylabel = pltkwds.pop('ylabel', ts.full_iunit)    
 #    title = pltkwds.pop('title', '(%s) %s' % (ts.full_iunit, ts.name) )    
     title=pltkwds.pop('title', ts.name )    
 
-        
     return _genplot(ts, xlabel, ylabel, title, **pltkwds)
     
     
@@ -193,8 +197,6 @@ def absplot(ts, default='a', **pltkwds):
     if not ts._base_sub:
         logger.warn('Spectrum does not have subtracted baseline; could alter absorbance.')
                     
-    pltkwds.setdefault('linewidth', 1.0)
- 
     xlabel = pltkwds.pop('xlabel', ts.full_specunit)  
     ylabel = pltkwds.pop('ylabel', ts.full_iunit)    
     title = pltkwds.pop('title', 'Absorbance: '+ ts.name )    
@@ -264,15 +266,15 @@ def areaplot(ranged_ts, **pltkwds):
         logger.warn("areaplot() forcing transpose on %s for plotting" 
                     % ranged_ts.name)
         # _df.transpose() causes error now because specunit is being transferred!
-        out = ranged_ts._df.transpose()
+        out = ranged_ts.transpose()
                     
     # Pass in df.tranpose() as hack until I fix specunit (otherwise it tries to
     # assign specunit to the index, which is a time index (this causes error in new pandas)
     return _genplot(out, xlabel, ylabel, title, **pltkwds)   #ts TRANSPOSE
     
 if __name__ == '__main__':
-    from pyuvvis.data import test_spectra
-    ts = test_spectra()
+    from pyuvvis.data import aunps_glass
+    ts = aunps_glass()
 #    specplot(ts)
     areaplot(ts)
     plt.show()

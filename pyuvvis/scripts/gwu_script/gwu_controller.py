@@ -23,7 +23,7 @@ from time import gmtime, strftime
 
 # PYUVVIS IMPORTS
 #from pyuvvis.bundled import run_nb_offline
-from pyuvvis.plotting import specplot, areaplot, absplot, range_timeplot
+from pyuvvis.plotting import areaplot, absplot, range_timeplot
 from pyuvvis.plotting import spec_surface3d, surf3d, spec_poly3d, plot2d, plot3d
 from pyuvvis.core.spec_labeltools import datetime_convert, spec_slice
 from pyuvvis.core.utilities import boxcar, countNaN
@@ -639,16 +639,18 @@ class Controller(object):
             
         # Set reference (MUST SET reference AFTER SLICING RANGES TO AVOID ERRONEOUS reference DATA)
         ts.reference = self.params.reference
-    
+
         if self.params.intvlunit:
-            try:
-                ts.to_interval(self.params.intvlunit)
-            except KeyError:
-                ts.to_interval()        
-                logger.warn('Cannot set "intvlunit" from parameters; running'
-                        ' ts.to_interval()')
-        else:
-            logger.info('Intvlunit is None- leaving data as rawtime')
+            logger.critical("No longer support interval setting at runtime as"
+                            " original timestamps are lost in csv outputs.")
+            #try:
+                #ts.to_interval(self.params.intvlunit)
+            #except KeyError:
+                #ts.to_interval()        
+                #logger.warn('Cannot set "intvlunit" from parameters; running'
+                        #' ts.to_interval()')
+        #else:
+            #logger.info('Intvlunit is None- leaving data as rawtime')
                         
         return ts    
 
@@ -776,7 +778,7 @@ class Controller(object):
                     'titlesize':self._plot_fontsize}
         
     
-        specplot(ts, cbar=True, **sizeargs)
+        ts.plot(**sizeargs)
         self.plt_clrsave(op.join(outpath, prefix +'_spectrum'))
 
         # Area plot using simpson method of integration

@@ -1,6 +1,7 @@
 import plot_utils as put
 import matplotlib.pyplot as plt
 from pyuvvis.core.utilities import sample_by
+from basic_plots import specplot, absplot, areaplot, range_timeplot
 
 def slice_plot(ts_list, names=[], n=4, *plotargs, **plotkwds):
     """ Pass in a container of timespectra; outputs is subplot for reach. """
@@ -15,7 +16,7 @@ def slice_plot(ts_list, names=[], n=4, *plotargs, **plotkwds):
     fig, axes, kwargs = put.multi_axes(len(ts_list), **plotkwds)
     
     for (idx, tspec) in enumerate(ts_list):
-        tspec.plot(ax=axes[idx], title=names[idx], *plotargs, **plotkwds)
+        tspec.plot(ax=axes[idx], fig=fig, title=names[idx], *plotargs, **plotkwds)
         
     fig.suptitle(figtitle, fontsize=20)        
     return axes
@@ -28,7 +29,7 @@ def quad_plot(ts, *plotargs, **plotkwds):
     
     Parameters
     -----------
-    figtitle : str
+    title : str
         Title of the overall figure
         
     striplegend : bool (False)
@@ -39,9 +40,9 @@ def quad_plot(ts, *plotargs, **plotkwds):
         'Jet' is applid to strip chart regardless.
     """
 
-    figtitle = plotkwds.pop('figtitle', '')
+    title = plotkwds.pop('title', '')
     f, axes = put.splot(2,2, fig=True, figsize=(8,8))
-    f.suptitle(figtitle, fontsize=20)
+    f.suptitle(title, fontsize=20)
     
     cmap = plotkwds.pop('color', 'jet')
     
@@ -51,15 +52,16 @@ def quad_plot(ts, *plotargs, **plotkwds):
              ax=axes[0], 
              title='Spectra', 
              color = cmap,
+             fig=f, #for colorbar
              **plotkwds)
     
     areaplot(ts, *plotargs,
              ax=axes[1], 
              title='Area', 
-             xlabel='seconds', 
+             fig=f,
              **plotkwds)
 
-    abput.splot(ts, *plotargs,
+    absplot(ts, *plotargs,
             ax=axes[2], 
             color=cmap, 
             title='Absorbance',
@@ -67,9 +69,9 @@ def quad_plot(ts, *plotargs, **plotkwds):
 
     range_timeplot(ts.wavelength_slices(8), 
                    ax=axes[3], 
-                   xlabel='seconds',  
                    legend=False,
                    color = 'jet',
+                   title='Spectral Slices',
                    **plotkwds)
 
     if striplegend:
@@ -78,13 +80,15 @@ def quad_plot(ts, *plotargs, **plotkwds):
     # Remove y-axis of area/stripchart
     axes[1].get_yaxis().set_visible(False)
     axes[3].get_yaxis().set_visible(False)
+    axes[0].get_xaxis().set_visible(False)
+    axes[1].get_xaxis().set_visible(False)
     
     return f
         
 
 if __name__ == '__main__':
-    from pyuvvis.data import test_spectra
-    quad_plot(test_spectra().ix[420.0:700.0], 
-              figtitle='Quad Plot Title', 
+    from pyuvvis.data import aunps_water
+    quad_plot(aunps_water(), 
+              title='Quad Plot Title', 
               striplegend=True)
     plt.show()
