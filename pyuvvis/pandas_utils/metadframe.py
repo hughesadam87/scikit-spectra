@@ -73,19 +73,19 @@ class MetaDataFrame(object):
     #----------------------------------------------------------------------
     # Overwrite Dataframe methods and operators
 
-    def __getitem__(self, key):
+    def __getitem__(self, keyslice):
         ''' Item lookup.  If output is an interable, _transfer is called.  
         Sometimes __getitem__ returns a float (indexing a series) at which 
         point we just want to return that.'''
 
-        dfout=self._df.__getitem__(key)
+        dfout=self._df.__getitem__(keyslice)
 
         try:
             iter(dfout)  #Test if iterable without forcing user to have collections package.
         except TypeError:
             return dfout
         else:
-            return self._transfer(self._df.__getitem__(key) )               
+            return self._transfer(self._df.__getitem__(keyslice) )               
 
     def __setitem__(self, key, value):
         self._df.__setitem__(key, value)    

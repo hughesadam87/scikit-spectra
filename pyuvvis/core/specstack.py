@@ -3,15 +3,15 @@
     methods, but otherwise is just a container."""
 
 from collections import OrderedDict, Iterable
-from types import FunctionType
 from copy import deepcopy
 
 import logging
 from pyuvvis.logger import logclass
 from pyuvvis.plotting.multiplots import slice_plot
-
+import pyuvvis.core.utilities as put
 
 logger = logging.getLogger(__name__) 
+
 
 @logclass(log_name=__name__, public_lvl='debug')
 class Stack(object):
@@ -20,10 +20,14 @@ class Stack(object):
     stored in an ordered dict."""
     
     itemlabel='Item'
-    _magic=['__len__', '__iter__', '__reversed__', '__contains__']
+    _magic=['__len__', 
+            '__iter__', 
+            '__reversed__',
+            '__contains__', 
+            ]
     
     def __init__(self, data, keys=None, name='', sort_items=False):
-        self.name=name
+        self.name = name
                                 
         # Dictionary input
         if isinstance(data, dict):
@@ -54,11 +58,17 @@ class Stack(object):
                 
             # If keys not passed, generate them    
             else:
-                keys=self._gen_keys(len(data))
+                # Zipped data ((key, df), (key, df))               
+                try:
+                    keys, data = zip(*data)
+                except Exception:                
+                    keys=self._gen_keys(len(data))
+                    logger.warn("Generating keys %s..." % keys[0])
  
             self._data=OrderedDict( [ (keys[i],data[i]) for i 
                                       in range(len(keys) ) ] ) 
         self.__assign_magic()
+        
       
     def _gen_keys(self, length):
         """ Return a list of itemlables (item0, item1 etc...) using
@@ -67,18 +77,57 @@ class Stack(object):
         logger.debug('Items not found on %s: generating item list' % self.full_name)
         return [self.itemlabel+str(i) for i in range(length)]                  
                 
-    ### Dictionary Interface ###
-    def __getitem__(self, item):
-        return self._data[item]
-    
-    def __delitem__(self, item):
-        del self._data[item]
+    # --------------------
+    # Dictionary Interface  
+    def __getitem__(self, keyslice):
+        """ If single name, used dict interface.  If slice or integer, uses 
+        list interface.  All results parameterized to key, data pairs, passed
+        directly into a new Stack.
+        """
+        # Slice as list of strings or int [0, 'foo', 2, 'bar']
+        if hasattr(keyslice, '__iter__'):
+
+            tuples_out = []
+            for item in keyslice:
+                if isinstance(item, str):
+                    item = self._data.keys().index(item)
+                tuples_out.append(self._data.items()[item])
+                        
+        else:
+            if isinstance(keyslice, int) or isinstance(keyslice, slice):
+                tuples_out = self._data.items()[keyslice] 
+            else: 
+                tuples_out = [(keyslice, self._data[keyslice])]  #keyslice is name              
         
-    #### Do I want to allow overwrite without restriction?    
-    def __setitem__(self, item, value):
-        """ Changes item while preserving sort order.  If new item, 
-            appended to end."""
-        self._data[item]=value     
+        # If single item, return TimeSpectra, else, return new Stack
+        # Canonical slicing implementaiton; don't change unless good reason
+        # Because len() wonky with nested tuples (eg (x,y) and [(x1,y1),(x2,y2)]
+        # are both length two, this will work:
+        
+        if sum(1 for x in tuples_out) == 2:
+            return tuples_out[1] #Return timespectra
+        else:
+            return self.__class__(tuples_out)                
+
+
+    def __delitem__(self, keyslice):
+        """ Delete a single name, or a keyslice from names/canvas """        
+
+        if isinstance(keyslice, str):
+            idx = self.names.index(keyslice)        
+            self.pop(idx)
+        else:
+            raise NotImplementedError("Deletion only supports single entry")
+
+    def __setitem__(self, name, canvas):
+        """ """
+        if name in self.names:
+            idx = self.names.index(name) 
+            self.pop(idx)
+            self.insert(idx, name, canvas)
+            
+        else:
+            self.names.append(name)  
                 
     def __getattr__(self, attr):
         """ If attribute not found, try attribute lookup in dictionary.  If
@@ -104,21 +153,6 @@ class Stack(object):
         for meth in self._magic:
             setattr( self, meth, getattr(self._data, meth) )
 
-    
- #   def __len__(self):
-  #      return self._data.__len__()
-    
-    def __iter__(self):
-        return self._data.__iter__()
-    
-    #def __reversed__(self):
-        #return self._data.__reversed__
-    
-    #def __contains__(self, item):
-        #return self._data.__contains__(item)
-    
-    #def __missing__(self, key):
-        #return self._data.__missing__(key)
         
         
     def as_3d(self):
@@ -129,20 +163,18 @@ class Stack(object):
 
     
     #Is this realy necessary?  See pyparty.ParticleManger for possibly more consistent implementation
-    def get_all(self, attr, ordered=False):
-        """Returns a tuple of (item, attribute) pairs for a given attribute."""
-
-        gen=((item[0], getattr(item[1], attr)) for item in self.items())
-        if ordered:
-            return OrderedDict(gen)
-        return dict((item[0], getattr(item[1], attr)) for item in self.items())     
+    def get_all(self, attr, astype=tuple):
+        """Generator/tuple etc.. of (item, attribute) pairs. """
+        
+        return put._parse_generator(
+            ((item[0], getattr(item[1], attr)) for item in self.items()), astype)
     
                 
     def _get_unique(self, attr):
         """ Inspects Stack itemwise for an attribute for unique values.
         If non-unique value for the attributes are found, returns
         "mixed". """
-        unique=set(self.get_all(attr).values())
+        unique = set(self.get_all(attr, astype=dict).values())
         if len(unique) > 1:
             return 'mixed'
         else:
@@ -200,8 +232,9 @@ class Stack(object):
             else:                
                 return self.__class__(OrderedDict([(k, getattr(v, func)(*args, \
                                  **kwargs)) for k,v in self.items()]))                
-                
-        elif isinstance(func, FunctionType):
+             
+        # function, numpyfunction etc...   
+        else:
             if inplace:
                 for item in self:
                     self[item]=self[item].apply(func)(*args, **kwargs)
@@ -210,9 +243,6 @@ class Stack(object):
                 return self.__class__(OrderedDict([(k, v.apply(func, *args, \
                                  **kwargs)) for k,v in self.items()]))                  
                 
-        else:
-            raise AttributeError('func must be a basestring corresponding to\
-            an instance method or a function.  %s is invalid.'%type(func))
         
 
     @property  
@@ -220,6 +250,9 @@ class Stack(object):
         """ Timespectra:name or Timespectra:unnamed.  Useful for scripts mostly """
         outname = getattr(self, 'name', 'unnamed')
         return '%s:%s' % (self.__class__.__name__, self.name)           
+    
+    #def __repr__(self):
+        #""" """
 
 
 
@@ -278,7 +311,6 @@ class SpecStack(Stack):
 
 if __name__=='__main__':
     ### For testing.
-    from pyuvvis import specplot
     from pyuvvis.core.specindex import SpecIndex
     from pyuvvis.core.timespectra import TimeSpectra
     from pandas import date_range, DataFrame, Index
@@ -286,7 +318,6 @@ if __name__=='__main__':
     import numpy as np       
     import matplotlib.pyplot as plt
 
-    
     spec = SpecIndex(np.arange(400, 700,10), unit='nm' )
     spec2 = SpecIndex(np.arange(400, 700,10), unit='m' )
     
@@ -299,12 +330,15 @@ if __name__=='__main__':
 
     ##x = Panel(d)
     y = SpecStack(d)
+    y[0:1]
+    y['d1',1]
     x = y.set_all('specunit', 'cm')
     y._get_unique('specunit')
     y.apply('wavelength_slices', 8)
     y['d1']
     
-    x=y.apply(np.sqrt, axis='items')
+    x=y.apply(np.sqrt, axis=1)
+    print 'hi'
     #y.applynew('boxcar', binwidth=10)
     #y.applynew(boxcar, binwidth=10)
     ##print y.specunit

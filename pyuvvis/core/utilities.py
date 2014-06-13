@@ -17,6 +17,7 @@ __status__ = "Development"
 from pandas import Series, DataFrame
 import numpy as np
 from scipy import integrate
+from types import GeneratorType
 
 from pyuvvis.pandas_utils.dataframeserial import _get_metadict
 from pyuvvis.exceptions import badvalue_error
@@ -31,6 +32,31 @@ class UtilsError(Exception):
 def countNaN(obj):
     ''' Returns counts of nans in an object'''
     return np.isnan(obj.sum()).sum()   
+
+def _parse_generator(generator, astype=tuple):
+    """ Convert generator as tuple, list, dict or generator.
+        
+    Parameters
+    ----------
+    astype : container type (tuple, list, dict) or None
+        Return expression as tuple, list... if None, return as generator. 
+
+    Notes
+    -----
+    Mostly useful for operations that in some cases return a dictionary, 
+    but also might be useful as a list of kv pairs etc...
+    """        
+    if not isinstance(generator, GeneratorType):
+        raise UtilsError("Generator required; got %s" % type(generator))
+    
+    if isinstance(astype, str):
+        astype = eval(astype)        
+
+    if astype:
+        return astype(generator)
+
+    else:
+        return generator   
 
 ### Rather deprecated due to TimeSpectra.reference/iunit
 def divby(df, divisor=0, axis=0, sameshape=True):

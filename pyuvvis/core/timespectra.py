@@ -1335,7 +1335,6 @@ class TimeSpectra(MetaDataFrame):
         else:
             return out
         
-        
     def _transfer(self, dfnew):
         """ See metadataframe _transfer for basic use.  Had to overwrite here to add 
         a hack to apply the spectral unit.  See issue #33 on pyuvvis github for explanation. """
@@ -1519,6 +1518,8 @@ if __name__ == '__main__':
 
 
 #    ts.as_interval()
+    ts[0:5]
+    ts.iloc[0:5]
     t1 = ts.as_interval()
     print t1.columns
     t1.plot(cbar=True)
