@@ -58,14 +58,26 @@ def _load_gwuspec(filepath, *args, **kwargs):
 
 
 def aunps_glass(*args, **kwargs):
-    """ Reeveslab data obtained by Adam Hughes of gold nanoparticles on a 
-    glass optical fiber; spectrum corresponds to the specular Reflectance.
-    Please reference pyuvvis if citing.
+    """ Reeveslab data obtained by Adam Hughes of gold nanoparticles (AuNPs)
+    on a glass optical fiber; spectrum corresponds to the specular Reflectance.
+    Please reference pyuvvis if citing.  
+
+    Parameters
+    ----------
+    style : int (1,2,or 3
+        represents three types of AuNPs on fibers.  style 1 is very homegenous
+        coverage.  style 2 is fair coverage with early signs of aggregation.
+        style=3 is poor coverage is many AuNP aggregates.
+   
+    Notes
+    -----
+    style 1 correponds to 5/22/14 dataset, fiber 4.  style 2 from 9/11/13 fiber 1
+    and style 3 from 10/1/DTSSP fiber 1.
     """
     style = kwargs.pop('style', 1)
     
     if style == 1:
-        kwargs.setdefault('name', 'AuNPs Glass (great)')    
+        kwargs.setdefault('name', 'AuNPs Glass (good)')    
         return _load_gwuspec('aunps_glass_good.csv', *args, **kwargs)
         
 
@@ -75,7 +87,7 @@ def aunps_glass(*args, **kwargs):
 
 
     elif style == 3:
-        kwargs.setdefault('name', 'AuNPs Glass (bad)')   
+        kwargs.setdefault('name', 'AuNPs Glass (poor)')   
         return _load_gwuspec('aunps_glass_bad.csv', *args, **kwargs)
 
     else:
