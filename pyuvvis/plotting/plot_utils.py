@@ -137,9 +137,15 @@ def _df_colormapper(df, cmap, axis=0, colorbymax=False, vmin=None, vmax=None):
 
     # Min and max values of color map must be min and max of dataframe
     if not vmin:
-        vmin=min(df.min(axis=axis))
-    if not vmax:        
-        vmax=max(df.max(axis=axis))
+        try:
+            vmin = min(df.min(axis=axis)) 
+        except TypeError: #If df only is one column...
+            vmin = df.min(axis=axis)
+    if not vmax:   
+        try:
+            vmax = max(df.max(axis=axis))
+        except TypeError:
+            vmax = df.max(axis=axis)
         
     cNorm = mplcolors.Normalize(vmin=vmin, vmax=vmax)
     scalarmap = cm.ScalarMappable(norm=cNorm, cmap=cmap)    

@@ -23,17 +23,34 @@ The current documentation (and in-a-pinch test suite) is a series of example not
    .. _`iPython Notebook`: http://ipython.org/notebook.html?utm_content=buffer83c2c&utm_source=buffer&utm_medium=twitter&utm_campaign=Buffer
 
 - **TUTORIALS**:
-   - 
-   - `Interactive Plots with Plotly`_
+   - `Intro to Plotting_`
+   - `Intro to 2D and 3D Plots_`
+   - `Interactive Plots with Plotly_`
+   - `Pre-packaged Datasets_`
 
+
+   .. _`Intro to Plotting` :   http://nbviewer.ipython.org/github/hugadams/pyuvvis/blob/master/examples/Notebooks/Plotting.ipynb?create=1
+   .. _`Intro to 2D and 3D Plots` :   http://nbviewer.ipython.org/github/hugadams/pyuvvis/blob/master/examples/Notebooks/plotting_2d3d.ipynb?create=1
    .. _`Interactive Plots with Plotly` :   http://nbviewer.ipython.org/github/hugadams/pyuvvis/blob/master/examples/Notebooks/plotly.ipynb?create=1
+   .. _`Pre-packaged Datasets` :   http://nbviewer.ipython.org/github/hugadams/pyuvvis/blob/master/examples/Notebooks/testdata.ipynb?create=1
+
+
+
+
+- **RESEARCH APPLICATIONS**:
+   - Correlation spectral data with electron microscopy
+   -
+
+- **SPECIAL TOPICS**:
+   - Two Dimensional Correlation Spectroscopy (see `Noda/Ozaki`_)
+   - Sizing Gold Nanoparticles through UVVis Spectra 
 
 - **MISCELLANEOUS**:
    - `Matplotlib Color Maps`_
 
 
    .. _`Matplotlib Color Maps` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/gwu_maps.ipynb?create=1
-
+   .. _`Noda/Ozaki` : http://science.kwansei.ac.jp/~ozaki/NIR2DCorl_e.html
 
 Legacy documentation_ is generously hosted by github_.
 

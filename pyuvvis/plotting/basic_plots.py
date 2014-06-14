@@ -50,6 +50,16 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
     ylim = pltkwargs.pop('ylim', None)
     _padding = 0.05
             
+    
+    if title is None:
+        title = ''
+            
+    if xlabel is None:
+        xlabel = ''
+        
+    if ylabel is None:
+        ylabel = ''
+            
     if not ax:
         f, ax = plt.subplots(1)
         if not fig:
@@ -94,17 +104,22 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
         cbar = fig.colorbar(mappable, ticks=np.linspace(vmin, vmax, _barlabels))
         cbar.set_label(r'%s$\rightarrow$'%ts.full_timeunit, rotation=c_rotation)
         
-        label_indices = np.linspace(0, len(ts.columns), _barlabels)
-        label_indices = [int(round(x)) for x in label_indices]
-        if label_indices[-1] > len(ts.columns)-1:
-            label_indices[-1] = len(ts.columns)-1 #Rounds over max
+        if len(ts.columns) > _barlabels -1:
+            label_indices = np.linspace(0, len(ts.columns), _barlabels)
+            label_indices = [int(round(x)) for x in label_indices]
+            if label_indices[-1] > len(ts.columns)-1:
+                label_indices[-1] = len(ts.columns)-1 #Rounds over max
+            
+            labels = [ts.columns[x] for x in label_indices]
+            if ts._interval and ts._intervalunit != 'intvl':
+                labels = [round(float(x),puc.float_display_units) for x in label_indices]
         
-        labels = [ts.columns[x] for x in label_indices]
-        if ts._interval and ts._intervalunit != 'intvl':
-            labels = [round(float(x),puc.float_display_units) for x in label_indices]
+        # Don't add custom labels if aren't at least 5 columns if DF        
+        else:
+            labels = []
             
         cbar.ax.set_yticklabels(labels)
-        
+            
         if c_reverse:
             cbar.ax.invert_yaxis()
         
@@ -201,7 +216,8 @@ def absplot(ts, default='a', **pltkwds):
         ts = ts.as_iunit(default)
 
     if not ts._base_sub:
-        logger.warn('Spectrum does not have subtracted baseline; could alter absorbance.')
+        logger.warn('Spectrum does not have subtracted baseline; could affect '
+                    'result in specious absorbance data.')
                     
     xlabel = pltkwds.pop('xlabel', ts.full_specunit)  
     ylabel = pltkwds.pop('ylabel', ts.full_iunit)    
@@ -220,8 +236,8 @@ def range_timeplot(ranged_ts, **pltkwds):
     pltkwds['linewidth'] = pltkwds.pop('linewidth', 3.0 )  
           
     xlabel = pltkwds.pop('xlabel', ranged_ts.full_timeunit)  
-    ylabel = pltkwds.pop('ylabel', '$\sum$ %s (sliced)' % ranged_ts.full_iunit)    
-    title = pltkwds.pop('title', 'Ranged Time Plot: '+ ranged_ts.name )       
+    ylabel = pltkwds.pop('ylabel', '$\int$ %s (sliced)' % ranged_ts.full_iunit)    
+    title = pltkwds.pop('title', 'Area Ranges: '+ ranged_ts.name )       
                 
     # Needs to be more robust and check specunit is index etc...
     return _genplot(ranged_ts.transpose(), xlabel, ylabel, title,**pltkwds)   #ts TRANSPOSE
@@ -260,8 +276,8 @@ def areaplot(ranged_ts, **pltkwds):
                                          # Will cause bug
 
     xlabel = pltkwds.pop('xlabel', ranged_ts.full_timeunit)  
-    ylabel = pltkwds.pop('ylabel', '$\sum$ %s'%ranged_ts.full_iunit)    
-    title = pltkwds.pop('title', 'Area Plot: '+ ranged_ts.name )      
+    ylabel = pltkwds.pop('ylabel', '$\int$ %s d$\lambda$'%ranged_ts.full_iunit)    
+    title = pltkwds.pop('title', 'Area: '+ ranged_ts.name )      
 
 
     # If shape is wrong, take transpose    

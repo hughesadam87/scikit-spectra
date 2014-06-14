@@ -1381,31 +1381,6 @@ class TimeSpectra(MetaDataFrame):
         outline='**',outname,'**', delim, 'Spectral unit:', specunitout, delim, 'Time unit:', 'Not Implemented','\n'   
         return ''.join(outline)+'\n'+self._df.__repr__()    
     
-    ######################
-    # CUSTOM SLICING ###
-    ######################
-        
-    def tidx(self, *sliceargs):
-        """ Column slicing by index"""
-        return self.ts[ts.columns[slice(*sliceargs)]]
-    
-    def xidx(self, *sliceargs):
-        """ Row slicing by index"""
-        return self.ts.ix[ts.index[slice(*sliceargs)]]    
-       
-    def xval(self, *sliceargs):
-        """ Row slicing by value """
-        return self.ts.ix[slice(*sliceargs), :]
-    
-    def tval(self, *sliceargs):
-        """ Column slicing by value.
-        
-        Notes:
-        -----
-           This is not straightforward as ts['c1:c4'] tends to query rows for 
-           convienence.  Thanks to Jeff Reback for his suggestion of the private _slice()."""
-        return self.ts._slice(slice(*sliceargs), 1)
-    
     
     def sample_by(self, n, axis=1, stack=True, **stackkwargs):
         """ Slice data into n subsets.
@@ -1533,12 +1508,14 @@ if __name__ == '__main__':
     from pyuvvis.data import aunps_water
     ts = aunps_water()
 
-
-#    ts.as_interval()
-    ts[0:5]
-    ts.iloc[0:5]
     stack = ts.sample_by(1)
     stack.iunit = 'a'
+
+    ts[ts.columns[0]].plot(colormap='RdBu')
+    plt.show()
+    import sys
+    sys.exit()
+    
 #    stack.plot(title='Big bad plots')
     from pyuvvis.plotting import quad_plot
     quad_plot(ts)
