@@ -74,14 +74,18 @@ def quad_plot(ts, *plotargs, **plotkwds):
                    title='Spectral Slices',
                    **plotkwds)
 
+    # Custom legend to strip chart (http://matplotlib.org/users/legend_guide.html#multicolumn-legend)
     if striplegend:
-        axes[3].legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize=8)
+        axes[3].legend(loc='lower center', ncol=4, fontsize=8, mode='expand')
+
+               
 
     # Remove y-axis of area/stripchart
-    axes[1].get_yaxis().set_visible(False)
-    axes[3].get_yaxis().set_visible(False)
-    axes[0].get_xaxis().set_visible(False)
-    axes[1].get_xaxis().set_visible(False)
+    put.hide_axis(axes[1], axis='both')
+    #axes[1].get_yaxis().set_ticklabels([])#set_visible(False)
+    #axes[3].get_yaxis().set_ticklabels([])
+    #axes[0].get_xaxis().set_ticklabels([])
+    #axes[1].get_xaxis().set_ticklabels([])
     
     return f
         

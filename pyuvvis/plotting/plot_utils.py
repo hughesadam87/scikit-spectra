@@ -254,6 +254,60 @@ def splot(*args, **kwds):
     else:
         return args
 
+
+def hide_axis(ax, axis='x', axislabel=True, ticklabels=True, ticks=False, hide_everything=False):
+    """ Hide axis features on an axes instance, including axis label, tick
+    labels, tick marks themselves and everything.  Careful: hiding the ticks
+    will also hide grid lines if a grid is on!
+
+    Parameters
+    ----------
+    
+    axis : 'x' or 'y' 'both'
+    
+    axislabel : True
+        Hide the axis label
+        
+    ticklabels : True
+        Hide the tick labels
+        
+    ticks : True
+        Hide the tick markers
+    
+    hide_everything : False
+        Hides labels, tick labels and axis labels.
+    
+    """
+    if axis not in ['x','y','both']:
+        raise AttributeError('axis must be "x" or "y" or both')
+
+    axis_to_modify = []
+
+    if axis == 'x' or axis == 'both':
+        axis_to_modify.append(ax.get_xaxis())
+
+        if axislabel or hide_everything:
+            ax.set_xlabel('')
+
+    if axis == 'y' or axis == 'both': #not elif becuase "both" stipulation
+        axis_to_modify.append(ax.get_yaxis())
+
+        if axislabel or hide_everything:
+            ax.set_ylabel('')
+
+    if hide_everything:
+        for an_axis in axis_to_modify:
+            an_axis().set_visible(False)
+
+    else:
+        for an_axis in axis_to_modify:
+            if ticklabels:
+                an_axis.set_ticklabels([])
+            if ticks:
+                an_axis.set_ticks([])
+
+    return ax 
+            
                
 def easy_legend(ax, fancy=True, position='top', **legendkwds):
     ''' Wrapper around ax.legend to make it easy to move a legend around the edges of the plot.  Made for sensible
