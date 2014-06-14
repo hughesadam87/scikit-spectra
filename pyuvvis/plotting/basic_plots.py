@@ -84,12 +84,15 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
     ax = ts._df.plot(**pltkwargs)
     
     if cbar:
+        c_rotation, c_reverse = 90, False
+        if cbar in ['r', 'reverse']:
+            c_rotation, c_reverse = 270, True
         if not fig:
             raise PlotError("Color bar requries access to Figure.  Either pass fig"
                             " keyword or do not pass custom AxesSubplot.")
         mappable, vmin, vmax = put._annotate_mappable(ts, pltcolor, axis=0)
         cbar = fig.colorbar(mappable, ticks=np.linspace(vmin, vmax, _barlabels))
-        cbar.set_label(r'%s$\rightarrow$'%ts.full_timeunit)
+        cbar.set_label(r'%s$\rightarrow$'%ts.full_timeunit, rotation=c_rotation)
         
         label_indices = np.linspace(0, len(ts.columns), _barlabels)
         label_indices = [int(round(x)) for x in label_indices]
@@ -101,6 +104,9 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
             labels = [round(float(x),puc.float_display_units) for x in label_indices]
             
         cbar.ax.set_yticklabels(labels)
+        
+        if c_reverse:
+            cbar.ax.invert_yaxis()
         
     # Add minor ticks through tick parameters  
     ax.minorticks_on()
@@ -214,7 +220,7 @@ def range_timeplot(ranged_ts, **pltkwds):
     pltkwds['linewidth'] = pltkwds.pop('linewidth', 3.0 )  
           
     xlabel = pltkwds.pop('xlabel', ranged_ts.full_timeunit)  
-    ylabel = pltkwds.pop('ylabel', ranged_ts.full_iunit)    
+    ylabel = pltkwds.pop('ylabel', '$\sum$ %s (sliced)' % ranged_ts.full_iunit)    
     title = pltkwds.pop('title', 'Ranged Time Plot: '+ ranged_ts.name )       
                 
     # Needs to be more robust and check specunit is index etc...
@@ -254,7 +260,7 @@ def areaplot(ranged_ts, **pltkwds):
                                          # Will cause bug
 
     xlabel = pltkwds.pop('xlabel', ranged_ts.full_timeunit)  
-    ylabel = pltkwds.pop('ylabel', ranged_ts.full_iunit)    
+    ylabel = pltkwds.pop('ylabel', '$\sum$ %s'%ranged_ts.full_iunit)    
     title = pltkwds.pop('title', 'Area Plot: '+ ranged_ts.name )      
 
 

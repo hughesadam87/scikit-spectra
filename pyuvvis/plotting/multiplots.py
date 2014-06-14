@@ -13,7 +13,7 @@ def slice_plot(ts_list, names=[], n=4, *plotargs, **plotkwds):
 
 
     # CURRENTLY, DOES NOT TAKE AXIS
-    fig, axes, kwargs = put.multi_axes(len(ts_list), **plotkwds)
+    fig, axes, plotkwds = put.multi_axes(len(ts_list), **plotkwds)
     
     for (idx, tspec) in enumerate(ts_list):
         tspec.plot(ax=axes[idx], fig=fig, title=names[idx], *plotargs, **plotkwds)
@@ -38,11 +38,18 @@ def quad_plot(ts, *plotargs, **plotkwds):
     color : string ('jet')
         Colormap applied to full and absorbance spectra.
         'Jet' is applid to strip chart regardless.
+        
+    tight_layout: bool (False)
+        fig.tight_layout
     """
 
     title = plotkwds.pop('title', '')
+    tight_layout = plotkwds.pop('tight_layout', False)
+
     f, axes = put.splot(2,2, fig=True, figsize=(8,8))
     f.suptitle(title, fontsize=20)
+    if tight_layout:
+        f.tight_layout()
     
     cmap = plotkwds.pop('color', 'jet')
     
@@ -54,34 +61,44 @@ def quad_plot(ts, *plotargs, **plotkwds):
              color = cmap,
              fig=f, #for colorbar
              **plotkwds)
-    
-    areaplot(ts, *plotargs,
-             ax=axes[1], 
-             title='Area', 
-             fig=f,
-             **plotkwds)
 
+
+    range_timeplot(ts.wavelength_slices(8), 
+                   ax=axes[1], 
+                   legend=False,
+                   color = 'jet',
+                   title='Spectral Slices',
+                   **plotkwds)    
+    
     absplot(ts, *plotargs,
             ax=axes[2], 
             color=cmap, 
             title='Absorbance',
             **plotkwds)
 
-    range_timeplot(ts.wavelength_slices(8), 
-                   ax=axes[3], 
-                   legend=False,
-                   color = 'jet',
-                   title='Spectral Slices',
-                   **plotkwds)
+    areaplot(ts, *plotargs,
+             ax=axes[3], 
+             title='Area', 
+             fig=f,
+             **plotkwds)
 
     # Custom legend to strip chart (http://matplotlib.org/users/legend_guide.html#multicolumn-legend)
     if striplegend:
-        axes[3].legend(loc='lower center', ncol=4, fontsize=8, mode='expand')
+        axes[1].legend(loc='lower center',
+                       ncol=4, 
+                       fontsize=5, 
+#                       mode='expand',
+                       bbox_to_anchor=(0.5,-0.1))
 
-               
+ 
+    for a in (axes[1], axes[3]):
+        a.yaxis.tick_right()      
+        a.yaxis.set_label_position("right")
 
     # Remove y-axis of area/stripchart
-    put.hide_axis(axes[1], axis='both')
+    put.hide_axis(axes[0], axis='x')
+    put.hide_axis(axes[1], axis='x')
+
     #axes[1].get_yaxis().set_ticklabels([])#set_visible(False)
     #axes[3].get_yaxis().set_ticklabels([])
     #axes[0].get_xaxis().set_ticklabels([])

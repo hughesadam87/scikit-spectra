@@ -23,7 +23,7 @@ from time import gmtime, strftime
 
 # PYUVVIS IMPORTS
 #from pyuvvis.bundled import run_nb_offline
-from pyuvvis.plotting import areaplot, absplot, range_timeplot
+from pyuvvis.plotting import areaplot, absplot, range_timeplot, quad_plot
 from pyuvvis.plotting import spec_surface3d, surf3d, spec_poly3d, plot2d, plot3d
 from pyuvvis.core.spec_labeltools import datetime_convert, spec_slice
 from pyuvvis.core.utilities import boxcar, countNaN
@@ -526,6 +526,18 @@ class Controller(object):
         cropped_csv_path =  op.join(rundir, '%s_cropped.csv' % self.infolder)
         self.save_csv(ts, cropped_csv_path)
         
+        # Used to be in apply parameters, but pulled out so could save bline_cropped csv
+        # Once jsonify, this can be returned to apply parameters fcn 
+        if self.params.intvlunit:
+            try:
+                ts.to_interval(self.params.intvlunit)
+            except KeyError:
+                ts.to_interval()        
+                logger.warn('Cannot set "intvlunit" from parameters; running'
+                        ' ts.to_interval()')
+        else:
+            logger.info('Intvlunit is None- leaving data as rawtime')
+        
         #IPYTHON NOTEBOOK
         NBPATH =  op.join(rundir, '%s.ipynb' % self.infolder)
         logging.info("Copying blank .ipynb template to %s" % NBPATH)
@@ -555,6 +567,14 @@ class Controller(object):
             r.run_notebook()            
             nbwrite(r.nb, open(NBPATH, 'w'), 'json')
     
+        # Quad plot (title is rootfolder:folder; for non -s, are the same
+        if op.basename(self.infoot) == self.infolder:
+            quadname = self.infolder 
+        else:
+            quadname = "%s:%s" % (op.basename(self.inroot), self.infolder)
+        quad_plot(ts, title=quadname, striplegend=True)
+        self.plt_clrsave(op.join(rundir, '%s_quadplot.png' % self.infolder))
+        
         
         #Iterate over various iunits
         for iu in self.params.iunits:
@@ -639,18 +659,6 @@ class Controller(object):
             
         # Set reference (MUST SET reference AFTER SLICING RANGES TO AVOID ERRONEOUS reference DATA)
         ts.reference = self.params.reference
-
-        if self.params.intvlunit:
-            logger.critical("No longer support interval setting at runtime as"
-                            " original timestamps are lost in csv outputs.")
-            #try:
-                #ts.to_interval(self.params.intvlunit)
-            #except KeyError:
-                #ts.to_interval()        
-                #logger.warn('Cannot set "intvlunit" from parameters; running'
-                        #' ts.to_interval()')
-        #else:
-            #logger.info('Intvlunit is None- leaving data as rawtime')
                         
         return ts    
 
