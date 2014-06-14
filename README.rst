@@ -23,10 +23,10 @@ The current documentation (and in-a-pinch test suite) is a series of example not
    .. _`iPython Notebook`: http://ipython.org/notebook.html?utm_content=buffer83c2c&utm_source=buffer&utm_medium=twitter&utm_campaign=Buffer
 
 - **TUTORIALS**:
-   - `Intro to Plotting_`
-   - `Intro to 2D and 3D Plots_`
-   - `Interactive Plots with Plotly_`
-   - `Pre-packaged Datasets_`
+   - `Intro to Plotting`_
+   - `Intro to 2D and 3D Plots`_
+   - `Interactive Plots with Plotly`_
+   - `Pre-packaged Datasets`_
 
 
    .. _`Intro to Plotting` :   http://nbviewer.ipython.org/github/hugadams/pyuvvis/blob/master/examples/Notebooks/Plotting.ipynb?create=1
@@ -179,9 +179,9 @@ Interested in the Python ecosystem?   Check out some of these related libraries:
    
 Coming Soon
 ===========
-   - Plotly streaming API support
-   -
-   -
+   - Correlation Analysis Tutorial
+   - Stacked Spectra Tutorial
+   
    
 Have a feature request, or want to report a bug?  Please fill out a github
 issue_ with the appropriate label.	
