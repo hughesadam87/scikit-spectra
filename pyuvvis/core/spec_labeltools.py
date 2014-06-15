@@ -59,16 +59,17 @@ spec_dic= { 'm':1.0,
             'nm-1':.000000001,
             'f': c, 
             'w': 2.0*math.pi*c, 
-            'ev':h*c/(eVtoJ)  }
+            'ev':h*c/(eVtoJ)  
+            }
 
 
 ### Conversions for intensity data.  Note that T= I(t)/Iref
 ### Since it's not really a scaling but a mapping, I use lambda operations and their inverses.  Uses Transmittance
 ### as the base unit, as it is literally curve/ref, hence the natural unit of divby() 
-Idic={None:'Counts', 
+Idic={None:'Counts', #Don't change without updating normplot; relies on these keys 
       't':'Transmittance', 
       '%t':'(%)Transmittance', 
-      'r':'Relative Inverse (1/T)',
+      'r':'Inverse Transmittance (1/T)',
       'a':'Absorbance (base 10)', 
       'a(ln)':'Absorbance (base e)'} 
 

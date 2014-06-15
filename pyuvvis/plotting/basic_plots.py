@@ -206,14 +206,13 @@ def timeplot(ts, **pltkwds):
         
     return _genplot(ts.transpose(), xlabel, ylabel, title, **pltkwds)
 
-# Is this worth having? 
-def absplot(ts, default='a', **pltkwds):    
+def normplot(ts, iunit='a', **pltkwds):    
     ''' Absorbance plot.  Note: This will autoconvert data.  This is a convienence method
     but if data is already in absorbance mode, then it's redundant to have this as specplot()
     will produce same plot.'''
     # Make sure ts is absorbance, or readily convertable
-    if ts.full_iunit not in ['a', 'a(ln)']:
-        ts = ts.as_iunit(default)
+    if ts.iunit != iunit:  #Better/general way to do this? (Idic.keys())
+        ts = ts.as_iunit(iunit)
 
     if not ts._base_sub:
         logger.warn('Spectrum does not have subtracted baseline; could affect '
@@ -221,7 +220,7 @@ def absplot(ts, default='a', **pltkwds):
                     
     xlabel = pltkwds.pop('xlabel', ts.full_specunit)  
     ylabel = pltkwds.pop('ylabel', ts.full_iunit)    
-    title = pltkwds.pop('title', 'Absorbance: '+ ts.name )    
+    title = pltkwds.pop('title', 'Normalized: '+ ts.name )    
         
     return _genplot(ts, xlabel, ylabel, title, **pltkwds)
 

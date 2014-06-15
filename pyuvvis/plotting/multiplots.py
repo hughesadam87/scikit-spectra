@@ -1,7 +1,7 @@
 import plot_utils as put
 import matplotlib.pyplot as plt
 from pyuvvis.core.utilities import split_by
-from basic_plots import specplot, absplot, areaplot, range_timeplot
+from basic_plots import specplot, normplot, areaplot, range_timeplot
 
 # Used by SpecStack.plot()
 def slice_plot(ts_list, names=[], n=4, *plotargs, **plotkwds):
@@ -72,10 +72,10 @@ def quad_plot(ts, *plotargs, **plotkwds):
                    title='Spectral Slices',
                    **plotkwds)    
     
-    absplot(ts, *plotargs,
+    normplot(ts, *plotargs,
             ax=axes[2], 
             color=cmap, 
-            title='Absorbance',
+            title='Normalized',
             **plotkwds)
 
     areaplot(ts, *plotargs,

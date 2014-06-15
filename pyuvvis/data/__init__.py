@@ -99,11 +99,13 @@ def aunps_water(*args, **kwargs):
     """ Reeveslab data obtained by Adam Hughes of gold nanoparticles in water. 
     UV peak is due to residual citrates from citrate reduction in synthesizing
     the nanoparticles via the Turkevich method.
-    Please reference pyuvvis if citing.
+    Please reference pyuvvis if citing.  Added baseline = 234.0 array.
     """
     kwargs.setdefault('name', 'Gold Nanoparticles in Water')    
-    return _load_gwuspec('aunps_water.csv', *args, **kwargs)
-
+    ts = _load_gwuspec('aunps_water.csv', *args, **kwargs)
+    ts.baseline = 234.0
+    return ts
+    
 if __name__ == '__main__':
     ts = uvvis_spec1()
     print ts, type(ts)
