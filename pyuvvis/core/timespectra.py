@@ -1382,7 +1382,7 @@ class TimeSpectra(MetaDataFrame):
         return ''.join(outline)+'\n'+self._df.__repr__()    
     
     
-    def sample_by(self, n, axis=1, stack=True, **stackkwargs):
+    def split_by(self, n, axis=1, stack=True, **stackkwargs):
         """ Slice data into n subsets.
         
         Notes
@@ -1391,7 +1391,7 @@ class TimeSpectra(MetaDataFrame):
         to be larger than the others (culmination of rounding down iteratively)
         and a warning is raised.
         """
-        ts_split = pvutils.sample_by(self, n, axis=1, astype=list)
+        ts_split = pvutils.split_by(self, n, axis=1, astype=list)
         stackkwargs.setdefault('name', self.name)
         if stack:
             ts_split = SpecStack(ts_split, **stackkwargs)
@@ -1508,11 +1508,12 @@ if __name__ == '__main__':
     from pyuvvis.data import aunps_water
     ts = aunps_water()
 
-    stack = ts.sample_by(1)
-    stack.iunit = 'a'
+    #stack = ts.split_by(1)
+    #stack.iunit = 'a'
 
-    ts[ts.columns[0]].plot(colormap='RdBu')
-    plt.show()
+    #ts[ts.columns[0]].plot(colormap='RdBu')
+    #plt.show()
+    ts.area().plot()
     import sys
     sys.exit()
     

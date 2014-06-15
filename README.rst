@@ -27,12 +27,14 @@ The current documentation (and in-a-pinch test suite) is a series of example not
    - `Intro to 2D and 3D Plots`_
    - `Interactive Plots with Plotly`_
    - `Pre-packaged Datasets`_
+   - `Intro to Multiple Datasets (StackSpec)`_
 
 
    .. _`Intro to Plotting` :   http://nbviewer.ipython.org/github/hugadams/pyuvvis/blob/master/examples/Notebooks/Plotting.ipynb?create=1
    .. _`Intro to 2D and 3D Plots` :   http://nbviewer.ipython.org/github/hugadams/pyuvvis/blob/master/examples/Notebooks/plotting_2d3d.ipynb?create=1
    .. _`Interactive Plots with Plotly` :   http://nbviewer.ipython.org/github/hugadams/pyuvvis/blob/master/examples/Notebooks/plotly.ipynb?create=1
    .. _`Pre-packaged Datasets` :   http://nbviewer.ipython.org/github/hugadams/pyuvvis/blob/master/examples/Notebooks/testdata.ipynb?create=1
+   .. _`Intro to Multiple Datasets (StackSpec)` :   http://nbviewer.ipython.org/github/hugadams/pyuvvis/blob/master/examples/Notebooks/specstack.ipynb?create=1
 
 
 

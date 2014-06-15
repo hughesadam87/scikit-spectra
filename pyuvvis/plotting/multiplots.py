@@ -1,8 +1,9 @@
 import plot_utils as put
 import matplotlib.pyplot as plt
-from pyuvvis.core.utilities import sample_by
+from pyuvvis.core.utilities import split_by
 from basic_plots import specplot, absplot, areaplot, range_timeplot
 
+# Used by SpecStack.plot()
 def slice_plot(ts_list, names=[], n=4, *plotargs, **plotkwds):
     """ Pass in a container of timespectra; outputs is subplot for reach. """
 
@@ -52,6 +53,7 @@ def quad_plot(ts, *plotargs, **plotkwds):
         f.tight_layout()
     
     cmap = plotkwds.pop('color', 'jet')
+    strip_color = 'spectral'
     
     striplegend = plotkwds.pop('striplegend', False)
     
@@ -66,7 +68,7 @@ def quad_plot(ts, *plotargs, **plotkwds):
     range_timeplot(ts.wavelength_slices(8), 
                    ax=axes[1], 
                    legend=False,
-                   color = 'jet',
+                   color = strip_color,
                    title='Spectral Slices',
                    **plotkwds)    
     

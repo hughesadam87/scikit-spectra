@@ -233,7 +233,7 @@ def range_timeplot(ranged_ts, **pltkwds):
 
     pltkwds['color'] = pltkwds.pop('color', put._uvvis_colors(ranged_ts))
     pltkwds['legend'] = pltkwds.pop('legend', True)
-    pltkwds['linewidth'] = pltkwds.pop('linewidth', 3.0 )  
+    pltkwds['linewidth'] = pltkwds.pop('linewidth', 2.0 )  
           
     xlabel = pltkwds.pop('xlabel', ranged_ts.full_timeunit)  
     ylabel = pltkwds.pop('ylabel', '$\int$ %s (sliced)' % ranged_ts.full_iunit)    
