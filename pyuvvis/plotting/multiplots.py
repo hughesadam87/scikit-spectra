@@ -36,7 +36,7 @@ def quad_plot(ts, *plotargs, **plotkwds):
     striplegend : bool (False)
         Add a legend to the strip chart
         
-    color : string ('jet')
+    colormap : string ('jet')
         Colormap applied to full and absorbance spectra.
         'Jet' is applid to strip chart regardless.
         
@@ -52,7 +52,7 @@ def quad_plot(ts, *plotargs, **plotkwds):
     if tight_layout:
         f.tight_layout()
     
-    cmap = plotkwds.pop('color', 'jet')
+    cmap = plotkwds.pop('colormap', 'jet')
     strip_cmap = 'spectral'
     
     striplegend = plotkwds.pop('striplegend', False)
