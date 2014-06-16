@@ -1486,8 +1486,16 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
 
-    from pyuvvis.nptools.haiss import *
-    from pandas import read_csv as df_read_csv
+    from pyuvvis.data import aunps_water
+    from pyuvvis.plotting import splot
+    ts_water = aunps_water()
+    ax1, ax2 = splot(1,2)
+    
+    ts_water.plot(ax=ax1)
+    bline = ts_water.baseline
+    bline.plot(ax=ax1, lw=5, color='r')
+    plt.show()
+
     
 
     #spec=SpecIndex(range(400, 700,1) )

@@ -21,7 +21,7 @@ class PlotError(Exception):
 
 #XXX UPDATE DOCSTRING (HOW TO REFERENCE SPECPLOT TO THIS ONE)
 def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
-    ''' Generic wrapper to ts._df.plot(), that takes in x/y/title as parsed
+    """ Generic wrapper to ts._df.plot(), that takes in x/y/title as parsed
     from various calling functions:
     NEW KEYWORDS:
         grid
@@ -33,7 +33,7 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
         cbar
         ax
         fig
-    '''
+    """
              
     # Add custom legend interface.  Keyword legstyle does custom ones, if pltkwrd legend==True
     # For now this could use improvement  
