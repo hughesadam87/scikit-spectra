@@ -23,6 +23,8 @@ The current documentation (and in-a-pinch test suite) is a series of example not
    .. _`iPython Notebook`: http://ipython.org/notebook.html?utm_content=buffer83c2c&utm_source=buffer&utm_medium=twitter&utm_campaign=Buffer
 
 - **TUTORIALS**:
+   - `TimeSpectra tutorial (part 1)`_
+   - `TimeSpectra tutorial (part 2)`_
    - `Intro to Plotting`_
    - `Intro to 2D and 3D Plots`_
    - `Interactive Plots with Plotly`_
@@ -35,6 +37,8 @@ The current documentation (and in-a-pinch test suite) is a series of example not
    .. _`Interactive Plots with Plotly` :   http://nbviewer.ipython.org/github/hugadams/pyuvvis/blob/master/examples/Notebooks/plotly.ipynb?create=1
    .. _`Pre-packaged Datasets` :   http://nbviewer.ipython.org/github/hugadams/pyuvvis/blob/master/examples/Notebooks/testdata.ipynb?create=1
    .. _`Intro to Multiple Datasets (StackSpec)` :   http://nbviewer.ipython.org/github/hugadams/pyuvvis/blob/master/examples/Notebooks/specstack.ipynb?create=1
+   .. _`TimeSpectra tutorial (part 1)` :   http://nbviewer.ipython.org/github/hugadams/pyuvvis/blob/master/examples/Notebooks/tutorial_1.ipynb?create=1
+   .. _`TimeSpectra tutorial (part 2)` :   http://nbviewer.ipython.org/github/hugadams/pyuvvis/blob/master/examples/Notebooks/tutorial_2.ipynb?create=1
 
 
 
