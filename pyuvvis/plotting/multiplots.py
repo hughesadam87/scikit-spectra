@@ -53,14 +53,14 @@ def quad_plot(ts, *plotargs, **plotkwds):
         f.tight_layout()
     
     cmap = plotkwds.pop('color', 'jet')
-    strip_color = 'spectral'
+    strip_cmap = 'spectral'
     
     striplegend = plotkwds.pop('striplegend', False)
     
     specplot(ts, *plotargs, 
              ax=axes[0], 
              title='Spectra', 
-             color = cmap,
+             colormap = cmap,
              fig=f, #for colorbar
              **plotkwds)
 
@@ -68,13 +68,13 @@ def quad_plot(ts, *plotargs, **plotkwds):
     range_timeplot(ts.wavelength_slices(8), 
                    ax=axes[1], 
                    legend=False,
-                   color = strip_color,
+                   colormap = strip_cmap,
                    title='Spectral Slices',
                    **plotkwds)    
     
     normplot(ts, *plotargs,
             ax=axes[2], 
-            color=cmap, 
+            colormap=cmap, 
             title='Normalized',
             **plotkwds)
 

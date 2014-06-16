@@ -40,6 +40,8 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
     pltkwargs.setdefault('legend', False)
     pltkwargs.setdefault('linewidth', 1)
     legstyle = pltkwargs.pop('legstyle', None)   
+    pcmap = pltkwargs.setdefault('colormap', 'jet')
+    
 
     fig = pltkwargs.pop('fig', None)
     ax = pltkwargs.pop('ax', None)
@@ -74,33 +76,37 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
     titlesize = pltkwargs.pop('titlesize', 'large')
     ticksize = pltkwargs.pop('ticksize', '') #Put in default and remove bool gate below
             
-    # Make sure don't have "colors" instead of "color"   
-    if 'colors' in pltkwargs:
-        pltkwargs['color'] = pltkwargs.pop('colors')    
-        logger.warn('_genplot(): overwriting kwarg "colors" to "color"')
+    ## Make sure don't have "colors" instead of "color"   
+    #if 'colors' in pltkwargs:
+        #pltkwargs['color'] = pltkwargs.pop('colors')    
+        #logger.warn('_genplot(): overwriting kwarg "colors" to "color"')
         
-    # Axis = 0, assumes timeplot has passed transposed array for example
-    pltcolor = pltkwargs.setdefault('color', 'jet')
-    if isinstance(pltcolor, basestring):
-        # Try color mapping; if none found, retain string (eg 'red')
-        try:
-            put.cmget(pltcolor) #Validate color map
-        except AttributeError:
-            pass
-        else:
-            pltkwargs['color'] = put._df_colormapper(ts, pltcolor, axis=0)#put.cmget(pltkwargs['color'])
+    ## Axis = 0, assumes timeplot has passed transposed array for example
+    #pltcolor = pltkwargs.setdefault('color', 'jet')
+    #if isinstance(pltcolor, basestring):
+        ## Try color mapping; if none found, retain string (eg 'red')
+        #try:
+            #put.cmget(pltcolor) #Validate color map
+        #except AttributeError:
+            #pass
+        #else:
+            #pltkwargs['color'] = put._df_colormapper(ts, pltcolor, axis=0)#put.cmget(pltkwargs['color'])
 
     # Since df.plot takes ax, multi axes inherently supported.
     ax = ts._df.plot(**pltkwargs)
     
     if cbar:
+        if 'color' in pltkwargs:
+            raise PlotError('Colorbar requires colormap; solid color \
+            "%s" found.' % pltkwargs['color'])
+
         c_rotation, c_reverse = 90, False
         if cbar in ['r', 'reverse']:
             c_rotation, c_reverse = 270, True
         if not fig:
             raise PlotError("Color bar requries access to Figure.  Either pass fig"
                             " keyword or do not pass custom AxesSubplot.")
-        mappable, vmin, vmax = put._annotate_mappable(ts, pltcolor, axis=0)
+        mappable, vmin, vmax = put._annotate_mappable(ts, pcmap, axis=0)
         cbar = fig.colorbar(mappable, ticks=np.linspace(vmin, vmax, _barlabels))
         cbar.set_label(r'%s$\rightarrow$'%ts.full_timeunit, rotation=c_rotation)
         
@@ -230,7 +236,7 @@ def range_timeplot(ranged_ts, **pltkwds):
     Uses a special function, put._uvvis_colorss() to map the visible spectrum.  Changes default legend
     behavior to true.'''
 
-    pltkwds['color'] = pltkwds.pop('color', put._uvvis_colors(ranged_ts))
+    pltkwds['colormap'] = pltkwds.pop('colormap', put._uvvis_colors(ranged_ts))
     pltkwds['legend'] = pltkwds.pop('legend', True)
     pltkwds['linewidth'] = pltkwds.pop('linewidth', 2.0 )  
           
