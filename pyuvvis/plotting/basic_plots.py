@@ -67,32 +67,15 @@ def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
         if not fig:
             fig = f
         
-    pltkwargs['ax'] = ax
-    
+   
     # Grid (add support for minor grids later)
     grid = pltkwargs.pop('grid', True)
     
     labelsize = pltkwargs.pop('labelsize', 'medium') #Can also be ints
     titlesize = pltkwargs.pop('titlesize', 'large')
     ticksize = pltkwargs.pop('ticksize', '') #Put in default and remove bool gate below
-            
-    ## Make sure don't have "colors" instead of "color"   
-    #if 'colors' in pltkwargs:
-        #pltkwargs['color'] = pltkwargs.pop('colors')    
-        #logger.warn('_genplot(): overwriting kwarg "colors" to "color"')
-        
-    ## Axis = 0, assumes timeplot has passed transposed array for example
-    #pltcolor = pltkwargs.setdefault('color', 'jet')
-    #if isinstance(pltcolor, basestring):
-        ## Try color mapping; if none found, retain string (eg 'red')
-        #try:
-            #put.cmget(pltcolor) #Validate color map
-        #except AttributeError:
-            #pass
-        #else:
-            #pltkwargs['color'] = put._df_colormapper(ts, pltcolor, axis=0)#put.cmget(pltkwargs['color'])
 
-    # Since df.plot takes ax, multi axes inherently supported.
+    pltkwargs['ax'] = ax            
     ax = ts._df.plot(**pltkwargs)
     
     if cbar:

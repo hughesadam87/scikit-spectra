@@ -72,7 +72,10 @@ def aunps_glass(*args, **kwargs):
     Notes
     -----
     style 1 correponds to 5/22/14 dataset, fiber 4.  style 2 from 9/11/13 fiber 1
-    and style 3 from 10/1/DTSSP fiber 1.
+    and style 3 from 10/1/DTSSP fiber 1.  All of these were cropped and resampled
+    to have exatly 100 columns.  Such sampling may exagerate features of the 
+    original dataset, such as the temporal gaps in the style=3 dataset.  They were
+    there in original data, but sampling makes them seem more pronounced or intense.
     """
     style = kwargs.pop('style', 1)
     
