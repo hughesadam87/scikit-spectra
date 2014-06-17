@@ -13,6 +13,9 @@ import pyuvvis.core.utilities as put
 logger = logging.getLogger(__name__) 
 
 
+class MultiError(Exception):
+    """ """
+
 def mem_address(obj):
     """ Return memory address string for a python object.  Object must have
     default python object __repr__ (ie it would look something like:
@@ -82,10 +85,10 @@ class Stack(object):
                         logger.warn("Generating keys %s-%s" % (keys[0], keys[-1]))
                     else:
                         logger.warn("Generating key %s" % keys[0])
+                        
+            self._data=OrderedDict( [ (key, data[i]) for (i, key) 
+                                      in enumerate(keys) ])
 
- 
-            self._data=OrderedDict( [ (keys[i],data[i]) for i 
-                                      in range(len(keys) ) ] ) 
         self.__assign_magic()
         
 
@@ -252,7 +255,7 @@ class Stack(object):
         if isinstance(func, basestring):
             if inplace:
                 for item in self:
-                    self[item]=getattr(self[item], func)(*args, **kwargs)      
+                    self[item] = getattr(self[item], func)(*args, **kwargs)      
 
             else:                
                 return self.__class__(OrderedDict([(k, getattr(v, func)(*args, \
@@ -262,7 +265,7 @@ class Stack(object):
         else:
             if inplace:
                 for item in self:
-                    self[item]=self[item].apply(func)(*args, **kwargs)
+                    self[item] = self[item].apply(func)(*args, **kwargs)
                     
             else:
                 return self.__class__(OrderedDict([(k, v.apply(func, *args, \
@@ -408,6 +411,19 @@ if __name__=='__main__':
 
     ##x = Panel(d)
     y = SpecStack(d, name='Slices of Foo')
+
+    def random_noise(curve):
+        from random import randint
+        if randint(1,5) == 5:     #20% chance of choosing 5
+            curve = curve + 25 * np.random.randn(len(curve))
+            return curve
+
+    out = y.apply(random_noise)
+    import matplotlib.pyplot as plt
+    print out
+    out.plot()
+    plt.show
+
     y.reference = 0
     y.iunit='a'
     y.plot()

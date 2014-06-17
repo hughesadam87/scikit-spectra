@@ -526,7 +526,7 @@ class TimeSpectra(MetaDataFrame):
         for rng in ranges:
             if len(rng)!=2:
                 raise AttributeError("In slices function, all ranges passed in must be len 2, aka a start and stop \
-                pair.  %s of length %s was entered"%rng, len(rng))
+                pair.  %s of length %s was entered" % (rng, len(rng)))
             else:
                 dfcut=self.ix[rng[0]:rng[1]]
                 snames.append('%s:%s'%(rng[0],rng[1]))

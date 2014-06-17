@@ -4,6 +4,7 @@ __docformat__ = 'restructuredtext' #What's this actually do
 
 ### Core classes
 from pyuvvis.core.timespectra import TimeSpectra
+from pyuvvis.core.specstack import SpecStack
 
 
 #from pyuvvis.core.specindex import SpecIndex
