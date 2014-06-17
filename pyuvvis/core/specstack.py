@@ -13,6 +13,20 @@ import pyuvvis.core.utilities as put
 logger = logging.getLogger(__name__) 
 
 
+def mem_address(obj):
+    """ Return memory address string for a python object.  Object must have
+    default python object __repr__ (ie it would look something like:
+        <pyparty.tools.grids.CartesianGrid object at 0x3ba2fb0>
+    The address is merely returned by string parsing. """
+    try:
+        out = obj.__repr__().split()[-1]
+    except Exception as E:
+        raise Exception("Failed to return memory address by string parsing.  "
+                         "Recieved following message: %s" % E.message)
+    else:
+        return out.strip("'").strip('>')
+    
+
 @logclass(log_name=__name__, public_lvl='debug')
 class Stack(object):
     """ Base class to store pandas objects, with special operations to
@@ -73,6 +87,12 @@ class Stack(object):
             self._data=OrderedDict( [ (keys[i],data[i]) for i 
                                       in range(len(keys) ) ] ) 
         self.__assign_magic()
+        
+
+    @property
+    def _address(self):
+        """ Property to make easily accesible by multicanvas """
+        return mem_address(super(Stack, self).__repr__())
         
       
     def _gen_keys(self, length):
@@ -323,6 +343,46 @@ class SpecStack(Stack):
         if 'cbar' in plotkwargs:
             raise NotImplementedError("Colorbar on stack plot not yet supported")
         return slice_plot(self.values(), *plotargs, names=self.keys(), **plotkwargs)
+
+
+
+    def __repr__(self):
+        outstring = "%s (%s) %s: " % \
+            (self.__class__.__name__, self._address, 'what goes here')     
+        Ln = len(self)
+        
+        if Ln == 0:                
+            outstring += 'EMPTY'
+
+        elif Ln >= MAXOUT:
+            outstring +=  '%s canvii (%s ... %s)' % \
+                (Ln, self.names[0], self.names[-1])                        
+            
+        else:
+            SEP_CHARACTER = '-'
+            _NEWPAD =  (PADDING-1) * ' '  # REduce CONFIG PADDING by one space
+            just_fcn = {
+                'l': str.ljust,
+                'r': str.rjust,
+                'c': str.center}[ALIGN]            
+            
+            outstring += '\n'
+            outrows=[]
+            for idx, name in enumerate(self.names):
+                c = self.canvii[idx]
+                cx, cy = c.rez
+                
+                col1 = '%s%s' % (_NEWPAD, name)
+                col2 = 'Canvas (%s) : %s X %s : %s particles' % \
+                    (c._address, cx, cy, len(c))
+                outrows.append([col1, SEP_CHARACTER, col2])
+         
+            widths = [max(map(len, col)) for col in zip(*outrows)]
+            outstring = outstring + '\n'.join( [ _NEWPAD.join((just_fcn(val,width) 
+                for val, width in zip(row, widths))) for row in outrows] )
+
+        return outstring
+
 
         
    

@@ -225,6 +225,9 @@ class MetaDataFrame(object):
 
     def __iter__(self):
         return self._df.__iter__()
+    
+    def __pow__(self, exp):
+        return self._transfer(self._df.__pow__(exp))
 
 
     def iloc(self):
