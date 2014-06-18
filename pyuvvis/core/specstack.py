@@ -89,7 +89,6 @@ class Stack(object):
             self._data=OrderedDict( [ (key, data[i]) for (i, key) 
                                       in enumerate(keys) ])
 
-        self.__assign_magic()
         
 
     @property
@@ -177,9 +176,18 @@ class Stack(object):
         return getattr(self._data, attr)
         
 
-    def __assign_magic(self):
-        for meth in self._magic:
-            setattr( self, meth, getattr(self._data, meth) )
+    # Attributes deferred to self.data /dictionary
+    def __len__(self):
+        return self._data.__len__()
+    
+    def __iter__(self):
+        return self._data.__iter__()
+    
+    def __reversed__(self):
+        return self._data.__reversed__()
+    
+    def __contains__(self):
+        return self._data.__contains__()
 
         
         
@@ -201,7 +209,8 @@ class Stack(object):
     def _get_unique(self, attr):
         """ Inspects Stack itemwise for an attribute for unique values.
         If non-unique value for the attributes are found, returns
-        "mixed". """
+        "mixed". 
+        """
         unique = set(self.get_all(attr, astype=dict).values())
         if len(unique) > 1:
             return 'mixed'
@@ -349,42 +358,42 @@ class SpecStack(Stack):
 
 
 
-    def __repr__(self):
-        outstring = "%s (%s) %s: " % \
-            (self.__class__.__name__, self._address, 'what goes here')     
-        Ln = len(self)
+    #def __repr__(self):
+        #outstring = "%s (%s) %s: " % \
+            #(self.__class__.__name__, self._address, 'what goes here')     
+        #Ln = len(self)
         
-        if Ln == 0:                
-            outstring += 'EMPTY'
+        #if Ln == 0:                
+            #outstring += 'EMPTY'
 
-        elif Ln >= MAXOUT:
-            outstring +=  '%s canvii (%s ... %s)' % \
-                (Ln, self.names[0], self.names[-1])                        
+        #elif Ln >= MAXOUT:
+            #outstring +=  '%s canvii (%s ... %s)' % \
+                #(Ln, self.names[0], self.names[-1])                        
             
-        else:
-            SEP_CHARACTER = '-'
-            _NEWPAD =  (PADDING-1) * ' '  # REduce CONFIG PADDING by one space
-            just_fcn = {
-                'l': str.ljust,
-                'r': str.rjust,
-                'c': str.center}[ALIGN]            
+        #else:
+            #SEP_CHARACTER = '-'
+            #_NEWPAD =  (PADDING-1) * ' '  # REduce CONFIG PADDING by one space
+            #just_fcn = {
+                #'l': str.ljust,
+                #'r': str.rjust,
+                #'c': str.center}[ALIGN]            
             
-            outstring += '\n'
-            outrows=[]
-            for idx, name in enumerate(self.names):
-                c = self.canvii[idx]
-                cx, cy = c.rez
+            #outstring += '\n'
+            #outrows=[]
+            #for idx, name in enumerate(self.names):
+                #c = self.canvii[idx]
+                #cx, cy = c.rez
                 
-                col1 = '%s%s' % (_NEWPAD, name)
-                col2 = 'Canvas (%s) : %s X %s : %s particles' % \
-                    (c._address, cx, cy, len(c))
-                outrows.append([col1, SEP_CHARACTER, col2])
+                #col1 = '%s%s' % (_NEWPAD, name)
+                #col2 = 'Canvas (%s) : %s X %s : %s particles' % \
+                    #(c._address, cx, cy, len(c))
+                #outrows.append([col1, SEP_CHARACTER, col2])
          
-            widths = [max(map(len, col)) for col in zip(*outrows)]
-            outstring = outstring + '\n'.join( [ _NEWPAD.join((just_fcn(val,width) 
-                for val, width in zip(row, widths))) for row in outrows] )
+            #widths = [max(map(len, col)) for col in zip(*outrows)]
+            #outstring = outstring + '\n'.join( [ _NEWPAD.join((just_fcn(val,width) 
+                #for val, width in zip(row, widths))) for row in outrows] )
 
-        return outstring
+        #return outstring
 
 
         
@@ -398,6 +407,7 @@ if __name__=='__main__':
 
     import numpy as np       
     import matplotlib.pyplot as plt
+    from pyuvvis.data import aunps_glass
 
     spec = SpecIndex(np.arange(400, 700,10), unit='nm' )
     spec2 = SpecIndex(np.arange(400, 700,10), unit='m' )
@@ -405,8 +415,10 @@ if __name__=='__main__':
     testdates = date_range(start='3/3/12', periods=30, freq='h')
     testdates2 = date_range(start='3/3/12', periods=30, freq='h')
     
-    ts = TimeSpectra(abs(np.random.randn(30,30)), columns=testdates, index=spec)  
-    t2 = TimeSpectra(abs(np.random.randn(30,30)), columns=testdates2, index=spec2) 
+    #ts = TimeSpectra(abs(np.random.randn(30,30)), columns=testdates, index=spec)  
+    #t2 = TimeSpectra(abs(np.random.randn(30,30)), columns=testdates2, index=spec2) 
+    ts = aunps_glass(style=1)
+    t2 = aunps_glass(style=2)
     d = (('d1', ts), ('d2', t2))
 
     ##x = Panel(d)
@@ -416,10 +428,10 @@ if __name__=='__main__':
         from random import randint
         if randint(1,5) == 5:     #20% chance of choosing 5
             curve = curve + 25 * np.random.randn(len(curve))
-            return curve
+        return curve
 
     out = y.apply(random_noise)
-    import matplotlib.pyplot as plt
+    len(out)
     print out
     out.plot()
     plt.show

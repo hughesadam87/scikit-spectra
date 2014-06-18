@@ -568,7 +568,7 @@ class Controller(object):
             nbwrite(r.nb, open(NBPATH, 'w'), 'json')
     
         # Quad plot (title is rootfolder:folder; for non -s, are the same
-        if op.basename(self.infoot) == self.infolder:
+        if op.basename(self.inroot) == self.infolder:
             quadname = self.infolder 
         else:
             quadname = "%s:%s" % (op.basename(self.inroot), self.infolder)
