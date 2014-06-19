@@ -219,7 +219,7 @@ def range_timeplot(ranged_ts, **pltkwds):
     Uses a special function, put._uvvis_colorss() to map the visible spectrum.  Changes default legend
     behavior to true.'''
 
-    pltkwds['colormap'] = pltkwds.pop('colormap', put._uvvis_colors(ranged_ts))
+    pltkwds['colormap'] = pltkwds.pop('colormap', 'jet')
     pltkwds['legend'] = pltkwds.pop('legend', True)
     pltkwds['linewidth'] = pltkwds.pop('linewidth', 2.0 )  
           

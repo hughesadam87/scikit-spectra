@@ -1486,14 +1486,15 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
 
-    from pyuvvis.data import aunps_water
-    from pyuvvis.plotting import splot
-    ts_water = aunps_water()
-    ax1, ax2 = splot(1,2)
+    from pyuvvis.data import aunps_water, aunps_glass
+    from pyuvvis.plotting import splot, range_timeplot
+    ts_water = aunps_glass()
+#    ax1, ax2 = splot(1,2)
     
-    ts_water.plot(ax=ax1)
-    bline = ts_water.baseline
-    bline.plot(ax=ax1, lw=5, color='r')
+#    ts_water.plot(ax=ax1)
+    range_timeplot(ts_water.wavelength_slices(8))
+#    bline = ts_water.baseline
+#    bline.plot(ax=ax1, lw=5, color='r')
     plt.show()
 
     
