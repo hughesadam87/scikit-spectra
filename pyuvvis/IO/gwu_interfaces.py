@@ -82,8 +82,13 @@ def get_headermetadata_dataframe(dataframe, time_file_dict, name=''):
     filestart, fileend=time_file_dict[timestart], time_file_dict[timeend]
     specstart, specend=dataframe.index[0], dataframe.index[-1]
 
-    return {'filecount':filecount, 'timestart':timestart, 'timeend':timeend, 'filestart':filestart, 
-            'fileend':fileend, 'specstart':specstart, 'specend':specend}
+    return {'filecount':filecount, 
+            'timestart':timestart, 
+            'timeend':timeend, 
+            'filestart':filestart, 
+            'fileend':fileend, 
+            'specstart':specstart, 
+            'specend':specend}
 
 ##########################################################
 ### Below are the 2 main functions to extract the data ###
@@ -137,8 +142,13 @@ def from_spec_files(file_list, name='', skiphead=17, skipfoot=1, check_for_overl
             f.close()
         else:
             baseline=None
+            
+    file_list = [f for f in file_list 
+                 if os.path.basename(f) != '.gitignore']
 
     for infile in file_list:
+    
+        
 
         ###Read in only the header lines, not all the lines of the file
         ###Strips and splits in one go
