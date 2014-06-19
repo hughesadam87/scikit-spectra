@@ -41,7 +41,7 @@ def quad_plot(ts, *plotargs, **plotkwds):
         'Jet' is applid to strip chart regardless.
         
     tight_layout: bool (False)
-        fig.tight_layout
+        Calls mpl.fig.tight_layout()
     """
 
     title = plotkwds.pop('title', '')
