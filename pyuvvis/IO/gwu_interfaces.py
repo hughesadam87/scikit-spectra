@@ -147,8 +147,6 @@ def from_spec_files(file_list, name='', skiphead=17, skipfoot=1, check_for_overl
                  if os.path.basename(f) != '.gitignore']
 
     for infile in file_list:
-    
-        
 
         ###Read in only the header lines, not all the lines of the file
         ###Strips and splits in one go

@@ -44,6 +44,7 @@ from parameters_model import Parameters, USB2000, USB650
 
 logger = logging.getLogger(__name__)
 from pyuvvis.logger import configure_logger, logclass
+from pyuvvis.data import data_dir
 
 SCRIPTNAME = 'gwuspec'
 DEF_INROOT = './scriptinput'
@@ -52,7 +53,7 @@ ALL_ANAL = ['1d', '2d', '3d', 'corr']
 ANAL_DEFAULT = ['1d']#, '2d']
 
 # HOW TO READ THIS ABSOLUTE PATH
-IPYNB ='/home/glue/Desktop/PYUVVIS/pyuvvis/pyuvvis/scripts/gwu_script/_script_nb.ipynb'  #IPYTHON NOTEBOOK TEMPLATE
+IPYNB = op.join(data_dir, '_script_nb.ipynb')  #IPYTHON NOTEBOOK TEMPLATE
 
 def ext(afile): 
     """ get file extension"""

@@ -335,7 +335,7 @@ def _maxmin_xy(array, style='max', arg=False, idx=True, val=True):
     
     out=[]    
 
-    if style=='max':
+    if style=='max':               #X: idxmax/idxmin no longger array attributes
         farg=array.argmax(); fidx=array.idxmax(); fval=array.max() 
     else:
         farg=array.argmin(); fidx=array.idxmin(); fval=array.min()
