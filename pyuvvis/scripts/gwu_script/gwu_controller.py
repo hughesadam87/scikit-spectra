@@ -548,7 +548,7 @@ class Controller(object):
         template = template.replace('---CREATED---',  strftime("%Y-%m-%d %H:%M:%S", gmtime()))
         template = template.replace('---ROOT---', self.inroot)
         template = template.replace('---PARAMS---', self.params.as_markdownlist())
-        template = template.replace('---COUNT---', str(ts.shape[1])
+        template = template.replace('---COUNT---', str(ts.shape[1]))
         
         # Pass the full csv file otherwise run_nb_offline won't be in right wd
         template = template.replace('---CSVPATH---', cropped_csv_path)
