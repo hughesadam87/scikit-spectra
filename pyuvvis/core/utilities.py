@@ -70,10 +70,10 @@ def divby(df, divisor=0, axis=0, sameshape=True):
       divisor: (See notes below)
       axis: Division axis. 0=column-wise division. 1=row-wise
       sameshape: If true, function will check that the divisor as the same shape as
-                 the data along that axis.  For example, is an array of 2000 units, 
-                 and axis=0, then the row dimension must be 2000 for the dataframe.
-                 AFAIK df.div does not enforce this stringency, which sometimes can lead
-                 to hard-to-find bugs.
+        the data along that axis.  For example, is an array of 2000 units, 
+        and axis=0, then the row dimension must be 2000 for the dataframe.
+        AFAIK df.div does not enforce this stringency, which sometimes can lead
+        to hard-to-find bugs.
     
     Notes:
     ------
@@ -90,7 +90,7 @@ def divby(df, divisor=0, axis=0, sameshape=True):
         else:
             try:
                 divisor=df[divisor]
-            except KeyError:
+            except Exception:
                 pass #divisor=divisor
             
         divlen=df.shape[0] #Store length of a single column
@@ -115,7 +115,8 @@ def divby(df, divisor=0, axis=0, sameshape=True):
     ### Enforce strict shapetype
     if sameshape:
         if len(divisor) != divlen:
-            raise TypeError('Divisor dimensions %s do not match dataframe dimensions %s along axis = %s'%(divlen, df.shape, axis))
+            raise TypeError('Divisor dimensions %s do not match dividend' 
+            ' dimension %s along axis = %s'%(divlen, len(divisor), axis))
     
     return df.divide(divisor, axis=axis)
     

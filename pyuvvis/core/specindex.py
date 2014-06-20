@@ -104,7 +104,7 @@ def SpecIndex(inp, *args, **defattr):
     unit=_unit_valid(unit)
     
     # FLOAT CONVERTS RIGHT HERE TO 9 DECIMAL PRECISION
-    #inp = np.asarray(inp).astype(float)
+#    inp = np.around(np.asarray(inp).astype(float), decimals=2)
 
     index = pandas.Index(inp, *args, **defattr)  #Enforce dtype=Float?
 

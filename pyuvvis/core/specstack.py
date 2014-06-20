@@ -422,36 +422,40 @@ if __name__=='__main__':
     d = (('d1', ts), ('d2', t2))
 
     ##x = Panel(d)
-    y = SpecStack(d, name='Slices of Foo')
-
-    def random_noise(curve):
-        from random import randint
-        if randint(1,5) == 5:     #20% chance of choosing 5
-            curve = curve + 25 * np.random.randn(len(curve))
-        return curve
-
-    out = y.apply(random_noise)
-    len(out)
-    print out
-    out.plot()
-    plt.show
-
-    y.reference = 0
-    y.iunit='a'
-    y.plot()
-    plt.show()
-#    sys.exit()
-    #y[0:1]
-    #y['d1',1]
-    #x = y.set_all('specunit', 'cm')
-    #y._get_unique('specunit')
-    #y.apply('wavelength_slices', 8)
-    #y['d1']
+    stack = ts.as_iunit('r').split_by(5)
+    stack.reference = 0
+    #stack.plot(figsize=(8,8), colormap='RdBu')   
     
-    x=y.apply(np.sqrt, axis=1)
-    print 'hi'
-    #y.applynew('boxcar', binwidth=10)
-    #y.applynew(boxcar, binwidth=10)
-    ##print y.specunit
-    ##y.specunit='f'
+    #raise SyntaxError
+
+    #def random_noise(curve):
+        #from random import randint
+        #if randint(1,5) == 5:     #20% chance of choosing 5
+            #curve = curve + 25 * np.random.randn(len(curve))
+        #return curve
+
+    #out = y.apply(random_noise)
+    #len(out)
+    #print out
+    #out.plot()
+    #plt.show
+
+    #y.reference = 0
+    #y.iunit='a'
+    #y.plot()
+    #plt.show()
+##    sys.exit()
+    ##y[0:1]
+    ##y['d1',1]
+    ##x = y.set_all('specunit', 'cm')
+    ##y._get_unique('specunit')
+    ##y.apply('wavelength_slices', 8)
+    ##y['d1']
+    
+    #x=y.apply(np.sqrt, axis=1)
     #print 'hi'
+    ##y.applynew('boxcar', binwidth=10)
+    ##y.applynew(boxcar, binwidth=10)
+    ###print y.specunit
+    ###y.specunit='f'
+    ##print 'hi'
