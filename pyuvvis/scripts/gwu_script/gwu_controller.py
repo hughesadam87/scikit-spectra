@@ -354,14 +354,17 @@ class Controller(object):
             
         self.make_matlab(op.join(self.outroot, 'readfiles.m'))
             
-        # Add notebooks links to params file        
+        # Add notebooks links to params file    
+        logger.info('Appending ipython notebook links to runparams.tex')
         with open(self._run_params_file, 'a') as f:
             # Hacky way to write latex section from raw string literals
             f.write(r'\subsection{IPython Notebooks}')
             f.write(r'\begin{itemize}')
             for name, path in NBVIEWPATHS:
-                f.write('\item{\link{%s, %s}'%(path, latex_string(name)))
+                f.write('\item{\link{%s}{%s}}' % (path, latex_string(name)))
             f.write(r'\end{itemize}')     
+
+
 
 
     def save_csv(self, ts, csv_path, meta_separate=None):
