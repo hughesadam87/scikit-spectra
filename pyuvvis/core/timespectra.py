@@ -1532,9 +1532,10 @@ if __name__ == '__main__':
     #sys.exit()
     
 ##    stack.plot(title='Big bad plots')
-    #from pyuvvis.plotting import quad_plot
-    #quad_plot(ts)
-    #plt.show()
+    from pyuvvis.plotting import six_plot
+    import matplotlib.pyplot as plt
+    six_plot(ts, striplegend=True)
+    plt.show()
     #t1 = ts.as_interval()
     #print t1.columns
     #t1.plot(cbar=True)

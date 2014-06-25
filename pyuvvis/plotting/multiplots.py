@@ -107,6 +107,104 @@ def quad_plot(ts, *plotargs, **plotkwds):
     #axes[1].get_xaxis().set_ticklabels([])
     
     return f
+
+
+def six_plot(ts, *plotargs, **plotkwds):
+    """ Output a matplotlib figure with full spectra, absorbance, area and 
+    stripchart.  Figure should be plotly convertable through py.iplot_mpl(fig)
+    assuming one is signed in to plotly through py.sign_in(user, apikey).
+    
+    Parameters
+    -----------
+    title : str
+        Title of the overall figure
+        
+    striplegend : bool (False)
+        Add a legend to the strip chart
+        
+    colormap : string ('jet')
+        Colormap applied to full and absorbance spectra.
+        'Jet' is applid to strip chart regardless.
+        
+    tight_layout: bool (False)
+        Calls mpl.fig.tight_layout()
+    """
+
+    title = plotkwds.pop('title', '')
+    tight_layout = plotkwds.pop('tight_layout', False)
+
+    f, axes = put.splot(3,2, fig=True, figsize=(10,8))
+    f.suptitle(title, fontsize=20)
+    if tight_layout:
+        f.tight_layout()
+    
+    cmap = plotkwds.pop('colormap', 'jet')
+    strip_cmap = 'spectral'
+    
+    striplegend = plotkwds.pop('striplegend', False)
+    
+    specplot(ts, *plotargs, 
+             ax=axes[0], 
+             title='Spectra', 
+             colormap = cmap,
+             fig=f, #for colorbar
+             **plotkwds)
+
+
+    range_timeplot(ts.wavelength_slices(8), 
+                   ax=axes[1], 
+                   legend=False,
+                   colormap = strip_cmap,
+                   title='Slices (Full)',
+                   **plotkwds)    
+    
+    normplot(ts, *plotargs,
+            ax=axes[2], 
+            colormap=cmap, 
+            iunit = 'r',
+            title='Normalized (r)',
+            **plotkwds)
+
+    areaplot(ts, *plotargs,
+             ax=axes[3], 
+             title='Area', 
+             fig=f,
+             **plotkwds)
+
+    normplot(ts, *plotargs,
+            ax=axes[4], 
+            iunit='a',
+            colormap=cmap, 
+            title='Normalized (a)',
+            **plotkwds)
+
+    range_timeplot(ts.wavelength_slices(8), *plotargs,
+             ax=axes[5], 
+             legend=False,
+             title='Slices (r)',
+             fig=f,
+             **plotkwds)
+
+    # Custom legend to strip chars (http://matplotlib.org/users/legend_guide.html#multicolumn-legend)
+    if striplegend:
+        for ax in (axes[1], axes[5]):
+            ax.legend(loc='lower center',
+                       ncol=4, 
+                       fontsize=5, 
+#                       mode='expand',
+                       bbox_to_anchor=(0.5,-0.1))
+
+    # Right axes to y-axis
+    for a in (axes[1], axes[3], axes[5]):
+        a.yaxis.tick_right()      
+        a.yaxis.set_label_position("right")
+
+    # Remove x-axis of area/stripchart
+    for ax in (axes[0:4]):
+        put.hide_axis(ax, axis='x')
+    
+    return f    
+    
         
 
 if __name__ == '__main__':

@@ -61,6 +61,8 @@ class Parameters(object):
         except Exception:
             pass
         
+        self.git = params.pop('git', True)
+        
         self.specunit = self.loud_apply('specunit', self.specunit_default)
         self.intvlunit = self.loud_apply('intvlunit', self.intvlunit_default)
         if self.intvlunit.lower() == 'none':

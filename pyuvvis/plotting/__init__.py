@@ -6,4 +6,4 @@ from pyuvvis.plotting.advanced_plots import spec_surface3d, surf3d, \
 from pyuvvis.plotting.basic_plots import specplot, timeplot, normplot, \
    range_timeplot, areaplot, _genplot    
 
-from pyuvvis.plotting.multiplots import quad_plot
+from pyuvvis.plotting.multiplots import quad_plot, six_plot

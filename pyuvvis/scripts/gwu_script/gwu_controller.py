@@ -23,7 +23,7 @@ from time import gmtime, strftime
 
 # PYUVVIS IMPORTS
 #from pyuvvis.bundled import run_nb_offline
-from pyuvvis.plotting import areaplot, normplot, range_timeplot, quad_plot
+from pyuvvis.plotting import areaplot, normplot, range_timeplot, six_plot
 from pyuvvis.plotting import spec_surface3d, surf3d, spec_poly3d, plot2d, plot3d
 from pyuvvis.core.spec_labeltools import datetime_convert, spec_slice
 from pyuvvis.core.utilities import boxcar, countNaN
@@ -54,6 +54,15 @@ ANAL_DEFAULT = ['1d']#, '2d']
 
 # HOW TO READ THIS ABSOLUTE PATH
 IPYNB = op.join(data_dir, '_script_nb.ipynb')  #IPYTHON NOTEBOOK TEMPLATE
+NBVIEWPATHS = [] #Where various ipython notebook blob links are stored
+
+def hideuser(abspath):
+    """ Replace user home directory with ~.  Inverse operation for
+    op.expanduser().  Must pass absolute path that starts with user.
+    """
+    user = op.expanduser('~')
+    return abspath.replace(user, '~')
+    
 
 def ext(afile): 
     """ get file extension"""
@@ -140,6 +149,8 @@ class Controller(object):
     # Extensions to ignore when looking at files in a directory       
     img_ignore=['.png', '.jpeg', '.tif', '.bmp', '.ipynb'] 
         
+    nb_links = {} #Stores ipython notebook viewer links    
+    
     # For now, this only takes in a namespace, but could make more flexible in future
     def __init__(self, **kwargs):
               
@@ -183,6 +194,7 @@ class Controller(object):
             f.write(latex_multicols(self.params, title='PyUvVis Parameters'))
             f.write(latex_multicols(kwargs, 'Analysis Parameters'))
             f.write('}}')
+
 
         if self._plot_dpi > 600:
             logger.warn('Plotting dpi is set to %s.  > 600 may result in slow'
@@ -342,6 +354,15 @@ class Controller(object):
             
         self.make_matlab(op.join(self.outroot, 'readfiles.m'))
             
+        # Add notebooks links to params file        
+        with open(self._run_params_file, 'a') as f:
+            # Hacky way to write latex section from raw string literals
+            f.write(r'\subsection{IPython Notebooks}')
+            f.write(r'\begin{itemize}')
+            for name, path in NBVIEWPATHS:
+                f.write('\item{\link{%s, %s}'%(path, latex_string(name)))
+            f.write(r'\end{itemize}')     
+
 
     def save_csv(self, ts, csv_path, meta_separate=None):
         """ Save timespectra to self.infolder (boilerplate reduction).  Saves
@@ -421,6 +442,7 @@ class Controller(object):
                 except StopIteration:
                     logger.info('Reached end of directory tree.')
                     break
+
 
     def analyze_dir(self):
         """ Wraps loging to self._analyze_dir """
@@ -544,38 +566,62 @@ class Controller(object):
         logging.info("Copying blank .ipynb template to %s" % NBPATH)
         template = open(IPYNB, 'r').read()
         
-        template = template.replace('---DIRECTORY---', self.infolder)
+        template = template.replace('---DIRECTORY---', hideuser(self.infolder))
         template = template.replace('---CREATED---',  strftime("%Y-%m-%d %H:%M:%S", gmtime()))
-        template = template.replace('---ROOT---', self.inroot)
+        template = template.replace('---ROOT---', hideuser(self.inroot))
         template = template.replace('---PARAMS---', self.params.as_markdownlist())
         template = template.replace('---COUNT---', str(ts.shape[1]))
+
+        cols = ts.shape[1]
+        _warncolor = 'green'
+        if cols >= 200 and cols < 500:
+            _warncolor = 'orange'
+        else:
+            _warncolor = 'red'
+        template = template.replace('---COLOR---', _warncolor)
+        
         
         # Pass the full csv file otherwise run_nb_offline won't be in right wd
-        template = template.replace('---CSVPATH---', cropped_csv_path)
+        template = template.replace('---CSVPATH---', hideuser(cropped_csv_path))
+        
+        template = template.replace('---TSTART---', '%s'%ts_full.columns[0])
+        template = template.replace('---TEND---', '%s'%ts_full.columns[-1])
+        template = template.replace('---TDELTA---', '%s'%
+                                    ts_full.as_interval('intvl').columns[-1])                            
+
         open(NBPATH, 'w').write(template)
+
+        # ADD NOTBOOK TO GITHUB
+        if self.params.git:
+            os.system("git add %s" % op.abspath(NBPATH))
+            viewerpath = NBPATH.split('FiberData')[1].lstrip('/')
+            viewerpath = 'http://nbviewer.ipython.org/github/hugadams/FiberData/blob/master/'+viewerpath
+            NBVIEWPATHS.append((self.infolder, viewerpath))
+     
+       
         
         # Execute the notebook
-#        run_nb_offline(NBPATH) 
-        try:
-            from runipy.notebook_runner import NotebookRunner
-            from IPython.nbformat.current import read as nbread
-            from IPython.nbformat.current import write as nbwrite
-        except IOError:
-            logger.critical("Please install runipy (pip install runipy) to "
-                            "run .ipynb prior to opening.")
-        else:
-            notebook = nbread(open(NBPATH), 'json')
-            r = NotebookRunner(notebook)
-            r.run_notebook()            
-            nbwrite(r.nb, open(NBPATH, 'w'), 'json')
+#	        run_nb_offline(NBPATH) 
+        #try:
+            #from runipy.notebook_runner import NotebookRunner
+            #from IPython.nbformat.current import read as nbread
+            #from IPython.nbformat.current import write as nbwrite
+        #except IOError:
+            #logger.critical("Please install runipy (pip install runipy) to "
+                            #"run .ipynb prior to opening.")
+        #else:
+            #notebook = nbread(open(NBPATH), 'json')
+            #r = NotebookRunner(notebook)
+            #r.run_notebook()            
+            #nbwrite(r.nb, open(NBPATH, 'w'), 'json')
     
         # Quad plot (title is rootfolder:folder; for non -s, are the same
         if op.basename(self.inroot) == self.infolder:
             quadname = self.infolder 
         else:
             quadname = "%s:%s" % (op.basename(self.inroot), self.infolder)
-        quad_plot(ts, title=quadname, striplegend=True)
-        self.plt_clrsave(op.join(rundir, '%s_quadplot.png' % self.infolder))
+        six_plot(ts, title=quadname, striplegend=True)
+        self.plt_clrsave(op.join(rundir, '%s_sixplot.png' % self.infolder))
         
         
         #Iterate over various iunits
@@ -609,6 +655,7 @@ class Controller(object):
             # 3d Plots
             if '3d' in self.analysis:
                 self.plots_3d(ts, outpath=od, prefix=out_tag)
+                          
             
 
     def apply_parameters(self, ts):
