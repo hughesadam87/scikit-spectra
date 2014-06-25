@@ -605,7 +605,7 @@ class Controller(object):
             viewerpath = NBPATH.split('FiberData')[1].lstrip('/')
             viewerpath = 'http://nbviewer.ipython.org/github/hugadams/FiberData/blob/master/'+viewerpath
             localdir = self.inpath.replace(self.inroot, '').lstrip('/')
-            NBVIEWPATHS.append((localdir, viewerpath))
+            NBVIEWPATHS.append((localdir, viewerpath)) 
        
         
         # Execute the notebook
