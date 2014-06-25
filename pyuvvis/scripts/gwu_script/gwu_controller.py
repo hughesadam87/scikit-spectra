@@ -584,7 +584,7 @@ class Controller(object):
         _warncolor = 'green'
         if cols >= 200 and cols < 500:
             _warncolor = 'orange'
-        else:
+        elif cols >= 500:
             _warncolor = 'red'
         template = template.replace('---COLOR---', _warncolor)
         
