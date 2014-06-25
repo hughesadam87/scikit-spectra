@@ -59,8 +59,12 @@ NBVIEWPATHS = [] #Where various ipython notebook blob links are stored
 def hideuser(abspath):
     """ Replace user home directory with ~.  Inverse operation for
     op.expanduser().  Must pass absolute path that starts with user.
+    User is home/glue but on FD harddrive, it's media/backup, so hack
+    to just replace
     """
     user = op.expanduser('~')
+    if '/media/backup' in abspath:
+        user = '/media/backup'
     return abspath.replace(user, '~')
     
 
@@ -359,9 +363,10 @@ class Controller(object):
         with open(self._run_params_file, 'a') as f:
             # Hacky way to write latex section from raw string literals
             f.write(r'\subsection{IPython Notebooks}')
+            f.write(r'\bad{Links will not work until git pushed.}')
             f.write(r'\begin{itemize}')
-            for name, path in NBVIEWPATHS:
-                f.write('\item{\link{%s}{%s}}' % (path, latex_string(name)))
+            for (name, path) in NBVIEWPATHS:
+                f.write('\link{%s}{%s}' % (path, latex_string(name)))
             f.write(r'\end{itemize}')     
 
 
@@ -599,8 +604,8 @@ class Controller(object):
             os.system("git add %s" % op.abspath(NBPATH))
             viewerpath = NBPATH.split('FiberData')[1].lstrip('/')
             viewerpath = 'http://nbviewer.ipython.org/github/hugadams/FiberData/blob/master/'+viewerpath
-            NBVIEWPATHS.append((self.infolder, viewerpath))
-     
+            localdir = self.inpath.replace(self.inroot, '').lstrip('/')
+            NBVIEWPATHS.append((hideuser(self.inroot), viewerpath))
        
         
         # Execute the notebook
