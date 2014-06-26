@@ -590,7 +590,7 @@ class Controller(object):
         
         
         # Pass the full csv file otherwise run_nb_offline won't be in right wd
-        template = template.replace('---CSVPATH---', hideuser(cropped_csv_path))
+        template = template.replace('---CSVPATH---', op.basename(cropped_csv_path))
         
         template = template.replace('---TSTART---', '%s'%ts_full.columns[0])
         template = template.replace('---TEND---', '%s'%ts_full.columns[-1])
