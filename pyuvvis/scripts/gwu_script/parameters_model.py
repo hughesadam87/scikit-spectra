@@ -48,6 +48,8 @@ class Parameters(object):
     
     bline_fit_default = False
     fit_regions_default = None
+    
+    git = True
 
     
     def __init__(self, **params):
@@ -61,7 +63,9 @@ class Parameters(object):
         except Exception:
             pass
         
-        self.git = params.pop('git', True)
+
+        if 'git' in params:
+            self.git = False
         
         self.specunit = self.loud_apply('specunit', self.specunit_default)
         self.intvlunit = self.loud_apply('intvlunit', self.intvlunit_default)

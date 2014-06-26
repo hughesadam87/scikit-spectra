@@ -178,7 +178,7 @@ def six_plot(ts, *plotargs, **plotkwds):
             title='Normalized (a)',
             **plotkwds)
 
-    range_timeplot(ts.wavelength_slices(8), *plotargs,
+    range_timeplot(ts.as_iunit('r').wavelength_slices(8), *plotargs,
              ax=axes[5], 
              legend=False,
              title='Slices (r)',

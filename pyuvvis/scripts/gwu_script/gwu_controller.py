@@ -961,6 +961,10 @@ class Controller(object):
         parser.add_argument('-s','--sweep', action='store_true', 
                             help='Script will recursively analyze directories '
                             'from the top down of indir')
+
+        parser.add_argument('-g', '--git', action='store_false', help='If true, '
+                            'git will not attempt to be called on this run.'
+                            'By default, git is synced.')
     
         parser.add_argument('-c', '--config', dest='cfig', metavar='', 
                            choices=['usb650', 'usb2000'], default='usb2000',
@@ -1024,6 +1028,7 @@ class Controller(object):
         except Exception:
             raise IOError('Please enter keyword args in form: x=y')
         
+        userparams['git'] = ns.git
         ns.params = model(**userparams)
         delattr(ns, 'cfig')        
         
