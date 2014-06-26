@@ -574,11 +574,14 @@ class Controller(object):
         logging.info("Copying blank .ipynb template to %s" % NBPATH)
         template = open(IPYNB, 'r').read()
         
-        template = template.replace('---DIRECTORY---', hideuser(self.infolder))
+        outshort = self.outpath.split(self.outroot)[1].lstrip('/')
+
+        template = template.replace('---DIRECTORY---', outshort)
         template = template.replace('---CREATED---',  strftime("%Y-%m-%d %H:%M:%S", gmtime()))
-        template = template.replace('---ROOT---', hideuser(self.inroot))
+        template = template.replace('---ROOT---', hideuser(self.outroot))
         template = template.replace('---PARAMS---', self.params.as_markdownlist())
         template = template.replace('---COUNT---', str(ts.shape[1]))
+        template = template.replace('---HIDDENOUT---', hideuser(rundir))
 
         cols = ts.shape[1]
         _warncolor = 'green'
