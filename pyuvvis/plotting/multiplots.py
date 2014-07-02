@@ -187,7 +187,7 @@ def six_plot(ts, *plotargs, **plotkwds):
 
     # Custom legend to strip chars (http://matplotlib.org/users/legend_guide.html#multicolumn-legend)
     if striplegend:
-        for ax in (axes[1], axes[5]):
+        for ax in [axes[1]]: #axes[5] 
             ax.legend(loc='lower center',
                        ncol=4, 
                        fontsize=5, 
