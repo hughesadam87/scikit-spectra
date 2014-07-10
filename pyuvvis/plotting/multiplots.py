@@ -205,11 +205,3 @@ def six_plot(ts, *plotargs, **plotkwds):
     
     return f    
     
-        
-
-if __name__ == '__main__':
-    from pyuvvis.data import aunps_water
-    quad_plot(aunps_water(), 
-              title='Quad Plot Title', 
-              striplegend=True)
-    plt.show()
