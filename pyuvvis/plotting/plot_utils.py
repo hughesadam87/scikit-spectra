@@ -261,7 +261,8 @@ def splot(*args, **kwds):
         return args
 
 
-def hide_axis(ax, axis='x', axislabel=True, ticklabels=True, ticks=False, hide_everything=False):
+def hide_axis(ax, axis='x', axislabel=True, ticklabels=True, ticks=False,
+              hide_everything=False):
     """ Hide axis features on an axes instance, including axis label, tick
     labels, tick marks themselves and everything.  Careful: hiding the ticks
     will also hide grid lines if a grid is on!
@@ -288,29 +289,28 @@ def hide_axis(ax, axis='x', axislabel=True, ticklabels=True, ticks=False, hide_e
         raise AttributeError('axis must be "x" or "y" or both')
 
     axis_to_modify = []
+    
+    if hide_everything:
+        ticks = True; axislabel=True; ticklabels=True
 
+    # Set axis labels
     if axis == 'x' or axis == 'both':
         axis_to_modify.append(ax.get_xaxis())
 
-        if axislabel or hide_everything:
+        if axislabel: 
             ax.set_xlabel('')
 
     if axis == 'y' or axis == 'both': #not elif becuase "both" stipulation
         axis_to_modify.append(ax.get_yaxis())
 
-        if axislabel or hide_everything:
+        if axislabel:
             ax.set_ylabel('')
 
-    if hide_everything:
-        for an_axis in axis_to_modify:
-            an_axis().set_visible(False)
-
-    else:
-        for an_axis in axis_to_modify:
-            if ticklabels:
-                an_axis.set_ticklabels([])
-            if ticks:
-                an_axis.set_ticks([])
+    for an_axis in axis_to_modify:
+        if ticklabels:
+            an_axis.set_ticklabels([])
+        if ticks:
+            an_axis.set_ticks([])
 
     return ax 
             

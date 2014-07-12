@@ -14,7 +14,7 @@ import matplotlib.cm as cm
 from matplotlib.collections import PolyCollection
 from matplotlib.colors import colorConverter, Normalize
 
-from plot_utils import smart_label, _df_colormapper, cmget
+import plot_utils as pu
 
 ### USE LOCAL VERSION USE
 #import sys
@@ -43,7 +43,7 @@ def plot2d(df, contours=6, label=None, colorbar=None, background=None, **pltkwds
                 
     **pltkwds: Will be passed directly to plt.contour().'''
              
-    xlabel, ylabel, title, pltkwds=smart_label(df, pltkwds)
+    xlabel, ylabel, title, pltkwds=pu.smart_label(df, pltkwds)
 
     ### BUG, PLT.CONTOUR() doesn't take 'color'; rather, takes 'colors' for now
     ### This is only for solid colors.  contour takes cmap argument by default.  
@@ -52,7 +52,7 @@ def plot2d(df, contours=6, label=None, colorbar=None, background=None, **pltkwds
         
     ### Convienence method to pass in string colors
     if 'cmap' in pltkwds and isinstance(pltkwds['cmap'], basestring):
-        pltkwds['cmap']=cmget(pltkwds['cmap'])
+        pltkwds['cmap']=pu.cmget(pltkwds['cmap'])
     
     ### I CAN MAKE THIS GENERAL TO ANY PLOT, ADDITION OF IMAGES TO A BACKGROUND MAKE IT A GENERAL ROUTINE TO ALL MY PLOTS ###
     ### More here http://matplotlib.org/examples/pylab_examples/image_demo3.html ###
@@ -112,6 +112,7 @@ def plot2d(df, contours=6, label=None, colorbar=None, background=None, **pltkwds
     plt.title(title)
     return ax    
 
+
 def plot3d(df, kind='contour', elev=0, azim=0, proj_xy=True, proj_zy=True, proj_xz=True,
                contour_color=None, contour_cmap=None, c_iso=10, r_iso=10,*args, **pltkwds):
     ''' Matplotlib Axes3d wrapper for dataframe. Made to handle surface plots, so pure contour plots,
@@ -167,7 +168,7 @@ def plot3d(df, kind='contour', elev=0, azim=0, proj_xy=True, proj_zy=True, proj_
     zlabel_def=''     
     zlabel=pltkwds.pop('zlabel', zlabel_def)                    
     
-    xlabel, ylabel, title, pltkwds=smart_label(df, pltkwds)    
+    xlabel, ylabel, title, pltkwds=pu.smart_label(df, pltkwds)    
         
     ### If plane (xy) is input backwards (yx), still works    
     proj_xy=pltkwds.pop('proj_yx', proj_xy)
@@ -204,7 +205,7 @@ def plot3d(df, kind='contour', elev=0, azim=0, proj_xy=True, proj_zy=True, proj_
         rstride=1 #to prevent errors
     
     ### If these values are already passed in, they won't be overwritten.  Cmap here is for surface, not countour
-    _surface_defaults={'alpha':0.2, 'rstride':rstride, 'cstride':cstride, 'cmap':cmget('autumn')} #Don't have any special
+    _surface_defaults={'alpha':0.2, 'rstride':rstride, 'cstride':cstride, 'cmap':pu.cmget('autumn')} #Don't have any special
     _surface_defaults.update(pltkwds)
     pltkwds=_surface_defaults #Need to do this in two steps or it errors
 
@@ -267,7 +268,7 @@ def spec_poly3d(df, **pltkwds):
 def poly3d(df, elev=0, azim=0, **pltkwds):
     ''' Written by evelyn, updated by Adam 12/1/12.'''
 
-    xlabel, ylabel, title, pltkwds=smart_label(df, pltkwds)    
+    xlabel, ylabel, title, pltkwds=pu.smart_label(df, pltkwds)    
 
     zlabel_def=''         
     zlabel=pltkwds.pop('zlabel', zlabel_def)   
@@ -314,3 +315,58 @@ def surf3d(df, **surfargs):
     mlab.surf(np.asarray(df), warp_scale=warp_scale, **surfargs)
     mlab.show()    
    
+def corr_plot():  #What args
+    """  """
+
+    #fig, ax #how to handle these in general 2d
+    # Maybe it's helpful to have args for top plots (ie ax1,2,3)
+    
+    ax1 = plt.subplot2grid((5,5), (0,0), colspan=1) # top left
+    ax1.plot([0,-1], color='black')
+    ax1.text(.18, -.78, r'$A(\nu_2)$', size=12) 
+    ax1.text(.55, -.35, r'$A(\nu_1)$', size=12)
+    
+
+    ax2 = plt.subplot2grid((5,5), (0,1), colspan=4) # top
+
+    ax3 = plt.subplot2grid((5,5), (1,0), colspan=1, rowspan=4) #left
+
+    ax4 = plt.subplot2grid((5,5), (1, 1), colspan=4, rowspan=4) #main contour
+    ax4.yaxis.tick_right()
+    ax4.xaxis.tick_bottom() #remove top xticks
+    ax4.yaxis.set_label_position('right')
+    ax4.set_xlabel('x label')
+    ax4.set_ylabel('y label')
+    
+    # Replace with real data
+    x = np.linspace(0, 100*np.pi, 200)
+    ax2.plot(np.sin(x), color='black')
+    
+    # Swap x,y to plot correctly on ax3!!
+    y = np.cos(x)
+    ax3.plot(y,x, color='black')
+    
+    # Contour test data
+    X, Y = np.meshgrid(x, y)
+    Z = X * Y 
+    ax4.contour(X,Y,Z)
+    
+    fig = plt.gcf()
+    fig.suptitle('Title', fontsize=20)
+    
+    # Hide axis labels 
+    for ax in [ax1, ax2, ax3]:
+        pu.hide_axis(ax, axis='both', hide_everything = True)
+            
+    plt.subplots_adjust(hspace = 0, wspace=0)
+    
+    
+    return (ax1, ax2, ax3, ax4)
+
+if __name__ == '__main__':
+    corr_plot()
+    
+    from matplotlib import rc
+
+    rc('text', usetex=True)    
+    plt.show()
