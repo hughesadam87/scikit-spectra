@@ -20,7 +20,7 @@ class PlotError(Exception):
     """ """
 
 #XXX UPDATE DOCSTRING (HOW TO REFERENCE SPECPLOT TO THIS ONE)
-def _genplot(ts, xlabel, ylabel, title, **pltkwargs):
+def _genplot(ts, xlabel, ylabel, title=None, **pltkwargs):
     """ Generic wrapper to ts._df.plot(), that takes in x/y/title as parsed
     from various calling functions:
     NEW KEYWORDS:

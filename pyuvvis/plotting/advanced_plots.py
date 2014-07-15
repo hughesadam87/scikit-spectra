@@ -1,4 +1,4 @@
-''' 2d and 3d wrappers for plotting 2d and 3d data in dataframes '''
+""" 2d and 3d wrappers for plotting 2d and 3d data in dataframes """
 __author__ = "Adam Hughes"
 __copyright__ = "Copyright 2012, GWU Physics"
 __license__ = "Free BSD"
@@ -27,9 +27,12 @@ from pyuvvis.exceptions import badvalue_error
 _ir=lambda(x): int(round(x))
 
 def plot2d(df, contours=6, label=None, colorbar=None, background=None, **pltkwds):
-    ''' Wrapper for plt.contour that uses np.meshgrid to generate curves.  For convienence, a few special labels, colorbar and background
-    keywords have been implemented.  If these are not adequate, it one can add custom colorbars, linelabels background images etc... easily
-    just by using respecitve calls to plot (plt.colorbar(), plt.imshow(), plt.clabel() ); my implementations are only for convienences and
+    """ Wrapper for plt.contour that uses np.meshgrid to generate curves.
+    For convienence, a few special labels, colorbar and background keywords 
+    have been implemented.  If these are not adequate, it one can add 
+    custom colorbars, linelabels background images etc... easily just by 
+    using respecitve calls to plot (plt.colorbar(), plt.imshow(), 
+    plt.clabel() ); my implementations are only for convienences and
     some predefined, cool styles.
     
     df: Dataframe.
@@ -41,9 +44,10 @@ def plot2d(df, contours=6, label=None, colorbar=None, background=None, **pltkwds
     background: Integers 1,2 will add gray or autumn colormap under contour plot.  Use plt.imgshow() to generate
                 custom background, or pass a PIL-opened image (note, proper image scaling not yet implemented).
                 
-    **pltkwds: Will be passed directly to plt.contour().'''
+    **pltkwds: Will be passed directly to plt.contour().
+    """
              
-    xlabel, ylabel, title, pltkwds=pu.smart_label(df, pltkwds)
+    xlabel, ylabel, title, pltkwds = pu.smart_label(df, pltkwds)
 
     ### BUG, PLT.CONTOUR() doesn't take 'color'; rather, takes 'colors' for now
     ### This is only for solid colors.  contour takes cmap argument by default.  
@@ -115,7 +119,7 @@ def plot2d(df, contours=6, label=None, colorbar=None, background=None, **pltkwds
 
 def plot3d(df, kind='contour', elev=0, azim=0, proj_xy=True, proj_zy=True, proj_xz=True,
                contour_color=None, contour_cmap=None, c_iso=10, r_iso=10,*args, **pltkwds):
-    ''' Matplotlib Axes3d wrapper for dataframe. Made to handle surface plots, so pure contour plots,
+    """ Matplotlib Axes3d wrapper for dataframe. Made to handle surface plots, so pure contour plots,
     polygon plots etc... these need their own classes.
     parameters:
      kind
@@ -159,7 +163,7 @@ def plot3d(df, kind='contour', elev=0, azim=0, proj_xy=True, proj_zy=True, proj_
            Either a solid color, or colormap, passed to the contour projections (proj_xy etc...).
            For now, will be passed to all contour projections (xy, zy, xz).
 
-      '''
+      """
     
     ### Error raised by cfunc() is not very clear so here's an easier one
     if contour_cmap and contour_color:
@@ -239,7 +243,7 @@ def plot3d(df, kind='contour', elev=0, azim=0, proj_xy=True, proj_zy=True, proj_
     return ax
 
 def spec_surface3d(df, **pltkwds):
-    ''' Wrapper for plot3d, using basic spectral label and view as default parameters.'''
+    """ Wrapper for plot3d, using basic spectral label and view as default parameters."""
 
     pltkwds['elev']=pltkwds.pop('elev', 14)
     pltkwds['azim']=pltkwds.pop('azim', -21)
@@ -253,7 +257,7 @@ def spec_surface3d(df, **pltkwds):
 
 ### Should I just merge spec-surface and spec-poly?  
 def spec_poly3d(df, **pltkwds):
-    ''' Wrapper for poly, using basic spectral label and view as default parameters.'''
+    """ Wrapper for poly, using basic spectral label and view as default parameters."""
     pltkwds['elev']=pltkwds.pop('elev', 23)
     pltkwds['azim']=pltkwds.pop('azim', 26)
     pltkwds['zlabel']=pltkwds.pop('zlabel', 'Intensity')      
@@ -266,7 +270,7 @@ def spec_poly3d(df, **pltkwds):
 
 ### OTHER MATPLOTLIB 3d PLOT TYPES
 def poly3d(df, elev=0, azim=0, **pltkwds):
-    ''' Written by evelyn, updated by Adam 12/1/12.'''
+    """ Written by evelyn, updated by Adam 12/1/12."""
 
     xlabel, ylabel, title, pltkwds=pu.smart_label(df, pltkwds)    
 
@@ -302,8 +306,8 @@ def poly3d(df, elev=0, azim=0, **pltkwds):
     return ax
 
 def surf3d(df, **surfargs):
-    ''' Mayavi mlab surf plot from a dataframe.  For now, just posting here because it works, not sure
-    how necessary it will be.'''
+    """ Mayavi mlab surf plot from a dataframe.  For now, just posting here because it works, not sure
+    how necessary it will be."""
     from mayavi import mlab
 
     warp_scale=surfargs.pop('warp_scale', 'auto')
@@ -368,9 +372,13 @@ def corr_plot():  #What args
     return (ax1, ax2, ax3, ax4)
 
 if __name__ == '__main__':
-    corr_plot()
-    
+
+#    corr_plot()    
     from matplotlib import rc
+    from pyuvvis.data import aunps_glass
+    
+    ts = aunps_glass()
+    plot2d(ts)
 
     rc('text', usetex=True)    
     plt.show()
