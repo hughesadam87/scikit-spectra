@@ -351,6 +351,10 @@ def corr_plot():  #What args
     Z = X * Y 
     ax4.contour(X,Y,Z)
     
+    # Bisecting line
+    ax4.plot(ax4.get_xlim(), ax4.get_ylim(), ls='--', color='black')  #Real data will affect bounds and hence horizontal line
+    
+    
     fig = plt.gcf()
     fig.suptitle('Title', fontsize=20)
     
