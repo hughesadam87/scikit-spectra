@@ -27,9 +27,115 @@ from pandas import Series, DataFrame
 from numpy import dot, empty, asarray, conj
 from math import pi
 
+from pyuvvis.plotting.advanced_plots import _gencorr2d
+
 # pyuvvis imports
-from pyuvvis.plotting import spec_surface3d
-from pyuvvis.exceptions import badvalue_error
+#from pyuvvis.plotting import spec_surface3d
+
+class CorrError(Exception):
+    """ """
+    
+    
+# Keep this independt of TS; just numpy then more flexible
+class Corr2d(object):
+    """ Computed 2d correlation spectra, including synchronous and asynchronus,
+    correlation, disrelation and other spectra given a 2d data matrix, index
+    and columns.  Index and columns are necessary for plotting, so made them
+    a mandatory requirement."""
+
+    # Columns aren't used; should I eliminate
+    def __init__(self, dynamic, index, columns, idx_unit = 'index', col_unit='col'):
+        """  """
+        if dynamic.ndim != 2:
+            raise CorrError('Data must be 2d Matrix.')
+
+        # Array typecheck?
+        self.dynamic = dynamic
+        self.index = index
+        self.columns = columns
+        self.idx_unit = idx_unit
+        self.col_unit = col_unit
+        
+        
+    @property
+    def synchronous(self):
+        """ """
+        m = self.dynamic.shape[1]  # columns        
+        return dot(self.dynamic, self._dynconjtranspose) / (m - 1.0)  #ORDER OF OPERATIONS DEPENDENT (aka dot(t_dyn, dyn) doesn't work)
+                
+
+    @property
+    def asynchronous(self):
+        """ """
+        m = self.dynamic.shape[1]  # columns                
+        return dot(self.dynamic, dot(self._noda, self._dynconjtranspose) ) / (m-1.0)
+        
+        
+    @property
+    def correlation(self):
+        """ """        
+
+    @property
+    def disrelation(self):
+        """ """
+        
+    @property
+    def phase(self):
+        """ """
+        
+    @property
+    def _noda(self):
+        """ Store noda matrix of dynamic; depends of number of columns in 
+        dynamic.
+        """
+        return noda_matrix(self.shape[1])
+    
+    @property
+    def _dynconjtranspose(self):
+        """ Dynamic spectrum conjugate transpose; helpful to be cached"""
+        return conj(self.dynamic).transpose()
+        
+        
+    # Do I want xx, yy in here?
+    def plot(self, attr='synchronous', **plotkwargs):
+        """ """
+        
+        plotkwargs.setdefault('xlabel', self.idx_unit)
+        plotkwargs.setdefault('ylabel', self.idx_unit)        
+
+        linekwds = dict(linewidth=2, 
+                        linestyle='--', 
+                        color='black')
+        
+        # Title
+        cols = self.columns        
+        plotkwargs.setdefault('title', '%s Spectrum (%.2f - %.2f) %s' % 
+                ( attr.capitalize(), cols.min(), cols.max(), self.col_unit))
+        
+        
+        
+        xx, yy = np.meshgrid(self.index, self.index)
+        ax1, ax2, ax3, ax4 = _gencorr2d(xx, yy, getattr(self, attr), **plotkwargs )
+        ax2.plot(self.index, self.dynamic.mean(axis=1), **linekwds)
+#        ax3.plot(self.dynamic.mean(axis=1), self.index, **linekwds)        
+        return (ax1, ax2, ax3, ax4)
+        
+    @property
+    def shape(self):
+        return self.dynamic.shape
+        
+
+    # Alternate constructers
+    @classmethod
+    def from_timespectra(cls, timespectra):
+        return cls(np.array(ts), 
+                   ts.index, 
+                   ts.columns, 
+                   idx_unit = ts.full_specunit, 
+                   col_unit= ts.full_timeunit)
+
+#    def __repr__(self):
+#        """ """
 
 
 def make_ref(df, method='mean'):
@@ -45,7 +151,8 @@ def make_ref(df, method='mean'):
        "mean" - Columnwise-mean of the dataframe
        "empty" - Fills series with 0.0's to length of spectral index
     
-    returns: series of length of df.index'''
+    Returns: 
+        Series of length of df.index'''
 
     method=method.lower()
     
@@ -53,13 +160,14 @@ def make_ref(df, method='mean'):
         refspec=df.mean(axis=1)
 
     elif method=='empty':
-        refspec=Series( [0.0 for i in range(len(df.index))], index=df.index)  #builtin way to do this?
+        #builtin way to do this?
+        refspec=Series( [0.0 for i in range(len(df.index))], index=df.index)  
                
         
     else:
-        raise badvalue_error(method, 'mean, empty')
+        raise CorrError('method parameter must be "mean" or "empty"'
+                              ' got %s instead.' % method)
         
-    refspec.name='refspec' #Not sure if this will be useful
     return refspec
 
 ### PUT IN SPACING METHOD FOR NON-EVENLY SPACED DATA!
@@ -69,7 +177,7 @@ def noda_matrix(length):
        Returns the hilbert noda Transformation matrix.'''
 
     # XXX: how to vectorize?
-    Njk=empty( (length,length))
+    Njk = empty( (length,length))
     for j in range(length):
         for k in range(length):
             if j==k:
@@ -77,27 +185,6 @@ def noda_matrix(length):
             else:
                 Njk[j, k]=1.0 /  ( pi * (k-j)  )  #DOUBLE CHECK j-i with old verison.    
     return Njk
-
-def ca2d(df, reference):
-    '''This actually compuates 2d correlation analysis'''
-    dyn=df.sub(reference, axis=0) #Need to subtract along index this way (WHAT IS THIS)?
-    T_dyn=conj(dyn).transpose()  #Conjugate transpose matrix
-    m=len(df.columns)  #confirmed columns
-    
-    ### Synchronous spectrum is simply the normalized covariance matrix.
-    S=dot(dyn, T_dyn) / (m - 1.0)  #ORDER OF OPERATIONS DEPENDENT (aka dot(t_dyn, dyn) doesn't work)
-    
-    ### Generate Noda Matrix 
-    Njk=noda_matrix(m)
-    
-    ### Asynchronous spectrum using Hilbert Transformation
-    A=dot(dyn, dot(Njk, T_dyn) ) / (m-1.0)
-    
-    ### Convert and return as dataframes
-    S=DataFrame(S, index=df.index, columns=df.index)
-    A=DataFrame(A, index=df.index, columns=df.index)
-    
-    return S, A    
 
 
 def corr_3d(df, **pltkwds):
@@ -149,3 +236,38 @@ def async_3d(df, checkdata=False,  **pltkwds):
     
     pltkwds['title_def']='Asynchronous Spectrum'
     corr_3d(df, **pltkwds)    
+    
+    
+if __name__ == '__main__':
+    from pyuvvis.data import aunps_glass
+    import numpy as np
+    import matplotlib.pyplot as plt 
+    
+    ts = aunps_glass().as_interval('s')
+    xx,yy = np.meshgrid(ts.columns, ts.index)
+    
+    cd = Corr2d.from_timespectra(ts)
+    ax1,ax2,ax3, ax4 = cd.plot(attr='synchronous', cmap='brg', 
+                               fill=False, cbar=True, contours=20, grid=True)
+    ts.plot(ax=ax2, padding=0.01, title='', xlabel='', ylabel='Full', 
+            colormap='brg')
+    ts.plot(ax=ax3, colormap='brg', padding=0.01, title='', xlabel='', ylabel='Full')
+    
+    for line in ax3.lines:
+        xd = line.get_xdata()
+        yd = line.get_ydata()
+        line.set_xdata(yd)
+        line.set_ydata(xd)
+        
+    xlim = ax3.get_xlim()
+    ylim = ax3.get_ylim()
+    ylim = (ylim[-1], ylim[0])
+    ax3.set_xlim(ylim)
+    ax3.set_ylim(xlim)
+#    ts.plot(ax=ax3, padding=0)
+    
+#    import plotly.plotly as py
+#    fig = plt.gcf()
+#    py.iplot_mpl(fig)
+    
+    plt.show()

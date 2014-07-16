@@ -20,7 +20,7 @@ class PlotError(Exception):
     """ """
 
 #XXX UPDATE DOCSTRING (HOW TO REFERENCE SPECPLOT TO THIS ONE)
-def _genplot(ts, xlabel, ylabel, title=None, **pltkwargs):
+def _genplot(ts, **pltkwargs):
     """ Generic wrapper to ts._df.plot(), that takes in x/y/title as parsed
     from various calling functions:
     NEW KEYWORDS:
@@ -33,16 +33,22 @@ def _genplot(ts, xlabel, ylabel, title=None, **pltkwargs):
         cbar
         ax
         fig
+        xlabel
+        ylabel
+        title
     """
              
     # Add custom legend interface.  Keyword legstyle does custom ones, if pltkwrd legend==True
     # For now this could use improvement  
+    xlabel = pltkwargs.pop('xlabel', '')
+    ylabel = pltkwargs.pop('ylabel', '')
+    title = pltkwargs.pop('title', '')
+
     pltkwargs.setdefault('legend', False)
     pltkwargs.setdefault('linewidth', 1)
     legstyle = pltkwargs.pop('legstyle', None)   
     pcmap = pltkwargs.setdefault('colormap', 'jet')
     
-
     fig = pltkwargs.pop('fig', None)
     ax = pltkwargs.pop('ax', None)
     cbar = pltkwargs.pop('cbar', False)
@@ -50,17 +56,8 @@ def _genplot(ts, xlabel, ylabel, title=None, **pltkwargs):
 
     xlim = pltkwargs.pop('xlim', None)
     ylim = pltkwargs.pop('ylim', None)
-    _padding = 0.05
+    padding = pltkwargs.pop('padding', 0.05)
             
-    
-    if title is None:
-        title = ''
-            
-    if xlabel is None:
-        xlabel = ''
-        
-    if ylabel is None:
-        ylabel = ''
             
     if not ax:
         f, ax = plt.subplots(1)
@@ -123,7 +120,7 @@ def _genplot(ts, xlabel, ylabel, title=None, **pltkwargs):
     
     def _correct_padding(xi,xf):
         dlt_x = xf-xi
-        boundary = abs(dlt_x *_padding)
+        boundary = abs(dlt_x *padding)
         low_bound = xi-boundary
         high_bound = xf+boundary
         return (low_bound, high_bound)
@@ -174,12 +171,12 @@ def _genplot(ts, xlabel, ylabel, title=None, **pltkwargs):
 def specplot(ts, **pltkwds):
     ''' Basically a call to gen plot with special attributes, and a default color mapper.'''
           
-    xlabel = pltkwds.pop('xlabel', ts.full_specunit)  
-    ylabel = pltkwds.pop('ylabel', ts.full_iunit)    
+    pltkwds.setdefault('xlabel', ts.full_specunit)  
+    pltkwds.setdefault('ylabel', ts.full_iunit)    
 #    title = pltkwds.pop('title', '(%s) %s' % (ts.full_iunit, ts.name) )    
-    title=pltkwds.pop('title', ts.name )    
+    pltkwds.setdefault('title', ts.name )    
 
-    return _genplot(ts, xlabel, ylabel, title, **pltkwds)
+    return _genplot(ts, **pltkwds)
     
     
 def timeplot(ts, **pltkwds):
@@ -189,11 +186,11 @@ def timeplot(ts, **pltkwds):
     
     pltkwds['legend']=pltkwds.pop('legend', True) #Turn legend on
         
-    xlabel=pltkwds.pop('xlabel', ts.full_timeunit)  
-    ylabel=pltkwds.pop('ylabel', ts.full_iunit)    
-    title=pltkwds.pop('title', ts.name )    
+    pltkwds.setdefault('xlabel', ts.full_timeunit)  
+    pltkwds.setdefault('ylabel', ts.full_iunit)    
+    pltkwds.setdefault('title', ts.name )    
         
-    return _genplot(ts.transpose(), xlabel, ylabel, title, **pltkwds)
+    return _genplot(ts.transpose(), **pltkwds)
 
 def normplot(ts, iunit='a', **pltkwds):    
     ''' Absorbance plot.  Note: This will autoconvert data.  This is a convienence method
@@ -207,11 +204,11 @@ def normplot(ts, iunit='a', **pltkwds):
         logger.warn('Spectrum does not have subtracted baseline; could affect '
                     'result in specious absorbance data.')
                     
-    xlabel = pltkwds.pop('xlabel', ts.full_specunit)  
-    ylabel = pltkwds.pop('ylabel', ts.full_iunit)    
-    title = pltkwds.pop('title', 'Normalized: '+ ts.name )    
+    pltkwds.setdefault('xlabel', ts.full_specunit)  
+    pltkwds.setdefault('ylabel', ts.full_iunit)    
+    pltkwds.setdefault('title', 'Normalized: '+ ts.name )    
         
-    return _genplot(ts, xlabel, ylabel, title, **pltkwds)
+    return _genplot(ts, **pltkwds)
 
 # Requires ranged dataframe used wavelength slices method
 def range_timeplot(ranged_ts, **pltkwds):
@@ -223,12 +220,12 @@ def range_timeplot(ranged_ts, **pltkwds):
     pltkwds['legend'] = pltkwds.pop('legend', True)
     pltkwds['linewidth'] = pltkwds.pop('linewidth', 2.0 )  
           
-    xlabel = pltkwds.pop('xlabel', ranged_ts.full_timeunit)  
-    ylabel = pltkwds.pop('ylabel', '$\int$ %s (sliced)' % ranged_ts.full_iunit)    
-    title = pltkwds.pop('title', 'Area Ranges: '+ ranged_ts.name )       
+    pltkwds.setdefault('xlabel', ranged_ts.full_timeunit)  
+    pltkwds.setdefault('ylabel', '$\int$ %s (sliced)' % ranged_ts.full_iunit)    
+    pltkwds.setdefault('title', 'Area Ranges: '+ ranged_ts.name )       
                 
     # Needs to be more robust and check specunit is index etc...
-    return _genplot(ranged_ts.transpose(), xlabel, ylabel, title,**pltkwds)   #ts TRANSPOSE
+    return _genplot(ranged_ts.transpose(), **pltkwds)   #ts TRANSPOSE
 
 
 def areaplot(ranged_ts, **pltkwds):
@@ -263,9 +260,9 @@ def areaplot(ranged_ts, **pltkwds):
     pltkwds.setdefault('color', 'black') # If removing, colormap default in _genplot
                                          # Will cause bug
 
-    xlabel = pltkwds.pop('xlabel', ranged_ts.full_timeunit)  
-    ylabel = pltkwds.pop('ylabel', '$\int$ %s d$\lambda$'%ranged_ts.full_iunit)    
-    title = pltkwds.pop('title', 'Area: '+ ranged_ts.name )      
+    pltkwds.setdefault('xlabel', ranged_ts.full_timeunit)  
+    pltkwds.setdefault('ylabel', '$\int$ %s d$\lambda$'%ranged_ts.full_iunit)    
+    pltkwds.setdefault('title', 'Area: '+ ranged_ts.name )      
 
 
     # If shape is wrong, take transpose    
@@ -280,7 +277,7 @@ def areaplot(ranged_ts, **pltkwds):
                     
     # Pass in df.tranpose() as hack until I fix specunit (otherwise it tries to
     # assign specunit to the index, which is a time index (this causes error in new pandas)
-    return _genplot(out, xlabel, ylabel, title, **pltkwds)   #ts TRANSPOSE
+    return _genplot(out, **pltkwds)   #ts TRANSPOSE
     
 if __name__ == '__main__':
     from pyuvvis.data import aunps_glass

@@ -10,9 +10,11 @@ __status__ = "Development"
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
+import matplotlib.colorbar as mplcbar
 import matplotlib.cm as cm
 from matplotlib.collections import PolyCollection
 from matplotlib.colors import colorConverter, Normalize
+from basic_plots import PlotError
 
 import plot_utils as pu
 
@@ -26,17 +28,16 @@ from pyuvvis.exceptions import badvalue_error
 # Smart float to int conversion
 _ir=lambda(x): int(round(x))
 
-def plot2d(df, contours=6, label=None, colorbar=None, background=None, **pltkwds):
-    """ Wrapper for plt.contour that uses np.meshgrid to generate curves.
+def _gen2d(xx, yy, zz, contours=6, label=None, fill=False, colorbar=None, 
+           background=None, **pltkwargs):
+    """ Abstract layout for 2d plot.
     For convienence, a few special labels, colorbar and background keywords 
     have been implemented.  If these are not adequate, it one can add 
     custom colorbars, linelabels background images etc... easily just by 
     using respecitve calls to plot (plt.colorbar(), plt.imshow(), 
     plt.clabel() ); my implementations are only for convienences and
     some predefined, cool styles.
-    
-    df: Dataframe.
-    
+        
     countours: Number of desired contours from output.
     
     label: Predefined label types.  For now, only integer values 1,2.  Use plt.clabel to add a custom label.
@@ -44,30 +45,54 @@ def plot2d(df, contours=6, label=None, colorbar=None, background=None, **pltkwds
     background: Integers 1,2 will add gray or autumn colormap under contour plot.  Use plt.imgshow() to generate
                 custom background, or pass a PIL-opened image (note, proper image scaling not yet implemented).
                 
-    **pltkwds: Will be passed directly to plt.contour().
+    fill: bool (False)
+        Fill between contour lines.
+
+    **pltkwargs: Will be passed directly to plt.contour().
+    
     """
              
-    xlabel, ylabel, title, pltkwds = pu.smart_label(df, pltkwds)
+    # Boilerplate from basic_plots._genplot(); could refactor as decorator
+    xlabel = pltkwargs.pop('xlabel', '')
+    ylabel = pltkwargs.pop('ylabel', '')
+    title = pltkwargs.pop('title', '')
+    
+    pltkwargs.setdefault('legend', False)
+    pltkwargs.setdefault('linewidth', 1)    
+    cbar = pltkwargs.pop('cbar', False)
+    
+    fig = pltkwargs.pop('fig', plt.gcf())
+    ax = pltkwargs.pop('ax', None)  
+    
+    # Overwrites fig (desireable?)
+    if not ax:
+        fig, ax = plt.subplots(1)
 
+    labelsize = pltkwargs.pop('labelsize', 'medium') #Can also be ints
+    titlesize = pltkwargs.pop('titlesize', 'large')
+    ticksize = pltkwargs.pop('ticksize', '') #Put in default and remove bool gate
+    
+    
     ### BUG, PLT.CONTOUR() doesn't take 'color'; rather, takes 'colors' for now
     ### This is only for solid colors.  contour takes cmap argument by default.  
-    if 'color' in pltkwds:        
-        pltkwds['colors']=pltkwds.pop('color')
+    if 'color' in pltkwargs:        
+        pltkwargs['colors']=pltkwargs.pop('color')
         
     ### Convienence method to pass in string colors
-    if 'cmap' in pltkwds and isinstance(pltkwds['cmap'], basestring):
-        pltkwds['cmap']=pu.cmget(pltkwds['cmap'])
+    if 'cmap' in pltkwargs and isinstance(pltkwargs['cmap'], basestring):
+        pltkwargs['cmap']=pu.cmget(pltkwargs['cmap'])
     
     ### I CAN MAKE THIS GENERAL TO ANY PLOT, ADDITION OF IMAGES TO A BACKGROUND MAKE IT A GENERAL ROUTINE TO ALL MY PLOTS ###
     ### More here http://matplotlib.org/examples/pylab_examples/image_demo3.html ###
+    # Refactored with xx, yy instead of df.columns/index UNTESTED
     if background:
-        xmin, xmax, ymin, ymax=min(df.columns), max(df.columns), min(df.index), max(df.index)
+        xmin, xmax, ymin, ymax = xx.min(), xx.max(), yy.min(), yy.max()
         if background==1:
-            im = plt.imshow(df, interpolation='bilinear', origin='lower',
+            im = plt.imshow(zz, interpolation='bilinear', origin='lower',
                         cmap=cm.gray, extent=(xmin, xmax, ymin, ymax))     
             
         elif background==2:
-            im = plt.imshow(df, interpolation='bilinear', origin='lower',
+            im = plt.imshow(zz, interpolation='bilinear', origin='lower',
                        cmap=cm.autumn, extent=(xmin, xmax, ymin, ymax))            
 
     ### This will take a custom image opened in PIL or it will take plt.imshow() returned from somewhere else
@@ -80,8 +105,13 @@ def plot2d(df, contours=6, label=None, colorbar=None, background=None, **pltkwds
     else:
         im=None
         
-    xx,yy = np.meshgrid(df.columns, df.index)
-    ax = plt.contour(xx, yy, df, contours, **pltkwds)    #linewidths is a pltkwds arg
+    if fill:
+        contours = ax.contourf(xx, yy, zz, contours, **pltkwargs)    #linewidths is a pltkwargs arg
+    else:
+        contours = ax.contour(xx, yy, zz, contours, **pltkwargs)    
+
+    if cbar:
+        fig.colorbar(contours)
  
     ### Pick a few label styles to choose from.
     if label:
@@ -90,35 +120,17 @@ def plot2d(df, contours=6, label=None, colorbar=None, background=None, **pltkwds
         elif label==2:
             ax.clabel(levels[1::2], inline=1, fontsize=10)   #label every second line      
         else:
-            raise badvalue_error(label, 'integer of value 1 or 2')
+            raise PlotError(label, 'integer of value 1 or 2')
+               
+    ax.set_xlabel(xlabel, fontsize=labelsize)
+    ax.set_ylabel(ylabel, fontsize=labelsize)
+    ax.set_title(title, fontsize=titlesize)         
         
-            
-    ### Add colorbar, for some reason need to do plt.colorbar() even though can do ax.clabel...
-    if colorbar:
-        if colorbar==1:  ### WHAT OTHER COLORBAR OPTIONS ARETHERE
-            CB=plt.colorbar(ax, shrink=0.8) #shringk is heigh of colorbar relative ot height of plot
-    
-            if im:
-                IMCB=plt.colorbar(im, orientation='horizontal', shrink=0.8)
+    return (ax, contours)    
 
-                ### Move original colorbar to more natural to make room for image colorbar
-                l,b,w,h = plt.gca().get_position().bounds
-                ll,bb,ww,hh = CB.ax.get_position().bounds
-                CB.ax.set_position([ll, b+0.1*h, ww, h*0.8])
-                
-        else:
-            raise badvalue_error(colorbar, 'integer of value 1 is only supported for now')
-                
-         
-
-    plt.xlabel(xlabel)      
-    plt.ylabel(ylabel)                  
-    plt.title(title)
-    return ax    
-
-
+# Refactor to be more of a skeleton with xx, yy, zz like in _gen2d
 def plot3d(df, kind='contour', elev=0, azim=0, proj_xy=True, proj_zy=True, proj_xz=True,
-               contour_color=None, contour_cmap=None, c_iso=10, r_iso=10,*args, **pltkwds):
+               contour_color=None, contour_cmap=None, c_iso=10, r_iso=10,*args, **pltkwargs):
     """ Matplotlib Axes3d wrapper for dataframe. Made to handle surface plots, so pure contour plots,
     polygon plots etc... these need their own classes.
     parameters:
@@ -170,14 +182,16 @@ def plot3d(df, kind='contour', elev=0, azim=0, proj_xy=True, proj_zy=True, proj_
         raise AttributeError('plot3d can have non-null values for attributes contour_cmap and contour_color, but not both.')
 
     zlabel_def=''     
-    zlabel=pltkwds.pop('zlabel', zlabel_def)                    
+    zlabel=pltkwargs.pop('zlabel', zlabel_def)                    
     
-    xlabel, ylabel, title, pltkwds=pu.smart_label(df, pltkwds)    
-        
+    xlabel = pltkwargs.pop('xlabel', '')
+    ylabel = pltkwargs.pop('ylabel', '')
+    title = pltkwargs.pop('title', '')
+    
     ### If plane (xy) is input backwards (yx), still works    
-    proj_xy=pltkwds.pop('proj_yx', proj_xy)
-    proj_zy=pltkwds.pop('proj_yz', proj_zy)
-    proj_xz=pltkwds.pop('proj_zx', proj_xz)
+    proj_xy=pltkwargs.pop('proj_yx', proj_xy)
+    proj_zy=pltkwargs.pop('proj_yz', proj_zy)
+    proj_xz=pltkwargs.pop('proj_zx', proj_xz)
     
                     
     ### Make mesh grid based on dataframe indicies ###
@@ -189,13 +203,13 @@ def plot3d(df, kind='contour', elev=0, azim=0, proj_xy=True, proj_zy=True, proj_
     ### PLOT PADDING NEEDS FIXED AS OF NOW IT IS NOT CORRECT.  FOR EXAMPLE, IF MIN IS 0, NEED AN OPERATION
     ### THAT WILL STILL REDUCE IT TO LESS THAN ZERO.  ONLY WORTH FIGURING OUT IF NEED PROJECTIONS OUTSIDE OF THE GRID.
     ### ALSO BUGS IF THE AXIS VALUES AREN'T NUMBERS.  FOR EXAMPLE, IF THEY ARE NAMED COLUMNS.  FIX WITH TRY EXCEPT
-    proj_padding=pltkwds.pop('projpad', 0.0)
+    proj_padding=pltkwargs.pop('projpad', 0.0)
     
-    xlim=pltkwds.pop('xlim', (min(df.columns)*(1.0-proj_padding), max(df.columns)*(1.0+proj_padding)) )
-    ylim=pltkwds.pop('ylim', (min(df.index)*(1.0-proj_padding), max(df.index)*(1.0+proj_padding)) )
+    xlim=pltkwargs.pop('xlim', (min(df.columns)*(1.0-proj_padding), max(df.columns)*(1.0+proj_padding)) )
+    ylim=pltkwargs.pop('ylim', (min(df.index)*(1.0-proj_padding), max(df.index)*(1.0+proj_padding)) )
     
     ### Min/max of total data (only works if the data is 2d)
-    zlim=pltkwds.pop('zlim',  ((1.0-proj_padding)*(df.min()).min(), (1.0+proj_padding)*(df.max().max())) )  
+    zlim=pltkwargs.pop('zlim',  ((1.0-proj_padding)*(df.min()).min(), (1.0+proj_padding)*(df.max().max())) )  
     
     cstride= _ir( len(df.columns)/float(c_iso) ) 
     rstride= _ir( len(df.index)/float(r_iso) )   
@@ -210,10 +224,10 @@ def plot3d(df, kind='contour', elev=0, azim=0, proj_xy=True, proj_zy=True, proj_
     
     ### If these values are already passed in, they won't be overwritten.  Cmap here is for surface, not countour
     _surface_defaults={'alpha':0.2, 'rstride':rstride, 'cstride':cstride, 'cmap':pu.cmget('autumn')} #Don't have any special
-    _surface_defaults.update(pltkwds)
-    pltkwds=_surface_defaults #Need to do this in two steps or it errors
+    _surface_defaults.update(pltkwargs)
+    pltkwargs=_surface_defaults #Need to do this in two steps or it errors
 
-    ax.plot_surface(xx,yy,df, *args, **pltkwds)   
+    ax.plot_surface(xx,yy,df, *args, **pltkwargs)   
 
     if kind=='contourf' or kind=='contour':           
         if kind=='contourf':
@@ -242,40 +256,43 @@ def plot3d(df, kind='contour', elev=0, azim=0, proj_xy=True, proj_zy=True, proj_
     
     return ax
 
-def spec_surface3d(df, **pltkwds):
+
+def spec_surface3d(df, **pltkwargs):
     """ Wrapper for plot3d, using basic spectral label and view as default parameters."""
 
-    pltkwds['elev']=pltkwds.pop('elev', 14)
-    pltkwds['azim']=pltkwds.pop('azim', -21)
-    pltkwds['zlabel']=pltkwds.pop('zlabel', 'Intensity')  #No df attribute, so leave like this    
+    pltkwargs['elev']=pltkwargs.pop('elev', 14)
+    pltkwargs['azim']=pltkwargs.pop('azim', -21)
+    pltkwargs['zlabel']=pltkwargs.pop('zlabel', 'Intensity')  #No df attribute, so leave like this    
 
 
-    pltkwds['ylabel_def']='Wavelength'
-    pltkwds['xlabel_def']='Time'
+    pltkwargs['ylabel_def']='Wavelength'
+    pltkwargs['xlabel_def']='Time'
     
-    return plot3d(df, **pltkwds)
+    return plot3d(df, **pltkwargs)
 
 ### Should I just merge spec-surface and spec-poly?  
-def spec_poly3d(df, **pltkwds):
+def spec_poly3d(df, **pltkwargs):
     """ Wrapper for poly, using basic spectral label and view as default parameters."""
-    pltkwds['elev']=pltkwds.pop('elev', 23)
-    pltkwds['azim']=pltkwds.pop('azim', 26)
-    pltkwds['zlabel']=pltkwds.pop('zlabel', 'Intensity')      
+    pltkwargs['elev']=pltkwargs.pop('elev', 23)
+    pltkwargs['azim']=pltkwargs.pop('azim', 26)
+    pltkwargs['zlabel']=pltkwargs.pop('zlabel', 'Intensity')      
     
     
-    pltkwds['ylabel_def']='Wavelength'
-    pltkwds['xlabel_def']='Time'    
-    return poly3d(df, **pltkwds)
+    pltkwargs['ylabel_def']='Wavelength'
+    pltkwargs['xlabel_def']='Time'    
+    return poly3d(df, **pltkwargs)
 
 
 ### OTHER MATPLOTLIB 3d PLOT TYPES
-def poly3d(df, elev=0, azim=0, **pltkwds):
+def poly3d(df, elev=0, azim=0, **pltkwargs):
     """ Written by evelyn, updated by Adam 12/1/12."""
 
-    xlabel, ylabel, title, pltkwds=pu.smart_label(df, pltkwds)    
-
+    xlabel = pltkwargs.pop('xlabel', '')
+    ylabel = pltkwargs.pop('ylabel', '')
+    title = pltkwargs.pop('title', '')
+    
     zlabel_def=''         
-    zlabel=pltkwds.pop('zlabel', zlabel_def)   
+    zlabel=pltkwargs.pop('zlabel', zlabel_def)   
     zs=df.columns
 
     verts=[zip(df.index, df[col]) for col in df]  #don't have to say df.columns
@@ -319,66 +336,101 @@ def surf3d(df, **surfargs):
     mlab.surf(np.asarray(df), warp_scale=warp_scale, **surfargs)
     mlab.show()    
    
-def corr_plot():  #What args
-    """  """
+def _gencorr2d(xx, yy, zz, a1_label=r'$\bar{A}(\nu_1)$', 
+               a2_label=r'$\bar{A}(\nu_2)$', **contourkwds): 
+    """ Abstract layout for 2d correlation analysis plot.  
+    
+    **contourkwds
+        Passed directly to _gen2d; includes keywords like xlabel, ylabel
+        and so forth.
+    """
+
+    # Maybe this should take X, Y, Z not ts
 
     #fig, ax #how to handle these in general 2d
     # Maybe it's helpful to have args for top plots (ie ax1,2,3)
     
-    ax1 = plt.subplot2grid((5,5), (0,0), colspan=1) # top left
-    ax1.plot([0,-1], color='black')
-    ax1.text(.18, -.78, r'$A(\nu_2)$', size=12) 
-    ax1.text(.55, -.35, r'$A(\nu_1)$', size=12)
+    title = contourkwds.pop('title', '')
+    cbar = contourkwds.pop('cbar', False)
+    grid = contourkwds.pop('grid', False) #Adds grid to plot and side plots
     
+    ax1 = plt.subplot2grid((5,5), (0,0), colspan=1) # top left
+    plt.subplots_adjust(hspace = 0, wspace=0)    # Remove whitespace
+    ax1.plot([0,-1], color='black')
+    ax1.text(.18, -.78, a1_label, size=12) 
+    ax1.text(.55, -.35, a2_label, size=12)    
 
     ax2 = plt.subplot2grid((5,5), (0,1), colspan=4) # top
-
     ax3 = plt.subplot2grid((5,5), (1,0), colspan=1, rowspan=4) #left
-
     ax4 = plt.subplot2grid((5,5), (1, 1), colspan=4, rowspan=4) #main contour
+    ax3.invert_xaxis()
     ax4.yaxis.tick_right()
     ax4.xaxis.tick_bottom() #remove top xticks
     ax4.yaxis.set_label_position('right')
-    ax4.set_xlabel('x label')
-    ax4.set_ylabel('y label')
     
-    # Replace with real data
-    x = np.linspace(0, 100*np.pi, 200)
-    ax2.plot(np.sin(x), color='black')
+    ax4, contours = _gen2d(xx, yy, zz, ax=ax4, **contourkwds)
     
-    # Swap x,y to plot correctly on ax3!!
-    y = np.cos(x)
-    ax3.plot(y,x, color='black')
-    
-    # Contour test data
-    X, Y = np.meshgrid(x, y)
-    Z = X * Y 
-    ax4.contour(X,Y,Z)
+ #   plt.colorbar(ax4)  #oesn't work http://matplotlib.org/examples/pylab_examples/contourf_demo.html
     
     # Bisecting line
-    ax4.plot(ax4.get_xlim(), ax4.get_ylim(), ls='--', color='black')  #Real data will affect bounds and hence horizontal line
-    
+    ax4.plot(ax4.get_xlim(), ax4.get_ylim(), ls = '--', color='black', linewidth=1)  
     
     fig = plt.gcf()
-    fig.suptitle('Title', fontsize=20)
     
+
+    if grid:
+        ax2.grid()
+        ax3.grid()
+        ax4.grid()
+        
     # Hide axis labels 
-    for ax in [ax1, ax2, ax3]:
-        pu.hide_axis(ax, axis='both', hide_everything = True)
+    for ax in [ax2, ax3]:
+        if grid:
+            pu.hide_axis(ax, axis='both', axislabel=True, ticklabels=True)
+        else:
+            pu.hide_axis(ax, axis='both', hide_everything = True)
             
-    plt.subplots_adjust(hspace = 0, wspace=0)
-    
-    
+    pu.hide_axis(ax1, axis='both', hide_everything=True)
+  
+    # Handles its own colorbar (See links below; important)
+   # http://stackoverflow.com/questions/13784201/matplotlib-2-subplots-1-colorbar
+   # http://matplotlib.org/api/colorbar_api.html#matplotlib.colorbar.make_axes
+    if cbar:
+        cax,kw = mplcbar.make_axes([ax1, ax2, ax3, ax4], 
+                                   location='top',
+                                   pad = 0.05,
+                                   aspect = 30, #make skinnier
+                                   shrink=0.75) 
+        
+        fig.colorbar(contours, cax=cax,**kw)# ticks=[0,zz.max().max()], **kw)
+
+
+    fig.suptitle(title, fontsize=20) # Still overpads
+        
+        
     return (ax1, ax2, ax3, ax4)
 
 if __name__ == '__main__':
 
-#    corr_plot()    
     from matplotlib import rc
     from pyuvvis.data import aunps_glass
     
-    ts = aunps_glass()
-    plot2d(ts)
+    ts = aunps_glass().as_interval('s')
+    xx,yy = np.meshgrid(ts.columns, ts.index)
+
+    _gencorr2d(xx, yy, ts, 
+               fill=True,
+               title='My baller plot',
+               xlabel=ts.full_timeunit,
+               ylabel=ts.full_specunit,
+               contours=20,
+               cbar = True,
+               background=False)
+ 
+#    _gen2d(xx, yy, ts, cbar=True, fill=True, contours=20)
+    
+    
 
     rc('text', usetex=True)    
+    print ts.shape
     plt.show()
