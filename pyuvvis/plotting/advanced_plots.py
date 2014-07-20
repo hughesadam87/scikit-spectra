@@ -353,7 +353,7 @@ def _gencorr2d(xx, yy, zz, a1_label=r'$\bar{A}(\nu_1)$',
     
     title = contourkwds.pop('title', '')
     cbar = contourkwds.pop('cbar', False)
-    grid = contourkwds.pop('grid', False) #Adds grid to plot and side plots
+    grid = contourkwds.pop('grid', True) #Adds grid to plot and side plots
     cbar_nticks = contourkwds.pop('cbar_nticks', 5) #Number ticks in colorbar
   
     contourkwds.setdefault('contours', 20)        
@@ -418,8 +418,6 @@ def _gencorr2d(xx, yy, zz, a1_label=r'$\bar{A}(\nu_1)$',
 
 
     fig.suptitle(title, fontsize='large') # Still overpads
-        
-        
     return (ax1, ax2, ax3, ax4)
 
 if __name__ == '__main__':

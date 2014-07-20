@@ -39,7 +39,7 @@ def multi_axes(count, **kwargs):
     """ """
     figsize = kwargs.pop('figsize', None)#, rcParams['figure.figsize'])
     ncols = kwargs.pop('ncols', cnfg.multicols)
-        
+
     if count <= ncols:
         nrows = 1
         ncols = count
@@ -49,12 +49,12 @@ def multi_axes(count, **kwargs):
         nrows = int(count/ncols)         
         if count % ncols: #If not perfect division
             nrows += 1
-    
+
     if figsize:
         fig, axes = splot(nrows, ncols, figsize=figsize, fig=True)
     else:
         fig, axes = splot(nrows, ncols,fig=True)
-        
+
 
     while len(fig.axes) > count:
         fig.delaxes(fig.axes[-1])
@@ -73,28 +73,28 @@ def _parse_names(names, default_names):
     if names:
         if len(names) == len(default_names):
             pass
-            
+
         elif len(names) < len(default_names):
             logger.warn("length : %s names provided but %s unique "
-                       "labels were found" % (len(names), len(default_names)) )              
+                        "labels were found" % (len(names), len(default_names)) )              
             default_names[0:len(names)] = names[:]
             return default_names
-        
+
         else: #len(names) >= len(default_names)
             logger.warn("length : %s names provided but %s unique "
-                       "labels were found" % (len(names), len(default_names)) )     
+                        "labels were found" % (len(names), len(default_names)) )     
             return names[0:len(default_names)] 
 
     else:
         names[:] = default_names[:]
-        
+
     return names
 
 def _annotate_mappable(df, cmap, axis=0, vmin=None, vmax=None):
-    
+
     if isinstance(cmap, basestring): 
         cmap=cmget(cmap)
-    
+
     if axis != 0 and axis != 1:
         raise badvalue_error(axis, 'integers 0 or 1')
 
@@ -103,7 +103,7 @@ def _annotate_mappable(df, cmap, axis=0, vmin=None, vmax=None):
         vmin=min(df.min(axis=axis))
     if not vmax:        
         vmax=max(df.max(axis=axis))
-        
+
     cNorm = mplcolors.Normalize(vmin=vmin, vmax=vmax)
     scalarmap = cm.ScalarMappable(norm=cNorm, cmap=cmap)    
 #   http://stackoverflow.com/questions/6600579/colorbar-for-matplotlib-plot-surface-command
@@ -114,24 +114,24 @@ def _annotate_mappable(df, cmap, axis=0, vmin=None, vmax=None):
 def _df_colormapper(df, cmap, axis=0, colorbymax=False, vmin=None, vmax=None):
     ''' Maps matplotlibcolors to a dataframe based on the mean value of each curve along that
     axis.  
-      
+
     Parameters
     ----------
     colorbymax : bool (False)
         If true, curves are colored based on their maxima value (ie largest
         curve is max color regardless of where it appears in time). Otherwise,
         curves are colored chornologically.
-    
+
     Notes
     -----
     Useful for df.plot() which doesn't take a normalized colormap natively. 
     cmap can be an instance of an RGB color map, or a string which such that 
     cm.string will produce one.
     '''
-    
+
     if isinstance(cmap, basestring): 
         cmap=cmget(cmap)
-    
+
     if axis != 0 and axis != 1:
         raise badvalue_error(axis, 'integers 0 or 1')
 
@@ -146,10 +146,10 @@ def _df_colormapper(df, cmap, axis=0, colorbymax=False, vmin=None, vmax=None):
             vmax = max(df.max(axis=axis))
         except TypeError:
             vmax = df.max(axis=axis)
-        
+
     cNorm = mplcolors.Normalize(vmin=vmin, vmax=vmax)
     scalarmap = cm.ScalarMappable(norm=cNorm, cmap=cmap)    
-    
+
     if axis == 0:
         if colorbymax:
             colors=[scalarmap.to_rgba(df[x].max()) for x in df.columns]
@@ -163,7 +163,7 @@ def _df_colormapper(df, cmap, axis=0, colorbymax=False, vmin=None, vmax=None):
         else:
             colors = [scalarmap.to_rgba(x) for x in 
                       np.linspace(vmin, vmax, len(df.index))]
-        
+
     return colors
 
 def to_normrgb(color):
@@ -179,10 +179,10 @@ def to_normrgb(color):
         if len(color) != 3:
             if len(color) == 4:
                 color = color[0:3]
-             #   logger.warn("4-channel RGBA recieved; ignoring A channel")
+                #   logger.warn("4-channel RGBA recieved; ignoring A channel")
             else:
                 raise ColorError("Multi-channel color must be 3-channel;"
-                             " recieved %s" % len(color))
+                                 " recieved %s" % len(color))
         r, g, b = color
         if r <= 1 and g <= 1 and b <= 1:
             return (r, g, b)
@@ -219,7 +219,7 @@ def _uvvis_colors(df, delim=':'):
     '''    From a dataframe with indicies of ranged wavelengths (eg 450.0:400.0), and builds colormap
     with fixed uv_vis limits (for now 400, 700).  Here are some builtin ones:
     http://dept.astro.lsa.umich.edu/~msshin/science/code/matplotlib_cm/.  
-    
+
     Colors each curve based on the mid value in range. '''
     colors=[]
     cNorm=mplcolors.Normalize(vmin=350.0, vmax=700.0)
@@ -269,27 +269,27 @@ def hide_axis(ax, axis='x', axislabel=True, ticklabels=True, ticks=False,
 
     Parameters
     ----------
-    
+
     axis : 'x' or 'y' 'both'
-    
+
     axislabel : True
         Hide the axis label
-        
+
     ticklabels : True
         Hide the tick labels
-        
+
     ticks : True
         Hide the tick markers
-    
+
     hide_everything : False
         Hides labels, tick labels and axis labels.
-    
+
     """
     if axis not in ['x','y','both']:
         raise AttributeError('axis must be "x" or "y" or both')
 
     axis_to_modify = []
-    
+
     if hide_everything:
         ticks = True; axislabel=True; ticklabels=True
 
@@ -313,44 +313,62 @@ def hide_axis(ax, axis='x', axislabel=True, ticklabels=True, ticks=False,
             an_axis.set_ticks([])
 
     return ax 
-            
-               
+
+
+def invert_ax(ax):
+    """ Inverts x and y data on a plot axis, and flips limits.  Most useful for
+    having an oriented axes in correlation side plots.
+    """
+    for line in ax.lines:
+        xd = line.get_xdata()
+        yd = line.get_ydata()
+        line.set_xdata(yd)
+        line.set_ydata(xd)
+
+    xlim = ax.get_xlim()
+    ylim = ax.get_ylim()
+    ylim = (ylim[-1], ylim[0])
+    ax.set_xlim(ylim)
+    ax.set_ylim(xlim)
+    return ax
+
+
 def easy_legend(ax, fancy=True, position='top', **legendkwds):
     ''' Wrapper around ax.legend to make it easy to move a legend around the edges of the plot.  Made for sensible
     numbers of lines (1-15) and tries to choose smart placement to avoid conflict with lines, labels etc...
-    
+
     BROKEN!!!
-    
+
     This is a bust, since plotting legend is easy enough.  See guide, especially with the 'loc'      
     http://matplotlib.org/users/legend_guide.html
-    
+
     If coming back to this, here are the issues to resolve:
        legend['loc'] must be enabled for the bounding box to work correctly/consistently.
        bbox coordinates are (left edge, bottom edge) of legend.  
          -controlling bottom edge is really dumb because want the top edge to clear the xlabel for example, and bottom
            edge depends on thickness of plot.  Putting the legend on top actually works nicely for this.
-    
+
        If plotting outside left/right of plot, need to squeeze the plot in afterall, it will not accommadate my legend.
        Had this code, but deleted it.  Basically, need to squeeze left/right width of the axes.bounding width by 20%
        per column of legend.  
        (see second reply here http://stackoverflow.com/questions/4700614/how-to-put-the-legend-out-of-the-plot)
-    
-    
+
+
     '''
-    
+
     ir=lambda x: int(round(x))
     position=position.lower() 
     legendkwds['loc']=3 #MUST BE SET TO SOMETHING, 2 or 3 doesn't matter, or lower left is no longer start point    
-    
+
     if position not in ['top', 'bottom', 'left', 'right']:
         raise badvalue_error(position, 'top, bottom, left, or right')
-    
+
     ################################################################
     ### Choose skinny legend for top bottom, long for left/right ###
     ################################################################
     if 'ncol' not in legendkwds:
         if position=='top' or position=='bottom':
-            
+
             if len(ax.lines) < 4:
                 ncol=len(ax.lines)
             else:
@@ -375,11 +393,11 @@ def easy_legend(ax, fancy=True, position='top', **legendkwds):
                 bbox_to_anchor=(0.2, 1.025)  #0.25 will only center plot if plot is 0.5 units long, then
             else:                             #other end at 0.75.  0.2 looks nice for 8 column uv-vis plot. 
                 bbox_to_anchor=(0.2, 1.05)   #Also depends on size of monitor!! so either way, screwed
-                
+
 
         elif position=='bottom':
             ''' Centered legend under the label'''
-            
+
             if ax.get_xlabel()=='':
                 bbox_to_anchor=(0.25, -0.025)
             else:
@@ -397,7 +415,7 @@ def easy_legend(ax, fancy=True, position='top', **legendkwds):
             else:
                 bbox_to_anchor=(-0.12, 1.0)
 
-            
+
         legendkwds['bbox_to_anchor']=bbox_to_anchor
 
     if fancy and 'fancybox' not in legendkwds and 'shadow' not in legendkwds:
@@ -406,11 +424,11 @@ def easy_legend(ax, fancy=True, position='top', **legendkwds):
 
     if 'borderaxespad' not in legendkwds:
         legendkwds['borderaxespad']=0.0  #Havne't played with this
-                                        
-      ### WHY IS MODE BROKEN (comes up garbled on plot)  
+
+        ### WHY IS MODE BROKEN (comes up garbled on plot)  
 #    if 'mode' not in legendkwds:
- #       legendkwds['mode']='expand'
-                                        
+    #       legendkwds['mode']='expand'
+
 
     ax.legend(**legendkwds)
     return ax

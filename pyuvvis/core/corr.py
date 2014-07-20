@@ -38,6 +38,7 @@ import numpy as np
 
 from pyuvvis.plotting.advanced_plots import _gencorr2d, _gen2d
 import pyuvvis.config as pvconfig
+import pyuvvis.plotting.plot_utils as pvutil
 
 # pyuvvis imports
 #from pyuvvis.plotting import spec_surface3d
@@ -195,8 +196,64 @@ class Corr2d(object):
 
 
     # Do I want xx, yy in here?
-    def plot(self, attr='synchronous', sideplots=True, **plotkwargs):
-        """ """
+    def plot(self, attr='synchronous', sideplots='mean', **plotkwargs):
+        """ Visualize synchronous, asynchronous or phase angle spectra.
+        
+        Parameters
+        ----------
+        
+        attr: str ('synchronous')
+            Select which correlation spectra to plot.  Choose from 'sync', 
+            'async' or 'phase'.
+            
+        sideplots: str or bool ('mean')
+            If True, sideplots will be put on side axis of cross plots.  Use
+            'empty' to return blank sideplots.  mean', 'min', 'max', will 
+            plot these respective spectra on the sideplots.
+            
+        cbar : str or bool (False)
+            Add a colorbar to the plot.  Set cbar to 'top', 'bottom', 'left'
+            or 'right' to control position.
+            
+        colormap : str or bool ('jet')
+            Color map to apply to the contour plot.
+    
+            
+        grid : bool (True)
+            Apply a grid to the contour and sideplots
+            
+        fill : bool (True)
+            Contours are lines, or filled regions.
+            
+        **plotkwargs: dict
+            Any valid matplotlib contour plot keyword, as well as xlabel, ylabel
+            and title for convenience.            
+
+        Returns
+        -------
+        
+        tuple (matplotlib.Axes)
+            If side plots, returns (ax1, ax2, ax3, ax4)
+            If not side plots, returns ax4 only
+
+        """
+
+        # LET ATTRIBUTE BE A MATRIX TOO?
+        if attr in ['sync', 'synchronous']:
+            attr = 'synchronous'
+            attr_title = 'Synchronous' #For plot
+        elif attr in ['async', 'asynchronous']:
+            attr = 'asynchronous'
+            attr_title = 'Asynchronous' #For plot
+
+        elif attr in ['phase', 'phase_angle']:
+            attr = 'phase_angle'
+            attr_title = 'Phase Angle' #For plot
+
+        else:
+            # Make better
+            raise Corr2d('Valid plots include "sync", "async", "phase".')
+        
 
         plotkwargs.setdefault('xlabel', self.idx_unit)
         plotkwargs.setdefault('ylabel', self.idx_unit)        
@@ -208,22 +265,66 @@ class Corr2d(object):
         # Title
         cols = self.columns        
         try:
-            plotkwargs.setdefault('title', '%s Spectrum (%.2f - %.2f) %s' % 
-                              ( attr.capitalize(), cols.min(), cols.max(), self.col_unit))
-        # Working with timestamps
+            plotkwargs.setdefault('title', '%s (%.2f - %.2f %s)' % 
+                              ( attr_title, cols.min(), cols.max(), self.col_unit.lower()))
+
+        # Working with timestamps (leave in year?)
         except TypeError:
-            plotkwargs.setdefault('title', '%s Spectrum (%s - %s) %s' % 
-                              ( attr.capitalize(), cols.min(), cols.max(), self.col_unit))            
+            if self.col_unit.lower() == 'timestamp': #Bit of a hack
+                plotkwargs.setdefault('title', '%s (%s - %s)' % 
+                         ( attr_title, 
+                           #str(cols.min()).split()[1],  #Cut out year
+                           #str(cols.max()).split()[1])
+                           cols.min(),
+                           cols.max())
+                         )           
+
+            # Full string format, not alteration of timestamp values
+            else:
+                plotkwargs.setdefault('title', '%s (%s - %s %s)' % 
+                          ( attr_title, cols.min(), cols.max(), self.col_unit.lower()))   
 
 
         # MAKE A DICT THAT RENAMES THESE synchronous: Synchronous Spectrm
         # phase_angle or 'phase' or w/e to: "Phase Anlge" (sans spectrum)
         xx, yy = np.meshgrid(self.index, self.index)
         if sideplots:
+            
+            if sideplots == True:
+                sideplots = 'mean'
+            
             ax1, ax2, ax3, ax4 = _gencorr2d(xx, yy, getattr(self, attr), **plotkwargs )
-            ax2.plot(self.index, self.data.mean(axis=1), **linekwds)
-            #        ax3.plot(self.data.mean(axis=1), self.index, **linekwds)        
+            
+            # Problem here: this is calling plot method of
+            if sideplots == 'mean':
+                ax2.plot(self.index, self.data.mean(axis=1), **linekwds)
+                ax3.plot(self.index, self.data.mean(axis=1),  **linekwds)     
+                
+            elif sideplots == 'max':
+                ax2.plot(self.index, self.data.max(axis=1), **linekwds)
+                ax3.plot(self.index, self.data.max(axis=1),  **linekwds)    
+                
+            elif sideplots == 'min':
+                ax2.plot(self.index, self.data.min(axis=1), **linekwds)
+                ax3.plot(self.index, self.data.min(axis=1),  **linekwds)    
+                
+            
+            elif sideplots == 'empty':
+                pass
+            
+            else:
+                raise Corr2d('sideplots keyword must be "mean", "max", "min",'
+                    ' or "empty".')
+        
+            # Reorient ax3
+            pvutil.invert_ax(ax3)
+
+            if sideplots != 'empty':
+                ax2.set_ylabel(sideplots)
+                ax2.yaxis.set_label_position('right')
+            
             return (ax1, ax2, ax3, ax4)
+
 
         else:
             return _gen2d(xx, yy, getattr(self, attr), **plotkwargs)[0] #return axes, not contours
@@ -342,33 +443,18 @@ if __name__ == '__main__':
     import numpy as np
     import matplotlib.pyplot as plt 
 
-    ts = aunps_glass().as_interval('s').as_iunit('r')
-    xx,yy = np.meshgrid(ts.columns, ts.index)
+    ts = aunps_glass()#.as_interval('s').as_iunit('r')
     
     cd = Corr2d.from_spectra(ts)
     cd.center()
 #    cd.scale()
 #    cd.scale(False)
  #   cd.scale(alpha=0.5)
-    ax1,ax2,ax3, ax4 = cd.plot(cmap='bone', 
-                               fill=True, cbar=True, contours=20, grid=True)
-    ts.plot(ax=ax2, padding=0.01, title='', xlabel='', ylabel='Full', 
-            colormap='gray')
-    ts.plot(ax=ax3, colormap='jet', padding=0.01, title='', xlabel='', ylabel='Full')
-
-    # Number of ticks!
-
-    for line in ax3.lines:
-        xd = line.get_xdata()
-        yd = line.get_ydata()
-        line.set_xdata(yd)
-        line.set_ydata(xd)
-
-    xlim = ax3.get_xlim()
-    ylim = ax3.get_ylim()
-    ylim = (ylim[-1], ylim[0])
-    ax3.set_xlim(ylim)
-    ax3.set_ylim(xlim)
+#    ax1,ax2,ax3, ax4 = cd.plot(cmap='bone', 
+ #                              fill=True, cbar=True, contours=20, grid=True)
+ #   ts.plot(ax=ax2, padding=0.01, title='', xlabel='', ylabel='Full', 
+ #           colormap='gray')
+ #   ts.plot(ax=ax3, colormap='jet', padding=0.01, title='', xlabel='', ylabel='Full')
 
 #    ts.plot(ax=ax3, padding=0)
 
@@ -376,7 +462,12 @@ if __name__ == '__main__':
 #    fig = plt.gcf()
 #    py.iplot_mpl(fig)
 
-#    plt.show()
+    ax1, ax2, ax3, ax4 = cd.plot(sideplots='empty', grid=True)
+    ts.plot(ax=ax2, padding=0.01, xlabel='', ylabel='', title='')
+    ts.plot(ax=ax3, padding=0.01, xlabel='', ylabel='', title='')
+    pvutil.invert_ax(ax3)
+
+    plt.show()
 
  #   print cd.coeff_corr**2 + cd.coeff_disr**2
  #   print cd.synchronous
