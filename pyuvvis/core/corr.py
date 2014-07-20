@@ -1,3 +1,5 @@
+#CITE BOOK, REWRITE
+
 ''' Suite for 2-dimensional correlation analysis based on pandas dataframes.  Decided to put it in, despite already
 seeing a numpy-based version in paper "2D-correlation analysis applied to in situ and operando Mossbauer spectroscopy".
 This would not be pandas friendly, so it wouldn't intgerate into pyuvvis and I also want to build some tools from 
@@ -14,28 +16,36 @@ would be 100% for exmaple.  If the pulse happed like only 5 times, the correlati
 The synchronous spectrum is the cross correlation at tau=0, summed and averaged over all times.  Basically, it measures the instantaneous
 correlation of all spectral variables.  The asynchronous spectrum is the instantaneous orthogonal spectrum basically.  So whenever two things
 are moving together at one instant, weight goes into the sync.  If not, weight goes into the async  Makes me think of an easy filter!  Can
-just throw out regions where not much is happening right?  Maybe call it a 2dcs filter.'''
+just throw out regions where not much is happening right?  Maybe call it a 2dcs filter.
 
-__author__ = "Adam Hughes"
-__copyright__ = "Copyright 2012, GWU Physics"
-__license__ = "Free BSD"
-__maintainer__ = "Adam Hughes"
-__email__ = "hugadams@gwmail.gwu.edu"
-__status__ = "Development"
+References
+----------
+
+[1]
+[2] Scaline techniques to enhance two-dimensional correlation spectra, Isao Noda,
+    Journal of Molecular Structure.  2008. Volume: 883-884, Issue: 1-3, Pages: 216-227 
+
+'''
+
+#Copy these to notebooks?
+
+import logging
+logger = logging.getLogger(__name__) 
 
 from pandas import Series, DataFrame
-from numpy import dot, empty, asarray, conj
 from math import pi
+import numpy as np
 
-from pyuvvis.plotting.advanced_plots import _gencorr2d
+from pyuvvis.plotting.advanced_plots import _gencorr2d, _gen2d
+import pyuvvis.config as pvconfig
 
 # pyuvvis imports
 #from pyuvvis.plotting import spec_surface3d
 
 class CorrError(Exception):
     """ """
-    
-    
+
+
 # Keep this independt of TS; just numpy then more flexible
 class Corr2d(object):
     """ Computed 2d correlation spectra, including synchronous and asynchronus,
@@ -44,140 +54,229 @@ class Corr2d(object):
     a mandatory requirement."""
 
     # Columns aren't used; should I eliminate
-    def __init__(self, dynamic, index, columns, idx_unit = 'index', col_unit='col'):
+    def __init__(self, data, index, columns, idx_unit = 'index', col_unit='col',
+                 centered=False):
         """  """
-        if dynamic.ndim != 2:
+        if data.ndim != 2:
             raise CorrError('Data must be 2d Matrix.')
 
         # Array typecheck?
-        self.dynamic = dynamic
-        self.index = index
+        self.data = data
+        self.index = index   #Relax these maybe and just hide some sideplots...
         self.columns = columns
         self.idx_unit = idx_unit
         self.col_unit = col_unit
-        
-        
+
+        # Defaults
+        self._scaled = False
+        self._alpha = 0.8
+        self._beta = 0.0
+
+        self._centered = False
+        if centered:
+            if centered == True:
+                self._centered = True
+            else:
+                self._centered = str(centered)  #User can say "max centered"
+
+
+    def scale(self, *args, **kwargs):
+        """Scale the synchronous and asynchronous spectra via REF 2
+        based on generalized exponential parameters.  Scaling alpha will enhance
+        the fine detail of the correlations, but also the noise.  Enhancing beta
+        can screen the fine details and enhance the primary correlations.  Alpha
+        0.8 and beta 0.0 are suggested as optimal tradeoff between fine correlation
+        enhancement and low noise.
+        """
+        if args:
+            if len(args) > 1:
+                raise CorrError('Please use keywords (alpha=..., beta=...) to'
+                                'avoid ambiguity.') 
+                # Make that a custom exception
+            if args[0] == True:
+                if self._scaled == True:
+                    logger.warn("Data already scaled!")
+                self._scaled = True
+            elif args[0] == False:
+                if self._scaled == False:
+                    logger.warn("Data already unscaled!")
+                self._scaled = False
+            else:
+                raise CorrError('Argument "%s" not understood; please use True or False.')
+
+        else:
+            self._scaled = True
+
+        self._alpha = kwargs.pop('alpha', self._alpha)
+        self._beta = kwargs.pop('beta', self._beta)
+
+
+    def center(self, style='mean'):  #Just call mean centered?
+        """ Mean centers data.  Mean centering is defined columnwise, and while
+        this can be down by a call to dataframe.subtract(x.mean(axis=1), axis=0),
+        that requries a pandas dataframe method.  Instead, we transpose the data,
+        subtract the mean, then transpose again. (confirmed equivalent)"""
+        if self._centered:
+            logger.warn('Data is already centered.') #Better than a warning I think
+                    #In case user sets centered ot 'max' or something in __init__
+        else:
+            if style == 'mean':
+                # Alternate way, pandas dependent
+                # self.data = self.data.subtract(self.data.mean(axis=1), axis=0)
+                data_trans = self.data.transpose()
+                self.data = (data_trans - data_trans.mean()).transpose()
+                self._centered = True
+            else:
+                raise NotImplementedError('mean centering only supported')
+
+    # Used internally; for example in calculation of coeff_corr, need unscaled
+    @property
+    def synchronous_noscale(self):
+        """ """
+        m = self.data.shape[1]  # columns        
+        return np.dot(self.data, self._dynconjtranspose) / (m - 1.0)  #ORDER OF OPERATIONS DEPENDENT (aka np.dot(t_dyn, dyn) doesn't work)
+
+
+    @property
+    def asynchronous_noscale(self):
+        """ """
+        m = self.data.shape[1]  # columns                
+        return np.dot(self.data, np.dot(self._noda, self._dynconjtranspose) ) / (m-1.0)
+
+
     @property
     def synchronous(self):
         """ """
-        m = self.dynamic.shape[1]  # columns        
-        return dot(self.dynamic, self._dynconjtranspose) / (m - 1.0)  #ORDER OF OPERATIONS DEPENDENT (aka dot(t_dyn, dyn) doesn't work)
-                
+        if self._scaled:
+            return self.synchronous_noscale * self.data.var(axis=1)**(-1.0 * self._alpha) * \
+                   abs(self.coeff_corr)**(self._beta)
+                    # ** faster than np.power but abs and np.abs same        
+        else:
+            return self.synchronous_noscale
 
     @property
     def asynchronous(self):
-        """ """
-        m = self.dynamic.shape[1]  # columns                
-        return dot(self.dynamic, dot(self._noda, self._dynconjtranspose) ) / (m-1.0)
-        
-        
-    @property
-    def correlation(self):
-        """ """        
+        """ """     
+        if self._scaled:
+            return self.asynchronous_noscale * self.data.var(axis=1)**(-1.0 * self._alpha) * \
+               abs(self.coeff_disr)**(self._beta)
+        else:
+            return self.asynchronous_noscale
 
     @property
-    def disrelation(self):
-        """ """
-        
+    def coeff_corr(self):
+        """ Correlation coefficient (pg 78) """   
+        return np.divide(self.synchronous_noscale, self.data.std(axis=1))
+
     @property
-    def phase(self):
-        """ """
-        
+    def coeff_disr(self):
+        """ Disrelation coefficient (pg 79) """
+        # Not the same as np.sqrt( 1 - coef_corr**2), only same in magnitude!
+        return np.divide(self.asynchronous_noscale, self.data.std(axis=1))
+
+
+    @property
+    def phase_angle(self):
+        """ Global phase angle (pg 79).  This will use scaled data."""
+        return np.arctan(self.asynchronous/self.synchronous)
+           
+
     @property
     def _noda(self):
-        """ Store noda matrix of dynamic; depends of number of columns in 
-        dynamic.
+        """ Store noda matrix of data; depends of number of columns in 
+        data.
         """
         return noda_matrix(self.shape[1])
-    
+
     @property
     def _dynconjtranspose(self):
         """ Dynamic spectrum conjugate transpose; helpful to be cached"""
-        return conj(self.dynamic).transpose()
-        
-        
+        return np.conj(self.data).transpose()
+
+
     # Do I want xx, yy in here?
-    def plot(self, attr='synchronous', **plotkwargs):
+    def plot(self, attr='synchronous', sideplots=True, **plotkwargs):
         """ """
-        
+
         plotkwargs.setdefault('xlabel', self.idx_unit)
         plotkwargs.setdefault('ylabel', self.idx_unit)        
 
-        linekwds = dict(linewidth=2, 
-                        linestyle='--', 
+        linekwds = dict(linewidth=1, 
+                        linestyle='-', 
                         color='black')
-        
+
         # Title
         cols = self.columns        
-        plotkwargs.setdefault('title', '%s Spectrum (%.2f - %.2f) %s' % 
-                ( attr.capitalize(), cols.min(), cols.max(), self.col_unit))
-        
-        
-        
+        try:
+            plotkwargs.setdefault('title', '%s Spectrum (%.2f - %.2f) %s' % 
+                              ( attr.capitalize(), cols.min(), cols.max(), self.col_unit))
+        # Working with timestamps
+        except TypeError:
+            plotkwargs.setdefault('title', '%s Spectrum (%s - %s) %s' % 
+                              ( attr.capitalize(), cols.min(), cols.max(), self.col_unit))            
+
+
+        # MAKE A DICT THAT RENAMES THESE synchronous: Synchronous Spectrm
+        # phase_angle or 'phase' or w/e to: "Phase Anlge" (sans spectrum)
         xx, yy = np.meshgrid(self.index, self.index)
-        ax1, ax2, ax3, ax4 = _gencorr2d(xx, yy, getattr(self, attr), **plotkwargs )
-        ax2.plot(self.index, self.dynamic.mean(axis=1), **linekwds)
-#        ax3.plot(self.dynamic.mean(axis=1), self.index, **linekwds)        
-        return (ax1, ax2, ax3, ax4)
-        
+        if sideplots:
+            ax1, ax2, ax3, ax4 = _gencorr2d(xx, yy, getattr(self, attr), **plotkwargs )
+            ax2.plot(self.index, self.data.mean(axis=1), **linekwds)
+            #        ax3.plot(self.data.mean(axis=1), self.index, **linekwds)        
+            return (ax1, ax2, ax3, ax4)
+
+        else:
+            return _gen2d(xx, yy, getattr(self, attr), **plotkwargs)[0] #return axes, not contours
+
     @property
     def shape(self):
-        return self.dynamic.shape
-        
+        return self.data.shape
+
 
     # Alternate constructers
     @classmethod
-    def from_timespectra(cls, timespectra):
-        return cls(np.array(ts), 
+    def from_spectra(cls, ts, **kwargs):
+        return cls(np.array(ts),   
                    ts.index, 
                    ts.columns, 
                    idx_unit = ts.full_specunit, 
-                   col_unit= ts.full_timeunit)
-
-#    def __repr__(self):
-#        """ """
+                   col_unit= ts.full_timeunit,
+                   **kwargs)
 
 
-def make_ref(df, method='mean'):
-    ''' Get a reference spectrum, requried for computing the dynamic spectrum (y-ref).  Usually this is this is set
-    to the time-wise mean of the dataset, to 0, or to an external, pre-saved spectrum.  This will generate mean or empy
-    reference spectra.  External spectra are easy enough to generate.
-    
-    Assumes spectral information is along the index of the dataframe!  No attempt to acommadate other styles is made.
-    
-    df: DataFrame with spectral data along index/row axis (=1) and temporal/physical variable along columns (axis=0)
-    
-    Method: Style to generate reference spectrum from dataframe.
-       "mean" - Columnwise-mean of the dataframe
-       "empty" - Fills series with 0.0's to length of spectral index
-    
-    Returns: 
-        Series of length of df.index'''
-
-    method=method.lower()
-    
-    if method=='mean':
-        refspec=df.mean(axis=1)
-
-    elif method=='empty':
-        #builtin way to do this?
-        refspec=Series( [0.0 for i in range(len(df.index))], index=df.index)  
-               
+    def __repr__(self):
+        """ Aligned columns like pyparty.multicanvas """
+        pad = pvconfig.PAD
+        address = super(Corr2d, self).__repr__().split()[-1].strip("'").strip('>')
         
-    else:
-        raise CorrError('method parameter must be "mean" or "empty"'
-                              ' got %s instead.' % method)
-        
-    return refspec
+        outstring = '%s (%s X %s) at %s:\n' % (self.__class__.__name__,
+             self.shape[0], self.shape[1], address)
 
-### PUT IN SPACING METHOD FOR NON-EVENLY SPACED DATA!
+        #Units
+   #     outstring += '%sUnits -->  %s X %s\n' % (pad, self.idx_unit.lower(), self.col_unit.lower())
+
+        #Centering
+        outstring += '%sCentering -->  %s\n' % (pad, self._centered)
+
+        #Scaling
+        if self._scaled:
+            outstring += '%sScaled    -->  %s (a=%s, b=%s)\n' % \
+            (pad, self._scaled, self._alpha, self._beta)
+        else:
+            outstring += '%sScaled    -->  %s\n' % (pad, self._scaled)        
+
+        outstring += '%sUnits     -->  [%s X %s]' % (pad, self.idx_unit.lower(), self.col_unit.lower())
+
+
+        return outstring
+
 
 def noda_matrix(length):
     ''' Length is the number of timepoints/columns in the dataframe. 
        Returns the hilbert noda Transformation matrix.'''
 
     # XXX: how to vectorize?
-    Njk = empty( (length,length))
+    Njk = np.empty( (length,length))
     for j in range(length):
         for k in range(length):
             if j==k:
@@ -195,79 +294,92 @@ def corr_3d(df, **pltkwds):
     if 'speclabel' in pltkwds:
         pltkwds['xlabel']=pltkwds['speclabel']
         pltkwds['ylabel']=pltkwds['speclabel']
-                
+
     pltkwds['elev']=pltkwds.pop('elev', 31)
     pltkwds['azim']=pltkwds.pop('azim', -52)    
     return spec_surface3d(df, **pltkwds)    
 
 def sync_3d(df, checkdata=False,  **pltkwds):
     ''' Label and title set for synchronous correlation 3d spectrum.  Wrapper for corr_3d.  Has extra keywords for checking 2dcs data for errors.
-    
+
         Checkdata: To be added.  Should check a few entries to make sure matrix is symmetric, to make sure not passing asynchronous spectrum, and also that
         data is evenly shaped (eg 30 by 30).'''
-    
+
     if checkdata == True:
         ### Test for even shape
         s0,s1=df.shape
         if s0 != s1:
             raise Exception('Checkdata failed in sync_3d.  Synchronous spectra must have equal row and column dimensions. \
             Df dimensions were: %i,%i'%(s0, s1))
-        
+
         ### IMPLEMENT TEST FOR SYMMETRY, NOT SURE HOW
 
     pltkwds['zlabel']=pltkwds.pop('zlabel', 'Synchronicity')      
 
     pltkwds['title_def']='Synchronous Spectrum'   
     corr_3d(df, **pltkwds)
-    
+
 def async_3d(df, checkdata=False,  **pltkwds):
     ''' Label and title set for synchronous correlation 3d spectrum.  Wrapper for corr_3d. '''
-    
+
     if checkdata == True:
         ### Test for even shape
         s0,s1=df.shape
         if s0 != s1:
             raise Exception('Checkdata failed in sync_3d.  Aynchronous spectra must have equal row and column dimensions.\
             Df dimensions were: %i,%i'%(s0, s1))
-        
+
         ### IMPLEMENT TEST FOR ANTI-SYMMETRY, NOT SURE HOW    
-    
+
     pltkwds['zlabel']=pltkwds.pop('zlabel', 'Asynchronicity')      
-    
+
     pltkwds['title_def']='Asynchronous Spectrum'
     corr_3d(df, **pltkwds)    
-    
-    
+
+
 if __name__ == '__main__':
     from pyuvvis.data import aunps_glass
     import numpy as np
     import matplotlib.pyplot as plt 
-    
-    ts = aunps_glass().as_interval('s')
+
+    ts = aunps_glass().as_interval('s').as_iunit('r')
     xx,yy = np.meshgrid(ts.columns, ts.index)
     
-    cd = Corr2d.from_timespectra(ts)
-    ax1,ax2,ax3, ax4 = cd.plot(attr='synchronous', cmap='brg', 
-                               fill=False, cbar=True, contours=20, grid=True)
+    cd = Corr2d.from_spectra(ts)
+    cd.center()
+#    cd.scale()
+#    cd.scale(False)
+ #   cd.scale(alpha=0.5)
+    ax1,ax2,ax3, ax4 = cd.plot(cmap='bone', 
+                               fill=True, cbar=True, contours=20, grid=True)
     ts.plot(ax=ax2, padding=0.01, title='', xlabel='', ylabel='Full', 
-            colormap='brg')
-    ts.plot(ax=ax3, colormap='brg', padding=0.01, title='', xlabel='', ylabel='Full')
-    
+            colormap='gray')
+    ts.plot(ax=ax3, colormap='jet', padding=0.01, title='', xlabel='', ylabel='Full')
+
+    # Number of ticks!
+
     for line in ax3.lines:
         xd = line.get_xdata()
         yd = line.get_ydata()
         line.set_xdata(yd)
         line.set_ydata(xd)
-        
+
     xlim = ax3.get_xlim()
     ylim = ax3.get_ylim()
     ylim = (ylim[-1], ylim[0])
     ax3.set_xlim(ylim)
     ax3.set_ylim(xlim)
+
 #    ts.plot(ax=ax3, padding=0)
-    
+
 #    import plotly.plotly as py
 #    fig = plt.gcf()
 #    py.iplot_mpl(fig)
-    
-    plt.show()
+
+#    plt.show()
+
+ #   print cd.coeff_corr**2 + cd.coeff_disr**2
+ #   print cd.synchronous
+ #   print cd.mean()
+    cd.scale()
+    print cd

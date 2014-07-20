@@ -6,6 +6,8 @@ __docformat__ = 'restructuredtext' #What's this actually do
 from pyuvvis.core.timespectra import TimeSpectra
 from pyuvvis.core.specstack import SpecStack
 
+### Correlation analysis
+from pyuvvis.core.corr import Corr2d
 
 #from pyuvvis.core.specindex import SpecIndex
 #from pyuvvis.core.utilities import maxmin_xy

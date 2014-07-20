@@ -8,6 +8,7 @@ __status__ = "Development"
 
 
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mplticker
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import matplotlib.colorbar as mplcbar
@@ -353,6 +354,11 @@ def _gencorr2d(xx, yy, zz, a1_label=r'$\bar{A}(\nu_1)$',
     title = contourkwds.pop('title', '')
     cbar = contourkwds.pop('cbar', False)
     grid = contourkwds.pop('grid', False) #Adds grid to plot and side plots
+    cbar_nticks = contourkwds.pop('cbar_nticks', 5) #Number ticks in colorbar
+  
+    contourkwds.setdefault('contours', 20)        
+    contourkwds.setdefault('fill', True)        
+    
     
     ax1 = plt.subplot2grid((5,5), (0,0), colspan=1) # top left
     plt.subplots_adjust(hspace = 0, wspace=0)    # Remove whitespace
@@ -376,7 +382,6 @@ def _gencorr2d(xx, yy, zz, a1_label=r'$\bar{A}(\nu_1)$',
     ax4.plot(ax4.get_xlim(), ax4.get_ylim(), ls = '--', color='black', linewidth=1)  
     
     fig = plt.gcf()
-    
 
     if grid:
         ax2.grid()
@@ -396,16 +401,23 @@ def _gencorr2d(xx, yy, zz, a1_label=r'$\bar{A}(\nu_1)$',
    # http://stackoverflow.com/questions/13784201/matplotlib-2-subplots-1-colorbar
    # http://matplotlib.org/api/colorbar_api.html#matplotlib.colorbar.make_axes
     if cbar:
+        if cbar in ['left', 'right', 'top', 'bottom']:
+        # if bottom or right, should repad this
+            location = cbar
+        else:
+            location = 'top'
         cax,kw = mplcbar.make_axes([ax1, ax2, ax3, ax4], 
-                                   location='top',
+                                   location=location,
                                    pad = 0.05,
                                    aspect = 30, #make skinnier
                                    shrink=0.75) 
         
-        fig.colorbar(contours, cax=cax,**kw)# ticks=[0,zz.max().max()], **kw)
+        cb = fig.colorbar(contours, cax=cax,**kw)# ticks=[0,zz.max().max()], **kw)
+        cb.locator = mplticker.MaxNLocator(nbins=cbar_nticks+1) #Cuts off one usually
+        cb.update_ticks()
 
 
-    fig.suptitle(title, fontsize=20) # Still overpads
+    fig.suptitle(title, fontsize='large') # Still overpads
         
         
     return (ax1, ax2, ax3, ax4)
