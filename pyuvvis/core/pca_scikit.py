@@ -37,6 +37,8 @@ def as_float_array(X, copy=True):
         X = X.astype(np.float64)
     return X
 
+
+# REPLACE V WITH VT TO BE CLOSER IN NOTATION TO NODA BOOK
 class PCA():
     """Principal component analysis (PCA)
 
@@ -117,14 +119,11 @@ class PCA():
     KernelPCA
     SparsePCA
     """
-    def __init__(self, n_components=None, copy=True, whiten=False, index=None):
+    def __init__(self, n_components=None, copy=True, whiten=False):
         self.n_components = n_components
         self.copy = copy
         self.whiten = whiten
         
-        if index is not None:
-            self.index=index
-
     def fit(self, X, y=None, **params):
         """Fit the model with X.
 
@@ -168,6 +167,7 @@ class PCA():
 
         return U
 
+    # REPLACE V WITH VT TO BE CLOSER IN NOTATION TO NODA BOOK
     def _fit(self, X):
         X = array2d(X)
         n_samples, n_features = X.shape
@@ -249,5 +249,5 @@ class PCA():
         return np.dot(X, self.components_) + self.mean_
     
 
-    def __repr__(self): 
-        return 'YEAHH BOY'
+    #def __repr__(self): 
+        #return 'YEAHH BOY'

@@ -32,13 +32,14 @@ References
 import logging
 logger = logging.getLogger(__name__) 
 
-from pandas import Series, DataFrame
 from math import pi
 import numpy as np
 
 from pyuvvis.plotting.advanced_plots import _gencorr2d, _gen2d
 import pyuvvis.config as pvconfig
 import pyuvvis.plotting.plot_utils as pvutil
+from pca_scikit import PCA
+#from pcakernel import PCA
 
 # pyuvvis imports
 #from pyuvvis.plotting import spec_surface3d
@@ -72,6 +73,7 @@ class Corr2d(object):
         self._scaled = False
         self._alpha = 0.8
         self._beta = 0.0
+        self._PCA = None
 
         self._centered = False
         if centered:
@@ -143,7 +145,7 @@ class Corr2d(object):
         """ """
         m = self.data.shape[1]  # columns                
         return np.dot(self.data, np.dot(self._noda, self._dynconjtranspose) ) / (m-1.0)
-
+        
 
     @property
     def synchronous(self):
@@ -196,7 +198,8 @@ class Corr2d(object):
 
 
     # Do I want xx, yy in here?
-    def plot(self, attr='synchronous', sideplots='mean', **plotkwargs):
+    def plot(self, attr='synchronous', sideplots='mean', annotate=True,
+             **plotkwargs):
         """ Visualize synchronous, asynchronous or phase angle spectra.
         
         Parameters
@@ -211,6 +214,10 @@ class Corr2d(object):
             'empty' to return blank sideplots.  mean', 'min', 'max', will 
             plot these respective spectra on the sideplots.
             
+        annotate: bool (True)
+            Adds some default title and x/y labels and text to plot.
+            Setting false is shortcut to removing them all
+        
         cbar : str or bool (False)
             Add a colorbar to the plot.  Set cbar to 'top', 'bottom', 'left'
             or 'right' to control position.
@@ -254,35 +261,37 @@ class Corr2d(object):
             # Make better
             raise Corr2d('Valid plots include "sync", "async", "phase".')
         
-
-        plotkwargs.setdefault('xlabel', self.idx_unit)
-        plotkwargs.setdefault('ylabel', self.idx_unit)        
-
         linekwds = dict(linewidth=1, 
-                        linestyle='-', 
-                        color='black')
+                         linestyle='-', 
+                         color='black')
 
-        # Title
-        cols = self.columns        
-        try:
-            plotkwargs.setdefault('title', '%s (%.2f - %.2f %s)' % 
-                              ( attr_title, cols.min(), cols.max(), self.col_unit.lower()))
+        # Only set defaults for labels/title if annotate        
+        if annotate:
+            plotkwargs.setdefault('xlabel', self.idx_unit)
+            plotkwargs.setdefault('ylabel', self.idx_unit)       
 
-        # Working with timestamps (leave in year?)
-        except TypeError:
-            if self.col_unit.lower() == 'timestamp': #Bit of a hack
-                plotkwargs.setdefault('title', '%s (%s - %s)' % 
-                         ( attr_title, 
-                           #str(cols.min()).split()[1],  #Cut out year
-                           #str(cols.max()).split()[1])
-                           cols.min(),
-                           cols.max())
-                         )           
 
-            # Full string format, not alteration of timestamp values
-            else:
-                plotkwargs.setdefault('title', '%s (%s - %s %s)' % 
-                          ( attr_title, cols.min(), cols.max(), self.col_unit.lower()))   
+            # Title
+            cols = self.columns        
+            try:
+                plotkwargs.setdefault('title', '%s (%.2f - %.2f %s)' % 
+                                  ( attr_title, cols.min(), cols.max(), self.col_unit.lower()))
+    
+            # Working with timestamps (leave in year?)
+            except TypeError:
+                if self.col_unit.lower() == 'timestamp': #Bit of a hack
+                    plotkwargs.setdefault('title', '%s (%s - %s)' % 
+                             ( attr_title, 
+                               #str(cols.min()).split()[1],  #Cut out year
+                               #str(cols.max()).split()[1])
+                               cols.min(),
+                               cols.max())
+                             )           
+    
+                # Full string format, not alteration of timestamp values
+                else:
+                    plotkwargs.setdefault('title', '%s (%s - %s %s)' % 
+                              ( attr_title, cols.min(), cols.max(), self.col_unit.lower()))   
 
 
         # MAKE A DICT THAT RENAMES THESE synchronous: Synchronous Spectrm
@@ -293,7 +302,13 @@ class Corr2d(object):
             if sideplots == True:
                 sideplots = 'mean'
             
-            ax1, ax2, ax3, ax4 = _gencorr2d(xx, yy, getattr(self, attr), **plotkwargs )
+            if self._centered:
+                label1, label2 = r'$\bar{A}(\nu_1)$', r'$\bar{A}(\nu_1)$'
+            else:
+                label1, label2 = r'$A(\nu_1)$', r'$A(\nu_1)$'
+
+            ax1, ax2, ax3, ax4 = _gencorr2d(xx, yy, getattr(self, attr), 
+                                            label1, label2, **plotkwargs )
             
             # Problem here: this is calling plot method of
             if sideplots == 'mean':
@@ -331,8 +346,101 @@ class Corr2d(object):
 
     @property
     def shape(self):
-        return self.data.shape
+        return self.data.shape          
 
+    
+    def _pcagate(self, attr):
+        """ Raise an error if use calls inaccessible PCA method."""
+        if not self._PCA:
+            raise CorrError('Please run .pca_fit() method before '
+                 'calling %s.%s' % self.__class__.__name__, attr)    
+        
+    def pca_fit(self, n_components=None, fit_transform=True):# k=None, kernel=None, extern=False):           
+        """         
+        Adaptation of Alexis Mignon's pca.py script
+        
+        Adapted to fit PyUvVis 5/6/2013.  
+        Original credit to Alexis Mignon:
+        Module for Principal Component Analysis.
+
+        Author: Alexis Mignon (c)
+        Date: 10/01/2012
+        e-mail: alexis.mignon@gmail.com
+        (https://code.google.com/p/pypca/source/browse/trunk/PCA.py)
+                    
+        Constructor arguments:
+        * k: number of principal components to compute. 'None'
+             (default) means that all components are computed.
+        * kernel: perform PCA on kernel matrices (default is False)
+        * extern: use extern product to perform PCA (default is 
+               False). Use this option when the number of samples
+               is much smaller than the number of features.            
+
+        See pca.py constructor for more info.
+        
+        This will initialize PCA class and fit current values of timespectra.
+        
+        Notes:
+        ------
+        The pcakernel.py module is more modular.  These class methods
+        make it easier to perform PCA on a timespectra, but are less 
+        flexible than using the module functions directly.
+    
+        timespectra gets transposed as PCA module expects rows as 
+        samples and columns as features.
+        
+        Changes to timespectra do not retrigger PCA refresh.  This 
+        method should be called each time changes are made to the data.
+        """
+        if self._centered != True:
+            logger.warn('Builtin PCA will perform mean-centering on'
+                        ' data.  Data is not mean centered yet.')
+        self._PCA = PCA(n_components=n_components)                
+        if fit_transform:
+            return self._PCA.fit_transform(self.data)#.transpose())
+        else:    
+            self._PCA.fit(self.data)#.transpose())
+                
+                        
+    @property
+    def PCA(self):
+        """ Return the full PCA class object"""
+        self._pcagate('pca')
+        return self._PCA 
+    
+    @property
+    def pca_evals(self):
+        self._pcagate('eigen values')
+        # Index is not self.columns because eigenvalues are still computed with
+        # all timepoints, not a subset of the columns        
+        return self._PCA.eigen_values_
+    
+    @property
+    def pca_evecs(self):
+        self._pcagate('eigen vectors')
+        return self._PCA.eigen_vectors_
+            
+    def load_vec(self, k):
+        """ Return loading vector series for k.  If k > number of components
+            computed with runpca(), this raises an error rather than 
+            recomputing.
+        """
+        self._pcagate('load_vec')
+        if k > len(self.shape[1]):
+            raise CorrError('Principle components must be <= number'
+                                 'of samples %s'% self.shape[1])
+
+        # Decided to put impetus on user to recompute when not using enough principle components
+        # rather then trying to figure out logic of all use cases.
+        # If k > currently stored eigenvectors, recomputes pca
+        if self._PCA._k:
+            if k > len(self.pca_evals):   
+                logger.warn('Refitting, only %s components were computed'
+                'originally' % self._PCA._k)
+                self.pca_fit(n_components=k, fit_transform=False)
+
+        return self._PCA.eigen_vectors_[:,k]
+            
 
     # Alternate constructers
     @classmethod
@@ -462,15 +570,16 @@ if __name__ == '__main__':
 #    fig = plt.gcf()
 #    py.iplot_mpl(fig)
 
-    ax1, ax2, ax3, ax4 = cd.plot(sideplots='empty', grid=True)
-    ts.plot(ax=ax2, padding=0.01, xlabel='', ylabel='', title='')
-    ts.plot(ax=ax3, padding=0.01, xlabel='', ylabel='', title='')
-    pvutil.invert_ax(ax3)
+    #ax1, ax2, ax3, ax4 = cd.plot(sideplots='empty', grid=True, annotate=False)
+    #ts.plot(ax=ax2, padding=0.01, xlabel='', ylabel='', title='')
+    #ts.plot(ax=ax3, padding=0.01, xlabel='', ylabel='', title='')
+    #pvutil.invert_ax(ax3)
 
-    plt.show()
+    #plt.show()
 
  #   print cd.coeff_corr**2 + cd.coeff_disr**2
  #   print cd.synchronous
  #   print cd.mean()
     cd.scale()
     print cd
+    cd.pca_fit()
