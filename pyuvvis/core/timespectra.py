@@ -10,14 +10,9 @@ import copy
 import numpy as np
 from pandas import DataFrame, DatetimeIndex, Index, Series, date_range, read_csv
 from scipy import integrate
-#from scikits.learn import PCA
-from pca_scikit import PCA
-
 
 from pandas import DataFrame, DatetimeIndex, Index, Series
 from scipy import integrate
-#from scikits.learn import PCA
-from pca_scikit import PCA
 
 # pyuvvis imports 
 from pyuvvis.core.specindex import SpecIndex, specunits, get_spec_category, \
@@ -603,98 +598,6 @@ class TimeSpectra(MetaDataFrame):
       
         return self.wavelength_slices((min(self.index), max(self.index)), apply_fcn=apply_fcn)
     
-    
-    # PCA INTERFACE #    
-    _pca=None   #Instance method?
-    
-    def _pcagate(self, attr):
-        """ Raise an error if use calls inaccessible PCA method."""
-        if not self._pca:
-            raise AttributeError('Please run .pca() method before calling %s'%attr)    
-        
-    def run_pca(self, n_components=None, fit_transform=True):# k=None, kernel=None, extern=False):           
-            """         
-
-            Adaptation of Alexis Mignon's pca.py script
-            
-            Adapted to fit PyUvVis 5/6/2013.  
-            Original credit to Alexis Mignon:
-            Module for Principal Component Analysis.
-    
-            Author: Alexis Mignon (c)
-            Date: 10/01/2012
-            e-mail: alexis.mignon@gmail.com
-            (https://code.google.com/p/pypca/source/browse/trunk/PCA.py)
-                        
-            Constructor arguments:
-            * k: number of principal components to compute. 'None'
-                 (default) means that all components are computed.
-            * kernel: perform PCA on kernel matrices (default is False)
-            * extern: use extern product to perform PCA (default is 
-                   False). Use this option when the number of samples
-                   is much smaller than the number of features.            
-
-            See pca.py constructor for more info.
-            
-            This will initialize PCA class and fit current values of timespectra.
-            
-            Notes:
-            ------
-                The pcakernel.py module is more modular.  These class methods
-                make it easier to perform PCA on a timespectra, but are less 
-                flexible than using the module functions directly.
-            
-                timespectra gets transposed as PCA module expects rows as 
-                samples and columns as features.
-                
-                Changes to timespectra do not retrigger PCA refresh.  This 
-                method should be called each time changes are made to the data.
-                
-                
-            """
-            self._pca=PCA(n_components=n_components, index=self.index)                
-            if fit_transform:
-                return self._pca.fit_transform(self._df.transpose())
-            else:    
-                self._pca.fit(self._df.transpose())
-                
-                        
-    @property
-    def pca(self):
-        self._pcagate('pca')
-        return self._pca 
-    
-    @property
-    def pca_evals(self):
-        self._pcagate('eigen values')
-        # Index is not self.columns because eigenvalues are still computed with
-        # all timepoints, not a subset of the columns        
-        return Series(self._pca.eigen_values_)
-    
-    @property
-    def pca_evecs(self):
-        self._pcagate('eigen vectors')
-        return DataFrame(self._pca.eigen_vectors_)
-            
-    def load_vec(self, k):
-        """ Return loading vector series for k.  If k > number of components
-            computed with runpca(), this raises an error rather than 
-            recomputing."""
-        self._pcagate('load_vec')
-        if k > len(ts.columns):
-            raise AttributeError('Principle components must be <= number of timepoints %s'%len(ts))
-
-
-        # Decided to put impetus on user to recompute when not using enough principle components
-        # rather then trying to figure out logic of all use cases.
-
-        # If k > currently stored eigenvectors, recomputes pca
-        if self._pca._k:
-            if k > len(self.pca_evals):            
-                raise AttributeError('Only %s components were computed.  Please call run_pca() with \
-                more principle components returned.'%self._pca._k)
-
-        return Series(self._pca.eigen_vectors_[:,k], index=self._pca._index) 
         
     # Spectral column attributes/properties
     ### SPECUNIT IS JUST CARRIED THROUGH ON DF._INDEX.  ANYCHANGES WILL

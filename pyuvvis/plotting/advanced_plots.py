@@ -29,7 +29,7 @@ from pyuvvis.exceptions import badvalue_error
 # Smart float to int conversion
 _ir=lambda(x): int(round(x))
 
-def _gen2d(xx, yy, zz, contours=6, label=None, fill=False, colorbar=None, 
+def _gen2d(xx, yy, zz, contours=6, label=None, colorbar=None, 
            background=None, **pltkwargs):
     """ Abstract layout for 2d plot.
     For convienence, a few special labels, colorbar and background keywords 
@@ -57,9 +57,13 @@ def _gen2d(xx, yy, zz, contours=6, label=None, fill=False, colorbar=None,
     xlabel = pltkwargs.pop('xlabel', '')
     ylabel = pltkwargs.pop('ylabel', '')
     title = pltkwargs.pop('title', '')
+    grid = pltkwargs.pop('grid', '')
+    fill = pltkwargs.pop('fill', True)
+
     
-    pltkwargs.setdefault('legend', False)
+#    pltkwargs.setdefault('legend', False) #(any purpose in 2d?)
     pltkwargs.setdefault('linewidth', 1)    
+    
     cbar = pltkwargs.pop('cbar', False)
     
     fig = pltkwargs.pop('fig', plt.gcf())
@@ -125,7 +129,9 @@ def _gen2d(xx, yy, zz, contours=6, label=None, fill=False, colorbar=None,
                
     ax.set_xlabel(xlabel, fontsize=labelsize)
     ax.set_ylabel(ylabel, fontsize=labelsize)
-    ax.set_title(title, fontsize=titlesize)         
+    ax.set_title(title, fontsize=titlesize)    
+    if grid:
+        ax.grid()
         
     return (ax, contours)    
 
@@ -386,7 +392,7 @@ def _gencorr2d(xx, yy, zz, a1_label=r'$\bar{A}(\nu_1)$',
     if grid:
         ax2.grid()
         ax3.grid()
-        ax4.grid()
+        ax4.grid() 
         
     # Hide axis labels 
     for ax in [ax2, ax3]:

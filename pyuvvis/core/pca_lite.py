@@ -37,6 +37,9 @@ def as_float_array(X, copy=True):
         X = X.astype(np.float64)
     return X
 
+class PCAError(Exception):
+    """ """
+
 
 # REPLACE V WITH VT TO BE CLOSER IN NOTATION TO NODA BOOK
 class PCA():
@@ -119,10 +122,15 @@ class PCA():
     KernelPCA
     SparsePCA
     """
+    # Turn off copy?
     def __init__(self, n_components=None, copy=True, whiten=False):
         self.n_components = n_components
         self.copy = copy
         self.whiten = whiten
+        
+        self._U = None
+        self._S = None
+        self._VT = None
         
     def fit(self, X, y=None, **params):
         """Fit the model with X.
@@ -207,7 +215,40 @@ class PCA():
             self.explained_variance_ratio_ = \
                     self.explained_variance_ratio_[:self.n_components]
 
+        self._U = U
+        self._S = S
+        self._VT = VT
+        
         return (U, S, VT)
+    
+
+
+    @property
+    def U(self):
+        """ Score matrix (in Noda = W) """
+        if self._U is None:
+            raise PCAError("Please run .fit() to set U, S, VT from SVD.")
+        return self._U
+        
+
+    @property
+    def S(self):
+        """ """
+        if self._S is None:
+            raise PCAError("Please run .fit() to set U, S, VT from SVD.")       
+        return self._S        
+        
+    @property
+    def VT(self):
+        """ Loading Vectors """        
+        if self._VT is None:
+            raise PCAError("Please run .fit() to set U, S, VT from SVD.")
+        return self._VT
+    
+    @property
+    def W(self):
+        """ Score matrix"""
+        return self.U * self.S #ok?
 
     def transform(self, X):
         """Apply the dimensionality reduction on X.
