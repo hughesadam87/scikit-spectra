@@ -38,7 +38,7 @@ import numpy as np
 from pyuvvis.plotting.advanced_plots import _gencorr2d, _gen2d
 import pyuvvis.config as pvconfig
 import pyuvvis.plotting.plot_utils as pvutil
-from pca_scikit import PCA
+from pca_lite import PCA
 #from pcakernel import PCA
 
 # pyuvvis imports
@@ -208,6 +208,9 @@ class Corr2d(object):
         attr: str ('synchronous')
             Select which correlation spectra to plot.  Choose from 'sync', 
             'async' or 'phase'.
+
+        contours: int (20)
+            Number of contours to display.
             
         sideplots: str or bool ('mean')
             If True, sideplots will be put on side axis of cross plots.  Use
@@ -555,6 +558,10 @@ if __name__ == '__main__':
     
     cd = Corr2d.from_spectra(ts)
     cd.center()
+
+    cd.plot(sideplots=False, fill=False, title="Blank sideplots", grid=False)
+    plt.show()
+    
 #    cd.scale()
 #    cd.scale(False)
  #   cd.scale(alpha=0.5)
