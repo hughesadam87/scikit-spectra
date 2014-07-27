@@ -21,23 +21,25 @@ import numpy as np
 from pyuvvis.exceptions import badkey_check
 
 ### Change spectral labels ###
-h=6.626068*10**-34          #Planck's constant m**2 kg / s
-eVtoJ=1.60217646 * 10**-19  #Number of Joules in one eV (needed becasue eV is not the standard MKS unit of energy)
-c=299792458.0               #speed of light m/s
+h = 6.626068*10**-34          #Planck's constant m**2 kg / s
+eVtoJ = 1.60217646 * 10**-19  #Number of Joules in one eV (needed becasue eV is not the standard MKS unit of energy)
+c = 299792458.0               #speed of light m/s
 
 ## Dictionary used to convert representation of time from seconds.  Does not
 ## use domain specific representations of time such as sidereal time or financial time.
 
 ### Lazy way to cover both kinds of input, short or long unit!
-sec_conversions={'ns':10**-9,
+sec_conversions= {
+         'ns':10**-9,
 		 'us':10**-6, 
 		 'ms':10**-3, 
-                 's':1.0, 
+         's':1.0, 
 		 'm':60.0, 
 		 'h':3600.0, 
-                 'd':86400.0, 
+         'd':86400.0, 
 		 'y':31536000.0, 
 		 'intvl':None}
+
 
 intvl_dic={'ns':'Nanoseconds', 
            'us':'Microseconds', 
@@ -53,7 +55,9 @@ intvl_dic={'ns':'Nanoseconds',
 ### Mapping of various spectral units to meters.  
 spec_dic= { 'm':1.0, 
             'cm':.01, 
+            'cm-1':01,
             'um':.000001, 
+            'um-1':.000001, 
             'nm': .000000001,          
             'k': .01, 
             'nm-1':.000000001,
@@ -132,7 +136,7 @@ def datetime_convert(datetimeindex, return_as='intvl', cumsum=True):
 
 ### Spectral units conversion ###
 proportional=['m', 'nm', 'cm', 'um'] 
-reciprocal=['k', 'ev', 'nm-1', 'f', 'w']    
+reciprocal=['k', 'ev', 'nm-1', 'cm-1', 'um-1', 'f', 'w']    
 allunits=proportional+reciprocal
 
 def spectral_convert(spectral_array, in_unit='nm', out_unit='f'):

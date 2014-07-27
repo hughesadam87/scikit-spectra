@@ -88,6 +88,10 @@ def _genplot(ts, **pltkwargs):
                             " keyword or do not pass custom AxesSubplot.")
         mappable, vmin, vmax = put._annotate_mappable(ts, pcmap, axis=0)
         cbar = fig.colorbar(mappable, ticks=np.linspace(vmin, vmax, _barlabels))
+        
+        tunit = ts.full_timeunit #Can be None
+        if not tunit:
+            tunit = 'Time'
         cbar.set_label(r'%s$\rightarrow$'%ts.full_timeunit, rotation=c_rotation)
         
         if len(ts.columns) > _barlabels -1:

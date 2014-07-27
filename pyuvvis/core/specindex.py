@@ -38,7 +38,9 @@ pandas.Index.old__unicode__ = pandas.Index.__unicode__
 # Before messing this up, realize that _unit_valid() relies on it!
 specunits={'m':'meters', 
            'nm':'nanometers', 
-           'cm':'centimeters', 
+           'cm':'centimeters',
+           'cm-1':'inverse centimeters',
+           'um-1':'inverse micrometers',
            'um':'micrometers', 
            'k':'wavenumber(cm-1)',
            'ev':'electron volts', 
