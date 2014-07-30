@@ -12,7 +12,7 @@ import collections
 
 from pandas.core.indexing import _IXIndexer, _iLocIndexer
 
-from pandas import DataFrame, Series, TimeSeries
+from pandas import DataFrame, Series, TimeSeries, Float64Index
 
 # for testing
 from numpy.random import randn
@@ -171,6 +171,10 @@ class MetaDataFrame(object):
         else:
             return out
 
+    def _repr_html_(self):
+        """ Allows ipython notebook to display as default html"""
+        return self._df._repr_html_()
+
     def __repr__(self):
         return self._df.__repr__()
 
@@ -239,6 +243,9 @@ class MetaDataFrame(object):
     ## Fancy indexing
     _ix=None     
     _iloc=None
+
+
+    # THESE HAVE SPECIAL HACKS IN PLACE TO SLICE FLOAT64INDEX BACKWARDS
         
     @property	  	
     def ix(self, *args, **kwargs):      	
@@ -273,11 +280,30 @@ class MetaDataFrame(object):
             except TypeError as TE:
                 self._iloc=_IlocMeta(self, '_iloc')
         return self._iloc        
-                
+
+
 
 class _IlocMeta(_IXIndexer):
+    
     def __getitem__(self, key):
-        out=super(_IlocMeta, self).__getitem__(key)   
+        try:
+            out=super(_IlocMeta, self).__getitem__(key)   
+            
+        except KeyError as ke:
+            if not isinstance(key, slice):
+                row, col = key #ix[rstart:rend, cstart:cend]
+            else:
+                row = key   #ix[rstart:rend]
+                col = slice(None, None, None)
+            if row.start > row.stop and isinstance(self.obj.index, Float64Index):
+                obj = self.obj
+                out = obj[(obj.index>row.stop)&(obj.index<row.start)]
+
+                #Still handle column slice
+                out = out[out.columns.__getitem__(col)]
+                
+            else:
+                raise ke      
 
         ### Series returns transformed to MetaDataFrame
         if isinstance(out, Series) or isinstance(out, TimeSeries):
@@ -299,7 +325,26 @@ class _MetaIndexer(_IXIndexer):
           ___getitem__() method and leaves all the rest intact'''
     
     def __getitem__(self, key):
-        out=super(_MetaIndexer, self).__getitem__(key)   
+
+        # Hack to allow for reversed slicing
+        try:
+            out=super(_MetaIndexer, self).__getitem__(key)   
+        except KeyError as ke:
+            if not isinstance(key, slice):
+                row, col = key #ix[rstart:rend, cstart:cend]
+            else:
+                row = key   #ix[rstart:rend]
+                col = slice(None, None, None)
+            if row.start > row.stop and isinstance(self.obj.index, Float64Index):
+                obj = self.obj
+                out = obj[(obj.index>row.stop)&(obj.index<row.start)]
+
+                #Still handle column slice
+                out = out[out.columns.__getitem__(col)]
+                
+            else:
+                raise ke
+                                          
 
         ### Series returns transformed to MetaDataFrame
         if isinstance(out, Series) or isinstance(out, TimeSeries):

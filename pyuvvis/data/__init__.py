@@ -78,9 +78,9 @@ def solvent_evap(*args, **kwargs):
     ...
     
     As expected, the intensities of bands at 2980 and 1720 cm-1 due to violatile
-    MEK and those of bands at 2275 and 820cm-1 assigned to perdeuterated tolune
+    MEK and those of bands at 2275 and 820cm-1 assigned to perdeuterated toluene
     gradually decrease, while those of PS bands at 3020 and 1450cm-1 increase 
-    witht time.'
+    with time.'
     
     """
     

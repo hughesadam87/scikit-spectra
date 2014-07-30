@@ -493,21 +493,21 @@ class TimeSpectra(MetaDataFrame):
         
         Parameters:
         -----------
-            apply_fcn: Chooses the way to collapse data.  Builtin functions include 'mean'
-                      'sum', 'simps', 'trapz', 'romb', 'cumtrapz', but any user function that
-                       results in collapsed data (eg averging function/integrators/etc...) can 
-                       be passed in with any relevant keywords.
-                  
-            
-           **apply_fcn_kdws: 
-                       If user is passing a function to apply_fcn that requires keywords, 
-                       the get passed in to dfcut.apply() 
+        apply_fcn: Chooses the way to collapse data.  Builtin functions include 'mean'
+                  'sum', 'simps', 'trapz', 'romb', 'cumtrapz', but any user function that
+                   results in collapsed data (eg averging function/integrators/etc...) can 
+                   be passed in with any relevant keywords.
+              
+        
+       **apply_fcn_kdws: 
+                   If user is passing a function to apply_fcn that requires keywords, 
+                   the get passed in to dfcut.apply() 
           
         Notes:
         -----_
-            See description of 'df_wavelength_slices' in utilities.py for more information. 
-            
-            For easy plotting, plot the transpose of the returned timespectra.  """   
+        See description of 'df_wavelength_slices' in utilities.py for more information.         
+        For easy plotting, plot the transpose of the returned timespectra.  
+        """   
 
         dflist=[]; snames=[]
         
@@ -528,6 +528,10 @@ class TimeSpectra(MetaDataFrame):
                 
                 if isinstance(apply_fcn, str):
         
+                    if self.index._reciprocal:
+                        xvals = self.index[::-1]
+                    else:
+                        xvals = self.index
                     # Pandas cython operations ###
                     if apply_fcn.lower() == 'mean': 
                         series=dfcut.mean(axis=0)
@@ -538,16 +542,16 @@ class TimeSpectra(MetaDataFrame):
                     # Integration isn't the same as sum because it takes the units of the x-axis into account through x
                     # parameter.  If interval is odd, last interval is used w/ trapezoidal rule
                     elif apply_fcn.lower() == 'simps':
-                        series=dfcut.apply(integrate.simps, x=dfcut.index, even='last')
+                        series=dfcut.apply(integrate.simps, x=xvals, even='last')
                         
                     elif apply_fcn.lower() == 'trapz':
-                        series=dfcut.apply(integrate.trapz, x=dfcut.index)     
+                        series=dfcut.apply(integrate.trapz, x=xvals)     
                         
                     elif apply_fcn.lower() == 'romb':
-                        series=dfcut.apply(integrate.romb, x=dfcut.index)
+                        series=dfcut.apply(integrate.romb, x=xvals)
                         
                     elif apply_fcn.lower() == 'cumtrapz':
-                        series=dfcut.apply(integrate.trapz, x=dfcut.index, ititial=None)           
+                        series=dfcut.apply(integrate.trapz, x=xvals, ititial=None)           
                         
                     else:
                         raise AttributeError('apply_fcn in wavelength slices, as a string, must be one of the following: \
@@ -596,7 +600,9 @@ class TimeSpectra(MetaDataFrame):
            WHEN PLOTTING, PLOT THE TRANSPOSE OF THE RETURNED DF.
         """
       
-        return self.wavelength_slices((min(self.index), max(self.index)), apply_fcn=apply_fcn)
+        return self.wavelength_slices((self.index[0],#min(self.index),
+                                       self.index[-1]),#max(self.index)), 
+                                       apply_fcn=apply_fcn)
     
         
     # Spectral column attributes/properties
@@ -1128,6 +1134,8 @@ class TimeSpectra(MetaDataFrame):
     @property
     def itypes(self):
         return Idic
+    
+    
         
     ############################################ 
     #####Overwrite MetaDataFrame behavior ########
@@ -1263,6 +1271,37 @@ class TimeSpectra(MetaDataFrame):
             else:
                 self._dtindex = None
                 self._interval = None
+    
+
+        
+            
+    def _repr_html_(self, *args, **kwargs):
+        """ Ipython Notebook HTML appearance basically.  This only generates
+        the colored header; under the hood, self._df._repr_html_ calculates
+        the table, including the proper size for optimal viewing and so on.
+        """
+        delim = '&nbsp;' * 8
+        
+        colorshape = '<font color="#0000CD">(%s X %s)</font>' % (self.shape)
+        #Color iunit if referenced or not
+        if not self.iunit:
+            countstring = 'Iunit:&nbsp<font color="#197519">%s</font>' % self.full_iunit
+        else: #orange
+            countstring = 'Iunit:&nbsp<font color="#FF3300">%s</font>' % self.full_iunit
+            
+        outline = "%s&nbsp%s%s [%s X %s] %s %s\n" % \
+               (self.name, 
+                colorshape,
+                delim,
+                self.full_specunit.lower(),
+                self.full_timeunit.lower(),
+                delim,
+                countstring)        
+        
+
+        #outline += '<font color="#0000CD">This is some text!</font>'
+        dfhtml = self._df._repr_html_(*args, **kwargs)
+        return ('<h4>%s</h4>' % ''.join(outline)) +'<br>'+ dfhtml
         
             
     def __repr__(self):
@@ -1270,19 +1309,11 @@ class TimeSpectra(MetaDataFrame):
         Just ads a bit of extra data to the dataframe on printout.  This is called by __repr__, which 
         can either return unicode or bytes.  This is better than overwriting __repr__()
         """
-        delim='\t'
-        if self.specunit==None:
-            specunitout='None'
-        else:
-            specunitout=self.full_specunit
-            
-        if not self.name:
-            outname='Unnamed' #If user explicitly sets self.name=None; defaults to timespectra 
-        else:
-            outname=self.name
+        
+        header = "*%s*%sSpectral unit:%s%sTime unit:%s\n" % \
+               (self.name, delim, self.full_specunit, delim, self.full_timeunit)
 
-        outline='**',outname,'**', delim, 'Spectral unit:', specunitout, delim, 'Time unit:', 'Not Implemented','\n'   
-        return ''.join(outline)+'\n'+self._df.__repr__()    
+        return ''.join(header)+'\n'+self._df.__repr__()    
     
     
     def split_by(self, n, axis=1, stack=True, **stackkwargs):
@@ -1417,135 +1448,145 @@ if __name__ == '__main__':
                    ##index=spec, 
                    ##name='ts2') 
     
-    from pyuvvis.data import aunps_water
-    ts = aunps_water()
-    t2 = ts.as_interval('m')
-
-    t2 = t2.as_iunit('r')
-
-    #stack = ts.split_by(1)
-    #stack.iunit = 'a'
-
-    #ts[ts.columns[0]].plot(colormap='RdBu')
-    #plt.show()
-    t2 = ts.as_interval('m')
-    #t2 = ts.as_iunit('r')
-    #ts.area().plot()
-    #import sys
-    #sys.exit()
-    
-##    stack.plot(title='Big bad plots')
-    from pyuvvis.plotting import six_plot
+    from pyuvvis.data import solvent_evap
     import matplotlib.pyplot as plt
-    six_plot(ts, striplegend=True)
+    from pyuvvis.plotting import areaplot
+    ts = solvent_evap()
+
+#    print ts.to_html()
+    areaplot(ts)
+#    t2 = ts.ix[3000:2000, 0:5]
+#    t2.plot()
     plt.show()
-    #t1 = ts.as_interval()
-    #print t1.columns
-    #t1.plot(cbar=True)
-    #t1.to_datetime()
-    #t1.ix[500.0:600.0]
-    #t2 = ts.as_specunit('ev')
-    #t3 = ts.as_iunit('a')
-    #print t2.specunit, 'hi t2'
-    #print t3.specunit, 'hi t3'
-    #print t2.specunit, 'hi t2'
-    #specplot(ts, cbar=True)
-
-
+    print t2
     
-##    a=ts.area()
-##    print 'hi', a.specunit
-##    ts.specunit = 'ev'
-    ##from pyuvvis.plotting import specplot, areaplot
-    ##areaplot(ts)
+    #t2 = ts.as_interval('m')
+
+    #t2 = t2.as_iunit('r')
+
+    ##stack = ts.split_by(1)
+    ##stack.iunit = 'a'
+
+    ##ts[ts.columns[0]].plot(colormap='RdBu')
     ##plt.show()
+    #t2 = ts.as_interval('m')
+    ##t2 = ts.as_iunit('r')
+    ##ts.area().plot()
+    ##import sys
+    ##sys.exit()
+    
+###    stack.plot(title='Big bad plots')
+    #from pyuvvis.plotting import six_plot
+    #import matplotlib.pyplot as plt
+    #six_plot(ts, striplegend=True)
+    #plt.show()
+    ##t1 = ts.as_interval()
+    ##print t1.columns
+    ##t1.plot(cbar=True)
+    ##t1.to_datetime()
+    ##t1.ix[500.0:600.0]
+    ##t2 = ts.as_specunit('ev')
+    ##t3 = ts.as_iunit('a')
+    ##print t2.specunit, 'hi t2'
+    ##print t3.specunit, 'hi t3'
+    ##print t2.specunit, 'hi t2'
+    ##specplot(ts, cbar=True)
+
+
+    
+###    a=ts.area()
+###    print 'hi', a.specunit
+###    ts.specunit = 'ev'
+    ###from pyuvvis.plotting import specplot, areaplot
+    ###areaplot(ts)
+    ###plt.show()
    
-    ##from pyuvvis.IO.gwu_interfaces import from_spec_files, get_files_in_dir
-    ##from pyuvvis.exampledata import get_exampledata
-    ##ts=from_spec_files(get_files_in_dir(get_exampledata('NPSAM'), sort=True), name='foofromfile')
+    ###from pyuvvis.IO.gwu_interfaces import from_spec_files, get_files_in_dir
+    ###from pyuvvis.exampledata import get_exampledata
+    ###ts=from_spec_files(get_files_in_dir(get_exampledata('NPSAM'), sort=True), name='foofromfile')
 
-    ##ts.to_interval('s')
-    ##ts=ts.ix[440.0:700.0,0.0:100.0]
-    ##ts.reference=0    
-    ##print ts._baseline.shape, ts.shape
+    ###ts.to_interval('s')
+    ###ts=ts.ix[440.0:700.0,0.0:100.0]
+    ###ts.reference=0    
+    ###print ts._baseline.shape, ts.shape
     
-    ### Goes to site packages because using from_spec_files, which is site package module
-    ##ts.run_pca()
- ###   ts.pca_evals
+    #### Goes to site packages because using from_spec_files, which is site package module
+    ###ts.run_pca()
+ ####   ts.pca_evals
 
-    ###from pandas import Panel
-    ###Panel._constructor_sliced=TimeSpectra
-    ###pdic={'ts':ts}
-    ###tp=Panel.from_dict(pdic)
+    ####from pandas import Panel
+    ####Panel._constructor_sliced=TimeSpectra
+    ####pdic={'ts':ts}
+    ####tp=Panel.from_dict(pdic)
     
-    ##d={'start':2/22/12, 'periods':len(ts.columns), 'freq':'45s'}
-    ##ts.set_daterange(start='2/22/12', periods=len(ts.columns), freq='45s')
+    ###d={'start':2/22/12, 'periods':len(ts.columns), 'freq':'45s'}
+    ###ts.set_daterange(start='2/22/12', periods=len(ts.columns), freq='45s')
     
-    ##ts.baseline=ts.reference
-    ##ts.sub_base()
+    ###ts.baseline=ts.reference
+    ###ts.sub_base()
 
-    ### THIS FAILS WHEN INDEX=SPEC 
-    ##t3=TimeSpectra(abs(np.random.randn(ts.baseline.shape[0], 30)), columns=\
-                   ##testdates, 
-                   ##baseline=ts._baseline, name='foobar')  
+    #### THIS FAILS WHEN INDEX=SPEC 
+    ###t3=TimeSpectra(abs(np.random.randn(ts.baseline.shape[0], 30)), columns=\
+                   ###testdates, 
+                   ###baseline=ts._baseline, name='foobar')  
 
     
        
-    ###ts._reference.x='I WORK'
-    ###ts._reference.name='joe'
-    ##ts.baseline=Series([20,30,50,50], index=[400., 500., 600., 700.])
-####    t2.baseline=ts.baseline
-    ###ts._df.ix[:, 0:4]
-    ###ts.ix[:,0:4]
-    ###ts.pvutils.boxcar(binwidth=20, axis=1)
-    ###x=ts.ix[450.0:650.]
-    ###y=t2.ix[500.:650.]
+    ####ts._reference.x='I WORK'
+    ####ts._reference.name='joe'
+    ###ts.baseline=Series([20,30,50,50], index=[400., 500., 600., 700.])
+#####    t2.baseline=ts.baseline
+    ####ts._df.ix[:, 0:4]
+    ####ts.ix[:,0:4]
+    ####ts.pvutils.boxcar(binwidth=20, axis=1)
+    ####x=ts.ix[450.0:650.]
+    ####y=t2.ix[500.:650.]
     
-    ###ts.cnsvdmeth='name'
+    ####ts.cnsvdmeth='name'
         
-    ##from pyuvvis.pandas_utils.metadframe import mload
-    ###from pyuvvis import areaplot, absplot
-    ##ts=mload('rundata.pickle')    
-    ##ts=ts.as_interval('m')
-    ##x=ts.area()    
-    ##print 'hi', x
-    ###ts.reference=0
-    ###ts=ts[ts.columns[800.0::]]
-    ###ts=ts.ix[400.0:800.0]
-    ###c=haiss_m2(ts, peak_width=2.0, ref_width=2.0)
-    ###a=haiss_m3(ts, 0.000909, peak_width=None, dilution=0.1)
-    ###b=haiss_conc(ts, 12.0)
-    ####b2=haiss_conc(ts, 12.0, dilution=0.2)
+    ###from pyuvvis.pandas_utils.metadframe import mload
+    ####from pyuvvis import areaplot, absplot
+    ###ts=mload('rundata.pickle')    
+    ###ts=ts.as_interval('m')
+    ###x=ts.area()    
+    ###print 'hi', x
+    ####ts.reference=0
+    ####ts=ts[ts.columns[800.0::]]
+    ####ts=ts.ix[400.0:800.0]
+    ####c=haiss_m2(ts, peak_width=2.0, ref_width=2.0)
+    ####a=haiss_m3(ts, 0.000909, peak_width=None, dilution=0.1)
+    ####b=haiss_conc(ts, 12.0)
+    #####b2=haiss_conc(ts, 12.0, dilution=0.2)
     
-####    bline=ts[ts.columns[0]]
-####    ts=ts.ix[:,25.0:30.0]
-####    ts.reference=bline
+#####    bline=ts[ts.columns[0]]
+#####    ts=ts.ix[:,25.0:30.0]
+#####    ts.reference=bline
  
-    ###uv_ranges=((430.0,450.0))#, (450.0,515.0), (515.0, 570.0), (570.0,620.0), (620.0,680.0))
+    ####uv_ranges=((430.0,450.0))#, (450.0,515.0), (515.0, 570.0), (570.0,620.0), (620.0,680.0))
     
-    ###tssliced=ts.wavelength_slices(uv_ranges, apply_fcn='mean')
+    ####tssliced=ts.wavelength_slices(uv_ranges, apply_fcn='mean')
         
-    ###from pyuvvis.core.utilities import find_nearest
-    ###x=ts.ix[500.:510, 0]
-    ###b=pvutils.maxmin_xy(x)
-    ###a=find_nearest(x, .15)
-    ###ts.iunit=None
-    ###ts.iunit='a'
-    ###ts.iunit=None
+    ####from pyuvvis.core.utilities import find_nearest
+    ####x=ts.ix[500.:510, 0]
+    ####b=pvutils.maxmin_xy(x)
+    ####a=find_nearest(x, .15)
+    ####ts.iunit=None
+    ####ts.iunit='a'
+    ####ts.iunit=None
     
     
-    ###ts.to_csv('junk')
-    ###range_timeplot(ts)
+    ####ts.to_csv('junk')
+    ####range_timeplot(ts)
 
-    ###ts.a=50; ts.b='as'
-    ###ts.iunit='t'
+    ####ts.a=50; ts.b='as'
+    ####ts.iunit='t'
 
-    ###ts.list_attr(dfattr=False, methods=False, types=True)    
-    ###ts.as_iunit('a')
-    ###x=ts.as_iunit('a')
-    ####ts.as_interval()
-    ####spec_surface3d(ts)  ##Not working because of axis format problem
-    ####plt.show()
-####    ts.rank(use_base=True)
-    ###x=ts.dumps()
-    ###ts=mloads(x)
+    ####ts.list_attr(dfattr=False, methods=False, types=True)    
+    ####ts.as_iunit('a')
+    ####x=ts.as_iunit('a')
+    #####ts.as_interval()
+    #####spec_surface3d(ts)  ##Not working because of axis format problem
+    #####plt.show()
+#####    ts.rank(use_base=True)
+    ####x=ts.dumps()
+    ####ts=mloads(x)

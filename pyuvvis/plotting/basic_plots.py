@@ -92,7 +92,7 @@ def _genplot(ts, **pltkwargs):
         tunit = ts.full_timeunit #Can be None
         if not tunit:
             tunit = 'Time'
-        cbar.set_label(r'%s$\rightarrow$'%ts.full_timeunit, rotation=c_rotation)
+        cbar.set_label(r'%s$\rightarrow$' % tunit, rotation=c_rotation)
         
         if len(ts.columns) > _barlabels -1:
             label_indices = np.linspace(0, len(ts.columns), _barlabels)
@@ -180,7 +180,14 @@ def specplot(ts, **pltkwds):
 #    title = pltkwds.pop('title', '(%s) %s' % (ts.full_iunit, ts.name) )    
     pltkwds.setdefault('title', ts.name )    
 
-    return _genplot(ts, **pltkwds)
+    ax = _genplot(ts, **pltkwds)
+    try:
+        if ts.index._reciprocal:
+            ax.set_xlim(ax.get_xlim()[::-1])
+    except AttributeError:
+        pass
+    
+    return ax       
     
     
 def timeplot(ts, **pltkwds):
@@ -189,7 +196,11 @@ def timeplot(ts, **pltkwds):
     range_timeplot() below.'''
     
     pltkwds['legend']=pltkwds.pop('legend', True) #Turn legend on
-        
+
+    tunit = ts.full_timeunit #Can be None
+    if not tunit:
+        tunit = 'Time'
+    pltkwds.setdefault('xlabel', tunit)          
     pltkwds.setdefault('xlabel', ts.full_timeunit)  
     pltkwds.setdefault('ylabel', ts.full_iunit)    
     pltkwds.setdefault('title', ts.name )    
@@ -224,7 +235,10 @@ def range_timeplot(ranged_ts, **pltkwds):
     pltkwds['legend'] = pltkwds.pop('legend', True)
     pltkwds['linewidth'] = pltkwds.pop('linewidth', 2.0 )  
           
-    pltkwds.setdefault('xlabel', ranged_ts.full_timeunit)  
+    tunit = ranged_ts.full_timeunit #Can be None
+    if not tunit:
+        tunit = 'Time'
+    pltkwds.setdefault('xlabel', tunit)     
     pltkwds.setdefault('ylabel', '$\int$ %s (sliced)' % ranged_ts.full_iunit)    
     pltkwds.setdefault('title', 'Area Ranges: '+ ranged_ts.name )       
                 
@@ -264,7 +278,10 @@ def areaplot(ranged_ts, **pltkwds):
     pltkwds.setdefault('color', 'black') # If removing, colormap default in _genplot
                                          # Will cause bug
 
-    pltkwds.setdefault('xlabel', ranged_ts.full_timeunit)  
+    tunit = ranged_ts.full_timeunit #Can be None
+    if not tunit:
+        tunit = 'Time'
+    pltkwds.setdefault('xlabel', tunit)  
     pltkwds.setdefault('ylabel', '$\int$ %s d$\lambda$'%ranged_ts.full_iunit)    
     pltkwds.setdefault('title', 'Area: '+ ranged_ts.name )      
 

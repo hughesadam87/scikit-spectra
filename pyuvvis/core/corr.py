@@ -448,11 +448,11 @@ class Corr2d(object):
     # Alternate constructers
     @classmethod
     def from_spectra(cls, ts, **kwargs):
+        kwargs.setdefault('idx_unit',ts.full_specunit), 
+        kwargs.setdefault('col_unit',ts.full_timeunit),
         return cls(np.array(ts),   
                    ts.index, 
                    ts.columns, 
-                   idx_unit = ts.full_specunit, 
-                   col_unit= ts.full_timeunit,
                    **kwargs)
 
 
@@ -550,11 +550,11 @@ def async_3d(df, checkdata=False,  **pltkwds):
 
 
 if __name__ == '__main__':
-    from pyuvvis.data import aunps_glass
+    from pyuvvis.data import aunps_glass, solvent_evap
     import numpy as np
     import matplotlib.pyplot as plt 
 
-    ts = aunps_glass()#.as_interval('s').as_iunit('r')
+    ts = solvent_evap()#.as_interval('s').as_iunit('r')
     
     cd = Corr2d.from_spectra(ts)
     cd.center()

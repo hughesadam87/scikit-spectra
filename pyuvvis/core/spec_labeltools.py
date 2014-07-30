@@ -135,9 +135,9 @@ def datetime_convert(datetimeindex, return_as='intvl', cumsum=True):
 
 
 ### Spectral units conversion ###
-proportional=['m', 'nm', 'cm', 'um'] 
-reciprocal=['k', 'ev', 'nm-1', 'cm-1', 'um-1', 'f', 'w']    
-allunits=proportional+reciprocal
+proportional = ['m', 'nm', 'cm', 'um'] 
+reciprocal = ['k', 'ev', 'nm-1', 'cm-1', 'um-1', 'f', 'w']    
+allunits = proportional+reciprocal
 
 def spectral_convert(spectral_array, in_unit='nm', out_unit='f'):
     ''' Converts spectral data arrays between spectral units.  This can take in pandas

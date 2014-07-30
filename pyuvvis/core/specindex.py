@@ -24,7 +24,7 @@ from collections import Iterable
 
 from pandas import DatetimeIndex
 
-from pyuvvis.core.spec_labeltools import spectral_convert
+from pyuvvis.core.spec_labeltools import spectral_convert, reciprocal
 
 ### Define new attributes (default values provided in SpecIndex())
 pandas.Index.unit = None
@@ -52,8 +52,12 @@ specunits={'m':'meters',
 _specinverse=dict((v,k) for k,v in specunits.iteritems()) #Used for lookup by value
 
 ### Catetegorical representation
-speccats={'Wavelength':('m','nm','cm', 'um'), 'Wavenumber':('k', 'nm-1'), 'Energy':('ev'), 'Frequency':('f'), 
-          'Ang. Frequency':('w') }
+speccats={'Wavelength':('m','nm', 'cm', 'um'), 
+          'Wavenumber':('k', 'nm-1', 'cm-1', 'um-1'),
+          'Energy':('ev'), 
+          'Frequency':('f'), 
+          'Ang. Frequency':('w') 
+          }
 
 
 def UnitError(value):
@@ -63,17 +67,18 @@ def UnitError(value):
 
 
 def get_spec_category(unit):
-    ''' Given a unit key ('m', 'f' etc...), returns the key in speccats to which it belongs.'''
+    ''' Given a unit key ('m', 'f' etc...), returns the key in speccats 
+    to which it belongs.'''
     if unit != None:
         for key in speccats:
             ### Handle length one case separately (eg Energy: ev)
             if isinstance(speccats[key], basestring):
-                if speccats[key]==unit:
+                if speccats[key] == unit:
                     return key
             ### Length N case (eg Wavelength: 'm', 'nm'...etc..
             else:
                 for value in speccats[key]:                    
-                    if value==unit:
+                    if value == unit:
                         return key
     return None
 
@@ -110,10 +115,15 @@ def SpecIndex(inp, *args, **defattr):
 
     index = pandas.Index(inp, *args, **defattr)  #Enforce dtype=Float?
 
-    ### Assign unit and category
+    ### Assign unit, category and reversed
     index.unit=unit 
     if unit:
         index.name = get_spec_category(unit) 
+
+        if unit in reciprocal:
+            index._reciprocal = True
+        else:
+            index._reciprocal = False
         
     index._kind='spectral'  #DONT CHANGE
           
@@ -130,6 +140,11 @@ def _convert_spectra(self, outunit, **kwargs):
     ###If converting to None, don't change the index values
     if outunit==None or self.unit==None:    
         self.unit = outunit
+        if self.unit in reciprocal:
+            self._reciprocal = True
+        else:
+            self._reciprocal = False        
+        
         self.name = get_spec_category(self.unit)
         return self
     
