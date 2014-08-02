@@ -205,9 +205,15 @@ class Corr2d(object):
         Parameters
         ----------
         
-        attr: str ('synchronous')
+        attr: str attribute (e.g. 'synchronous') or numpy 2d array
             Select which correlation spectra to plot.  Choose from 'sync', 
-            'async' or 'phase'.
+            'async' or 'phase' for synchronous, asynchronous and phase_angle
+            matricies.  In addition, can pass a custom matrix.  This is
+            mainly for use case of plotting arithmetic operaitons on sync, 
+            asynch and other matricies.  For example, if one wants to plot
+            the squared synchronous spectrum, they can square the matrix,
+            pass it back into this plotting funciton, and the index, titles
+            and so forth will all be preserved.  See examples/documention.
 
         contours: int (20)
             Number of contours to display.
@@ -248,21 +254,27 @@ class Corr2d(object):
 
         """
 
-        # LET ATTRIBUTE BE A MATRIX TOO?
-        if attr in ['sync', 'synchronous']:
-            attr = 'synchronous'
+        # if user passes matrix instead of a string
+        if not isinstance(attr, str):
+            attr_title = 'Custom' 
+            data = attr
+            
+        elif attr in ['sync', 'synchronous']:
             attr_title = 'Synchronous' #For plot
+            data = getattr(self, 'synchronous')
+            
         elif attr in ['async', 'asynchronous']:
-            attr = 'asynchronous'
             attr_title = 'Asynchronous' #For plot
+            data = getattr(self, 'asynchronous')
 
         elif attr in ['phase', 'phase_angle']:
-            attr = 'phase_angle'
+            data = getattr(self, 'phase_angle')
             attr_title = 'Phase Angle' #For plot
 
         else:
             # Make better
-            raise Corr2d('Valid plots include "sync", "async", "phase".')
+            raise Corr2d('Valid plots include "sync", "async", "phase".'
+                         'Alternatively, pass a custom matrix.')
         
         linekwds = dict(linewidth=1, 
                          linestyle='-', 
@@ -300,6 +312,7 @@ class Corr2d(object):
         # MAKE A DICT THAT RENAMES THESE synchronous: Synchronous Spectrm
         # phase_angle or 'phase' or w/e to: "Phase Anlge" (sans spectrum)
         xx, yy = np.meshgrid(self.index, self.index)
+        
         if sideplots:
             
             if sideplots == True:
@@ -310,7 +323,7 @@ class Corr2d(object):
             else:
                 label1, label2 = r'$A(\nu_1)$', r'$A(\nu_1)$'
 
-            ax1, ax2, ax3, ax4 = _gencorr2d(xx, yy, getattr(self, attr), 
+            ax1, ax2, ax3, ax4 = _gencorr2d(xx, yy, data, 
                                             label1, label2, **plotkwargs )
             
             # Problem here: this is calling plot method of
@@ -345,7 +358,7 @@ class Corr2d(object):
 
 
         else:
-            return _gen2d(xx, yy, getattr(self, attr), **plotkwargs)[0] #return axes, not contours
+            return _gen2d(xx, yy, data, **plotkwargs)[0] #return axes, not contours
 
     @property
     def shape(self):
