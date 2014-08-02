@@ -81,13 +81,12 @@ Dependencies
 ------------
 In its current state, pyuvvis requires following dependencies:
 
-**pandas**, **scipy**, **chaco**
+**pandas (0.14 or greater)**, **scipy**
 
 .. _scipy: http://www.scipy.org
-.. _chaco: http://code.enthought.com/chaco/
 
 I would recommend using `Enthought Canopy`_ and its excellent
-the package manager; however, ``pyuvvis`` is also 
+the package manager.  ``pyuvvis`` is also 
 registered on PyPi_.
 
    .. _PyPi : https://pypi.python.org/pypi/PyUvVis
