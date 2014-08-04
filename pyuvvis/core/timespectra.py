@@ -1289,12 +1289,16 @@ class TimeSpectra(MetaDataFrame):
         else: #orange
             countstring = 'Iunit:&nbsp<font color="#FF3300">%s</font>' % self.full_iunit
             
+        ftunit = getattr(self, 'full_timeunit', 'None')
+        spunit = getattr(self, 'full_specunit', 'None')
+            
+            
         outline = "%s&nbsp%s%s [%s X %s] %s %s\n" % \
                (self.name, 
                 colorshape,
                 delim,
-                self.full_specunit.lower(),
-                self.full_timeunit.lower(),
+                ftunit,
+                spunit,
                 delim,
                 countstring)        
         
@@ -1310,6 +1314,7 @@ class TimeSpectra(MetaDataFrame):
         can either return unicode or bytes.  This is better than overwriting __repr__()
         """
         
+        delim = '\t'
         header = "*%s*%sSpectral unit:%s%sTime unit:%s\n" % \
                (self.name, delim, self.full_specunit, delim, self.full_timeunit)
 

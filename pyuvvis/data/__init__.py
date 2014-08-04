@@ -61,7 +61,7 @@ def solvent_evap(*args, **kwargs):
     page 47:
     
     'The system described here is a three-component solution mixture of 
-    polystyrene (PS) dissolved in a 50:50 blen of metyl etyl ketone (MEK) and
+    polystyrene (PS) dissolved in a 50:50 blblend of metyl etyl ketone (MEK) and
     perdeuterated tolune.  The initial concentration of PS is about 1.0wt%.
     Once the solution mixture is exposed to the open atmosphere, the solvents 
     start evaporating, and the PS concentraiton increases with time.  However,
@@ -92,7 +92,13 @@ def solvent_evap(*args, **kwargs):
     kwargs.setdefault('specunit', 'cm-1')
     kwargs.setdefault('name', 'Polystyrene Evaporation')    
 
-    return load_ts('pskdt.csv', *args, **kwargs)
+    ts = load_ts('pskdt.csv', *args, **kwargs)
+
+    # THIS IS HOW YOU FORCE AN INTERVAL
+    # THIS SHOULD BE EASIER!!!
+    ts._interval=True
+    ts._intervalunit = 'm'    
+    return ts
 
 
 def aunps_glass(*args, **kwargs):
