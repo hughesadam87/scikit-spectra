@@ -1,2 +1,2 @@
 scipy
-pandas>=0.14.1 #will install numpy
+pandas>=0.14 

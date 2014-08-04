@@ -1453,13 +1453,7 @@ if __name__ == '__main__':
     from pyuvvis.plotting import areaplot
     ts = solvent_evap()
 
-#    print ts.to_html()
-    areaplot(ts)
-#    t2 = ts.ix[3000:2000, 0:5]
-#    t2.plot()
-    plt.show()
-    print t2
-    
+
     #t2 = ts.as_interval('m')
 
     #t2 = t2.as_iunit('r')

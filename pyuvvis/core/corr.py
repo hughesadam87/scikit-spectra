@@ -30,6 +30,7 @@ References
 #Copy these to notebooks?
 
 import logging
+import pandas
 logger = logging.getLogger(__name__) 
 
 from math import pi
@@ -257,7 +258,15 @@ class Corr2d(object):
         # if user passes matrix instead of a string
         if not isinstance(attr, str):
             attr_title = 'Custom' 
-            data = attr
+            # Need to dataframe convert or mean/min/max syntax won't work (sideplots)
+            if not isinstance(attr, pandas.DataFrame):
+                try:               
+                    data = pandas.DataFrame(attr) #Don't set index/columns; 
+                except Exception:
+                    raise CorrError('Could not convert data of type %s to '
+                                    'DataFrame.  This is used for various'
+                                    'subroutins including sideplot mean/max.')
+                                               
             
         elif attr in ['sync', 'synchronous']:
             attr_title = 'Synchronous' #For plot
@@ -328,16 +337,16 @@ class Corr2d(object):
             
             # Problem here: this is calling plot method of
             if sideplots == 'mean':
-                ax2.plot(self.index, self.data.mean(axis=1), **linekwds)
-                ax3.plot(self.index, self.data.mean(axis=1),  **linekwds)     
+                ax2.plot(self.index, data.mean(axis=1), **linekwds)
+                ax3.plot(self.index, data.mean(axis=1),  **linekwds)     
                 
             elif sideplots == 'max':
-                ax2.plot(self.index, self.data.max(axis=1), **linekwds)
-                ax3.plot(self.index, self.data.max(axis=1),  **linekwds)    
+                ax2.plot(self.index, data.max(axis=1), **linekwds)
+                ax3.plot(self.index, data.max(axis=1),  **linekwds)    
                 
             elif sideplots == 'min':
-                ax2.plot(self.index, self.data.min(axis=1), **linekwds)
-                ax3.plot(self.index, self.data.min(axis=1),  **linekwds)    
+                ax2.plot(self.index, data.min(axis=1), **linekwds)
+                ax3.plot(self.index, data.min(axis=1),  **linekwds)    
                 
             
             elif sideplots == 'empty':
