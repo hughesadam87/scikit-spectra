@@ -29,9 +29,11 @@ class Unit(object):
       else:
          return True
    
-   
+
+# How to do temperature conversions with +/- 273   
 class TempUnit(Unit):
    """ Temperature units.  ALl conversions go through Kelvin. """
+   proportional = True
 
 class Kelvin(TempUnit):
    short = 'K'
@@ -44,6 +46,22 @@ class Celsius(TempUnit):
    full = 'Celsius'
    symbol = 'r$^{\deg}C$'
 #   mapping = #273 - ??? How
+
+class SoluteUnit(Unit):
+   """ Goes through molar.  Test case """
+   proportional = True 
+   
+class Moles(SoluteUnit):
+   short = 'M'
+   full = 'moles'
+   symbol = 'M'
+   mapping = 1.0
+   
+class Millimoles(SoluteUnit):
+   short = 'mM'
+   full = 'millimoles'
+   symbol = 'mM' #Kind of redundant
+   mapping = .001
 
 # SPECTRAL UNITS   
 class SpecUnit(Unit):
@@ -179,3 +197,10 @@ _specunits = (
 
 # Dictionary keyed by short for easy use by converters
 SPECUNITS = dict((obj.short, obj) for obj in _specunits)
+
+### FOR TESTING
+_soluteunits = (Moles(), 
+                Millimoles(),
+                NullSpecUnit ()) #Just for testing
+
+SOLUTEUNITS = dict((obj.short, obj) for obj in _soluteunits)
