@@ -100,8 +100,9 @@ def _unit_valid(unit):
 
     
 def SpecIndex(inp, *args, **defattr):
-    ''' Lets other programs call this custom Index object.  Index must be called with array values
-    by default (aka Index() will fail)
+    ''' Lets other programs call this custom Index object. 
+    Index must be called with array values by default 
+    (aka Index() will fail)
     
     **deft attributes are those defined above, 'kind, unit and name.'''
 
@@ -125,8 +126,7 @@ def SpecIndex(inp, *args, **defattr):
         else:
             index._reciprocal = False
         
-    index._kind='spectral'  #DONT CHANGE
-          
+    index._kind='spectral'  #DONT CHANGE          
     return index
 
 

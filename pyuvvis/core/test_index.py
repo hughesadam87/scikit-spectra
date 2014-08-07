@@ -24,7 +24,7 @@ class ConversionIndex(Float64Index):
    def __new__(cls, input_array, unit=None):
       """ Unit is valid key of unitdict """
       obj = np.asarray(input_array).view(cls)
-      obj.unit = _parse_unit(unit, cls.unitdict)
+      obj._unit = _parse_unit(unit, cls.unitdict)
       return obj
 
    # I am not really worred about other constructors yet...
@@ -35,26 +35,26 @@ class ConversionIndex(Float64Index):
          return
       
       # Can be called form slicing or other reasons, and I don't always know
-      # if unit is still a string/None, or if it's already a Unit class.
+      # if unit is still a string/Non_e, or if it's already a Unit class.
       # Thus, I let both cases work, even though don't know when is what
-      self.unit = getattr(obj, 'unit', None)
+      self._unit = getattr(obj, 'unit', None)
 
 ##      if isinstance(unit, str) or unit is None:
-##         self.unit = _parse_unit(unit, self.unitdict)
+##         self._unit = _parse_unit(unit, self.unitdict)
 ##      else:
-          #self.unit = unit
+          #self._unit = unit
 
    def convert(self, outunit):
       """Convert spectral values based on string outunit."""
       outunit = _parse_unit(outunit, self.unitdict)
-      inunit = self.unit
+      inunit = self._unit
 
       # Unit not changed, or set to None
-      if outunit == self.unit or not outunit.short:
+      if outunit == self._unit or not outunit.short:
          return self.__class__(self, unit=inunit)
 
       # If current unit is None, just set new unit
-      if not self.unit.short:
+      if not self._unit.short:
          return self.__class__(self, unit = outunit.short)
 
       # Convert non-null unit to another non-null unit   
@@ -96,31 +96,49 @@ class ConversionIndex(Float64Index):
       """ Used internally in code, like if I print self fromin function."""
       out = super(ConversionIndex, self).__repr__()        
       return out.replace(self.__class__.__name__, '%s[%s]' %
-                         (self.__class__.__name__, self.unit.short))
+                         (self.__class__.__name__, self._unit.short))
 
    def __unicode__(self):
       """ Returned on printout call.  Not sure why repr not called... """
       out = super(ConversionIndex, self).__unicode__()        
       return out.replace(self.__class__.__name__, '%s[%s]' % 
-                         (self.__class__.__name__, self.unit.short))
+                         (self.__class__.__name__, self._unit.short))
 
    # PROMOTED UNIT METHODS
    def __getattr__(self, attr):
-      """ Defer attribute call to self.unit"""
+      """ Defer attribute call to self._unit"""
       try:
-         return getattr(self.unit, attr)
+         return getattr(self._unit, attr)
       except AttributeError:
          raise AttributeError('%s has no attribute "%s".' % 
                               (self.__class__.__name__, attr) )
 
+   @property
+   def unit(self):
+      return self._unit.short
+
 
 class SpecIndex(ConversionIndex):
    """ """
-   unitdict = SPECUNITS         
+   unitdict = SPECUNITS   
+   
+from units import SOLUTEUNITS
+
+class SoluteIndex(ConversionIndex):
+   """ """
+   unitdict = SOLUTEUNITS
 
 
 if __name__ == '__main__':
    x = SpecIndex(np.linspace(0,50), unit='nm')
+#   from pyuvvis.data import aunps_glass
+   
+   #ts = aunps_glass()
+   #ts.index = SpecIndex(ts.index)
+   #print ts.index
+   y = SoluteIndex(np.linspace(0,50), unit='M')
+   print y
+#   print ts.index =
 #   y = Float64Index(np.linspace(0,50))
 #   print y*70
    #print x**2
