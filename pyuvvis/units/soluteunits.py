@@ -1,4 +1,4 @@
-from abcunits import Unit, NullUnit
+from abcunits import Unit
 
 class SoluteUnit(Unit):
    """ Goes through molar.  Test case """
@@ -19,7 +19,7 @@ class Millimoles(SoluteUnit):
 _soluteunits = (
                Moles(), 
                Millimoles(),
-               NullUnit()
+               Unit() #For null case
                ) 
 
 SOLUTEUNITS = dict((obj.short, obj) for obj in _soluteunits)

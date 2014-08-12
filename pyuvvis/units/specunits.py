@@ -1,4 +1,4 @@
-from abcunits import Unit, NullUnit
+from abcunits import Unit
 from math import pi
 
 
@@ -199,7 +199,7 @@ _specunits = (
              Electronvolts(),
              Frequency(),
              Angularfrequency(),
-             NullUnit()
+             Unit() #For null case
              )
 
 SPECUNITS = dict((obj.short, obj) for obj in _specunits)

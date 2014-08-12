@@ -9,8 +9,8 @@ class UnitError(Exception):
 # Consider adding a better __repr__ to these for when objects are called?
 class Unit(object):
    """ """
-   short = ''
-   full = ''
+   short = None
+   full = 'No Unit'
    symbol = ''
    _canonical = False
 
@@ -21,12 +21,3 @@ class Unit(object):
    @staticmethod
    def from_canonical(self):
       NotImplemented
-
-
-class NullUnit(Unit):
-   """Used by conversions when unit not specified.  Inherits
-   from Unit may cause subclassing problems.  Subclasses  inspection should
-   consider NullUnit like "if isnstance(Parent) or isinstance(NullUnit)"""
-   short = None
-   full = 'No Unit'   
-   

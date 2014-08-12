@@ -1,6 +1,7 @@
 from pandas import Float64Index
 import numpy as np
-from pyuvvis.units import SPECUNITS, TEMPUNITS
+from pyuvvis.units import SPECUNITS, TEMPUNITS, SOLUTEUNITS
+from pyuvvis.units.abcunits import UnitError
 
 def _parse_unit(unit, unitdict):
    """ Given a string unit (ie nm), returns the corresponding unit
@@ -56,7 +57,7 @@ class ConversionIndex(Float64Index):
 
       # Unit not changed, or set to None
       if outunit == self._unit or not outunit.short:
-         return self.__class__(self, unit=inunit)
+         return self.__class__(self, unit=outunit.short)
 
       # If current unit is None, just set new unit
       if not self._unit.short:
@@ -109,8 +110,6 @@ class SpecIndex(ConversionIndex):
    """ """
    unitdict = SPECUNITS   
    
-from units import SOLUTEUNITS
-
 class SoluteIndex(ConversionIndex):
    """ """
    unitdict = SOLUTEUNITS
@@ -140,7 +139,8 @@ if __name__ == '__main__':
    z = TempIndex(np.linspace(50,100), unit='F')
    print z
    print z.convert('C')
-   print z.convert('K')
+   z = z.convert('K')
+   print z.convert(None)
    
    
    
