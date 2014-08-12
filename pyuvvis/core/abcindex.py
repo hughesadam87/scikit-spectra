@@ -1,6 +1,6 @@
 from pandas import Float64Index
 import numpy as np
-from pyuvvis.units.abcunits import UnitError
+from pyuvvis.units.abcunits import UnitError, Unit
 
 def _parse_unit(unit, unitdict):
    """ Given a string unit (ie nm), returns the corresponding unit
@@ -18,15 +18,23 @@ class ConversionIndex(Float64Index):
    Since we are subclassing a numpy array and not a basic python object, 
    we don't write __init__(); rather, __new__ and __array_finalize__ are
    employed (http://docs.scipy.org/doc/numpy/user/basics.subclassing.html)
+   
+   _forcetype will force any construction to this type.  Even tho it inherits
+   from float64index, found that passing an Int64Index to SpecIndex() resulted
+   in integer indicies.  
    """
 
    unitdict = None 
+   _forcetype = 'float64' 
 
    def __new__(cls, input_array, unit=None):
       """ Unit is valid key of unitdict """
       #Not sure why I have to enfory dtype, but if SpecIndex() of an
       # Int64 index, it remains integer
-      obj = np.asarray(input_array, dtype='float64').view(cls)
+      if cls._forcetype:
+         obj = np.asarray(input_array, dtype='float64').view(cls)
+      else:
+         obj = np.asarray(input_array).view(cls)         
       obj._unit = _parse_unit(unit, cls.unitdict)
       return obj
 
@@ -34,6 +42,10 @@ class ConversionIndex(Float64Index):
    def __array_finalize__(self, obj):
       """No matter what constructor called, this will get called, so does
       all the housekeeping."""
+
+      if None not in self.unitdict:
+         self.unitdict[None] = Unit()
+      
       if obj is None: 
          return
       

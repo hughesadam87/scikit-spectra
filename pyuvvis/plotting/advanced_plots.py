@@ -432,16 +432,17 @@ if __name__ == '__main__':
     from pyuvvis.data import aunps_glass
     
     ts = aunps_glass().as_interval('s')
+    ts.specunit = 'ev'
     xx,yy = np.meshgrid(ts.columns, ts.index)
 
-    _gencorr2d(xx, yy, ts, 
-               fill=True,
-               title='My baller plot',
-               xlabel=ts.full_timeunit,
-               ylabel=ts.full_specunit,
-               contours=20,
-               cbar = True,
-               background=False)
+    #_gencorr2d(xx, yy, ts, 
+               #fill=True,
+               #title='My baller plot',
+               #xlabel=ts.full_timeunit,
+               #ylabel=ts.full_specunit,
+               #contours=20,
+               #cbar = True,
+               #background=False)
  
 #    _gen2d(xx, yy, ts, cbar=True, fill=True, contours=20)
     

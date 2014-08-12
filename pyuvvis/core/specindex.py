@@ -16,6 +16,7 @@ if __name__ == '__main__':
    print x.convert('f')
    print x.convert('ev')
    print x.convert('w')
+   print x.convert(None)
    
       
 

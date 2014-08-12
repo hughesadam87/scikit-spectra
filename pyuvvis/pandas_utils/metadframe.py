@@ -300,6 +300,12 @@ class _IlocMeta(_IXIndexer):
                 obj = self.obj
                 out = obj[(obj.index>row.stop)&(obj.index<row.start)]
 
+                # Hack to enforce index conversion
+                try:
+                    out.index._unit = obj.index._unit
+                except AttributeError:
+                    pass
+
                 #Still handle column slice
                 out = out[out.columns.__getitem__(col)]
                 
@@ -339,6 +345,12 @@ class _MetaIndexer(_IXIndexer):
             if row.start > row.stop and isinstance(self.obj.index, Float64Index):
                 obj = self.obj
                 out = obj[(obj.index>row.stop)&(obj.index<row.start)]
+
+                # Hack to enforce index conversion
+                try:
+                    out.index._unit = obj.index._unit
+                except AttributeError:
+                    pass
 
                 #Still handle column slice
                 out = out[out.columns.__getitem__(col)]

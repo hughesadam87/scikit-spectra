@@ -19,17 +19,23 @@ class SpecUnit(Unit):
    
    @property
    def symbol(self):
+      """ Used by plotting, especially correlation analysis.   For example,
+      
+              label1 = r'$\bar{A}(%s_1)$' % symbol
+              
+      Where symbol is this.  Don't forget to wrap in r'$...$' for tex.
+      """
       if self.category == 'wavelength':
-         return r'$\lambda$'
+         return r'\lambda'
    
       elif self.category == 'wavenumber':
-         return r'$\kappa$'
+         return r'\kappa'
       
       elif self.category == 'frequency':
-         return r'$\nu$'
+         return r'\nu'
    
       elif self.category == 'energy':
-         return r'$\epsilon$'
+         return r'\epsilon'
       
       elif not self.category: #NullUnit
          return ''
@@ -199,7 +205,6 @@ _specunits = (
              Electronvolts(),
              Frequency(),
              Angularfrequency(),
-             Unit() #For null case
              )
 
 SPECUNITS = dict((obj.short, obj) for obj in _specunits)

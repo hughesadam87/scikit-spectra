@@ -21,9 +21,8 @@ just throw out regions where not much is happening right?  Maybe call it a 2dcs 
 References
 ----------
 
-[1]
-[2] Scaline techniques to enhance two-dimensional correlation spectra, Isao Noda,
-    Journal of Molecular Structure.  2008. Volume: 883-884, Issue: 1-3, Pages: 216-227 
+[1] Scaling techniques to enhance two-dimensional correlation spectra, Isao Noda,
+[2] Journal of Molecular Structure.  2008. Volume: 883-884, Issue: 1-3, Pages: 216-227 
 
 '''
 
@@ -328,9 +327,12 @@ class Corr2d(object):
                 sideplots = 'mean'
             
             if self._centered:
-                label1, label2 = r'$\bar{A}(\nu_1)$', r'$\bar{A}(\nu_1)$'
+                symbol = self.index._unit.symbol
+                label1 = r'$\bar{A}(%s_1)$' % symbol
+                label2 = r'$\bar{A}(%s_2)$' % symbol
+                
             else:
-                label1, label2 = r'$A(\nu_1)$', r'$A(\nu_1)$'
+                label1, label2 = r'$A(%s_1)$' % symbol, r'$A(%s_2)$' % symbol
 
             ax1, ax2, ax3, ax4 = _gencorr2d(xx, yy, data, 
                                             label1, label2, **plotkwargs )
@@ -581,7 +583,7 @@ if __name__ == '__main__':
     cd = Corr2d.from_spectra(ts)
     cd.center()
 
-    cd.plot(sideplots=False, fill=False, title="Blank sideplots", grid=False)
+    cd.plot(fill=False, title="Blank sideplots", grid=False)
     plt.show()
     
 #    cd.scale()

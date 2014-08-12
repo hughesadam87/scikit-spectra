@@ -1425,10 +1425,10 @@ if __name__ == '__main__':
     from pyuvvis.plotting import areaplot
     ts = solvent_evap()
    # ts.index = SpecIndex(ts.index)
-    print ts**2
-    print ts*50
-    t2 = ts.as_specunit('cm')
-    ts.list_sunits()
+
+    t2 = ts.ix[1500.0:1000.0]
+    print ts.index
+    print t2.index
     print 'hi'
 
     #t2 = ts.as_interval('m')
