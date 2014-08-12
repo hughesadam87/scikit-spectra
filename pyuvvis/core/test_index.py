@@ -1,6 +1,6 @@
 from pandas import Float64Index
 import numpy as np
-from units import SPECUNITS, UnitError, TEMPUNITS
+from pyuvvis.units import SPECUNITS, TEMPUNITS
 
 def _parse_unit(unit, unitdict):
    """ Given a string unit (ie nm), returns the corresponding unit
