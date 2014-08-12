@@ -1,6 +1,6 @@
 from pandas import Float64Index
 import numpy as np
-from units import SPECUNITS, UnitError
+from units import SPECUNITS, UnitError, TEMPUNITS
 
 def _parse_unit(unit, unitdict):
    """ Given a string unit (ie nm), returns the corresponding unit
@@ -45,7 +45,12 @@ class ConversionIndex(Float64Index):
           #self._unit = unit
 
    def convert(self, outunit):
-      """Convert spectral values based on string outunit."""
+      """Convert spectral values based on string outunit.  First converts
+      the current unit to the canonical unit (eg, nanometers goes to meters)
+      then to the outunit (eg, meters to eV).  This is done through the unit
+      methods, .to_canonical() and .from_canonical() where in the case of
+      spectral units, canonical refers to meters.
+      """
       outunit = _parse_unit(outunit, self.unitdict)
       inunit = self._unit
 
@@ -58,28 +63,10 @@ class ConversionIndex(Float64Index):
          return self.__class__(self, unit = outunit.short)
 
       # Convert non-null unit to another non-null unit   
-      else:
-         
-         # If both untits are proportional
-         if inunit.proportional and outunit.proportional:
-            arrayout = self * (inunit.mapping / outunit.mapping)
-         
-         elif inunit.proportional and outunit.reciprocal:
-            arrayout =  1.0 / (self * (inunit.mapping / outunit.mapping))
-                        
-         elif inunit.reciprocal and outunit.proportional:
-            arrayout = 1.0 / (self * (outunit.mapping/inunit.mapping))
-            
-         elif inunit.reciprocal and outunit.reciprocal:
-            arrayout = self * (outunit.mapping/inunit.mapping)
-
-            
-         # Should only occur if user sets proportional or a weird value
-         else:
-            raise UnitError("Something wrong; could not determine mapping"
-                            "logic...")
-
-         return self.__class__(arrayout, unit = outunit.short)         
+      else: 
+         canonical = inunit.to_canonical(np.array(self))
+         arrayout = outunit.from_canonical(canonical)
+         return self.__class__(arrayout, unit=outunit.short)      
          
 
    def _parse_unit(self, unit):
@@ -92,11 +79,11 @@ class ConversionIndex(Float64Index):
 
 
    #Email list about this distinction
-   def __repr__(self):
-      """ Used internally in code, like if I print self fromin function."""
-      out = super(ConversionIndex, self).__repr__()        
-      return out.replace(self.__class__.__name__, '%s[%s]' %
-                         (self.__class__.__name__, self._unit.short))
+   #def __repr__(self):
+      #""" Used internally in code, like if I print self fromin function."""
+      #out = super(ConversionIndex, self).__repr__()        
+      #return out.replace(self.__class__.__name__, '%s[%s]' %
+                         #(self.__class__.__name__, self._unit.short))
 
    def __unicode__(self):
       """ Returned on printout call.  Not sure why repr not called... """
@@ -127,6 +114,10 @@ from units import SOLUTEUNITS
 class SoluteIndex(ConversionIndex):
    """ """
    unitdict = SOLUTEUNITS
+   
+class TempIndex(ConversionIndex):
+   """ """
+   unitdict = TEMPUNITS
 
 
 if __name__ == '__main__':
@@ -136,8 +127,23 @@ if __name__ == '__main__':
    #ts = aunps_glass()
    #ts.index = SpecIndex(ts.index)
    #print ts.index
-   y = SoluteIndex(np.linspace(0,50), unit='M')
-   print y
+#   y = SoluteIndex(np.linspace(0,50), unit='M')
+#   print y
+   print x
+   print x.convert('m')
+   print x.convert('cm')
+   print x.convert('um')   
+   print x.convert('f')
+   print x.convert('ev')
+   print x.convert('w')
+   
+   z = TempIndex(np.linspace(50,100), unit='F')
+   print z
+   print z.convert('C')
+   print z.convert('K')
+   
+   
+   
 #   print ts.index =
 #   y = Float64Index(np.linspace(0,50))
 #   print y*70

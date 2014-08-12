@@ -8,6 +8,7 @@ in the respective index classes calling these"""
 H = 6.626068*10**-34          #Planck's constant m**2 kg / s
 eVtoJ = 1.60217646 * 10**-19  #Number of Joules in one eV (needed becasue eV is not the standard MKS unit of energy)
 C = 299792458.0               #speed of light m/s
+KFACTOR = 273.15 #Difference Kelvin, C (how precise is this known?)
 
 class UnitError(Exception):
    """ """
@@ -20,10 +21,12 @@ class Unit(object):
    symbol = ''
    proportional = True
    _canonical = False
-   
+
+   @staticmethod   
    def to_canonical(self):
       NotImplemented
       
+   @staticmethod
    def from_canonical(self):
       NotImplemented
    
@@ -38,16 +41,41 @@ class Kelvin(TempUnit):
    symbol = 'r$^{\deg}K$' #Isn't degree Kelvin technially wrong?
    _canonical = True
    
-   def to_canonical(self, x):
+   @staticmethod
+   def to_canonical(x):
       return x
       
-   def from_canonical(self, x):
+   @staticmethod
+   def from_canonical(x):
       return x
 
 class Celsius(TempUnit):
    short = 'C'
    full = 'Celsius'
    symbol = 'r$^{\deg}C$'
+   
+   @staticmethod
+   def to_canonical(x):
+      return x + KFACTOR
+      
+   @staticmethod
+   def from_canonical(x):
+      return x - KFACTOR
+
+
+class Farenheiht(TempUnit):
+   short = 'F'
+   full = 'Farenheiht'
+   symbol = 'r$^{\deg}F$'
+   
+   @staticmethod
+   def to_canonical(x):
+      return ((x - 32.00)/1.80) + 273.15
+      
+   @staticmethod
+   def from_canonical(x):
+      return ((x - KFACTOR) * 1.80) + 32.00
+   
 
 class SoluteUnit(Unit):
    """ Goes through molar.  Test case """
@@ -106,12 +134,12 @@ class Meters(SpecUnit):
    category = 'wavelength'
    _canonical = True
    
-   @classmethod
-   def to_canonical(self, x):
+   @staticmethod
+   def to_canonical(x):
       return x
       
-   @classmethod
-   def from_canonical(self):
+   @staticmethod
+   def from_canonical(x):
       return x
 
 class Centimeters(SpecUnit):
@@ -119,12 +147,12 @@ class Centimeters(SpecUnit):
    full = 'centimeters'
    category = 'wavelength'
 
-   @classmethod   
-   def to_canonical(self, x):
+   @staticmethod   
+   def to_canonical(x):
       return x / 100.0
 
-   @classmethod      
-   def from_canonical(self, x):
+   @staticmethod      
+   def from_canonical(x):
       return 100.0 * x  
    
 class Micrometers(SpecUnit):
@@ -132,12 +160,12 @@ class Micrometers(SpecUnit):
    full = 'microns'
    category = 'wavelength'
    
-   @classmethod
-   def to_canonical(self, x):
+   @staticmethod
+   def to_canonical(x):
       return x / 100000.0 
       
-   @classmethod
-   def from_canonical(self, x):
+   @staticmethod
+   def from_canonical(x):
       return 100000.0 * x
    
 class Nanometers(SpecUnit):
@@ -145,13 +173,13 @@ class Nanometers(SpecUnit):
    full = 'nanometers'
    category = 'wavelength'
    
-   @classmethod
-   def to_canonical(self, x):
-      return x / 100000000.0 
+   @staticmethod
+   def to_canonical(x):
+      return x / 1000000000.0 
       
-   @classmethod
-   def from_canonical(self, x):
-      return 100000000.0 * x   
+   @staticmethod
+   def from_canonical(x):
+      return 1000000000.0 * x   
    
 class Metersinverse(SpecUnit):
    """ Cycles per distance/wavenumber"""
@@ -160,12 +188,12 @@ class Metersinverse(SpecUnit):
    category = 'wavenumber'
    
    # TEST THIS
-   @classmethod
-   def to_canonical(self, x):
+   @staticmethod
+   def to_canonical(x):
       return 1.0 / x
       
-   @classmethod
-   def from_canonical(self, x):
+   @staticmethod
+   def from_canonical(x):
       return 1.0 / x
    
 class Centimetersinverse(SpecUnit):
@@ -174,12 +202,12 @@ class Centimetersinverse(SpecUnit):
    category = 'wavenumber'
 
    # DEFINE IN TERMS OF TO METERS?
-   @classmethod
-   def to_canonical(self, x):
+   @staticmethod
+   def to_canonical(x):
       return (1.0 / x) * (0.01)
       
-   @classmethod
-   def from_canonical(self, x):
+   @staticmethod
+   def from_canonical(x):
       return 1.0 / (x * 100.0)
    
 class Micrometersinverse(SpecUnit):
@@ -199,27 +227,29 @@ class Frequency(SpecUnit):
    full = 'hertz'
    category = 'frequency'
    
-   @classmethod
-   def to_canonical(self, x):
+   @staticmethod
+   def to_canonical(x):
       meters = Meters.to_canonical(x)
       return C / meters
       
-   @classmethod
-   def from_canonical(self, x):
+   @staticmethod
+   def from_canonical(x):
       return C / x
-   
+
+# Verified correct, look at rad sec-1
+# https://www2.chemistry.msu.edu/faculty/reusch/virttxtjml/cnvcalc.htm
 class Angularfrequency(SpecUnit):
    short = 'w'
    full = 'radians per second'
    category = 'frequency'
    
-   @classmethod
-   def to_canonical(self, x):
+   @staticmethod
+   def to_canonical(x):
       meters = Meters.to_canonical(x)
       return (2.0 * pi * C) / meters
       
-   @classmethod
-   def from_canonical(self, x):
+   @staticmethod
+   def from_canonical(x):
       return (2.0 * pi * C) / x
    
 class Electronvolts(SpecUnit):
@@ -227,13 +257,13 @@ class Electronvolts(SpecUnit):
    full = 'electron volts'
    category = 'energy'
 
-   @classmethod
-   def to_canonical(self, x):
+   @staticmethod
+   def to_canonical(x):
       meters = Meters.to_canonical(x)
       return (H*C/(eVtoJ) ) / meters
       
-   @classmethod
-   def from_canonical(self, x):
+   @staticmethod
+   def from_canonical(x):
       return (H*C/(eVtoJ)) / x
 
    
@@ -251,18 +281,28 @@ _specunits = (
              NullSpecUnit()
              )
 
-# Dictionary keyed by short for easy use by converters
-SPECUNITS = dict((obj.short, obj) for obj in _specunits)
-
 ### FOR TESTING
 _soluteunits = (Moles(), 
                 Millimoles(),
                 NullSpecUnit ()) #Just for testing
 
+_tempunits = (Kelvin(),
+              Celsius(),
+              Farenheiht()
+              )
+
+# Dictionary keyed by short for easy use by converters
+SPECUNITS = dict((obj.short, obj) for obj in _specunits)
+
 SOLUTEUNITS = dict((obj.short, obj) for obj in _soluteunits)
+
+TEMPUNITS = dict((obj.short, obj) for obj in _tempunits)
+
 
 if __name__ == '__main__':
    f = Frequency()
    ev = Electronvolts()
    print f.from_canonical(1)
    print ev.to_canonical(1)
+   F = Farenheiht()
+   print F.from_canonical(50)
