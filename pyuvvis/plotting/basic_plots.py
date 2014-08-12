@@ -180,11 +180,10 @@ def specplot(ts, **pltkwds):
     pltkwds.setdefault('title', ts.name )    
 
     ax = _genplot(ts, **pltkwds)
-    try:
-        if ts.index._reciprocal:
-            ax.set_xlim(ax.get_xlim()[::-1])
-    except AttributeError:
-        pass
+
+    #Reversed specindex ie cm-1
+    if ts.index[0] > ts.index[-1]:
+        ax.set_xlim(ax.get_xlim()[::-1])
     
     return ax       
     

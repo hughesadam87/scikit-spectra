@@ -15,8 +15,7 @@ from pandas import DataFrame, DatetimeIndex, Index, Series
 from scipy import integrate
 
 # pyuvvis imports 
-from pyuvvis.core.specindex import SpecIndex, specunits, get_spec_category, \
-     set_sindex
+from pyuvvis.core.specindex import SpecIndex
 from pyuvvis.core.specstack import SpecStack
 from pyuvvis.core.spec_labeltools import datetime_convert, from_T, to_T, \
     Idic, intvl_dic, spec_slice
@@ -142,14 +141,9 @@ class TimeSpectra(MetaDataFrame):
 
         # If user passes non datetime index to columns, make sure they didn't accidentally pass SpecIndex by mistake.
         if not isinstance(self._df.columns, DatetimeIndex):
-            try:
-                if self._df.columns._kind == 'spectral':
-                    raise IOError("SpecIndex must be passed as index, not columns.")   # Can't be an attribute error or next won't be raised             
+            if isinstance(self._df.columns, SpecIndex):
+                raise IOError("SpecIndex must be passed as index, not columns.")   # Can't be an attribute error or next won't be raised             
 
-            # df.columns has no attribute _kind, meaning it is likely a normal pandas index        
-            except AttributeError:
-                pass                                                
-            
             # Try to force coluns to DatetimeIndex THIS MIGHT BE A MISTAKE BECUASE
             # DATETIME INDEX IS A BIT SOFT ON CHECKS; SHOULD DO EXTRA VALIDATION
             try:
@@ -165,6 +159,12 @@ class TimeSpectra(MetaDataFrame):
         else:
             self._interval = False      
             self._dtindex = self._df.columns
+            
+        if not isinstance(self._df.index, SpecIndex):
+            try:
+                self._df.index = SpecIndex(self._df.index, unit=specunit)
+            except Exception:
+                raise IOError("Could not convert index to SpecIndex")
       
         # Assign spectral intensity related stuff but 
         # DONT CALL _set_itype function
@@ -173,28 +173,6 @@ class TimeSpectra(MetaDataFrame):
         
         # This has to be done AFTER self._df has been set
         self._reference=self._reference_valid(reference)#SHOULD DEFAULT TO NONE SO USER CAN PASS NORMALIZED DATA WITHOUT REF        
-
-        ###Set Index as spectral variables, take care of 4 cases of initialization.
-        if not hasattr(self._df.index, '_convert_spectra'):  #Better to find method than index.unit attribute
-            # No index, no specunit
-            if specunit == None:
-                self.specunit = None
-            # No index, specunit
-            else:
-                self.specunit = specunit   #Property setter will do validation         
-    
-        else:
-            # Index, no specunit
-            if specunit == None:
-                self.specunit = self._df.index.unit
-                
-            # Index, specunit---> Convert down
-            else:
-                old_unit=self._df.index.unit
-                self.specunit=specunit 
-                if old_unit != specunit:
-                    logger.warn('SpecIndex unit was changed internally from '
-                                  '"%s" to "%s"'%(old_unit, specunit))
                 
         # Baseline Initialization (UNTESTED)
         self._base_sub = False 
@@ -248,7 +226,7 @@ class TimeSpectra(MetaDataFrame):
     # Self necessary here or additional df stuff gets printed   
     def list_sunits(self, delim='\t'):
         """ Print out all available units in a nice format"""
-        self._list_out(specunits, delim=delim)         
+        self._list_out(self.index.unitshortdict, delim=delim)         
 
     def list_intvlunits(self, delim='\t'):
         """ Print out all possible units to express the columns in 
@@ -278,7 +256,9 @@ class TimeSpectra(MetaDataFrame):
             
         print '\nSpectral/Index stats'
         print '---------------------\n'
-        print '%sspectral category=%s, specunit=%s'%(delim, get_spec_category(self.specunit), self.specunit)
+        print '%sspectral category=%s, specunit=%s'%(delim, 
+                                                     self._df.index._unit.category, 
+                                                     self.specunit)
         
     # ADD PYTHON STRING FORMATTING TO THIS
     def list_attr(self, privattr=False, dfattr=False, methods=False, types=False, delim='\t', sortby='name'): #values=False,):
@@ -528,7 +508,8 @@ class TimeSpectra(MetaDataFrame):
                 
                 if isinstance(apply_fcn, str):
         
-                    if self.index._reciprocal:
+                    # For inverted xaxis
+                    if self.index[0] > self.index[-1]:
                         xvals = self.index[::-1]
                     else:
                         xvals = self.index
@@ -610,28 +591,22 @@ class TimeSpectra(MetaDataFrame):
     ### RETURN A NEW INDEX, AND ALSO UPDATE SPECUNIT IN SAID INDEX!
     @property
     def specunit(self):
-        return self._df.index.unit    #Short name key
+        return self._df.index._unit.short    #Short name key
 
     @property
     def full_specunit(self):
-        return specunits[self._df.index.unit]
+        return self._df.index._unit.full
 
     @specunit.setter
     def specunit(self, unit):
-        self._df.index = self._df.index._convert_spectra(unit) 
-        #self._df.index.unit = unit
-        #self.index=self._df.index #Necessary because this is done sloppily
-        
+        self._df.index = self._df.index.convert(unit) 
+
+    # Two axis? REPLACING AS SPECUNIT!
     def as_specunit(self, unit):
         """ Returns new dataframe with different spectral unit on the index."""
-        tsout=self.deepcopy()
-        tsout.specunit=unit
-        return tsout
-    
-
-    @property
-    def spectypes(self):
-        return specunits
+        tsout = self.deepcopy()
+        tsout.specunit = unit
+        return tsout    
     
     # Temporal/column related functionality
     def set_daterange(self, **date_range_args):
@@ -667,28 +642,28 @@ class TimeSpectra(MetaDataFrame):
            
            Parameters
            ----------
-               start: Wavelength start value.
-               stop: Wavelength stop value.
-               spacing: Wavelength spacing.
-               unit: Valid specunit type.  Note, if None is passed, current specunit of
-                     object is used.  To force a null unit, use special keyword 'null'.
+            start: Wavelength start value.
+            stop: Wavelength stop value.
+            spacing: Wavelength spacing.
+            unit: Valid specunit type.  Note, if None is passed, current specunit of
+                  object is used.  To force a null unit, use special keyword 'null'.
                      
            Notes
            -----
-              User must pass 2 of the 3 keywords start, stop or spacing.  Function
-              will compute the other using the length of the current dfindex.  
-              For example, if df.index is 100 entries and user enters start=0, stop=1000,
-              then spacing is set to ten to retain 100 entries.  
-              If user enters start and spacing, then stop is determined to retain 100
-              entries.
-              User can also enter stop and spacing, and start is inferred by counting
-              backwards from stop at steps equal to spacing size.
+            User must pass 2 of the 3 keywords start, stop or spacing.  Function
+            will compute the other using the length of the current dfindex.  
+            For example, if df.index is 100 entries and user enters start=0, stop=1000,
+            then spacing is set to ten to retain 100 entries.  
+            If user enters start and spacing, then stop is determined to retain 100
+            entries.
+            User can also enter stop and spacing, and start is inferred by counting
+            backwards from stop at steps equal to spacing size.
+          
+            To generate less restricted SpecIndex from start, stop AND spacing, try
+            set_sindex() function in specindex.py module.
             
-              To generate less restricted SpecIndex from start, stop AND spacing, try
-              set_sindex() function in specindex.py module.
-              
-              Under the hood this calls set_sindex() which is a wrapper to
-              np.linspace().  """        
+            Under the hood this calls set_sindex() which is a wrapper to
+            np.linspace().  """        
 
         numpts=float(len(self.index))
         
@@ -727,7 +702,7 @@ class TimeSpectra(MetaDataFrame):
         if not start or not stop:
             raise badcount_error(2,1,3, argnames='start, stop, keywords')
         
-        self._df.index=set_sindex(start, stop, numpts, unit=unit)
+        self._df.index = SpecIndex(np.linspace(start, stop, numpts), unit=unit)
 
     
     @property
@@ -830,9 +805,9 @@ class TimeSpectra(MetaDataFrame):
         
         
     def deepcopy(self):
-        sunit = self.specunit
+#        sunit = self.specunit
         tsout = copy.deepcopy(self)
-        tsout.specunit = sunit
+#        tsout.specunit = sunit
         return tsout
 
         
@@ -1247,14 +1222,6 @@ class TimeSpectra(MetaDataFrame):
         else:
             return out
         
-    def _transfer(self, dfnew):
-        """ See metadataframe _transfer for basic use.  Had to overwrite here to add 
-        a hack to apply the spectral unit.  See issue #33 on pyuvvis github for explanation. """
-        sunit=self.specunit
-        newobj=super(TimeSpectra, self)._transfer(dfnew)   
-        self.specunit = sunit
-        newobj.specunit=sunit
-        return newobj
         
     #############################################
     ## OVERWRITE METADATFRAME MAGIC METHODS ###
@@ -1438,15 +1405,15 @@ if __name__ == '__main__':
 
     
 
-    ##spec=SpecIndex(range(400, 700,1) )
+    spec=SpecIndex(range(400, 700,1), unit='nm')
 ###    spec=SpecIndex([400.,500.,600.])
-    ##testdates = date_range(start='3/3/12',periods=30,freq='h')
+    testdates = date_range(start='3/3/12',periods=30,freq='h')
     ##testdates2 = date_range(start='3/3/12',periods=30,freq='45s')
     
-    ###ts=TimeSpectra(abs(np.random.randn(300,30)), 
-                   ###columns=testdates, 
-                   ###index=spec, 
-                   ###name='ts1')  
+    ts=TimeSpectra(abs(np.random.randn(300,30)), 
+                   columns=testdates, 
+                   index=spec, 
+                   name='ts1')  
 
     ##t2=TimeSpectra(abs(np.random.randn(300,30)), 
                    ##columns=testdates2, 
@@ -1457,7 +1424,12 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     from pyuvvis.plotting import areaplot
     ts = solvent_evap()
-
+   # ts.index = SpecIndex(ts.index)
+    print ts**2
+    print ts*50
+    t2 = ts.as_specunit('cm')
+    ts.list_sunits()
+    print 'hi'
 
     #t2 = ts.as_interval('m')
 

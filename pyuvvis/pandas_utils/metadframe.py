@@ -95,9 +95,10 @@ class MetaDataFrame(object):
     def __setstate__(self, d): self.__dict__.update(d)    
 
     def __getattr__(self, attr, *fcnargs, **fcnkwargs):
-        ''' Tells python how to handle all attributes that are not found.  Basic attributes 
-        are directly referenced to self._df; however, instance methods (like df.corr() ) are
-        handled specially using a special private parsing method, _dfgetattr().'''
+        ''' Tells python how to handle all attributes that are not found.
+        Basic attributes are directly referenced to self._df; however, 
+        instance methods (like df.corr() ) are handled specially using a
+        special private parsing method, _dfgetattr().'''
 
         ### Return basic attribute
         
@@ -136,14 +137,14 @@ class MetaDataFrame(object):
         dfnew is used if one wants to pass a new dataframe in.  This is used primarily in calls from __getattr__.'''
         ### Store old value of df and remove current df to copy operation will take
         olddf = self._df.copy() #Removed deep=True because series return could not implement it
-        self._df=None
+        self._df = None
 
         ### Create new object and apply new df 
         newobj = copy.deepcopy(self)  #This looks like None, but is it type (MetaDataFrame, just __union__ prints None
         newobj._df = dfnew
 
         ### Restore old value of df and return new object
-        self._df=olddf
+        self._df = olddf
         return newobj
 
 

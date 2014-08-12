@@ -1,6 +1,5 @@
 from pandas import Float64Index
 import numpy as np
-from pyuvvis.units import SPECUNITS, TEMPUNITS, SOLUTEUNITS
 from pyuvvis.units.abcunits import UnitError
 
 def _parse_unit(unit, unitdict):
@@ -10,6 +9,7 @@ def _parse_unit(unit, unitdict):
       raise UnitError('Invalid unit "%s".  Choose from %s' % 
                       (unit, sorted(unitdict.keys()) ) )
    return unitdict[unit]  
+
 
 class ConversionIndex(Float64Index):
    """ Base class for pyuvvis.  To overwrite, requires:
@@ -24,7 +24,9 @@ class ConversionIndex(Float64Index):
 
    def __new__(cls, input_array, unit=None):
       """ Unit is valid key of unitdict """
-      obj = np.asarray(input_array).view(cls)
+      #Not sure why I have to enfory dtype, but if SpecIndex() of an
+      # Int64 index, it remains integer
+      obj = np.asarray(input_array, dtype='float64').view(cls)
       obj._unit = _parse_unit(unit, cls.unitdict)
       return obj
 
@@ -38,12 +40,14 @@ class ConversionIndex(Float64Index):
       # Can be called form slicing or other reasons, and I don't always know
       # if unit is still a string/Non_e, or if it's already a Unit class.
       # Thus, I let both cases work, even though don't know when is what
-      self._unit = getattr(obj, 'unit', None)
-
-##      if isinstance(unit, str) or unit is None:
-##         self._unit = _parse_unit(unit, self.unitdict)
-##      else:
-          #self._unit = unit
+      unit = getattr(obj, 'unit', None)
+      self._id = getattr(obj, '_id', None)
+      
+      # Necessary for certain instantiations DONT CHANGE
+      if isinstance(unit, str) or unit is None:
+         self._unit = _parse_unit(unit, self.unitdict)
+      else:
+         self._unit = unit
 
    def convert(self, outunit):
       """Convert spectral values based on string outunit.  First converts
@@ -105,55 +109,7 @@ class ConversionIndex(Float64Index):
    def unit(self):
       return self._unit.short
 
-
-class SpecIndex(ConversionIndex):
-   """ """
-   unitdict = SPECUNITS   
-   
-class SoluteIndex(ConversionIndex):
-   """ """
-   unitdict = SOLUTEUNITS
-   
-class TempIndex(ConversionIndex):
-   """ """
-   unitdict = TEMPUNITS
-
-
-if __name__ == '__main__':
-   x = SpecIndex(np.linspace(0,50), unit='nm')
-#   from pyuvvis.data import aunps_glass
-   
-   #ts = aunps_glass()
-   #ts.index = SpecIndex(ts.index)
-   #print ts.index
-#   y = SoluteIndex(np.linspace(0,50), unit='M')
-#   print y
-   print x
-   print x.convert('m')
-   print x.convert('cm')
-   print x.convert('um')   
-   print x.convert('f')
-   print x.convert('ev')
-   print x.convert('w')
-   
-   z = TempIndex(np.linspace(50,100), unit='F')
-   print z
-   print z.convert('C')
-   z = z.convert('K')
-   print z.convert(None)
-   
-   
-   
-#   print ts.index =
-#   y = Float64Index(np.linspace(0,50))
-#   print y*70
-   #print x**2
-   #print x.unit
-   #y = x**2
-   #print y.unit
-#   print np.asarray(x)
-#   print x*80
-
-#   print x
-#   print x.categor
-#   _unit_valid('nm')
+   @property
+   def unitshortdict(self):
+      """ Return key:shortname; used by TimeSpectra to list output units."""
+      return dict((k,v.full) for k,v in self.unitdict.items())
