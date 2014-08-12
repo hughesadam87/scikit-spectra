@@ -234,6 +234,22 @@ class MetaDataFrame(object):
     def __pow__(self, exp):
         return self._transfer(self._df.__pow__(exp))
 
+    @property
+    def index(self):
+        return self._df.index
+    
+    @property
+    def columns(self):
+        return self._df.columns
+
+    # To avoid accidnetally setting index ie ts.index()
+    @index.setter
+    def index(self, index):
+        self._df.index = index
+        
+    @columns.setter
+    def columns(self, columns):
+        self._df.columns = columns
 
     def iloc(self):
         raise NotImplementedError
