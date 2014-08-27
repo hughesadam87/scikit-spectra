@@ -36,8 +36,7 @@ class TimeSpectra(Spectra):
     
     # Has to be this way because class methods not accessible via metadataframe __getattr__()
     def __init__(self, *dfargs, **dfkwargs):
-#        dfkwargs['force_index'] = SpecIndex
-        dfkwargs['force_columns'] = None
+#        dfkwargs['force_columns'] = None
         
 
         # Should I even do anything?
@@ -269,6 +268,7 @@ class TimeSpectra(Spectra):
             else:
                 self._dtindex = None
                 self._interval = None
+     
     
 
 ## TESTING ###

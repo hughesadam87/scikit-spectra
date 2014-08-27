@@ -46,7 +46,7 @@ def mloads(string):
 @logclass(public_lvl='debug', log_name=__name__, skip=['_transfer'])
 class MetaDataFrame(object):
     ''' Base composition for subclassing dataframe.'''
-
+    
     def __init__(self, *dfargs, **dfkwargs):
         ''' Stores a dataframe under reserved attribute name, self._df'''      
         self._df=DataFrame(*dfargs, **dfkwargs)

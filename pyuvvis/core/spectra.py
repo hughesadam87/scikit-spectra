@@ -8,14 +8,12 @@ from operator import itemgetter
 import copy
 
 import numpy as np
-from pandas import DataFrame, DatetimeIndex, Index, Series, date_range, read_csv
-from scipy import integrate
-
-from pandas import DataFrame, DatetimeIndex, Index, Series
+from pandas import DataFrame, DatetimeIndex, Index, Series, read_csv
 from scipy import integrate
 
 # pyuvvis imports 
 from pyuvvis.core.specindex import SpecIndex
+from pyuvvis.core.abcindex import ConversionIndex #for typechecking; shoould be done at index level
 from pyuvvis.core.specstack import SpecStack
 from pyuvvis.core.spec_labeltools import from_T, to_T, \
     Idic, spec_slice
@@ -56,7 +54,7 @@ def _valid_indextype(index):
         index.unitshortdict
     except AttributeError:
         raise SpecError('Unit API only supported by pyuvvis ConversionIndex'
-                        ' got type %s' % type(index()))    
+                        ' got type %s' % type(index))    
 
 
 class SpecError(Exception):
@@ -125,6 +123,7 @@ class Spectra(MetaDataFrame):
         
         # Spectral index-related keywords
         specunit = dfkwargs.pop('specunit', None)
+        varunit = dfkwargs.pop('varunit', None)
 
         # Intensity data-related stuff
         iunit = dfkwargs.pop('iunit', None)
@@ -141,12 +140,20 @@ class Spectra(MetaDataFrame):
 
         super(Spectra, self).__init__(*dfargs, **dfkwargs)        
         
-        if not isinstance(self._df.index, SpecIndex):
-            self._df.index = self._valid_index(self.index)
+        if self._force_index:
+            if not isinstance(self._df.index, self._force_index):
+                self._df.index = self._valid_index(self.index)
             
         if specunit:
             self._df.index = self._df.index.convert(specunit)          
+
+        if self._force_columns:
+            if not isinstance(self._df.columns, self._force_columns):
+                self._df.columns = self._valid_columns(self.columns)
             
+        if varunit:
+            self._df.columns = self._df.columns.convert(varunit)     
+        
             
         #!! ADD DEFAULT COLUMNS CHECK HERE
       
@@ -572,10 +579,12 @@ class Spectra(MetaDataFrame):
         return tsout       
     
     def as_varunit(self, unit):
-        raise NotImplementedError
-        # Need to refactor index first, then pass varunit to Spectra in same
-        # way specunit works now
-        
+        """ Returns new dataframe with different spectral unit on the index."""
+        tsout = self.deepcopy()
+        tsout.varunit = unit
+        return tsout   
+    
+    
     def set_specindex(self, start=None, stop=None, spacing=None, unit=None):
         """Helper method to generate a spectral index.  Works similarly to
            pandas.daterange().  Takes in start, stop and spacing.  Users can use
@@ -918,11 +927,16 @@ class Spectra(MetaDataFrame):
         """ Recast index to self._force_index """
         if self._force_index:       
             if not isinstance(index, self._force_index):
+                
+                # Cornercase User passes PressureIndex where SpecIndex required
+                if issubclass(index.__class__, ConversionIndex):
+                    raise SpecError('User passed index of type %s but %s required.' % 
+                                    (type(index), self._force_index))                    
                 try:
                     index = self._force_index(index)
                 except Exception:
                     raise SpecError('Could not convert index to %s.' % 
-                                    type(self._force_index) )
+                                    self._force_index )
                 else:
                     # If subclassing ConversionIndex
                     try:
@@ -938,11 +952,17 @@ class Spectra(MetaDataFrame):
         """ Recast columns to self._force_columns """
         if self._force_columns:        
             if not isinstance(columns, self._force_columns):
+                
+                # Cornercase eg User passes PressureIndex where SpecIndex required                
+                if issubclass(columns.__class__, ConversionIndex):
+                    raise SpecError('User passed columns of type %s but %s required.' % 
+                                    (type(columns), self._force_index))
+                
                 try:
                     columns = self._force_columns(columns)
                 except Exception:
                     raise SpecError('Could not convert columns to %s.' % 
-                                    type(self._force_columns) )
+                                    self._force_columns )
                 try:                    
                     # If subclassing ConversionIndex
                     unit = self._df.columns.unit
@@ -1119,8 +1139,8 @@ class Spectra(MetaDataFrame):
         """
         
         delim = '\t'
-        header = "*%s*%sSpectral unit:%s%sTime unit:%s\n" % \
-               (self.name, delim, self.full_specunit, delim, self.full_timeunit)
+        header = "*%s*%sSpectral unit:%s%sPerturbation unit:%s\n" % \
+               (self.name, delim, self.full_specunit, delim, self.full_varunit)
 
         return ''.join(header)+'\n'+self._df.__repr__()    
     
@@ -1194,8 +1214,9 @@ class Spectra(MetaDataFrame):
     # -------------
     
     @classmethod
-    def from_csv(cls, path_or_buff, name=None, specunit=None, iunit=None,
-                 reference=None, baseline=None, intvlunit=None, **csv_kwargs):
+    def from_csv(cls, path_or_buff, header=0, sep=',', index_col=0,
+                 parse_dates=True, tupleize_cols=False, 
+                 infer_datetime_format= False, **dfkwargs):
         """ Read from CSV file.  Wrapping pandas read_csv:
         http://pandas.pydata.org/pandas-docs/version/0.13.1/  \
         generated/pandas.io.parsers.read_csv.html
@@ -1207,19 +1228,27 @@ class Spectra(MetaDataFrame):
         and file. For file URLs, a host is expected. For instance, a local 
         file could be file.
         
-        **csv_kwargs: valid keyword args to Pandas.       
+        **dfkwargs: passed to spectra constructor.       
         
         
         Returns: Spectra
         """
 
-        df = read_csv(path_or_buff, **csv_kwargs)
-        return cls(df, name=name, specunit=specunit, iunit=iunit, 
-                   reference=reference, baseline=baseline, intvlunit=intvlunit) 
+        df = read_csv(path_or_buff,
+                      header=header,
+                      sep=sep,
+                      index_col=index_col,
+                      parse_dates=parse_dates,
+                      tupleize_cols=tupleize_cols,
+                      infer_datetime_format=infer_datetime_format)
+        
+        return cls(df, **dfkwargs) 
               
 
 ## TESTING ###
 if __name__ == '__main__':
+
+    
 
     # Be careful when generating test data from Pandas Index/DataFrame objects, as this module has overwritten their defaul behavior
     # best to generate them in other modules and import them to simulate realisitc usec ase
@@ -1240,6 +1269,7 @@ if __name__ == '__main__':
 ##    bline.plot(ax=ax1, lw=5, color='r')
     #plt.show()
 
+    from pandas import date_range
     
 
     spec=SpecIndex(range(400, 700,1), unit='nm')
