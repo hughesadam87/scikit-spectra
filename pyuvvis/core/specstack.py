@@ -340,8 +340,8 @@ class SpecStack(Stack):
 
     ### This shouldn't have a setter
     @property
-    def timeunit(self):
-        return self._get_unique('timeunit')   
+    def varunit(self):
+        return self._get_unique('varunit')   
     
     def plot(self, *plotargs, **plotkwargs):
         """Returns multiplot of current stack.  

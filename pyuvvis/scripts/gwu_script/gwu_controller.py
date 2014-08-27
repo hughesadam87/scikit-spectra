@@ -852,7 +852,7 @@ class Controller(object):
         # Area plot using simpson method of integration
         areaplot(ts, 
                  ylabel='Power',
-                 xlabel='Time ('+ts.timeunit+')',
+                 xlabel='Time ('+ts.varunit+')',
                  legend=False,
                  title='Spectral Power vs. Time (%i - %i %s)' % 
                     (min(ts.index), max(ts.index), ts.specunit), color='r', **sizeargs)
@@ -861,7 +861,7 @@ class Controller(object):
         # Normalized area plot (divided by number x units)       
         areaplot(ts/len(ts.index),
                  ylabel='Power per unit %s' % ts.specunit,
-                 xlabel='Time (' + ts.timeunit+')', 
+                 xlabel='Time (' + ts.varunit+')', 
                  legend=False, 
                  title='Normalized Spectral Power vs. Time (%i - %i %s)' % 
                      (min(ts.index), max(ts.index), ts.specunit), color='orange', **sizeargs)
@@ -870,7 +870,7 @@ class Controller(object):
         # Normalized ABSOLUTE areaplot (divided by number x units)       
         areaplot(np.absolute(ts)/len(ts.index), 
                  ylabel='Power per unit %s' % ts.specunit, 
-                 xlabel='Time (' + ts.timeunit+')', 
+                 xlabel='Time (' + ts.varunit+')', 
                  legend=False, 
                  title='Normalized ABSOLUTE Power vs. Time (%i - %i %s)' % 
                      (min(ts.index), max(ts.index), ts.specunit), color='purple', **sizeargs)
@@ -890,7 +890,7 @@ class Controller(object):
         # Time averaged plot, not scaled to 1 (relative intenisty dependson bin width and actual intensity)
         tssliced = ts.wavelength_slices(uv_ranges, apply_fcn='mean')
         range_timeplot(tssliced, ylabel='Average Intensity', xlabel = 
-                       'Time ('+ts.timeunit+')', **sizeargs ) #legstyle =1 for upper left
+                       'Time ('+ts.varunit+')', **sizeargs ) #legstyle =1 for upper left
         self.plt_clrsave(op.join(outpath, prefix +'_strip'))        
         
         
@@ -903,10 +903,10 @@ class Controller(object):
         ref = make_ref(ts, method='empty') 
         S,A = ca2d(ts, ref)
         sync_3d(S, title='Synchronous Spectrum (%s-%s %s)' % (round(min(ts), 1),
-                round(max(ts),1), ts.full_timeunit)) #min/max by columns      
+                round(max(ts),1), ts.full_varunit)) #min/max by columns      
         self.plt_clrsave(op.join(corr_out, prefix +'_sync'))        
         async_3d(A, title='Asynchronous Spectrum (%s-%s %s)' % 
-                 (round(min(ts), 1), round(max(ts),1), ts.full_timeunit))
+                 (round(min(ts), 1), round(max(ts),1), ts.full_varunit))
         self.plt_clrsave(op.join(corr_out, prefix +'_async'))        
 
         
@@ -928,7 +928,7 @@ class Controller(object):
             for view in views:        
                 spec_surface3d(ts, kind=kind, c_iso=c_iso, r_iso=r_iso, 
                     cmap=cmget('gray'), contour_cmap=cmget('autumn'),
-                    elev=view[0], azim=view[1], xlabel='Time ('+ts.timeunit+')'
+                    elev=view[0], azim=view[1], xlabel='Time ('+ts.varunit+')'
                               )
                 self.plt_clrsave(op.join(out3d, prefix + 'elev:azi_%s:%s' %
                                          (view[0], view[1])))         

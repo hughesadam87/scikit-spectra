@@ -17,8 +17,8 @@ from scipy import integrate
 # pyuvvis imports 
 from pyuvvis.core.specindex import SpecIndex
 from pyuvvis.core.specstack import SpecStack
-from pyuvvis.core.spec_labeltools import datetime_convert, from_T, to_T, \
-    Idic, intvl_dic, spec_slice
+from pyuvvis.core.spec_labeltools import from_T, to_T, \
+    Idic, spec_slice
 import pyuvvis.core.utilities as pvutils
 
 # Merge
@@ -27,15 +27,6 @@ from pyuvvis.logger import decode_lvl, logclass
 from pyuvvis.plotting import specplot
 from pyuvvis.exceptions import badkey_check, badcount_error, RefError, BaselineError
 
-# Put in a separte file of constants?
-tunits={'ns':'Nanoseconds', 
-        'us':'Microseconds',
-        'ms':'Milliseconds', 
-        's':'Seconds', 
-        'm':'Minutes', 
-        'h':'Hours',
-        'd':'Days', 
-        'y':'Years'}  #ADD NULL VALUE? Like None:'No Time Unit' (iunit/specunit do this)
 
 logger = logging.getLogger(__name__) 
 
@@ -54,9 +45,18 @@ def _valid_iunit(sout):
     """When user is switching spectral intensity units, make sure they do it write."""
     return _valid_xunit(sout, Idic)
 
-def _valid_intvlunit(sout):
-    """ Validate interval unit."""
-    return _valid_xunit(sout, intvl_dic)
+def _valid_indextype(index):
+    """ Checks index object to make sure it subclasses from ConversionIndex.
+    Used for methods like as_specunit(), where only a valid operation if
+    underlying Index is a SpecIndex.  Custom Spectra that use, say a Float64Index
+    would not support such unit system operations.  Probably a cornercase;
+    most pyuvvis Spectra subclasses will strictly type Index.
+    """
+    try:
+        index.unitshortdict
+    except AttributeError:
+        raise SpecError('Unit API only supported by pyuvvis ConversionIndex'
+                        ' got type %s' % type(index()))    
 
 
 class SpecError(Exception):
@@ -138,12 +138,6 @@ class Spectra(MetaDataFrame):
         logger.info('Initializing %s' %  '%s:(name = %s)' % 
                     (self.__class__.__name__, self.name))
 
-        
-        # NEED TO WORK OUT LOGIC OF THIS INITIALIZATION?
-        # Should I even do anything?
-        self._intervalunit = dfkwargs.pop('intvlunit', None)        
-        self._interval = None                                                  
-        self._dtindex = None
 
         super(Spectra, self).__init__(*dfargs, **dfkwargs)        
         
@@ -151,29 +145,10 @@ class Spectra(MetaDataFrame):
             self._df.index = self._valid_index(self.index)
             
         if specunit:
-            self._df.index = self._df.index.convert(specunit)
-        
-        # If user passes non datetime index to columns, make sure they didn't accidentally pass SpecIndex by mistake.
-        if not isinstance(self._df.columns, DatetimeIndex):
-            if isinstance(self._df.columns, SpecIndex):
-                raise IOError("SpecIndex must be passed as index, not columns.")   # Can't be an attribute error or next won't be raised             
-
-            # Try to force coluns to DatetimeIndex THIS MIGHT BE A MISTAKE BECUASE
-            # DATETIME INDEX IS A BIT SOFT ON CHECKS; SHOULD DO EXTRA VALIDATION
-            try:
-                self._df.columns = DatetimeIndex(self._df.columns)
-            except Exception:
-                logger.info("Spectra initialized without DatetimeIndex-"
-                            "compatible column labels.")
-            else:
-                self._interval = False
-                self._dtindex = self._df.columns
-
-        # If DateimIndex already, store attributes directly from array
-        else:
-            self._interval = False      
-            self._dtindex = self._df.columns
+            self._df.index = self._df.index.convert(specunit)          
             
+            
+        #!! ADD DEFAULT COLUMNS CHECK HERE
       
         # Assign spectral intensity related stuff but 
         # DONT CALL _set_itype function
@@ -190,7 +165,6 @@ class Spectra(MetaDataFrame):
         if not isinstance(bline, NoneType):
             self.baseline = bline
         
-               
         # Store intrinsic attributes for output later by listattr methods
         self._intrinsic=self.__dict__.keys()
         self._intrinsic.remove('name') #Not a private attr
@@ -224,51 +198,22 @@ class Spectra(MetaDataFrame):
             print k,delim,v
         print '\n'
         
-    def list_tunits(self, delim='\t'):
-        """ Print out all available temporal units in a nice format"""
-        self._list_out(tunits, delim=delim)
+    def list_varunits(self, delim='\t'):
+        """ Print out all available variable units in a nice format"""
+        _valid_indextype(self.columns)
+        self._list_out(self.columns.unitshortdict, delim=delim)        
 
     def list_iunits(self, delim='\t'):
         """ Intensity units of dateframe.  Eg %Transmittance vs. Absorbance"""
         self._list_out(Idic, delim=delim)
 
     # Self necessary here or additional df stuff gets printed   
-    def list_sunits(self, delim='\t'):
+    def list_specunits(self, delim='\t'):
         """ Print out all available units in a nice format"""
+        _valid_indextype(self.index)
         self._list_out(self.index.unitshortdict, delim=delim)         
+        
 
-    def list_intvlunits(self, delim='\t'):
-        """ Print out all possible units to express the columns in 
-            interval or referenced notation (eg to=0)"""
-        self._list_out(intvl_dic, delim=delim)
-        
-    def label_stats(self, delim='    '):
-        """ Formatted output of various quantities pertinent to columns/rows of timespectra.  For more
-        comprehensive object output, please refert to list_attr() method."""
-        
-        # Human-readable form of self._interval
-        tstatsdic={True:'Datetime', False:'Interval/Referenced', None:'Unknown'}
-        tstyle=tstatsdic[self._interval]
-        
-        print '\nTemporal/Columns stats'
-        print '-----------------------\n'
-        print '%sTime Display Style: %s\n'%(delim, tstyle)
-        print '%sDatetimeindex parameters:'%(delim)
-        if self._dtindex is not None:
-            print '%s%sstart=%s, stop=%s, freq=%s\n'%(delim, delim, self._dtindex[0], self._dtindex[-1], self._dtindex.freq)
-        else:
-            print '%s%sDatetimeIndex not stored\n'%(delim, delim)            
-
-        print '%sTimeinterval parameters:'%(delim)
-        print '%s%sintvlunit=%s\n'%(delim, delim, self.intvlunit)
-
-            
-        print '\nSpectral/Index stats'
-        print '---------------------\n'
-        print '%sspectral category=%s, specunit=%s'%(delim, 
-                                                     self._df.index._unit.category, 
-                                                     self.specunit)
-        
     # ADD PYTHON STRING FORMATTING TO THIS
     def list_attr(self, privattr=False, dfattr=False, methods=False, types=False, delim='\t', sortby='name'): #values=False,):
         """ Outputs various attributes in the namespace, as well as their types.
@@ -603,40 +548,33 @@ class Spectra(MetaDataFrame):
 
     @specunit.setter
     def specunit(self, unit):
+        _valid_indextype(self._df.index)        
         self._df.index = self._df.index.convert(unit) 
 
-    # Two axis? REPLACING AS SPECUNIT!
+
+    @property
+    def varunit(self):
+        return self._df.columns._unit.short    #Short name key
+
+    @property
+    def full_varunit(self):
+        return self._df.columns._unit.full
+
+    @varunit.setter
+    def varunit(self, unit):
+        _valid_indextype(self._df.columns) #To raise error
+        self._df.columns = self._df.columns.convert(unit) 
+
     def as_specunit(self, unit):
         """ Returns new dataframe with different spectral unit on the index."""
         tsout = self.deepcopy()
         tsout.specunit = unit
-        return tsout    
+        return tsout       
     
-    # Temporal/column related functionality
-    def set_daterange(self, **date_range_args):
-        """ Wrapper around pandas.date_range to reset the column
-        values on of the data on the fly. See pandas.date_range()
-        for use.  In brief:
-        
-        Parameters
-        ----------
-        start: 
-            time start.  
-        freq: 
-            Frequency unit
-        stop/periods: 
-            specifies endpoint given start and freq.
-           
-        Examples
-        --------
-        timespectra.set_daterange('1/1/2012', period=5, freq='H')
-        """
-        
-        rng = date_range(**date_range_args)
-        self._df.columns = rng        
-        self._dtindex = rng
-        self._interval = False
-        
+    def as_varunit(self, unit):
+        raise NotImplementedError
+        # Need to refactor index first, then pass varunit to Spectra in same
+        # way specunit works now
         
     def set_specindex(self, start=None, stop=None, spacing=None, unit=None):
         """Helper method to generate a spectral index.  Works similarly to
@@ -706,106 +644,7 @@ class Spectra(MetaDataFrame):
         if not start or not stop:
             raise badcount_error(2,1,3, argnames='start, stop, keywords')
         
-        self._df.index = SpecIndex(np.linspace(start, stop, numpts), unit=unit)
-
-    
-    @property
-    def intvlunit(self):
-        return self._intervalunit    
-    
-    @intvlunit.setter
-    def intvlunit(self, unit):
-        """ If _df in interval mode, convert it.  Otherwise just store attributes."""
-        if unit==None:
-            unit='intvl'
-            print 'Defaulting intvlunit to "intvl"'
-            
-        if self._interval==True:
-            self.to_interval(unit)                
-        else:
-            self._intervalunit=_valid_intvlunit(unit)
-            
-    @property
-    def full_intvlunit(self):
-        if not self._intervalunit:
-            return None
-        else:
-            return intvl_dic[self._intervalunit]
-        
-    @property
-    def timetypes(self):
-        return tunits        
-            
-                    
-    @property
-    def timeunit(self):
-        """ Quick reference to current state of time labels.  For comprehensive
-        output, try ts.label_stats() 
-        """
-                
-        if self._interval == True:
-            return self.intvlunit
-        elif self._interval == False:
-            return 'Timestamp'
-        elif self._interval == None:
-            return None
-
-        
-    @property
-    def full_timeunit(self):
-        """ Quick reference to current state of time labels, except calls full_intvlunit instead of timeunit"""
-        if self._interval == True:
-            return self.full_intvlunit
-        elif self._interval == False:
-            return 'Timestamp'
-        elif self._interval == None:
-            return None
-    
-    
-    def to_datetime(self):
-        """ Set columns to DatetimeIndex.  
-        
-        Notes
-        -----
-            self._interval can be None, True or False.  This will call _as_datetime() if it's None or True 
-            and if not all appropriate attributes are found, an error will be raised.
-        """
-        if self._interval != False:       
-            self._df.columns=self._as_datetime()
-            self._interval=False
-          
-
-    def to_interval(self, unit=None):  
-        """ Set columns to interval as computed by datetime_convert function. """
-        
-        # User calls function with empty call (), if proper attributes, convert it
-        if unit==None: 
-
-            self._parse_dtindex()
-            if self._intervalunit != None:
-                unit=self._intervalunit
-            else:
-                unit='intvl'  #Default if user has not set anything in _intervalunit
-                
-        # User calls function with unit
-        else:
-            unit=_valid_intvlunit(unit)          
-            
-            # If _df already interval
-            if self._interval==True:
-                if unit==self._intervalunit:
-                    return         
-                    
-            
-            # If interval is None or False, do the conversion
-            elif self._interval==None:
-                # Make sure proper attributes to get back ater in place
-                self._parse_dtindex()
-
-                
-        self._df.columns = self._as_interval(unit)
-        self._interval = True    
-        self._intervalunit = unit
+        self._df.index = self._force_index(np.linspace(start, stop, numpts), unit=unit)
         
         
     def deepcopy(self):
@@ -813,44 +652,6 @@ class Spectra(MetaDataFrame):
         tsout = copy.deepcopy(self)
 #        tsout.specunit = sunit
         return tsout
-
-        
-    def as_interval(self, unit=None):
-        """ Return copy of Spectra as interval."""
-        if isinstance(unit, basestring):
-            if unit.lower() in ['none', 'full']:
-                unit=None
-
-        tsout = self.deepcopy()        
-        tsout.to_interval(unit)
-        return tsout        
-            
-
-    def as_datetime(self):
-        """ Return copy of Spectra as datetime."""
-        tsout = self.deepcopy()
-        tsout.to_datetime()
-        return tsout
-    
-    def _as_interval(self, unit):
-        """ Return columns as intervals as computed by datetime_convert function."""
-        
-        # If current columns is DatetimeIndex, convert
-        if self._interval == False:
-            return Index(datetime_convert(self.columns, return_as=unit, cumsum=True))              
-    
-        # If currently already intervals, convert to datetime, then convert that to new units
-        else:
-            newcols = self._as_datetime() #Convert to new unit
-            return Index(datetime_convert(newcols, return_as=unit, cumsum=True))          
-            
-    def _as_datetime(self):
-        """ Return datetimeindex given a timespectra object.  Merely sets the _dtindex
-            attribute of a timespectra. """
-    
-        # Make sure all attributes are set before converting
-        self._parse_dtindex()
-        return self._dtindex
     
     ###################################
     # Baseline related operations ###
@@ -909,13 +710,6 @@ class Spectra(MetaDataFrame):
         self._base_gate()
         return self._base_sub
 
-    def _parse_dtindex(self):
-        """ Raise error if dtindex is none.  Mostly used in cases of user 
-        error, like convert to interval when no datetime is stored."""
-
-        if self._dtindex is None:
-            raise IndexError("Cannot convert representations without interally "
-            "stored datetimeindex.")
         
     def _valid_baseline(self, baseline):
         """ Validates user-supplied baseline before setting.  Mostly,
@@ -1283,26 +1077,7 @@ class Spectra(MetaDataFrame):
         # Otherwise return whatever the method return would be
         else:
             return out
-        
-        
-    #############################################
-    ## OVERWRITE METADATFRAME MAGIC METHODS ###
-    #############################################
-    def __setattr__(self, name, value):
-        """ Don't want to let users overwite dataframe columns or index without letting timespectra know it's happening."""
-        super(Spectra, self).__setattr__(name, value)        
- 
-        # Intercept user's column attribute call and set private attributes accordingly.
-        if name=='columns':
-            if isinstance(self.columns, DatetimeIndex):
-                self._dtindex = self.columns
-                self._interval = False
-            else:
-                self._dtindex = None
-                self._interval = None
-    
-
-        
+               
             
     def _repr_html_(self, *args, **kwargs):
         """ Ipython Notebook HTML appearance basically.  This only generates

@@ -273,7 +273,7 @@ def spec_surface3d(df, **pltkwargs):
 
 
     pltkwargs['ylabel_def']='Wavelength'
-    pltkwargs['xlabel_def']='Time'
+    pltkwargs['xlabel_def']='Perturbation'
     
     return plot3d(df, **pltkwargs)
 
@@ -286,7 +286,7 @@ def spec_poly3d(df, **pltkwargs):
     
     
     pltkwargs['ylabel_def']='Wavelength'
-    pltkwargs['xlabel_def']='Time'    
+    pltkwargs['xlabel_def']='Perturbation'    
     return poly3d(df, **pltkwargs)
 
 
@@ -438,7 +438,7 @@ if __name__ == '__main__':
     #_gencorr2d(xx, yy, ts, 
                #fill=True,
                #title='My baller plot',
-               #xlabel=ts.full_timeunit,
+               #xlabel=ts.full_varunit,
                #ylabel=ts.full_specunit,
                #contours=20,
                #cbar = True,

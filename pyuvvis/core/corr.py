@@ -473,7 +473,7 @@ class Corr2d(object):
     @classmethod
     def from_spectra(cls, ts, **kwargs):
         kwargs.setdefault('idx_unit',ts.full_specunit), 
-        kwargs.setdefault('col_unit',ts.full_timeunit),
+        kwargs.setdefault('col_unit',ts.full_varunit),
         return cls(np.array(ts),   
                    ts.index, 
                    ts.columns, 
