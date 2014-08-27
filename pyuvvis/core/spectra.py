@@ -129,7 +129,8 @@ class Spectra(MetaDataFrame):
         # Intensity data-related stuff
         iunit = dfkwargs.pop('iunit', None)
 
-        # Time index-related keywords  (note, the are only used if a DatetimeIndex is not passed in)
+        # Time index-related keywords  (note, the are only used if a 
+        # DatetimeIndex is not passed in)
         reference = dfkwargs.pop('reference', None)        
         bline = dfkwargs.pop('baseline', None)
         
@@ -177,10 +178,10 @@ class Spectra(MetaDataFrame):
         # Assign spectral intensity related stuff but 
         # DONT CALL _set_itype function
         iunit =_valid_iunit(iunit)
-        self._itype=iunit
+        self._itype = iunit
         
         # This has to be done AFTER self._df has been set
-        self._reference=self._reference_valid(reference)#SHOULD DEFAULT TO NONE SO USER CAN PASS NORMALIZED DATA WITHOUT REF        
+        self._reference = self._reference_valid(reference)#SHOULD DEFAULT TO NONE SO USER CAN PASS NORMALIZED DATA WITHOUT REF        
                 
         # Baseline Initialization (UNTESTED)
         self._base_sub = False 
