@@ -229,6 +229,7 @@ class TimeSpectra(Spectra):
         
         # If current columns is DatetimeIndex, convert
         if self._interval == False:
+            #! GET RID OF INDEX DEPENDENCE
             return Index(datetime_convert(self.columns, return_as=unit, cumsum=True))              
     
         # If currently already intervals, convert to datetime, then convert that to new units

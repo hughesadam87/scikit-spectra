@@ -31,14 +31,14 @@ c = 299792458.0               #speed of light m/s
 ### Lazy way to cover both kinds of input, short or long unit!
 sec_conversions= {
          'ns':10**-9,
-		 'us':10**-6, 
-		 'ms':10**-3, 
+         'us':10**-6, 
+	 'ms':10**-3, 
          's':1.0, 
-		 'm':60.0, 
-		 'h':3600.0, 
+	 'm':60.0, 
+	 'h':3600.0, 
          'd':86400.0, 
-		 'y':31536000.0, 
-		 'intvl':None}
+	 'y':31536000.0, 
+	 'intvl':None}
 
 
 intvl_dic={'ns':'Nanoseconds', 
@@ -50,21 +50,6 @@ intvl_dic={'ns':'Nanoseconds',
            'd':'Days', 
            'y':'Years',
            'intvl':'Time Delta'}
-
-
-### Mapping of various spectral units to meters.  
-spec_dic= { 'm':1.0, 
-            'cm':.01, 
-            'cm-1':01,
-            'um':.000001, 
-            'um-1':.000001, 
-            'nm': .000000001,          
-            'k': .01, 
-            'nm-1':.000000001,
-            'f': c, 
-            'w': 2.0*math.pi*c, 
-            'ev':h*c/(eVtoJ)  
-            }
 
 
 ### Conversions for intensity data.  Note that T= I(t)/Iref
@@ -133,46 +118,6 @@ def datetime_convert(datetimeindex, return_as='intvl', cumsum=True):
 
     return newindex  
 
-
-### Spectral units conversion ###
-proportional = ['m', 'nm', 'cm', 'um'] 
-reciprocal = ['k', 'ev', 'nm-1', 'cm-1', 'um-1', 'f', 'w']    
-allunits = proportional+reciprocal
-
-def spectral_convert(spectral_array, in_unit='nm', out_unit='f'):
-    ''' Converts spectral data arrays between spectral units.  This can take in pandas
-    Index and will autoconvert to numpyarray, but will only return array, not an Index.
-    Valid in and out units below:
-
-    meters                  cm-1: Inverse centimeters
-    centimeters             nm-1: Inverse nanometers/Wavenumber
-    micrometers             freq: Frequence In Hertz
-    nanometers              angfreq: Angular Frequency in Radians/second
-    ev: Electron volts '''
-
-    in_unit=in_unit.lower() ; out_unit=out_unit.lower()
-
-    if in_unit not in allunits or out_unit not in allunits:
-        raise NameError('spectral_convert() input and output units must be in %s.  %s %s were passed.' \
-                        %(','.join(allunits), in_unit, out_unit))
-
-    ### Allow for pandas Index to be directly passed in
-    spectral_array=np.asarray(spectral_array)
-
-    ### Adjust for four cases on proportionality between input and output units. ###
-    if in_unit in proportional and out_unit in proportional:
-        return (spectral_array * spec_dic[in_unit]) / spec_dic[out_unit]
-
-    elif in_unit in proportional and out_unit in reciprocal:
-        return 1.0/( (spectral_array * spec_dic[in_unit]) / spec_dic[out_unit])
-
-    elif in_unit in reciprocal and out_unit in proportional:
-        return 1.0/( (spectral_array * spec_dic[out_unit]) / spec_dic[in_unit])   #Output/input
-
-    elif in_unit in reciprocal and out_unit in reciprocal:
-        return  (spectral_array * spec_dic[out_unit]) / spec_dic[in_unit]
-    
-    
 
 def spec_slice(spectral_array, bins):
     ''' Simple method that will divide a spectral index into n evenly sliced bins and return as nested tuples.
