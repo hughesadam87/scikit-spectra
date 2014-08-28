@@ -139,24 +139,17 @@ class Spectra(MetaDataFrame):
 
 
         super(Spectra, self).__init__(*dfargs, **dfkwargs)        
-        
-        if self._force_index:
-            if not isinstance(self._df.index, self._force_index):
-                self._df.index = self._valid_index(self.index)
-            
+   
+        # Convert to the passed unit        
+        self._df.index = self._valid_index(self.index)
         if specunit:
             self._df.index = self._df.index.convert(specunit)          
 
-        if self._force_columns:
-            if not isinstance(self._df.columns, self._force_columns):
-                self._df.columns = self._valid_columns(self.columns)
-            
+        # Convert to the passed unit
+        self._df.columns = self._valid_columns(self.columns)            
         if varunit:
             self._df.columns = self._df.columns.convert(varunit)     
-        
-            
-        #!! ADD DEFAULT COLUMNS CHECK HERE
-      
+             
         # Assign spectral intensity related stuff but 
         # DONT CALL _set_itype function
         iunit =_valid_iunit(iunit)
@@ -941,9 +934,10 @@ class Spectra(MetaDataFrame):
                     # If subclassing ConversionIndex
                     try:
                         unit = self._df.index.unit
-                        index = index.convert(unit)
                     except AttributeError:
                         pass
+                    else:
+                        index = index.convert(unit)                        
                     
         return index
             
@@ -966,10 +960,10 @@ class Spectra(MetaDataFrame):
                 try:                    
                     # If subclassing ConversionIndex
                     unit = self._df.columns.unit
-                    columns = columns.convert(unit)
                 except AttributeError:
                     pass
-                
+                else:
+                    columns = columns.convert(unit)                                 
                 
         return columns
 
