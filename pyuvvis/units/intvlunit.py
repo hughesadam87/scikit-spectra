@@ -36,7 +36,7 @@ class Minutes(IntvlUnit):
 # How to implement?  Should this be the canonical unit, not seconds?
 class TimeDelta(IntvlUnit):
    """ """
-   
+   # Will foring to float in ConversionIndex mess this up??
 
    
 _intvlunits = (
