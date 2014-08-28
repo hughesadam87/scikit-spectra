@@ -107,6 +107,7 @@ def datetime_convert(datetimeindex, return_as='intvl', cumsum=True):
         ### to use conversion dictionary above.
         nanoseconds=np.diff(datetimeindex.asi8) 
         seconds=nanoseconds * 10**-9
+        # ALL ABOVE JUST TO GET INTO SECONDS, SHOULD BE ROLLED INTO convert()
         newindex= seconds / sec_conversions[return_as]
 
 
