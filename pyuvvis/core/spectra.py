@@ -415,6 +415,7 @@ class Spectra(MetaDataFrame):
 
         return rout  #MAKES MORE SENSE TO MAKE THIS A 1D DATAFRAME
     
+    
     def wavelength_slices(self, ranges, apply_fcn='mean', **applyfcn_kwds):
         """Returns sliced averages/sums of wavelength regions. Composite dataframe will nicely
         plot when piped into spec aesthetics timeplot.
@@ -981,11 +982,11 @@ class Spectra(MetaDataFrame):
     def index(self, index):
         self._df.index = self._valid_index(index)    
 
+
     @columns.setter
     def columns(self, columns):
         self._df.columns = self._valid_columns(columns)
-
-
+        
     
     @property
     def cnsvdattr(self):
@@ -1107,7 +1108,7 @@ class Spectra(MetaDataFrame):
         else: #orange
             countstring = 'Iunit:&nbsp<font color="#FF3300">%s</font>' % self.full_iunit
             
-        ftunit = getattr(self, 'full_timeunit', 'None')
+        ftunit = getattr(self, 'full_varunit', 'None')
         spunit = getattr(self, 'full_specunit', 'None')
             
             
