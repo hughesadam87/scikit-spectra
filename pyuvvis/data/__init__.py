@@ -26,7 +26,7 @@ def load_ts(filepath, *args, **kwargs):
     filepath = op.join(data_dir, filepath)
     ext = op.splitext(filepath)[1]
 
-  
+
     if ext == '.csv':
         return TimeSpectra.from_csv(filepath, *args, **kwargs)
 
@@ -50,6 +50,10 @@ def _load_gwuspec(filepath, *args, **kwargs):
     # TimeSpec KWARGS
     kwargs.setdefault('reference', 0) #Index col will be removed.
     kwargs.setdefault('specunit', 'nm')
+    kwargs.setdefault('varunit', 'dti')
+    
+    kwargs.setdefault('force_datetime', True) #DELETE ME
+    
     ts = load_ts(filepath, *args, **kwargs)
 
     # Baselines removed apriori with dynamic_baseline
@@ -88,9 +92,11 @@ def solvent_evap(*args, **kwargs):
     kwargs.setdefault('index_col', 0)
 
     # TimeSpec KWARGS
-#    kwargs.setdefault('reference', 0) #Index col will be removed.
+    kwargs.setdefault('reference', 0) #Index col will be removed.
     kwargs.setdefault('specunit', 'cm-1')
     kwargs.setdefault('name', 'Polystyrene Evaporation')    
+
+#    kwargs.setdefault('dtype', 'float64') #For parser (data not labels)
 
     ts = load_ts('pskdt.csv', *args, **kwargs)
 

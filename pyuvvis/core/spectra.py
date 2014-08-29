@@ -15,8 +15,6 @@ from scipy import integrate
 from pyuvvis.core.specindex import SpecIndex
 from pyuvvis.core.abcindex import ConversionIndex #for typechecking; shoould be done at index level
 from pyuvvis.core.specstack import SpecStack
-from pyuvvis.core.spec_labeltools import from_T, to_T, \
-    Idic, spec_slice
 import pyuvvis.core.utilities as pvutils
 
 # Merge
@@ -28,6 +26,34 @@ from pyuvvis.exceptions import badkey_check, badcount_error, RefError, BaselineE
 
 logger = logging.getLogger(__name__) 
 
+### Idic, from_T, to_T and spec_slice all used to be in speclabeltool.py###
+Idic={None:'Counts', #Don't change without updating normplot; relies on these keys 
+      't':'Transmittance', 
+      '%t':'(%)Transmittance', 
+      'r':'Inverse Transmittance (1/T)',
+      'a':'Absorbance (base 10)', 
+      'a(ln)':'Absorbance (base e)'} 
+
+
+### Remember, data is already divided by ref before from_T is called, so "r" is base unit, not "t".  
+from_T={'t':lambda x: 1.0/x, 
+        '%t':lambda x: 100.0 * (1.0/ x), 
+        'r':lambda x: x, 
+        'a':lambda x: -np.log10(x),
+        'a(ln)':lambda x:-np.log(x)}
+
+
+to_T={'t':lambda x: 1.0/x, 
+      '%t':lambda x: (1.0/ x) / 100.0, 
+      'r':lambda x: x, 
+      'a':lambda x: np.power(10, -x), 
+      'a(ln)':lambda x: np.exp(-x)} 
+
+def spec_slice(spectral_array, bins):
+    ''' Simple method that will divide a spectral index into n evenly sliced bins and return as nested tuples.
+    Useful for generating wavelength slices with even spacing.  Simply a wrapper around np.histogram.'''
+    edges=np.histogram(spectral_array, bins)[1]
+    return [ (edges[idx], edges[i]) for idx, i in enumerate( range(1, len(edges)))]
 
 # Unit validations
 def _valid_xunit(value, dic):
@@ -115,8 +141,8 @@ class Spectra(MetaDataFrame):
     
     def __init__(self, *dfargs, **dfkwargs):
 
-        self._force_index = dfkwargs.pop('force_index', SpecIndex)
-        self._force_columns = dfkwargs.pop('force_columns', None)
+        self._strict_index = dfkwargs.pop('strict_index', SpecIndex)
+        self._strict_columns = dfkwargs.pop('strict_columns', None)
 
         # Pop default DataFrame keywords before initializing###
         self.name = str(dfkwargs.pop('name', ''))
@@ -647,7 +673,7 @@ class Spectra(MetaDataFrame):
         if not start or not stop:
             raise badcount_error(2,1,3, argnames='start, stop, keywords')
         
-        self._df.index = self._force_index(np.linspace(start, stop, numpts), unit=unit)
+        self._df.index = self._strict_index(np.linspace(start, stop, numpts), unit=unit)
         
         
     def deepcopy(self):
@@ -918,19 +944,19 @@ class Spectra(MetaDataFrame):
     
     
     def _valid_index(self, index):
-        """ Recast index to self._force_index """
-        if self._force_index:       
-            if not isinstance(index, self._force_index):
+        """ Recast index to self._strict_index """
+        if self._strict_index:       
+            if not isinstance(index, self._strict_index):
                 
                 # Cornercase User passes PressureIndex where SpecIndex required
                 if issubclass(index.__class__, ConversionIndex):
                     raise SpecError('User passed index of type %s but %s required.' % 
-                                    (type(index), self._force_index))                    
+                                    (type(index), self._strict_index))                    
                 try:
-                    index = self._force_index(index)
+                    index = self._strict_index(index)
                 except Exception:
                     raise SpecError('Could not convert index to %s.' % 
-                                    self._force_index )
+                                    self._strict_index )
                 else:
                     # If subclassing ConversionIndex
                     try:
@@ -944,20 +970,20 @@ class Spectra(MetaDataFrame):
             
 
     def _valid_columns(self, columns):
-        """ Recast columns to self._force_columns """
-        if self._force_columns:        
-            if not isinstance(columns, self._force_columns):
+        """ Recast columns to self._strict_columns """
+        if self._strict_columns:        
+            if not isinstance(columns, self._strict_columns):
                 
                 # Cornercase eg User passes PressureIndex where SpecIndex required                
                 if issubclass(columns.__class__, ConversionIndex):
                     raise SpecError('User passed columns of type %s but %s required.' % 
-                                    (type(columns), self._force_index))
+                                    (type(columns), self._strict_index))
                 
                 try:
-                    columns = self._force_columns(columns)
+                    columns = self._strict_columns(columns)
                 except Exception:
                     raise SpecError('Could not convert columns to %s.' % 
-                                    self._force_columns )
+                                    self._strict_columns )
                 try:                    
                     # If subclassing ConversionIndex
                     unit = self._df.columns.unit
@@ -1209,35 +1235,99 @@ class Spectra(MetaDataFrame):
     # -------------
     
     @classmethod
-    def from_csv(cls, path_or_buff, header=0, sep=',', index_col=0,
-                 parse_dates=True, tupleize_cols=False, 
-                 infer_datetime_format= False, **dfkwargs):
+    def from_csv(cls, filepath_or_buffer, **kwargs):
         """ Read from CSV file.  Wrapping pandas read_csv:
         http://pandas.pydata.org/pandas-docs/version/0.13.1/  \
         generated/pandas.io.parsers.read_csv.html
         
         Parameters:
         ----------
-        path_or_buff: (from pandas API) string or file handle / StringIO. 
+        filepath_or_buffer: (from pandas API) string or file handle / StringIO. 
         The string could be a URL. Valid URL schemes include http, ftp, s3, 
         and file. For file URLs, a host is expected. For instance, a local 
         file could be file.
         
-        **dfkwargs: passed to spectra constructor.       
+        **kwargs: Any valid spectra or pandas readcsv() kwargs.       
         
         
         Returns: Spectra
         """
 
-        df = read_csv(path_or_buff,
-                      header=header,
-                      sep=sep,
-                      index_col=index_col,
-                      parse_dates=parse_dates,
-                      tupleize_cols=tupleize_cols,
-                      infer_datetime_format=infer_datetime_format)
+
+        _CSVKWDS = dict(sep=',', 
+                        dialect=None, 
+                        compression=None,
+                 doublequote=True, 
+                 escapechar=None,
+                 quotechar='"', 
+                 quoting=0, 
+                 skipinitialspace=False, 
+                 lineterminator=None,
+                 header='infer', 
+                 index_col=None, 
+                 names=None, 
+                 prefix=None,
+                 skiprows=None, 
+                 skipfooter=None, 
+                 skip_footer=0, 
+                 na_values=None, 
+                 na_fvalues=None, 
+                 true_values=None, 
+                 false_values=None,
+                 delimiter=None, 
+                 converters=None, 
+                 dtype=None, 
+                 usecols=None, 
+                 engine=None, 
+                 delim_whitespace=False,
+                 as_recarray=False,
+                 na_filter=True, 
+                 compact_ints=False, 
+                 use_unsigned=False, 
+                 low_memory=True,
+                 buffer_lines=None, 
+                 warn_bad_lines=True, 
+                 error_bad_lines=True,
+                 keep_default_na=True,
+                 thousands=None,
+                 comment=None, 
+                 decimal='.',
+                 parse_dates=False, 
+                 keep_date_col=False,
+                 dayfirst=False, 
+                 date_parser=None, 
+                 memory_map=False, 
+                 nrows=None,
+                 iterator=False,
+                 chunksize=None, 
+                 verbose=False,
+                 encoding=None, 
+                 squeeze=False, 
+                 mangle_dupe_cols=True, 
+                 tupleize_cols=False,
+                 infer_datetime_format=False)
         
-        return cls(df, **dfkwargs) 
+        # Pop out any parser keyword args
+        for kw in kwargs.keys():
+            if kw in _CSVKWDS:
+                _CSVKWDS[kw] = kwargs[kw]
+                del kwargs[kw]
+
+        df = read_csv(filepath_or_buffer, **_CSVKWDS)
+        
+        return cls(df, **kwargs) 
+    
+    @classmethod
+    def from_spectra(cls, pandas_object, **dfkwargs):
+        """ Return a Spectra from a similiar object, either a pandas DataFrame
+        or a pyuvvis Spectra subclass.  Useful for type-casting, for example
+        have a DataFrame and want it as a TimeSpectra, which will do its
+        own index conversions.
+        """
+        return cls(np.array(pandas_object.df), 
+                   index=pandas_object.index, 
+                   columns=pandas_object.columns,
+                   **dfkwargs)
               
 
 ## TESTING ###
@@ -1282,10 +1372,10 @@ if __name__ == '__main__':
                    ##index=spec, 
                    ##name='ts2') 
     
-    from pyuvvis.data import solvent_evap
+    from pyuvvis.data import solvent_evap, aunps_glass
     import matplotlib.pyplot as plt
     from pyuvvis.plotting import areaplot
-    ts = solvent_evap()
+    ts = aunps_glass()
    # ts.index = SpecIndex(ts.index)
 
     t2 = ts.ix[1500.0:1000.0]

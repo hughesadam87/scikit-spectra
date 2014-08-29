@@ -25,6 +25,7 @@ class ConversionIndex(Float64Index):
    """
 
    unitdict = None 
+   addnullunit = True
    _forcetype = 'float64' 
 
    def __new__(cls, input_array, unit=None):
@@ -32,7 +33,7 @@ class ConversionIndex(Float64Index):
       #Not sure why I have to enfory dtype, but if SpecIndex() of an
       # Int64 index, it remains integer
       if cls._forcetype:
-         obj = np.asarray(input_array, dtype='float64').view(cls)
+         obj = np.asarray(input_array, dtype=cls._forcetype).view(cls)
       else:
          obj = np.asarray(input_array).view(cls)         
       obj._unit = _parse_unit(unit, cls.unitdict)

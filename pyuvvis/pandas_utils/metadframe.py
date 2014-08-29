@@ -242,14 +242,14 @@ class MetaDataFrame(object):
     def columns(self):
         return self._df.columns
 
-    # To avoid accidnetally setting index ie ts.index()
-    @index.setter
-    def index(self, index):
-        self._df.index = index
+    # To avoid accidentally setting index ie ts.index()
+    #@index.setter
+    #def index(self, index):
+        #self._df.index = index
         
-    @columns.setter
-    def columns(self, columns):
-        self._df.columns = columns
+    #@columns.setter
+    #def columns(self, columns):
+        #self._df.columns = columns
 
     def iloc(self):
         raise NotImplementedError

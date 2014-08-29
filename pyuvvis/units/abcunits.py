@@ -10,7 +10,7 @@ class UnitError(Exception):
 class Unit(object):
    """ """
    short = None
-   full = 'No Unit'
+   full = 'no unit'
    symbol = ''
    _canonical = False
 
