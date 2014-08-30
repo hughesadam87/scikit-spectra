@@ -2,25 +2,34 @@ from pyuvvis.core.abcindex import ConversionIndex, _parse_unit
 from pyuvvis.units.abcunits import UnitError
 from pyuvvis.units.intvlunit import INTVLUNITS, TimeDelta, DateTime
 import numpy as np
-from pandas import DatetimeIndex
+from pandas import DatetimeIndex, Timestamp
+from pandas.core.index import Index
 
 class TimeIndex(ConversionIndex):
    """ """
    unitdict = INTVLUNITS
-
 
    # Overload because datetime and interval need different array types
    # i.e. seconds --> float64 while dti ---> timestamp
    def __new__(cls, input_array, unit=None):
       """ Unit is valid key of unitdict """
       if unit:
-         if unit == 'dti':
-            dtype = '<M8[ns]'  #dtype of pandas.DatetimeIndex
-         elif unit == 'intvl':
+#         if unit == 'dti':
+#            dtype = '<M8[ns]'  #dtype of pandas.DatetimeIndex
+         if unit == 'intvl' or unit == 'dti':
             dtype = 'object'
          else:
             dtype = 'float64'
+            
+         # IF INPUTARRAY COMES IN AS A PANDAS DATETIMEINDEX, FORMATS IT
+         # TO AN ARRAY OF DATETIMES THEN TO AN ARRAY OF TIMESTAMPS,
+         # THE ARRAY OF TIMESTAMPS IS NECESSARY FOR TIMEINDEX
+         if isinstance(input_array, DatetimeIndex):
+            input_array = np.array(input_array.to_pydatetime())
+            input_array = np.array([Timestamp(x) for x in input_array])
+            #Convert datetimes to timestamp
          obj = np.asarray(input_array, dtype=dtype).view(cls)   
+#         obj.convert(None).convert('s')
       
       # If unit is None, don't force a particular type; use type of last 
       else:
@@ -28,6 +37,7 @@ class TimeIndex(ConversionIndex):
       
       obj._unit = _parse_unit(unit, cls.unitdict)
       return obj   
+ 
  
    @classmethod
    def from_datetime(cls, dti):

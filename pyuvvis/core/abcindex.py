@@ -1,4 +1,4 @@
-from pandas import Float64Index
+from pandas import Float64Index, Index
 import numpy as np
 from pyuvvis.units.abcunits import UnitError, Unit
 
@@ -27,6 +27,7 @@ class ConversionIndex(Float64Index):
    unitdict = None 
    addnullunit = True
    _forcetype = 'float64' 
+
 
    def __new__(cls, input_array, unit=None):
       """ Unit is valid key of unitdict """
@@ -126,3 +127,8 @@ class ConversionIndex(Float64Index):
    def unitshortdict(self):
       """ Return key:shortname; used by TimeSpectra to list output units."""
       return dict((k,v.full) for k,v in self.unitdict.items())
+   
+   @property
+   def is_all_dates(self):
+      return False
+   

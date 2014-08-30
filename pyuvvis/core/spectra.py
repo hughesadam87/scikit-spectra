@@ -6,6 +6,7 @@ import logging
 from types import NoneType, MethodType
 from operator import itemgetter
 import copy
+import datetime
 
 import numpy as np
 from pandas import DataFrame, DatetimeIndex, Index, Series, read_csv
@@ -165,7 +166,7 @@ class Spectra(MetaDataFrame):
 
 
         super(Spectra, self).__init__(*dfargs, **dfkwargs)        
-   
+      
         # Convert to the passed unit        
         self._df.index = self._valid_index(self.index)
         if specunit:
@@ -387,14 +388,12 @@ class Spectra(MetaDataFrame):
             return ref
 
         # First, try ref is itself a column name
-        try:
+        if ref in self._df.columns:
             rout=self._df[ref]
-        except (KeyError, ValueError):  #Value error if ref itself is a dataframe
-            pass
 
         # If rtemp is an integer, return that column value.  
         # NOTE: IF COLUMN NAMES ARE ALSO INTEGERS, THIS CAN BE PROBLEMATIC.
-        if isinstance(ref, int):
+        elif isinstance(ref, int):
             rout=self._df[self._df.columns[ref]]        
 
         # Finally if ref is itself a series, make sure it has the correct spectral index
@@ -1235,7 +1234,8 @@ class Spectra(MetaDataFrame):
     # -------------
     
     @classmethod
-    def from_csv(cls, filepath_or_buffer, **kwargs):
+    def from_csv(cls, filepath_or_buffer, header_datetime=False, 
+                 index_datetime=False, **kwargs):
         """ Read from CSV file.  Wrapping pandas read_csv:
         http://pandas.pydata.org/pandas-docs/version/0.13.1/  \
         generated/pandas.io.parsers.read_csv.html
@@ -1247,12 +1247,21 @@ class Spectra(MetaDataFrame):
         and file. For file URLs, a host is expected. For instance, a local 
         file could be file.
         
+        header_datetime: bool or format str (False)
+            Used to parse files with header that is a datetime string.  
+            User must pass a format string e.g. %Y/%m/%d %H:%M:%S, which
+            is the default.  Results in DatetimeIndex as label.
+            
+        index_datetime: bool or format str (False)
+            Used to parse files with header that is a datetime string.  
+            User must pass a format string e.g. %Y/%m/%d %H:%M:%S, which
+            is the default.   Results in DatetimeIndex as label.
+
         **kwargs: Any valid spectra or pandas readcsv() kwargs.       
-        
-        
+                
         Returns: Spectra
         """
-
+                    
 
         _CSVKWDS = dict(sep=',', 
                         dialect=None, 
@@ -1314,6 +1323,21 @@ class Spectra(MetaDataFrame):
                 del kwargs[kw]
 
         df = read_csv(filepath_or_buffer, **_CSVKWDS)
+        
+        if header_datetime:
+            if not isinstance(header_datetime, basestring):
+                header_datetime = '%Y/%m/%d %H:%M:%S'      
+                
+            df.columns = DatetimeIndex([datetime.datetime.strptime(s, header_datetime) 
+                          for s in df.columns])
+
+        if index_datetime:
+            if not isinstance(index_datetime, basestring):
+                index_datetime = '%Y/%m/%d %H:%M:%S'      
+                
+            df.index = DatetimeIndex([datetime.datetime.strptime(s, index_datetime) 
+                          for s in df.index])
+                
         
         return cls(df, **kwargs) 
     

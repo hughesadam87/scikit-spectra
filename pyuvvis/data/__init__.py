@@ -5,6 +5,7 @@
 import os.path as op
 from pyuvvis import data_dir, TimeSpectra
 from pyuvvis.pandas_utils.dataframeserial import df_load
+from pandas import read_csv
 
 __all__ = ['aunps_glass', 'aunps_water', 'solvent_evap']
 
@@ -25,7 +26,7 @@ def load_ts(filepath, *args, **kwargs):
     
     filepath = op.join(data_dir, filepath)
     ext = op.splitext(filepath)[1]
-
+    
 
     if ext == '.csv':
         return TimeSpectra.from_csv(filepath, *args, **kwargs)
@@ -46,14 +47,13 @@ def _load_gwuspec(filepath, *args, **kwargs):
     
     # CSV KWARGS
     kwargs.setdefault('index_col', 0)
+    kwargs.setdefault('header_datetime', "%Y-%m-%d %H:%M:%S")    
 
     # TimeSpec KWARGS
     kwargs.setdefault('reference', 0) #Index col will be removed.
     kwargs.setdefault('specunit', 'nm')
     kwargs.setdefault('varunit', 'dti')
-    
-    kwargs.setdefault('force_datetime', True) #DELETE ME
-    
+        
     ts = load_ts(filepath, *args, **kwargs)
 
     # Baselines removed apriori with dynamic_baseline
@@ -165,6 +165,6 @@ def aunps_water(*args, **kwargs):
     return ts
     
 if __name__ == '__main__':
-    ts = uvvis_spec1()
+    ts = aunps_water()
     print ts, type(ts)
     

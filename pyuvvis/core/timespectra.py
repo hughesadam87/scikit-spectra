@@ -34,32 +34,23 @@ class TimeSpectra(Spectra):
     # Has to be this way because class methods not accessible via metadataframe __getattr__()
     def __init__(self, *dfargs, **dfkwargs):
         dfkwargs['strict_columns'] = TimeIndex
-        
-        force_datetime = dfkwargs.pop('force_datetime', False)
-           
+                   
         # Intercept columns for special case that user passes datetime index,
         # Or user wants to force to DatetimeIndex (as is case with read_csv())
         # Otherwise everyting is forced to TimeIndex
         
         cols = dfkwargs.get('columns', []) 
         if not cols:
-            try:  #User passes a dataframe straight in
+            try:  #User passes a dataframe straight in so dfargs[0] is df
                 cols = dfargs[0].columns
             except AttributeError:
                 pass
-            
-
-        if force_datetime and cols is not None: #Ick
-            cols = DatetimeIndex(cols)
-
+        
         if isinstance(cols, DatetimeIndex):
             dfkwargs['columns']  = TimeIndex.from_datetime(cols)
             
         
         super(TimeSpectra, self).__init__(*dfargs, **dfkwargs)
-        print 'hi'
-
-            
         
     # Temporal/column related functionality
     def set_daterange(self, **date_range_args):
@@ -134,11 +125,12 @@ if __name__ == '__main__':
                    ###index=spec, 
                    ###name='ts2') 
     
-    from pyuvvis.data import solvent_evap, aunps_glass
+    from pyuvvis.data import solvent_evap, aunps_glass, aunps_water
     import matplotlib.pyplot as plt
     from pyuvvis.plotting import areaplot
-    ts = solvent_evap()
-#    ts = aunps_glass()
+#    ts = solvent_evap()
+    ts = aunps_water()
+    print ts.columns
    # ts.index = SpecIndex(ts.index)
 
     t2 = ts.ix[1500.0:1000.0]
