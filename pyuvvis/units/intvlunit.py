@@ -37,15 +37,16 @@ class DateTime(Unit):
    def from_canonical(self, x):
       """ Generates new DateTimeIndex form start, end.  Period is inferred
       from length of x.  Does not support 'freq'.  """
-      if not self.start and self.stop:
-         raise UnitError("Cannot convert to datetimeindex without a start,"
-                         " and stop timestamp.")
+      return self.old_datetime(0)
+      #if not self.start and self.stop:
+         #raise UnitError("Cannot convert to datetimeindex without a start,"
+                         #" and stop timestamp.")
 
-      else:
-         return date_range(start=self.start, end=self.end, periods=len(x))
+      #else:
+         #return date_range(start=self.start, end=self.end, periods=len(x))
       
-      #Does the above logic take into account all cases?      
-      raise UnitError('Could not generate DatetimeIndex from interval,'
+      ##Does the above logic take into account all cases?      
+      #raise UnitError('Could not generate DatetimeIndex from interval,'
             ' requires start+end+freq or start+periods or end+periods.') 
 
    @classmethod
