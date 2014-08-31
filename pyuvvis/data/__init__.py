@@ -95,6 +95,7 @@ def solvent_evap(*args, **kwargs):
     kwargs.setdefault('reference', 0) #Index col will be removed.
     kwargs.setdefault('specunit', 'cm-1')
     kwargs.setdefault('name', 'Polystyrene Evaporation')    
+    kwargs.setdefault('varunit', 'm')
 
 #    kwargs.setdefault('dtype', 'float64') #For parser (data not labels)
 

@@ -33,7 +33,7 @@ class TimeSpectra(Spectra):
     
     # Has to be this way because class methods not accessible via metadataframe __getattr__()
     def __init__(self, *dfargs, **dfkwargs):
-        dfkwargs['strict_columns'] = TimeIndex
+        dfkwargs.setdefault('strict_columns', TimeIndex)
                    
         # Intercept columns for special case that user passes datetime index,
         # Or user wants to force to DatetimeIndex (as is case with read_csv())
@@ -128,9 +128,10 @@ if __name__ == '__main__':
     from pyuvvis.data import solvent_evap, aunps_glass, aunps_water
     import matplotlib.pyplot as plt
     from pyuvvis.plotting import areaplot
-#    ts = solvent_evap()
-    ts = aunps_water()
+  #  ts = solvent_evap()
+    ts = aunps_glass()
     print ts.columns
+    print ts.columns.convert('m').convert('dti')
    # ts.index = SpecIndex(ts.index)
 
     t2 = ts.ix[1500.0:1000.0]

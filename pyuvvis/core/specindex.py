@@ -1,7 +1,7 @@
-from abcindex import ConversionIndex
+from abcindex import ConversionFloat64Index
 from pyuvvis.units import SPECUNITS
 
-class SpecIndex(ConversionIndex):
+class SpecIndex(ConversionFloat64Index):
    """ """
    unitdict = SPECUNITS   
 

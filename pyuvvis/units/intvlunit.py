@@ -18,10 +18,6 @@ class DateTime(Unit):
    
    start = None
    end = None
-   freq = None
-   periods = None
-      
-      
    
    # Not static method because requires state access (cumsum)
    def to_canonical(self, x):
@@ -39,16 +35,14 @@ class DateTime(Unit):
    # Not static method because requires state access (start, stop etc...)
    # http://pandas.pydata.org/pandas-docs/stable/generated/pandas.date_range.html
    def from_canonical(self, x):
-      """ Generates new DateTimeIndex form start, end, freq through 
-      pandas date_range()."""
-      if self.freq:
-         return date_range(start=self.start, end=self.end, freq=self.freq)
+      """ Generates new DateTimeIndex form start, end.  Period is inferred
+      from length of x.  Does not support 'freq'.  """
+      if not self.start and self.stop:
+         raise UnitError("Cannot convert to datetimeindex without a start,"
+                         " and stop timestamp.")
 
-      elif self.periods:
-         if self.start:
-            return date_range(start=self.start, periods=self.periods)
-         elif self.end:
-            return date_range(end=self.end, periods=self.periods)
+      else:
+         return date_range(start=self.start, end=self.end, periods=len(x))
       
       #Does the above logic take into account all cases?      
       raise UnitError('Could not generate DatetimeIndex from interval,'
@@ -59,8 +53,6 @@ class DateTime(Unit):
       out = cls()
       out.start = dti[0]
       out.end = dti[-1]
-      out.freq = dti.freq
-      out.periods = len(dti)
       return out
 
 

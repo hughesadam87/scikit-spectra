@@ -6,7 +6,13 @@ from pandas import DatetimeIndex, Timestamp
 from pandas.core.index import Index
 
 class TimeIndex(ConversionIndex):
-   """ """
+   """ Stores time labels as Timestamps, Time Deltas or cumulative intervals
+   ie seconds, minutes, days from t=0.  Timestamps (e.g. datetimes) are 
+   stored as objects, while seconds, minutes etc.. are stored as floats.  
+   Therefore, some extra logic is in place to fix breaking points with the
+   dtype would otherwise cause errors, mostly the case when dataframe does
+   slicing or indexing.
+   """
    unitdict = INTVLUNITS
 
    # Overload because datetime and interval need different array types
@@ -14,8 +20,7 @@ class TimeIndex(ConversionIndex):
    def __new__(cls, input_array, unit=None):
       """ Unit is valid key of unitdict """
       if unit:
-#         if unit == 'dti':
-#            dtype = '<M8[ns]'  #dtype of pandas.DatetimeIndex
+         # dti, timedelta
          if unit == 'intvl' or unit == 'dti':
             dtype = 'object'
          else:
@@ -83,7 +88,31 @@ class TimeIndex(ConversionIndex):
       else:
          cumsum = False
       self.unitdict['dti'].cumsum = cumsum
+
+
+   @property
+   def is_all_dates(self):
+      """ Overwirte this Index method because it's source of many issues
+      deep in cython level.  Basically, only should be called if python
+      objects.  Otherwise, get ValueError:
+           Buffer dtype mismatch, expected 'Python object' but got 'double'
+      """
+      if self.dtype != 'object':
+         return False
+      else:
+         return super(ConversionIndex, self).is_all_dates    
       
+      
+   # Hack to return _engine type correctly for mixed index objects like TimeIndex
+   @property
+   def _engine_type(self):
+      import pandas.index as _index      
+      if self.dtype == 'object':
+         return _index.ObjectEngine
+      elif self.dtype == 'float64':
+         return _index.Float64Engine
+      else:
+         raise IndexError("Not sure which Engine to return for dtype %s" % self.dtype)      
             
 
 if __name__ == '__main__':

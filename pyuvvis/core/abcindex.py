@@ -11,7 +11,7 @@ def _parse_unit(unit, unitdict):
    return unitdict[unit]  
 
 
-class ConversionIndex(Float64Index):
+class ConversionIndex(Index):
    """ Base class for pyuvvis.  To overwrite, requires:
         - replace unitdict with a dictionary from units.py, eg SPECUNITS
         - overwrite convert(), which defines conversions on the unit types.
@@ -26,7 +26,7 @@ class ConversionIndex(Float64Index):
 
    unitdict = None 
    addnullunit = True
-   _forcetype = 'float64' 
+   _forcetype = None 
 
 
    def __new__(cls, input_array, unit=None):
@@ -74,11 +74,11 @@ class ConversionIndex(Float64Index):
       inunit = self._unit
 
       # Unit not changed, or set to None
-      if outunit == self._unit or not outunit.short:
+      if outunit.short == inunit.short or not outunit.short:
          return self.__class__(self, unit=outunit.short)
 
       # If current unit is None, just set new unit
-      if not self._unit.short:
+      if not inunit.short:
          return self.__class__(self, unit = outunit.short)
 
       # Convert non-null unit to another non-null unit   
@@ -127,8 +127,17 @@ class ConversionIndex(Float64Index):
    def unitshortdict(self):
       """ Return key:shortname; used by TimeSpectra to list output units."""
       return dict((k,v.full) for k,v in self.unitdict.items())
+      
    
-   @property
-   def is_all_dates(self):
-      return False
+class ConversionFloat64Index(ConversionIndex, Float64Index):
+   """ Float64 conversion index.  Main difference is that Float64Index
+   has several properties like "is_all_dates" and "is_unique" that are 
+   critical for slicing and other Dataframe operations.  Therefore, we 
+   want to retain all these for the Float64Index.  By method res order (MRO),
+   they should not overwrite anything define don conversion index.  
+   
+   More about MRO in python: http://mypythonnotes.wordpress.com/2008/11/01/
+                 python-multiple-inheritance-and-the-diamond-problem/ """
+   
+   _forcetype = 'float64' 
    
