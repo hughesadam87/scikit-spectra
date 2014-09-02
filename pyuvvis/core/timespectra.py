@@ -4,7 +4,7 @@ import logging
 from pyuvvis.logger import decode_lvl, logclass
 from pandas import DatetimeIndex, Index
 from pyuvvis.core.spectra import _valid_xunit
-from pyuvvis.units.intvlunit import INTVLUNITS
+from pyuvvis.units.intvlunit import INTVLUNITS, DatetimeCanonicalError
 from pyuvvis.core.timeindex import TimeIndex
 from spectra import Spectra
 
@@ -20,44 +20,44 @@ def _valid_intvlunit(sout):
 class TimeSpectra(Spectra):
     """ Spectra that enforces a TimeIndex.  TimeIndex converts representations
     between DatetimeIndex and Intervals.
-    
+
     Parameters
     ----------
-    
+
     force_datetime: bool (False)
         Convienence method for when a user is passing in datetimes, but does
         not have them in a DatetimeIndex.  The only use case we've found is
         trying to parse CSV files; the datetimes are a list of strings and
     """
-    
-    
+
+
     # Has to be this way because class methods not accessible via metadataframe __getattr__()
     def __init__(self, *dfargs, **dfkwargs):
         dfkwargs.setdefault('strict_columns', TimeIndex)
-                   
+
         # Intercept columns for special case that user passes datetime index,
         # Or user wants to force to DatetimeIndex (as is case with read_csv())
         # Otherwise everyting is forced to TimeIndex
-        
+
         cols = dfkwargs.get('columns', []) 
         if not cols:
             try:  #User passes a dataframe straight in so dfargs[0] is df
                 cols = dfargs[0].columns
             except AttributeError:
                 pass
-        
+
         if isinstance(cols, DatetimeIndex):
             dfkwargs['columns']  = TimeIndex.from_datetime(cols)
-            
-        
+
+
         super(TimeSpectra, self).__init__(*dfargs, **dfkwargs)
-        
+
     # Temporal/column related functionality
     def set_daterange(self, **date_range_args):
         """ Wrapper around pandas.date_range to reset the column
         values on of the data on the fly. See pandas.date_range()
         for use.  In b	rief:
-        
+
         Parameters
         ----------
         start: 
@@ -66,19 +66,19 @@ class TimeSpectra(Spectra):
             Frequency unit
         stop/periods: 
             specifies endpoint given start and freq.
-           
+
         Examples
         --------
         timespectra.set_daterange('1/1/2012', period=5, freq='H')
         """
-        
+
         # THESE SHOULD GO TO UNIT START/STOP etc?  Or just call intvlindex.from_datetime()
         rng = date_range(**date_range_args)
         self._df.columns = rng        
         self._dtindex = rng
         self._interval = False
-        
-        
+
+
 
 ## TESTING ###
 if __name__ == '__main__':
@@ -98,46 +98,46 @@ if __name__ == '__main__':
     #from pyuvvis.plotting import splot, range_timeplot
     #ts_water = aunps_glass()
 ##    ax1, ax2 = splot(1,2)
-    
+
 ##    ts_water.plot(ax=ax1)
     #range_timeplot(ts_water.wavelength_slices(8))
 ##    bline = ts_water.baseline
 ##    bline.plot(ax=ax1, lw=5, color='r')
     #plt.show()
 
-    
+
 
     spec=SpecIndex(range(400, 700,1), unit='nm')
 ###    spec=SpecIndex([400.,500.,600.])
     testdates = date_range(start='3/3/12',periods=30,freq='h')
     ##testdates2 = date_range(start='3/3/12',periods=30,freq='45s')
-    
+
     #ts=TimeSpectra(abs(np.random.randn(300,30)), 
 ##                   columns=testdates, 
-                   #index=spec, 
-                   #name='ts1')  
-    
+                    #index=spec, 
+                    #name='ts1')  
+
     #print ts.list_varunits()
     #print ts.list_specunits()
 
     ###t2=TimeSpectra(abs(np.random.randn(300,30)), 
-                   ###columns=testdates2, 
-                   ###index=spec, 
-                   ###name='ts2') 
-    
+                    ###columns=testdates2, 
+                    ###index=spec, 
+                    ###name='ts2') 
+
     from pyuvvis.data import solvent_evap, aunps_glass, aunps_water
     import matplotlib.pyplot as plt
     from pyuvvis.plotting import areaplot
-  #  ts = solvent_evap()
+    #  ts = solvent_evap()
     ts = aunps_glass()
-   # ts.index = SpecIndex(ts.index)
+    # ts.index = SpecIndex(ts.index)
     cols = ts.columns[0:5]
     mins = cols.convert('m')
 
     t2 = ts.ix[1500.0:1000.0]
     print ts.index
     print t2.index
-    
+
 
     #t2 = ts.as_interval('m')
 
@@ -153,7 +153,7 @@ if __name__ == '__main__':
     ##ts.area().plot()
     ##import sys
     ##sys.exit()
-    
+
 ###    stack.plot(title='Big bad plots')
     #from pyuvvis.plotting import six_plot
     #import matplotlib.pyplot as plt
@@ -172,14 +172,14 @@ if __name__ == '__main__':
     ##specplot(ts, cbar=True)
 
 
-    
+
 ###    a=ts.area()
 ###    print 'hi', a.specunit
 ###    ts.specunit = 'ev'
     ###from pyuvvis.plotting import specplot, areaplot
     ###areaplot(ts)
     ###plt.show()
-   
+
     ###from pyuvvis.IO.gwu_interfaces import from_spec_files, get_files_in_dir
     ###from pyuvvis.exampledata import get_exampledata
     ###ts=from_spec_files(get_files_in_dir(get_exampledata('NPSAM'), sort=True), name='foofromfile')
@@ -188,29 +188,29 @@ if __name__ == '__main__':
     ###ts=ts.ix[440.0:700.0,0.0:100.0]
     ###ts.reference=0    
     ###print ts._baseline.shape, ts.shape
-    
+
     #### Goes to site packages because using from_spec_files, which is site package module
     ###ts.run_pca()
- ####   ts.pca_evals
+    ####   ts.pca_evals
 
     ####from pandas import Panel
     ####Panel._constructor_sliced=TimeSpectra
     ####pdic={'ts':ts}
     ####tp=Panel.from_dict(pdic)
-    
+
     ###d={'start':2/22/12, 'periods':len(ts.columns), 'freq':'45s'}
     ###ts.set_daterange(start='2/22/12', periods=len(ts.columns), freq='45s')
-    
+
     ###ts.baseline=ts.reference
     ###ts.sub_base()
 
     #### THIS FAILS WHEN INDEX=SPEC 
     ###t3=TimeSpectra(abs(np.random.randn(ts.baseline.shape[0], 30)), columns=\
-                   ###testdates, 
-                   ###baseline=ts._baseline, name='foobar')  
+                    ###testdates, 
+                    ###baseline=ts._baseline, name='foobar')  
 
-    
-       
+
+
     ####ts._reference.x='I WORK'
     ####ts._reference.name='joe'
     ###ts.baseline=Series([20,30,50,50], index=[400., 500., 600., 700.])
@@ -220,9 +220,9 @@ if __name__ == '__main__':
     ####ts.pvutils.boxcar(binwidth=20, axis=1)
     ####x=ts.ix[450.0:650.]
     ####y=t2.ix[500.:650.]
-    
+
     ####ts.cnsvdmeth='name'
-        
+
     ###from pyuvvis.pandas_utils.metadframe import mload
     ####from pyuvvis import areaplot, absplot
     ###ts=mload('rundata.pickle')    
@@ -236,15 +236,15 @@ if __name__ == '__main__':
     ####a=haiss_m3(ts, 0.000909, peak_width=None, dilution=0.1)
     ####b=haiss_conc(ts, 12.0)
     #####b2=haiss_conc(ts, 12.0, dilution=0.2)
-    
+
 #####    bline=ts[ts.columns[0]]
 #####    ts=ts.ix[:,25.0:30.0]
 #####    ts.reference=bline
- 
+
     ####uv_ranges=((430.0,450.0))#, (450.0,515.0), (515.0, 570.0), (570.0,620.0), (620.0,680.0))
-    
+
     ####tssliced=ts.wavelength_slices(uv_ranges, apply_fcn='mean')
-        
+
     ####from pyuvvis.core.utilities import find_nearest
     ####x=ts.ix[500.:510, 0]
     ####b=pvutils.maxmin_xy(x)
@@ -252,8 +252,8 @@ if __name__ == '__main__':
     ####ts.iunit=None
     ####ts.iunit='a'
     ####ts.iunit=None
-    
-    
+
+
     ####ts.to_csv('junk')
     ####range_timeplot(ts)
 

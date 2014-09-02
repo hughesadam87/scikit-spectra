@@ -4,6 +4,9 @@ from pandas import DatetimeIndex, date_range, Index
 import datetime
 import numpy as np
 
+class DatetimeCanonicalError(UnitError):
+   """ Very specific error USED FOR CATCHING EXCEPTIONS IN TIME INDEX 
+   DO NOT CHANGE THE NAME."""
 
 class DateTime(Unit):
    """ Stores start and stop metadata.  Made for compaitiblity with interval
@@ -22,28 +25,31 @@ class DateTime(Unit):
    
    # Not static method because requires state access (cumsum)
    def to_canonical(self, x):
-      """ Converts a datetime index to seconds interval"""
-      if not isinstance(x, DatetimeIndex):
-         x = DatetimeIndex(x)
-      nanoseconds = np.diff(x.asi8)  #asi8 only defined on DatetimeIndex      
-      seconds = nanoseconds * 10**-9  
-      seconds = np.insert(seconds, 0, seconds[0]-seconds[0])
-      if self.cumsum:
-         seconds = seconds.cumsum()
-      return seconds     
+      """ """
+      raise DatetimeCanonicalError('DateTime unit conversion handled through'
+                      ' TimeIndex because state info is required.')
+      #if not isinstance(x, DatetimeIndex):
+         #x = DatetimeIndex(x)
+      #nanoseconds = np.diff(x.asi8)  #asi8 only defined on DatetimeIndex      
+      #seconds = nanoseconds * 10**-9  
+      #seconds = np.insert(seconds, 0, seconds[0]-seconds[0])
+      #if self.cumsum:
+         #seconds = seconds.cumsum()
+      #return seconds     
       
       
    # Not static method because requires state access (start, stop etc...)
    # http://pandas.pydata.org/pandas-docs/stable/generated/pandas.date_range.html
    def from_canonical(self, x):
-      """ Generates new DateTimeIndex form start, end.  Period is inferred
-      from length of x.  Does not support 'freq'.  """
-#      return self.old_datetime(0)
+      """   """
+      raise DatetimeCanonicalError('DateTime unit conversion handled through'
+                      ' TimeIndex because state info is required.')      
+#      return self.old_datetime(0)011
 
-      if self.datetimeindex is not None:
-         return self.datetimeindex
-      else:
-         raise UnitError('Datetimeindex not stored.')
+      #if self.datetimeindex is not None:
+         #return self.datetimeindex
+      #else:
+         #raise UnitError('Datetimeindex not stored.')
 
       #if not self.start and self.stop:
          #raise UnitError("Cannot convert to datetimeindex without a start,"

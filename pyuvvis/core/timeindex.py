@@ -36,10 +36,59 @@ class TimeIndex(ConversionIndex):
                 input_array = np.array([Timestamp(x) for x in input_array])
 
         obj = np.asarray(input_array, dtype=dtype).view(cls)   
+        
+        if unit == 'dti':
+            obj._stored_dti = input_array
+        else:
+            obj._stored_dti = None
 
         # Ensure valid unit
         obj._unit = _parse_unit(unit, cls.unitdict)
         return obj   
+
+
+    def convert(self, outunit):
+        """Converts spectral units (see abcindex.convert()).  Handles special
+        case of converting to datetimeindex, since the DateTime unit does
+        not have conversions; instead the datetimeindex is stored in this
+        TimeIndex class and needs to be handled separately.
+        """
+
+        # Handle non-dti conversion and conversions involvin DTI and None
+        try:
+            return super(TimeIndex, self).convert(outunit)
+        except DatetimeCanonicalError:
+            pass
+
+        # DTI
+        if outunit.short == 'dti' and inunit.short == 'dti':
+            return self.__class__(self, unit = 'dti')
+
+
+        
+#        canonical = inunit.to_canonical(np.array(self))
+#        arrayout = outunit.from_canonical(canonical)
+#        return self.__class__(arrayout, unit=outunit.short)             
+            
+
+        #DTI TO SOMETHING ELSE
+        elif outunit.short == 'dti' and inunit.short != 'dti':
+            #RETURN DIRECTLY FROM STORED DTI
+            return self.dti 
+
+            
+        #SOMETHING ELSE TO DTI            
+        elif outunit.short != 'dti' and inunit.short == 'dti':
+            #DTI TO CANONICAL
+            #CANONICAL TO OUTUNIT
+            NotImplemented
+
+            
+        # Should never happen
+        else:
+            raise IndexError("SOME LOGIC APPARENTLY NOT ACCOUNT FOR")
+    
+
 
 
     @classmethod
@@ -71,7 +120,7 @@ class TimeIndex(ConversionIndex):
 
         # Set DateTime unit to the one just created through from_datetime 
         intervalindex = cls(dti, unit='dti')
-        intervalindex.unitdict['dti'].datetimeindex = dti
+#        intervalindex.unitdict['dti'].datetimeindex = dti
         return intervalindex
 
     def __getslice__(self, start, stop) :
@@ -97,10 +146,11 @@ class TimeIndex(ConversionIndex):
         out = super(TimeIndex, self).__getitem__(key)
         # If not returning a single value (eg index[0])
         if hasattr(out, '__iter__'):
-            if hasattr(out.unitdict['dti'], 'datetimeindex'):
+            if hasattr(out, '_stored_dti'):
                 # unitdict will get copied by reference; need new 
-                out.unitdict = deepcopy(self.unitdict)
-                out.unitdict['dti'].datetimeindex = deepcopy(out.unitdict['dti'].datetimeindex.__getitem__(key))
+                out._stored_dti = out._dtored_dti.__getitem__(key) #copy?
+#                out.unitdict = deepcopy(self.unitdict)
+#                out.unitdict['dti'].datetimeindex = deepcopy(out.unitdict['dti'].datetimeindex.__getitem__(key))
         return out
 
     @property
