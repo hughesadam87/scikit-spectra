@@ -176,7 +176,7 @@ def from_spec_files(file_list, name='', skiphead=17, skipfoot=1, check_for_overl
         f.close()
 
     ### Make timespec, add filenames, baseline and metadata attributes (note, DateTimeIndex auto sorts!!)
-    timespec=TimeSpectra(dict_of_series, name=name)
+    timespec=TimeSpectra(DataFrame(dict_of_series), name=name) #Dataframe beacuse TS doesn't handle dict of series
     timespec.specunit='nm'
     timespec.filedict=time_file_dict
     timespec.baseline=baseline  #KEEP THIS AS DARK SERIES RECALL IT IS SEPARATE FROM reference OR REFERENCE..  
@@ -267,7 +267,6 @@ def from_timefile_datafile(datafile, timefile, extract_dark=True, name=''):
 
     dataframe=TimeSpectra(data, columns=sorted_times, index=wavelengths)      
     
-
 
     ### Add field attributes to dataframe
     dataframe.baseline=baseline 

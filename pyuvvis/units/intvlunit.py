@@ -1,6 +1,6 @@
 from pyuvvis.units.abcunits import Unit, UnitError
 from datetime import timedelta
-from pandas import DatetimeIndex, date_range
+from pandas import DatetimeIndex, date_range, Index
 import datetime
 import numpy as np
 
@@ -16,8 +16,9 @@ class DateTime(Unit):
   
    cumsum = True #Disable for absolute intervals
    
-   start = None
-   end = None
+
+   def __init__(self):
+      self.datetimeindex = None
    
    # Not static method because requires state access (cumsum)
    def to_canonical(self, x):
@@ -37,7 +38,13 @@ class DateTime(Unit):
    def from_canonical(self, x):
       """ Generates new DateTimeIndex form start, end.  Period is inferred
       from length of x.  Does not support 'freq'.  """
-      return self.old_datetime(0)
+#      return self.old_datetime(0)
+
+      if self.datetimeindex is not None:
+         return self.datetimeindex
+      else:
+         raise UnitError('Datetimeindex not stored.')
+
       #if not self.start and self.stop:
          #raise UnitError("Cannot convert to datetimeindex without a start,"
                          #" and stop timestamp.")
@@ -47,14 +54,14 @@ class DateTime(Unit):
       
       ##Does the above logic take into account all cases?      
       #raise UnitError('Could not generate DatetimeIndex from interval,'
-            ' requires start+end+freq or start+periods or end+periods.') 
+     #       ' requires start+end+freq or start+periods or end+periods.') 
 
-   @classmethod
-   def from_datetime(cls, dti):
-      out = cls()
-      out.start = dti[0]
-      out.end = dti[-1]
-      return out
+   #@classmethod
+   #def from_datetime(cls, dti):
+      #out = cls()
+      #out.start = dti[0]
+      #out.end = dti[-1]
+      #return out
 
 
 

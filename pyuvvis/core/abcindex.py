@@ -27,7 +27,7 @@ class ConversionIndex(Index):
    unitdict = None 
    addnullunit = True
    _forcetype = None 
-
+   
 
    def __new__(cls, input_array, unit=None):
       """ Unit is valid key of unitdict """

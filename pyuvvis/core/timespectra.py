@@ -130,9 +130,9 @@ if __name__ == '__main__':
     from pyuvvis.plotting import areaplot
   #  ts = solvent_evap()
     ts = aunps_glass()
-    print ts.columns
-    print ts.columns.convert('m').convert('dti')
    # ts.index = SpecIndex(ts.index)
+    cols = ts.columns[0:5]
+    mins = cols.convert('m')
 
     t2 = ts.ix[1500.0:1000.0]
     print ts.index

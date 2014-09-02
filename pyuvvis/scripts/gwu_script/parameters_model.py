@@ -1,7 +1,7 @@
 ''' Model for building correct parameters that will be assigned to timespectra
     in gwu_spec script.'''
 from pyuvvis.exceptions import ParameterError, badkey_check
-from pyuvvis.core.timespectra import Idic
+from pyuvvis.core.spectra import Idic
 import os.path as op
 
 import logging

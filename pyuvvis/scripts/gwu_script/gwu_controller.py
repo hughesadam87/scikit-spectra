@@ -25,14 +25,13 @@ from time import gmtime, strftime
 #from pyuvvis.bundled import run_nb_offline
 from pyuvvis.plotting import areaplot, normplot, range_timeplot, six_plot
 #from pyuvvis.plotting.advanced_plots import spec_surface3d, surf3d, spec_poly3d, plot2d, plot3d
-from pyuvvis.core.spec_labeltools import datetime_convert, spec_slice
 from pyuvvis.core.utilities import boxcar, countNaN
 from pyuvvis.core.baseline import dynamic_baseline
 from pyuvvis.plotting.plot_utils import _df_colormapper, cmget
 from pyuvvis.IO.gwu_interfaces import from_timefile_datafile, from_spec_files
 from pyuvvis.core.file_utils import get_files_in_dir, get_shortname
 #from pyuvvis.core.corr import ca2d, make_ref, sync_3d, async_3d
-from pyuvvis.core.timespectra import Idic
+from pyuvvis.core.spectra import Idic
 from pyuvvis.pandas_utils.metadframe import mload, mloads
 from pyuvvis.exceptions import badkey_check, ParserError, GeneralError, \
      ParameterError, LogExit
@@ -561,9 +560,9 @@ class Controller(object):
         # Once jsonify, this can be returned to apply parameters fcn 
         if self.params.intvlunit:
             try:
-                ts.to_interval(self.params.intvlunit)
+                ts.varunit = self.params.intvlunit
             except KeyError:
-                ts.to_interval()        
+                ts.varunit = 'intv'        
                 logger.warn('Cannot set "intvlunit" from parameters; running'
                         ' ts.to_interval()')
         else:
@@ -598,7 +597,7 @@ class Controller(object):
         template = template.replace('---TSTART---', '%s'%ts_full.columns[0])
         template = template.replace('---TEND---', '%s'%ts_full.columns[-1])
         template = template.replace('---TDELTA---', '%s'%
-                                    ts_full.as_interval('intvl').columns[-1])                            
+                                    ts_full.as_varunit('intvl').columns[-1])                            
 
         open(NBPATH, 'w').write(template)
 
