@@ -15,60 +15,19 @@ class DateTime(Unit):
    symbol = 't'
    category = 'time'
    short = 'dti' #So it automatically added to intvlindex rather than Null
-   full = 'timestamp'
-  
-   cumsum = True #Disable for absolute intervals
-   
+   full = 'timestamp'   
 
-   def __init__(self):
-      self.datetimeindex = None
    
    # Not static method because requires state access (cumsum)
    def to_canonical(self, x):
       """ """
       raise DatetimeCanonicalError('DateTime unit conversion handled through'
-                      ' TimeIndex because state info is required.')
-      #if not isinstance(x, DatetimeIndex):
-         #x = DatetimeIndex(x)
-      #nanoseconds = np.diff(x.asi8)  #asi8 only defined on DatetimeIndex      
-      #seconds = nanoseconds * 10**-9  
-      #seconds = np.insert(seconds, 0, seconds[0]-seconds[0])
-      #if self.cumsum:
-         #seconds = seconds.cumsum()
-      #return seconds     
-      
-      
-   # Not static method because requires state access (start, stop etc...)
-   # http://pandas.pydata.org/pandas-docs/stable/generated/pandas.date_range.html
+                      ' TimeIndex because state info is required.')  
+
    def from_canonical(self, x):
       """   """
       raise DatetimeCanonicalError('DateTime unit conversion handled through'
                       ' TimeIndex because state info is required.')      
-#      return self.old_datetime(0)011
-
-      #if self.datetimeindex is not None:
-         #return self.datetimeindex
-      #else:
-         #raise UnitError('Datetimeindex not stored.')
-
-      #if not self.start and self.stop:
-         #raise UnitError("Cannot convert to datetimeindex without a start,"
-                         #" and stop timestamp.")
-
-      #else:
-         #return date_range(start=self.start, end=self.end, periods=len(x))
-      
-      ##Does the above logic take into account all cases?      
-      #raise UnitError('Could not generate DatetimeIndex from interval,'
-     #       ' requires start+end+freq or start+periods or end+periods.') 
-
-   #@classmethod
-   #def from_datetime(cls, dti):
-      #out = cls()
-      #out.start = dti[0]
-      #out.end = dti[-1]
-      #return out
-
 
 
 class IntvlUnit(Unit):

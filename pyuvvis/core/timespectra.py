@@ -132,6 +132,7 @@ if __name__ == '__main__':
     ts = aunps_glass()
     # ts.index = SpecIndex(ts.index)
     cols = ts.columns[0:5]
+    c2 = ts.columns[0:5].convert('m')
     mins = cols.convert('m')
 
     t2 = ts.ix[1500.0:1000.0]

@@ -4,7 +4,7 @@ from pandas import DatetimeIndex, Timestamp
 
 from pyuvvis.core.abcindex import ConversionIndex, _parse_unit
 from pyuvvis.units.abcunits import UnitError
-from pyuvvis.units.intvlunit import INTVLUNITS, TimeDelta, DateTime
+from pyuvvis.units.intvlunit import INTVLUNITS, TimeDelta, DateTime, DatetimeCanonicalError
 
 class TimeIndex(ConversionIndex):
     """ Stores time labels as Timestamps, Time Deltas or cumulative intervals
@@ -15,11 +15,21 @@ class TimeIndex(ConversionIndex):
     slicing or indexing.
     """
     unitdict = INTVLUNITS
+    cumsum = True
 
     # Overload because datetime and interval need different array types
     # i.e. seconds --> float64 while dti ---> timestamp
     def __new__(cls, input_array, unit=None):
         """ Unit is valid key of unitdict """
+
+        # Is DatetimeIndex stored on object, or is object itself datetimeindex
+        datetimeindex = None 
+        try:
+            datetimeindex = input_array.datetimeindex
+        except AttributeError:
+            if isinstance(input_array, DatetimeIndex):
+                datetimeindex = input_array
+                        
         if unit:
             # dti, timedelta
             if unit == 'intvl' or unit == 'dti':
@@ -35,15 +45,16 @@ class TimeIndex(ConversionIndex):
                 input_array = np.array(input_array.to_pydatetime())
                 input_array = np.array([Timestamp(x) for x in input_array])
 
-        obj = np.asarray(input_array, dtype=dtype).view(cls)   
-        
-        if unit == 'dti':
-            obj._stored_dti = input_array
+            obj = np.asarray(input_array, dtype=dtype).view(cls)   
         else:
-            obj._stored_dti = None
+            obj = np.asarray(input_array).view(cls)   
+        
+        obj._stored_dti = datetimeindex
 
         # Ensure valid unit
         obj._unit = _parse_unit(unit, cls.unitdict)
+        if cls.cumsum:
+            obj.cumsum = True
         return obj   
 
 
@@ -56,39 +67,54 @@ class TimeIndex(ConversionIndex):
 
         # Handle non-dti conversion and conversions involvin DTI and None
         try:
-            return super(TimeIndex, self).convert(outunit)
+            out = super(TimeIndex, self).convert(outunit)
         except DatetimeCanonicalError:
-            pass
-
+            inunit = self._unit.short        
+ 
         # DTI
-        if outunit.short == 'dti' and inunit.short == 'dti':
+        if outunit == 'dti':# and inunit == 'dti':
+            if self.datetimeindex is None:
+                raise IndexError("Datetime index not stored; cannot convert to dti")
             return self.__class__(self, unit = 'dti')
 
+        ##SOMETHING TO DTI
+        #elif outunit == 'dti' and inunit != 'dti':
+            #if self.datetimeindex is not None:
+                
 
-        
-#        canonical = inunit.to_canonical(np.array(self))
-#        arrayout = outunit.from_canonical(canonical)
-#        return self.__class__(arrayout, unit=outunit.short)             
-            
-
-        #DTI TO SOMETHING ELSE
-        elif outunit.short == 'dti' and inunit.short != 'dti':
-            #RETURN DIRECTLY FROM STORED DTI
-            return self.dti 
-
-            
-        #SOMETHING ELSE TO DTI            
-        elif outunit.short != 'dti' and inunit.short == 'dti':
-            #DTI TO CANONICAL
-            #CANONICAL TO OUTUNIT
-            NotImplemented
-
+        #DTI TO SOMETHING ELSE            
+        elif outunit != 'dti' and inunit == 'dti':
+            nanoseconds = np.diff(self.datetimeindex.asi8)  #asi8 only defined on DatetimeIndex      
+            seconds = nanoseconds * 10**-9  
+            seconds = np.insert(seconds, 0, seconds[0]-seconds[0])
+            if self.cumsum:
+                seconds = seconds.cumsum()
+            out = self.__class__(seconds, unit='s') 
+            return out.convert(outunit)
             
         # Should never happen
         else:
-            raise IndexError("SOME LOGIC APPARENTLY NOT ACCOUNT FOR")
+            raise IndexError("SOME LOGIC APPARENTLY NOT ACCOUNTED FOR")
     
-
+    @property
+    def datetimeindex(self):
+        if getattr(self, '_stored_dti', None) is not None:
+            return self._stored_dti
+        
+    @datetimeindex.setter
+    def datetimeindex(self, dti):
+        if dti is None:
+            self._stored_dti = None
+            return
+        
+        if not isinstance(dti, DatetimeIndex):
+            try:
+                dti = DatetimeIndex(dti)
+            except Exception:
+                raise IndexError('Could not store DatetimeIndex; wrong type %s' \
+                                 % type(dti))
+            else:
+                self._stored_dti = dti
 
 
     @classmethod
@@ -146,30 +172,9 @@ class TimeIndex(ConversionIndex):
         out = super(TimeIndex, self).__getitem__(key)
         # If not returning a single value (eg index[0])
         if hasattr(out, '__iter__'):
-            if hasattr(out, '_stored_dti'):
-                # unitdict will get copied by reference; need new 
-                out._stored_dti = out._dtored_dti.__getitem__(key) #copy?
-#                out.unitdict = deepcopy(self.unitdict)
-#                out.unitdict['dti'].datetimeindex = deepcopy(out.unitdict['dti'].datetimeindex.__getitem__(key))
+            if self.datetimeindex is not None:
+                out._stored_dti = self.datetimeindex.__getitem__(key) #copy?
         return out
-
-    @property
-    def datetimeindex(self):
-        return self.unitdict['dti'].datetimeindex
-
-
-    # DOESNT WORK
-    @property
-    def cumsum(self):
-        return self.unitdict['dti'].cumsum
-
-    @cumsum.setter
-    def cumsum(self, cumsum):
-        if cumsum:
-            cumsum = True
-        else:
-            cumsum = False
-        self.unitdict['dti'].cumsum = cumsum
 
 
     @property
@@ -194,7 +199,8 @@ class TimeIndex(ConversionIndex):
         elif self.dtype == 'float64':
             return _index.Float64Engine
         else:
-            raise IndexError("Not sure which Engine to return for dtype %s" % self.dtype)      
+            raise IndexError("Not sure which Engine to return for dtype %s"\
+                             % self.dtype)      
 
 
 if __name__ == '__main__':
