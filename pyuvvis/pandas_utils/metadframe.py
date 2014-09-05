@@ -287,8 +287,63 @@ class MetaDataFrame(object):
             ### New versions of _IXIndexer require "name" attribute.
             except TypeError as TE:
                 self._iloc=_IlocMeta(self, '_iloc')
-        return self._iloc        
+        return self._iloc   
+    
 
+    @property	  	
+    def loc(self, *args, **kwargs):      	
+        ''' Pandas Indexing.  Note, this has been modified to ensure that series returns (eg ix[3])
+        still maintain attributes.  To remove this behavior, replace the following:
+        
+        self._ix = _MetaIndexer(self, _IXIndexer(self) ) --> self._ix=_IXIndexer(self)
+        
+        The above works because slicing preserved attributes because the _IXIndexer is a python object 
+        subclass.'''
+        if self._iloc is None:
+            try:
+                self._iloc =_LocMeta(self)
+            ### New versions of _IXIndexer require "name" attribute.
+            except TypeError as TE:
+                self._iloc=_LocMeta(self, '_loc')
+        return self._iloc         
+
+
+class _LocMeta(_IXIndexer):
+    
+    def __getitem__(self, key):
+        try:
+            out=super(_LocMeta, self).__getitem__(key)   
+            
+        except KeyError as ke:
+            if not isinstance(key, slice):
+                row, col = key #ix[rstart:rend, cstart:cend]
+            else:
+                row = key   #ix[rstart:rend]
+                col = slice(None, None, None)
+            if row.start > row.stop and isinstance(self.obj.index, Float64Index):
+                obj = self.obj
+                out = obj[(obj.index>row.stop)&(obj.index<row.start)]
+
+                # Hack to enforce index conversion
+                try:
+                    out.index._unit = obj.index._unit
+                except AttributeError:
+                    pass
+
+                #Still handle column slice
+                out = out[out.columns.__getitem__(col)]
+                
+            else:
+                raise ke      
+
+        ### Series returns transformed to MetaDataFrame
+        if isinstance(out, Series) or isinstance(out, TimeSeries):
+            df = DataFrame(out)
+            return self.obj._transfer(out)
+
+        ### Make sure the new object's index property is syched to its ._df index.
+        else:
+            return out 
 
 
 class _IlocMeta(_IXIndexer):
@@ -431,6 +486,19 @@ if __name__ == '__main__':
 
     ### Pickle
     print '\nSave me by using x.save() / x.dumps() and load using mload(x) / mloads(x).'
+    
+    # INDEX SLICING THROUGH LOC AND ILOC
+    print 'slicing one column \n'
+    print meta_df.iloc[0]
+
+    print 'slicing many columns\n'
+    print  meta_df.iloc[0:1]
+    
+    print 'Indexing by label\n'
+    print meta_df.loc['A':'B']
+    
+    print 'Column slicing\n'
+    print meta_df['c11':'c33']
 #    df.save('outpath')
 #    f=open('outpath', 'r')
 #    df2=load(f)    
