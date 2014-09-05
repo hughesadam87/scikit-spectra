@@ -22,13 +22,27 @@ class TimeIndex(ConversionIndex):
     def __new__(cls, input_array, unit=None):
         """ Unit is valid key of unitdict """
 
-        # Is DatetimeIndex stored on object, or is object itself datetimeindex
+        # Is datetimeindex stored on object, or is object itself datetimeindex
         datetimeindex = None 
+        #NEEDS TO BE _STORED DTI FOR __new__, DATETIMEINDEX IS A PROPERTY!
         try:
-            datetimeindex = input_array.datetimeindex
+            datetimeindex = input_array._stored_dti 
         except AttributeError:
-            if isinstance(input_array, DatetimeIndex):
-                datetimeindex = input_array
+            pass
+
+    
+        # IF INPUTARRAY COMES IN AS A PANDAS DATETIMEINDEX, FORMATS IT
+        # TO AN ARRAY OF DATETIMES THEN TO AN ARRAY OF TIMESTAMPS,
+        # THE ARRAY OF TIMESTAMPS IS NECESSARY FOR TIMEINDEX
+        if isinstance(input_array, DatetimeIndex):
+            #Convert datetimes to timestamp
+            if unit != 'dti' and unit != None:
+                raise IndexError("When creating TimeIndex from DatetimeIndex"
+                     " unit must be 'dti' or None, recived %s" % unit)
+            datetimeindex = input_array            
+            input_array = np.array(input_array.to_pydatetime())
+            input_array = np.array([Timestamp(x) for x in input_array])
+
                         
         if unit:
             # dti, timedelta
@@ -37,25 +51,22 @@ class TimeIndex(ConversionIndex):
             else:
                 dtype = 'float64'
 
-            # IF INPUTARRAY COMES IN AS A PANDAS DATETIMEINDEX, FORMATS IT
-            # TO AN ARRAY OF DATETIMES THEN TO AN ARRAY OF TIMESTAMPS,
-            # THE ARRAY OF TIMESTAMPS IS NECESSARY FOR TIMEINDEX
-            if isinstance(input_array, DatetimeIndex):
-                #Convert datetimes to timestamp
-                input_array = np.array(input_array.to_pydatetime())
-                input_array = np.array([Timestamp(x) for x in input_array])
-
             obj = np.asarray(input_array, dtype=dtype).view(cls)   
         else:
             obj = np.asarray(input_array).view(cls)   
-        
-        obj._stored_dti = datetimeindex
+
+        if datetimeindex is not None:
+            obj._stored_dti = datetimeindex
 
         # Ensure valid unit
         obj._unit = _parse_unit(unit, cls.unitdict)
         if cls.cumsum:
             obj.cumsum = True
         return obj   
+
+    # Remove
+    def validate_slicer(self, *args, **kwargs):
+        pass
 
 
     def convert(self, outunit):
@@ -71,41 +82,52 @@ class TimeIndex(ConversionIndex):
         except DatetimeCanonicalError:
             inunit = self._unit.short        
  
-        # DTI
-        if outunit == 'dti':# and inunit == 'dti':
-            if self.datetimeindex is None:
-                raise IndexError("Datetime index not stored; cannot convert to dti")
-            return self.__class__(self, unit = 'dti')
-
-        ##SOMETHING TO DTI
-        #elif outunit == 'dti' and inunit != 'dti':
-            #if self.datetimeindex is not None:
-                
-
-        #DTI TO SOMETHING ELSE            
-        elif outunit != 'dti' and inunit == 'dti':
-            nanoseconds = np.diff(self.datetimeindex.asi8)  #asi8 only defined on DatetimeIndex      
-            seconds = nanoseconds * 10**-9  
-            seconds = np.insert(seconds, 0, seconds[0]-seconds[0])
-            if self.cumsum:
-                seconds = seconds.cumsum()
-            out = self.__class__(seconds, unit='s') 
-            return out.convert(outunit)
-            
-        # Should never happen
-        else:
-            raise IndexError("SOME LOGIC APPARENTLY NOT ACCOUNTED FOR")
+            # DTI (just pass self.datetimeindex into the constructor)
+            if outunit == 'dti':
+                if self.datetimeindex is None:
+                    raise IndexError("Datetime index not stored; cannot convert to dti")
+                return self.__class__(self.datetimeindex, unit = 'dti')
     
+            #DTI TO SOMETHING ELSE            
+            elif outunit != 'dti' and inunit == 'dti':
+                nanoseconds = np.diff(self.datetimeindex.asi8)  #asi8 only defined on DatetimeIndex      
+                seconds = nanoseconds * 10**-9  
+                seconds = np.insert(seconds, 0, seconds[0]-seconds[0])
+                if self.cumsum:
+                    seconds = seconds.cumsum()
+                out = self.__class__(seconds, unit=outunit)  #THIS MAKES NP ARRAY SO ADD DATETIMEINDEX
+                out = self.unitdict[outunit].from_canonical(out)           
+            # Should never happen
+            else:
+                raise IndexError("SOME LOGIC APPARENTLY NOT ACCOUNTED FOR")
+        
+        # all conversions go through numpy arrays, so need to manually assign DTI!
+        #NEEDS TO BE _STORED DTI FOR __new__, DATETIMEINDEX IS A PROPERTY!        
+        try:
+            out._stored_dti = self.datetimeindex
+        except AttributeError:
+            pass
+        
+        return out
+
+
     @property
     def datetimeindex(self):
-        if getattr(self, '_stored_dti', None) is not None:
+        try:
             return self._stored_dti
+        except AttributeError:
+            raise AttributeError("DatetimeIndex not stored.")
+
+
+    @datetimeindex.deleter
+    def datetimeindex(self):
+        """ Delete stored datetimeindex.  Not sure if useful, but code will
+        breatk if I allow this set to None, so must delete."""
+        del(self._stored_dti)
+            
         
     @datetimeindex.setter
     def datetimeindex(self, dti):
-        if dti is None:
-            self._stored_dti = None
-            return
         
         if not isinstance(dti, DatetimeIndex):
             try:
@@ -114,40 +136,11 @@ class TimeIndex(ConversionIndex):
                 raise IndexError('Could not store DatetimeIndex; wrong type %s' \
                                  % type(dti))
             else:
+                if len(self) != len(dti):
+                    raise IndexError("Length mismatch between passed"
+                         "datetimeindex %s and object %s" % (len(dti), len(self)))
                 self._stored_dti = dti
 
-
-    @classmethod
-    def from_datetime(cls, dti):
-        """ Construct IntervalIndex from a pandas DatetimeIndex.
-
-        Parameters
-        ----------      
-        dti: DateTimeIndex
-
-        cumsum: bool (True)
-            Interval will be returned as running sum.  Ie 0,3,6 for 3 second
-            intervals.  If not, returns 3, 3, 3
-
-        Returns
-        -------
-        TimeIndex
-
-        Additional
-        ----------
-        This generates an IntervalIndex, but populates the DateTime unit with
-        attributes directly from the datetimeindex, including start, stop, 
-        periods, freq etc through the from_datetime method()"""
-
-        if not isinstance(dti, DatetimeIndex):
-            raise UnitError("Please pass a datetime index.")
-
-#      datetimeunit = DateTime.from_datetime(dti)
-
-        # Set DateTime unit to the one just created through from_datetime 
-        intervalindex = cls(dti, unit='dti')
-#        intervalindex.unitdict['dti'].datetimeindex = dti
-        return intervalindex
 
     def __getslice__(self, start, stop) :
         """This solves a subtle bug, where __getitem__ is not called, and all
@@ -172,9 +165,26 @@ class TimeIndex(ConversionIndex):
         out = super(TimeIndex, self).__getitem__(key)
         # If not returning a single value (eg index[0])
         if hasattr(out, '__iter__'):
-            if self.datetimeindex is not None:
-                out._stored_dti = self.datetimeindex.__getitem__(key) #copy?
+            # Slice datetime index as well
+            #NEEDS TO BE _STORED DTI FOR __new__, DATETIMEINDEX IS A PROPERTY!            
+            try:
+                out._stored_dti = self.datetimeindex.__getitem__(key) 
+            except AttributeError:
+                pass
         return out
+    
+    def copy(self, *args, **kwargs):
+        """ Datetimeindex not properly stored when running various copy routines
+        either from dataframe.copy or import copy, so manually overriding.
+        
+        Args kwargs passed to copy (e.g. deep =True)
+        """
+        outdict = super(TimeIndex, self).copy( *args, **kwargs)
+        try:
+            outdict.__dict__['_stored_dti']= self.datetimeindex
+        except AttributeError:
+            pass
+        return outdict
 
 
     @property
@@ -201,6 +211,9 @@ class TimeIndex(ConversionIndex):
         else:
             raise IndexError("Not sure which Engine to return for dtype %s"\
                              % self.dtype)      
+
+#    def _validate_slicer(self, key, f):
+#        pass
 
 
 if __name__ == '__main__':

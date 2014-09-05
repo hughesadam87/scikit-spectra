@@ -5,7 +5,6 @@ import cPickle
 import logging
 from types import NoneType, MethodType
 from operator import itemgetter
-import copy
 import datetime
 
 import numpy as np
@@ -197,7 +196,7 @@ class Spectra(MetaDataFrame):
         self._intrinsic.remove('name') #Not a private attr
         
         # Which attributes/methods are manipulated along with the dataframe
-        self._cnsvdattr=['_reference', '_baseline']
+        self._cnsvdattr=['_reference', '_baseline']#, '_strict_index', '_strict_columns']
         self._cnsvdmeth=['_slice', 'pvutils.boxcar'] #_slice is ix
 
 
@@ -523,7 +522,9 @@ class Spectra(MetaDataFrame):
                 # OK
                 dflist.append(series)
                 
+        #return self._transfer(DataFrame(dflist, index=snames), strict_columns=False)
         return self._transfer(DataFrame(dflist, index=snames))
+
         
 
     def boxcar(self, binwidth, axis=1):
@@ -674,13 +675,7 @@ class Spectra(MetaDataFrame):
         
         self._df.index = self._strict_index(np.linspace(start, stop, numpts), unit=unit)
         
-        
-    def deepcopy(self):
-#        sunit = self.specunit
-        tsout = copy.deepcopy(self)
-#        tsout.specunit = sunit
-        return tsout
-    
+
     ###################################
     # Baseline related operations ###
     ###################################
@@ -993,7 +988,8 @@ class Spectra(MetaDataFrame):
                 
         return columns
 
-
+    # Necessary even though these are already defined in metadataframe
+    # Setter looks for them on this object
     @property
     def index(self):
         return self._df.index
@@ -1059,9 +1055,9 @@ class Spectra(MetaDataFrame):
         
     def _dfgetattr(self, attr, *fcnargs, **fcnkwargs):
         """ This is overwritten from MetaDataFrame to allow special attributes to
-        be manipulated under dataframe operations.  For example, if a user slices the dataframe,
-        then the reference auto get sliced on the return array; otherwise, get tough-to-track
-        length mismatch issues.
+        be manipulated under dataframe operations.  For example, if a user
+        slices the dataframe, then the reference auto get sliced on the 
+        return array; otherwise, get tough-to-track length mismatch issues.
         
         Notes:
         -----
@@ -1250,12 +1246,16 @@ class Spectra(MetaDataFrame):
         header_datetime: bool or format str (False)
             Used to parse files with header that is a datetime string.  
             User must pass a format string e.g. %Y/%m/%d %H:%M:%S, which
-            is the default.  Results in DatetimeIndex as label.
+            is the default.  Results in DatetimeIndex as label.  This will
+            set the varunit to 'dti' automatically, unless specifically
+            set as None.
             
         index_datetime: bool or format str (False)
             Used to parse files with header that is a datetime string.  
             User must pass a format string e.g. %Y/%m/%d %H:%M:%S, which
-            is the default.   Results in DatetimeIndex as label.
+            is the default.   Results in DatetimeIndex as label.  This will
+            set the specunit to 'dti' automatically, unles specifically set
+            as None.
 
         **kwargs: Any valid spectra or pandas readcsv() kwargs.       
                 
@@ -1330,6 +1330,14 @@ class Spectra(MetaDataFrame):
                 
             df.columns = DatetimeIndex([datetime.datetime.strptime(s, header_datetime) 
                           for s in df.columns])
+            
+            if 'varunit' in kwargs:
+                if kwargs['varunit'] != None and kwargs['varunit'] != 'dti':
+                    raise SpecError("from_csv() option 'header_dateime' requires"
+                            "varunit = 'dti' or 'None', received %s" % kwargs['varunit'])
+                
+            else:
+                kwargs['varunit'] = 'dti'   
 
         if index_datetime:
             if not isinstance(index_datetime, basestring):
@@ -1337,6 +1345,14 @@ class Spectra(MetaDataFrame):
                 
             df.index = DatetimeIndex([datetime.datetime.strptime(s, index_datetime) 
                           for s in df.index])
+
+            if 'specunit' in kwargs:
+                if kwargs['specunit'] != None and kwargs['specunit'] != 'dti':
+                    raise SpecError("from_csv() option 'index_dateime' requires"
+                            "specunit = 'dti' or 'None', received %s" % kwargs['specunit'])
+                
+            else:
+                kwargs['specunit'] = 'dti' 
                 
         
         return cls(df, **kwargs) 
@@ -1400,6 +1416,8 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     from pyuvvis.plotting import areaplot
     ts = aunps_glass()
+    ts.area()
+    ts.boxcar(10)
    # ts.index = SpecIndex(ts.index)
 
     t2 = ts.ix[1500.0:1000.0]

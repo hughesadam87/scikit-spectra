@@ -49,7 +49,7 @@ class MetaDataFrame(object):
     
     def __init__(self, *dfargs, **dfkwargs):
         ''' Stores a dataframe under reserved attribute name, self._df'''      
-        self._df=DataFrame(*dfargs, **dfkwargs)
+        self._df = DataFrame(*dfargs, **dfkwargs)
                 
     ### Save methods    
     def save(self, outname):
@@ -60,11 +60,7 @@ class MetaDataFrame(object):
 
     def dumps(self):
         ''' Output TimeSpectra into a pickled string in memory.'''
-        return cPickle.dumps(self)
-
-    def deepcopy(self):
-        ''' Make a deepcopy of self, including the dataframe.'''
-        return copy.deepcopy(self)   
+        return cPickle.dumps(self)  
 
     def as_dataframe(self):
         ''' Convience method to return a raw dataframe, self._df'''
@@ -131,22 +127,17 @@ class MetaDataFrame(object):
 
 
     def _transfer(self, dfnew):
-        ''' Copies all attribtues into a new object except has to store current dataframe
-        in memory as this can't be copied correctly using copy.deepcopy.  Probably a quicker way...
-
-        dfnew is used if one wants to pass a new dataframe in.  This is used primarily in calls from __getattr__.'''
-        ### Store old value of df and remove current df to copy operation will take
-        olddf = self._df.copy() #Removed deep=True because series return could not implement it
-        self._df = None
-
-        ### Create new object and apply new df 
+        """ Copy current attributes into a new dataframe.  For methods that
+        return a dataframe and need to append current attributes/columns/index.
+        """
         newobj = copy.deepcopy(self)  #This looks like None, but is it type (MetaDataFrame, just __union__ prints None
         newobj._df = dfnew
-
-        ### Restore old value of df and return new object
-        self._df = olddf
         return newobj
 
+
+    def deepcopy(self):
+        ''' Make a deepcopy of self, including the dataframe.'''
+        return copy.deepcopy(self)  
 
     def _dfgetattr(self, attr, *fcnargs, **fcnkwargs):
         ''' Called by __getattr__ as a wrapper, this private method is used to ensure that any
@@ -242,14 +233,14 @@ class MetaDataFrame(object):
     def columns(self):
         return self._df.columns
 
-    # To avoid accidentally setting index ie ts.index()
-    #@index.setter
-    #def index(self, index):
-        #self._df.index = index
+    #To avoid accidentally setting index ie ts.index()
+    @index.setter
+    def index(self, index):
+        self._df.index = index
         
-    #@columns.setter
-    #def columns(self, columns):
-        #self._df.columns = columns
+    @columns.setter
+    def columns(self, columns):
+        self._df.columns = columns
 
     def iloc(self):
         raise NotImplementedError

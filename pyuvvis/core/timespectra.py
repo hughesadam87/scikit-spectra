@@ -33,51 +33,8 @@ class TimeSpectra(Spectra):
 
     # Has to be this way because class methods not accessible via metadataframe __getattr__()
     def __init__(self, *dfargs, **dfkwargs):
-        dfkwargs.setdefault('strict_columns', TimeIndex)
-
-        # Intercept columns for special case that user passes datetime index,
-        # Or user wants to force to DatetimeIndex (as is case with read_csv())
-        # Otherwise everyting is forced to TimeIndex
-
-        cols = dfkwargs.get('columns', []) 
-        if not cols:
-            try:  #User passes a dataframe straight in so dfargs[0] is df
-                cols = dfargs[0].columns
-            except AttributeError:
-                pass
-
-        if isinstance(cols, DatetimeIndex):
-            dfkwargs['columns']  = TimeIndex.from_datetime(cols)
-
-
+        dfkwargs.setdefault('strict_columns', TimeIndex)            
         super(TimeSpectra, self).__init__(*dfargs, **dfkwargs)
-
-    # Temporal/column related functionality
-    def set_daterange(self, **date_range_args):
-        """ Wrapper around pandas.date_range to reset the column
-        values on of the data on the fly. See pandas.date_range()
-        for use.  In b	rief:
-
-        Parameters
-        ----------
-        start: 
-            time start.  
-        freq: 
-            Frequency unit
-        stop/periods: 
-            specifies endpoint given start and freq.
-
-        Examples
-        --------
-        timespectra.set_daterange('1/1/2012', period=5, freq='H')
-        """
-
-        # THESE SHOULD GO TO UNIT START/STOP etc?  Or just call intvlindex.from_datetime()
-        rng = date_range(**date_range_args)
-        self._df.columns = rng        
-        self._dtindex = rng
-        self._interval = False
-
 
 
 ## TESTING ###
@@ -128,12 +85,18 @@ if __name__ == '__main__':
     from pyuvvis.data import solvent_evap, aunps_glass, aunps_water
     import matplotlib.pyplot as plt
     from pyuvvis.plotting import areaplot
-    #  ts = solvent_evap()
+#    ts = solvent_evap()
     ts = aunps_glass()
-    # ts.index = SpecIndex(ts.index)
+    ts.iloc[:, 50.5, 520.0]
+    #area = ts.area()
+    #tf=ts[ts.columns[-1]]
+    #print tf 
     cols = ts.columns[0:5]
     c2 = ts.columns[0:5].convert('m')
+    c2.datetimeindex
     mins = cols.convert('m')
+    print mins
+    ts.as_varunit('m')
 
     t2 = ts.ix[1500.0:1000.0]
     print ts.index
