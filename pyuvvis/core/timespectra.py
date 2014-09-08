@@ -92,7 +92,7 @@ if __name__ == '__main__':
     from pandas import DataFrame
     df = DataFrame(np.random.randn(50,50), index=np.linspace(0,50,50))
     
-    ts.nearby[50:]
+    ts.nearby[900:]
         
     ts.iloc[:, 2:4.4].columns
     ts._df.iloc[:, 2:4.4].columns

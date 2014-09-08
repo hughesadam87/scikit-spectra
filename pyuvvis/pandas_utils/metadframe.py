@@ -167,7 +167,7 @@ class MetaDataFrame(object):
         out=getattr(self._df, attr)(*fcnargs, **fcnkwargs)
 
         ### If operation returns a dataframe, return new TimeSpectra
-        if issubclass(out.__class__, MetaDataFrame): #metadataframe or won't have _transfer method
+        if isinstance(out, DataFrame): #metadataframe or won't have _transfer method
             dfout=self._transfer(out)
             return dfout
 
@@ -310,7 +310,7 @@ class _MetaIXIndexer(_IXIndexer):
     def __getitem__(self, key):
                                   
         out=super(_MetaIXIndexer, self).__getitem__(key)               
-        if issubclass(out.__class__, MetaDataFrame): #If Series or Series subclass
+        if isinstance(out, DataFrame): #If Series or Series subclass
             out = self.obj._transfer(out) 
         return out  
 
@@ -324,7 +324,7 @@ class _MetaLocIndexer(_LocIndexer):
     def __getitem__(self, key):
                  
         out=super(_MetaLocIndexer, self).__getitem__(key)               
-        if issubclass(out.__class__, MetaDataFrame): #If Series or Series subclass
+        if isinstance(out, DataFrame): #If Series or Series subclass
             out = self.obj._transfer(out) 
         return out  
 
@@ -338,7 +338,7 @@ class _MetaiLocIndexer(_iLocIndexer):
     def __getitem__(self, key):
                  
         out=super(_MetaiLocIndexer, self).__getitem__(key)               
-        if issubclass(out.__class__, MetaDataFrame): #If Series or Series subclass
+        if isinstance(out, DataFrame): #If Series or Series subclass
             out = self.obj._transfer(out) 
         return out              
             
