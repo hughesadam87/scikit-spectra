@@ -864,7 +864,7 @@ class Controller(object):
                  legend=False,
                  title='Short Wavelengths vs. Time (%i - %i %s)' % 
                     (min(ts.index), 525.0, ts.specunit), color='b', **sizeargs)
-        self.plt_clrsave(op.join(outpath, prefix +'_area'))
+        self.plt_clrsave(op.join(outpath, prefix +'_area_short'))
 
         # Middle wavelengths 525:590nm
         areaplot(ts.loc[525.0:590.0, :], 
@@ -873,16 +873,16 @@ class Controller(object):
                  legend=False,
                  title='Medium Wavelengths vs. Time (%i - %i %s)' % 
                     (525.0, 590.0, ts.specunit), color='g', **sizeargs)
-        self.plt_clrsave(op.join(outpath, prefix +'_area'))
+        self.plt_clrsave(op.join(outpath, prefix +'_area_middle'))
         
         # Long wavelenghts 590.0nm:
         areaplot(ts.loc[590.0:, :], 
                  ylabel='Power',
                  xlabel='Time ('+ts.varunit+')',
                  legend=False,
-                 title='Short Wavelengths vs. Time (%i - %i %s)' % 
+                 title='Long Wavelengths vs. Time (%i - %i %s)' % 
                     (590.0, max(ts.index), ts.specunit), color='r', **sizeargs)
-        self.plt_clrsave(op.join(outpath, prefix +'_area'))        
+        self.plt_clrsave(op.join(outpath, prefix +'_area_long'))        
 
         # Normalized area plot (divided by number x units)       
         areaplot(ts/len(ts.index),
