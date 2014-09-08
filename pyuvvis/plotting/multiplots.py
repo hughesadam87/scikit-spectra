@@ -72,11 +72,13 @@ def quad_plot(ts, *plotargs, **plotkwds):
                    title='Spectral Slices',
                    **plotkwds)    
     
+    
     normplot(ts, *plotargs,
             ax=axes[2], 
             colormap=cmap, 
             title='Normalized',
             **plotkwds)
+
 
     areaplot(ts, *plotargs,
              ax=axes[3], 

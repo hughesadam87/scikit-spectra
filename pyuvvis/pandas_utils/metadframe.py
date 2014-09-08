@@ -344,7 +344,8 @@ class _MetaiLocIndexer(_iLocIndexer):
             
     
 
-
+# Test Subclass
+# -------------
 class SubFoo(MetaDataFrame):
     ''' Shows an example of how to subclass MetaDataFrame with custom attributes, a and b.'''
 
