@@ -279,7 +279,7 @@ class MetaDataFrame(object):
 
     @property	  	
     def iloc(self, *args, **kwargs):      	
-        """"""
+        """ See pandas.Index.iloc; preserves metadata"""
         if self._iloc is None:
             try:
                 self._iloc =_MetaiLocIndexer(self)
@@ -291,7 +291,7 @@ class MetaDataFrame(object):
 
     @property	  	
     def loc(self, *args, **kwargs):      	
-        """"""
+        """See pandas.Index.loc; preserves metadata"""
         if self._loc is None:
             try:
                 self._loc = _MetaLocIndexer(self)
@@ -309,7 +309,7 @@ class _MetaIXIndexer(_IXIndexer):
     
     def __getitem__(self, key):
                                   
-        out=super(_MetaIXIndexer, self).__getitem__(key)               
+        out = super(_MetaIXIndexer, self).__getitem__(key)               
         if isinstance(out, DataFrame): #If Series or Series subclass
             out = self.obj._transfer(out) 
         return out  
@@ -323,7 +323,7 @@ class _MetaLocIndexer(_LocIndexer):
     
     def __getitem__(self, key):
                  
-        out=super(_MetaLocIndexer, self).__getitem__(key)               
+        out = super(_MetaLocIndexer, self).__getitem__(key)               
         if isinstance(out, DataFrame): #If Series or Series subclass
             out = self.obj._transfer(out) 
         return out  
@@ -337,7 +337,7 @@ class _MetaiLocIndexer(_iLocIndexer):
     
     def __getitem__(self, key):
                  
-        out=super(_MetaiLocIndexer, self).__getitem__(key)               
+        out = super(_MetaiLocIndexer, self).__getitem__(key)               
         if isinstance(out, DataFrame): #If Series or Series subclass
             out = self.obj._transfer(out) 
         return out              

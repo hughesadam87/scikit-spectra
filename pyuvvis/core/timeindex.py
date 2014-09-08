@@ -82,16 +82,17 @@ class TimeIndex(ConversionIndex):
         TimeIndex class and needs to be handled separately.
         """
 
+        inunit = self._unit.short        
+
         # Hack: when going from None to seconds or another float unit, 
         # the array dtype will change.  This isn't an issue for ABCIndex
         # which is always float type.
 
         # Handle non-dti conversion and conversions involvin DTI and None
 
-        inunit = self._unit.short        
-        if inunit is None and outunit is not None and outunit != 'dti':
-            raise IndexError("Converting TimeIndex from None to float type"
-                  "is not allowed; please set the timeindex unit first.")
+        #if inunit is None and outunit is not None and outunit != 'dti' and self.dtype !='float':
+            #raise IndexError("Converting TimeIndex from None to float type"
+                  #"is not allowed; please set the timeindex unit first.")
 
         try:
             out = super(TimeIndex, self).convert(outunit)
