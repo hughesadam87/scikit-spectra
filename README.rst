@@ -25,13 +25,14 @@ The current documentation (and in-a-pinch test suite) is a series of example not
 - **TUTORIALS**:
    - `TimeSpectra tutorial (part 1)`_
    - `TimeSpectra tutorial (part 2)`_
+   - `Sampling and Selecting Data`_
    - `Intro to Plotting`_
    - `Intro to 2D and 3D Plots`_
    - `Interactive Plots with Plotly`_
    - `Pre-packaged Datasets`_
    - `Intro to Multiple Datasets (StackSpec)`_
 
-
+   .. _`Sampling and Selecting Data` : http://nbviewer.ipython.org/github/hugadams/pyuvvis/blob/master/examples/Notebooks/slicing.ipynb?create=1
    .. _`Intro to Plotting` :   http://nbviewer.ipython.org/github/hugadams/pyuvvis/blob/master/examples/Notebooks/Plotting.ipynb?create=1
    .. _`Intro to 2D and 3D Plots` :   http://nbviewer.ipython.org/github/hugadams/pyuvvis/blob/master/examples/Notebooks/plotting_2d3d.ipynb?create=1
    .. _`Interactive Plots with Plotly` :   http://nbviewer.ipython.org/github/hugadams/pyuvvis/blob/master/examples/Notebooks/plotly.ipynb?create=1
