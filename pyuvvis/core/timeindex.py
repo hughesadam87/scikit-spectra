@@ -65,7 +65,8 @@ class TimeIndex(ConversionIndex):
         return obj   
 
     # Remove
-    def validate_slicer(self, *args, **kwargs):
+    def _validate_slicer(self, *args, **kwargs):
+        """ Trips up by operations like loc/iloc."""
         pass
 
 

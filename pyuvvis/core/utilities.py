@@ -337,9 +337,9 @@ def _maxmin_xy(array, style='max', arg=False, idx=True, val=True):
     out=[]    
 
     if style=='max':               #X: idxmax/idxmin no longger array attributes
-        farg=array.argmax(); fidx=array.idxmax(); fval=array.max() 
+        fidx=array.argmax(); farg=array[array.idxmax()]; fval=array.max() 
     else:
-        farg=array.argmin(); fidx=array.idxmin(); fval=array.min()
+        fidx=array.argmin(); farg=array[array.idxmin()]; fval=array.min()
         
     
     if arg:
@@ -373,17 +373,18 @@ def _find_nearest(array, value, arg=False, idx=True, val=True):
     '''Find nearest val in an array, return index and array val.
       Parameters:
       ---------
-         arra
+         array: Actually think this is set up for series/dataframe?
 
       Notes:
       ------
          This works by computing the absolute difference array of the value and looking
          for minimums along this array as seen in stack overflow discussions.
-         http://stackoverflow.com/questions/2566412/find-nearest-value-in-numpy-array'''
+         http://stackoverflow.com/questions/2566412/find-nearest-value-in-numpy-array
+    '''
 
     ### Get index and arg from diff array
     diff_array=np.abs(array-value)
-    arg, idx=_maxmin_xy(diff_array, style='min', arg=True, idx=True, val=False)
+    arg, idx=_maxmin_xy(diff_array, style='min', arg=arg, idx=idx, val=val)
     
     ### Find corresponding value from original array
     val=array[idx]

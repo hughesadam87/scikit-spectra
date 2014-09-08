@@ -8,8 +8,11 @@ from operator import itemgetter
 import datetime
 
 import numpy as np
-from pandas import DataFrame, DatetimeIndex, Index, Series, read_csv
 from scipy import integrate
+
+from pandas import DataFrame, DatetimeIndex, Index, Series, read_csv, MultiIndex
+from pandas.core.common import _is_bool_indexer
+from pandas.core.indexing import _is_list_like
 
 # pyuvvis imports 
 from pyuvvis.core.specindex import SpecIndex
@@ -18,7 +21,7 @@ from pyuvvis.core.specstack import SpecStack
 import pyuvvis.core.utilities as pvutils
 
 # Merge
-from pyuvvis.pandas_utils.metadframe import MetaDataFrame, _MetaIndexer
+from pyuvvis.pandas_utils.metadframe import MetaDataFrame, _MetaLocIndexer
 from pyuvvis.logger import decode_lvl, logclass
 from pyuvvis.plotting import specplot
 from pyuvvis.exceptions import badkey_check, badcount_error, RefError, BaselineError
@@ -50,8 +53,10 @@ to_T={'t':lambda x: 1.0/x,
       'a(ln)':lambda x: np.exp(-x)} 
 
 def spec_slice(spectral_array, bins):
-    ''' Simple method that will divide a spectral index into n evenly sliced bins and return as nested tuples.
-    Useful for generating wavelength slices with even spacing.  Simply a wrapper around np.histogram.'''
+    """ Simple method that will divide a spectral index into n evenly sliced
+    bins and return as nested tuples. Useful for generating wavelength slices 
+    with even spacing.  Simply a wrapper around np.histogram.
+    """
     edges=np.histogram(spectral_array, bins)[1]
     return [ (edges[idx], edges[i]) for idx, i in enumerate( range(1, len(edges)))]
 
@@ -198,7 +203,7 @@ class Spectra(MetaDataFrame):
         # Which attributes/methods are manipulated along with the dataframe
         self._cnsvdattr=['_reference', '_baseline']#, '_strict_index', '_strict_columns']
         self._cnsvdmeth=['_slice', 'pvutils.boxcar'] #_slice is ix
-
+        
 
     def _comment(self, statement, level='info'):
         prefix = ''
@@ -314,8 +319,8 @@ class Spectra(MetaDataFrame):
 
     @property
     def data(self):
-        """ Accesses self._df"""
-        return self._df
+        """ Accesses self._df.  RETURNS COPY SO USER DOESNT OVERWRITE IN PLACE"""
+        return self._df.copy(deep=True)
 
     ########################
     # ts.refrence operations
@@ -1008,7 +1013,7 @@ class Spectra(MetaDataFrame):
     def columns(self, columns):
         self._df.columns = self._valid_columns(columns)
         
-    
+         
     @property
     def cnsvdattr(self):
         """ attr:value of conserved attributes"""
@@ -1146,6 +1151,7 @@ class Spectra(MetaDataFrame):
         #outline += '<font color="#0000CD">This is some text!</font>'
         dfhtml = self._df._repr_html_(*args, **kwargs)
         return ('<h4>%s</h4>' % ''.join(outline)) +'<br>'+ dfhtml
+            
         
             
     def __repr__(self):
@@ -1157,8 +1163,8 @@ class Spectra(MetaDataFrame):
         delim = '\t'
         header = "*%s*%sSpectral unit:%s%sPerturbation unit:%s\n" % \
                (self.name, delim, self.full_specunit, delim, self.full_varunit)
-
-        return ''.join(header)+'\n'+self._df.__repr__()    
+        
+        return ''.join(header)+'\n'+self._df.__repr__()+'   ID: %s' % id(self)   
     
     
     def split_by(self, n, axis=1, stack=True, **stackkwargs):
@@ -1229,6 +1235,22 @@ class Spectra(MetaDataFrame):
     # CLASS METHODS
     # -------------
     
+    
+    _nearby=None
+    @property
+    def nearby(self, *args, **kwargs):      	
+        """ Slicers similiar to loc that allows for nearby value slicing.
+        It also would be posslbe to define operations on this through bool
+        logic like df[(x<50) & (X>50), but that requires creating a new
+        indexer]"""
+        if self._nearby is None:
+            try:
+                self._nearby=_NearbyIndexer(self)
+            ### New versions of _IXIndexer require "name" attribute.
+            except TypeError as TE:
+                self._nearby=_NearbyIndexer(self, 'nearby')
+        return self._nearby   
+
     @classmethod
     def from_csv(cls, filepath_or_buffer, header_datetime=False, 
                  index_datetime=False, **kwargs):
@@ -1368,16 +1390,118 @@ class Spectra(MetaDataFrame):
                    index=pandas_object.index, 
                    columns=pandas_object.columns,
                    **dfkwargs)
+
+    
+class SpecIndexError(SpecError):
+    """ For indexing operations in particular."""
+
+class _NearbyIndexer(_MetaLocIndexer):
+    """ Index by location, but looks for nearest values.  Warning: not all
+    use cases may be handled properly; this is predominantly for range slices
+    eg (df.nearby[50.0:62.4]), ie looking at a range of wavelengths.
+    
+    For more on various cases of selection by label:
+    http://pandas.pydata.org/pandas-docs/stable/indexing.html#indexing-label
+    
+    Tries to handle all the cases of loc:
+       A single label, e.g. 5 or 'a', (note that 5 is interpreted as a label
+       of the index. This use is not an integer position along the index)
+
+       A list or array of labels ['a', 'b', 'c']
+
+       A slice object with labels 'a':'f' (note that contrary to usual
+       python slices, both the start and the stop are included!)
+       
+       A boolean array
+    """   
+
+    def _getitem_axis(self, key, axis=0, validate_iterable=False):
+        """ This is the only method that needs overwritten to preserve all
+        _LocIndexer functionality.  Just need to change aspects where it
+        would fail if key not found in index and replace with a key lookup.
+        
+        This is better than overwriting __getitem__ because need axis knowledge
+        for slicing like [50:55, 90:95]...
+        """
+
+        labels = self.obj._get_axis(axis)
+        values = labels.values #Necessary for subtraciton in find_nearest
+        
+        def _nearest(v):
+            """ Find the neareast value in the Index (cast to array type);
+            necessary because diff (ie subtraction) is not defined on Index
+            in the way used here.
+            """
+            vmin, vmax = min(values), max(values)
+            if v < vmin:
+                raise SpecIndexError("%s is less than Index min value of %s" 
+                                     % (v, vmin))
+            elif v > vmax:
+                raise SpecIndexError("%s is greater than Index max value of %s" 
+                                     % (v, vmax))
+            return values[(np.abs(values - v)).argmin()]
+
+        if isinstance(key, slice):
+            start, stop, step = key.start, key.stop, key.step
+            if key.start:
+                start = _nearest(key.start)
+            if key.stop:
+                stop = _nearest(key.stop)
+            key = slice(start, stop, key.step)
+            self._has_valid_type(key, axis)
+            out = self._get_slice_axis(key, axis=axis)
+
+        elif _is_bool_indexer(key):
+            raise NotImplementedError('Bool indexing not supported by _Nearby Indexer')
+#            return self._getbool_axis(key, axis=axis)
+
+        elif _is_list_like(key):
+
+            # GH 7349
+            # possibly convert a list-like into a nested tuple
+            # but don't convert a list-like of tuples
+            # I Just chose to not support this case work
+            if isinstance(labels, MultiIndex):
+                raise SpecIndexError("MultiIndex nearby slicing not supported.")
+
+            # an iterable multi-selection
+            if not (isinstance(key, tuple) and
+                    isinstance(labels, MultiIndex)):
+
+                if hasattr(key, 'ndim') and key.ndim > 1:
+                    raise ValueError('Cannot index with multidimensional key')
+
+                if validate_iterable:
+                    self._has_valid_type(key, axis)
+
+                out = self._getitem_iterable(key, axis=axis)
+
+            # nested tuple slicing
+            if super(_NearbyIndexer, self)._is_nested_tuple(key, labels):
+                locs = labels.get_locs(key)
+                indexer = [ slice(None) ] * self.ndim
+                indexer[axis] = locs
+                out = self.obj.iloc[tuple(indexer)]
+
+        # fall thru to straight lookup
+        else:
+            key = _nearest(key)  
+            self._has_valid_type(key, axis)
+            out = self._get_label(key, axis=axis)      
+
+        if issubclass(out.__class__, MetaDataFrame): #If Series or Series subclass
+            out = self.obj._transfer(out) 
+            
+        # Hack becase Series aren't generated with these and 
+        # self._getitem_lowerdim() will call this recursively
+        elif issubclass(out.__class__, Series):
+            out.nearby = self.obj.nearby
+        return out
+                
               
 
 ## TESTING ###
-if __name__ == '__main__':
-
-    
-
-    # Be careful when generating test data from Pandas Index/DataFrame objects, as this module has overwritten their defaul behavior
-    # best to generate them in other modules and import them to simulate realisitc usec ase
-
+if __name__ == '__main__':  
 
     ## For testing 
     #import matplotlib.pyplot as plt
@@ -1416,6 +1540,20 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     from pyuvvis.plotting import areaplot
     ts = aunps_glass()
+    
+  #  ts = ts.as_varunit('m')
+    
+ 
+     # DO BOOLEAN CASE LAST   
+#    ts.loc[:,ts.loc['a']>0]
+#    ts.loc[677.67, 678.68]
+    print ts.loc[500.0:, :]
+    print ts.nearby[500.0:, :]
+    x = ts.columns[5]
+    print ts.loc[500.0:, x]
+    ts.nearby[500.0]
+    ts.nearby[500.0, :]
+    
     ts.area()
     ts.boxcar(10)
    # ts.index = SpecIndex(ts.index)

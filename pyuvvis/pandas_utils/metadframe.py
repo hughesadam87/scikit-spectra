@@ -10,9 +10,9 @@ import functools
 import cPickle
 import collections
 
-from pandas.core.indexing import _IXIndexer, _iLocIndexer
+from pandas.core.indexing import _IXIndexer, _iLocIndexer, _LocIndexer
 
-from pandas import DataFrame, Series, TimeSeries, Float64Index
+from pandas import DataFrame, Series
 
 # for testing
 from numpy.random import randn
@@ -132,6 +132,14 @@ class MetaDataFrame(object):
         """
         newobj = copy.deepcopy(self)  #This looks like None, but is it type (MetaDataFrame, just __union__ prints None
         newobj._df = dfnew
+        
+        # THESE ARE NEVER TRANSFERED AT DF LEVEL, JUST CREATED NEW.  TRY
+        # df.loc
+        # a = df*50
+        # a._loc  ---> Will be None
+        #newobj._loc = self._loc
+        #newobj._iloc = self._iloc
+        #newobj._ix = self._ix         
         return newobj
 
 
@@ -140,22 +148,26 @@ class MetaDataFrame(object):
         return copy.deepcopy(self)  
 
     def _dfgetattr(self, attr, *fcnargs, **fcnkwargs):
-        ''' Called by __getattr__ as a wrapper, this private method is used to ensure that any
-        DataFrame method that returns a new DataFrame will actually return a TimeSpectra object
+        ''' Called by __getattr__ as a wrapper, this private method is used 
+        to ensure that any DataFrame method that returns a new DataFrame 
+        will actually return a TimeSpectra object
         instead.  It does so by typechecking the return of attr().
 
-        **kwargs: use_base - If true, program attempts to call attribute on the reference.  reference ought
-        to be maintained as a series, and Series/Dataframe API's must be same.
+        **kwargs: use_base - If true, program attempts to call attribute on
+        the reference.  reference ought to be maintained as a series, and 
+        Series/Dataframe API's must be same.
 
         *fcnargs and **fcnkwargs are passed to the dataframe method.
 
-        Note: tried to ad an as_new keyword to do this operation in place, but doing self=dfout instead of return dfout
-        didn't work.  Could try to add this at the __getattr__ level; however, may not be worth it.'''
+        Note: tried to ad an as_new keyword to do this operation in place, 
+        but doing self=dfout instead of return dfout didn't work.  Could 
+        try to add this at the __getattr__ level; however, may not be worth it.
+        '''
 
         out=getattr(self._df, attr)(*fcnargs, **fcnkwargs)
 
         ### If operation returns a dataframe, return new TimeSpectra
-        if isinstance(out, DataFrame):
+        if issubclass(out.__class__, MetaDataFrame): #metadataframe or won't have _transfer method
             dfout=self._transfer(out)
             return dfout
 
@@ -242,193 +254,94 @@ class MetaDataFrame(object):
     def columns(self, columns):
         self._df.columns = columns
 
-    def iloc(self):
-        raise NotImplementedError
-    
-    def loc(self):
-        raise NotImplementedError
-
     ## Fancy indexing
     _ix=None     
     _iloc=None
+    _loc=None
 
-
-    # THESE HAVE SPECIAL HACKS IN PLACE TO SLICE FLOAT64INDEX BACKWARDS
         
     @property	  	
     def ix(self, *args, **kwargs):      	
         ''' Pandas Indexing.  Note, this has been modified to ensure that series returns (eg ix[3])
         still maintain attributes.  To remove this behavior, replace the following:
         
-        self._ix = _MetaIndexer(self, _IXIndexer(self) ) --> self._ix=_IXIndexer(self)
+        self._ix = _MetaIXIndexer(self, _IXIndexer(self) ) --> self._ix=_IXIndexer(self)
         
         The above works because slicing preserved attributes because the _IXIndexer is a python object 
         subclass.'''
         if self._ix is None:
             try:
-                self._ix=_MetaIndexer(self)
+                self._ix=_MetaIXIndexer(self)
             ### New versions of _IXIndexer require "name" attribute.
             except TypeError as TE:
-                self._ix=_MetaIndexer(self, '_ix')
+                self._ix=_MetaIXIndexer(self, 'ix')
         return self._ix   
 
     @property	  	
     def iloc(self, *args, **kwargs):      	
-        ''' Pandas Indexing.  Note, this has been modified to ensure that series returns (eg ix[3])
-        still maintain attributes.  To remove this behavior, replace the following:
-        
-        self._ix = _MetaIndexer(self, _IXIndexer(self) ) --> self._ix=_IXIndexer(self)
-        
-        The above works because slicing preserved attributes because the _IXIndexer is a python object 
-        subclass.'''
+        """"""
         if self._iloc is None:
             try:
-                self._iloc =_IlocMeta(self)
+                self._iloc =_MetaiLocIndexer(self)
             ### New versions of _IXIndexer require "name" attribute.
             except TypeError as TE:
-                self._iloc=_IlocMeta(self, '_iloc')
+                self._iloc=_MetaiLocIndexer(self, 'iloc')
         return self._iloc   
     
 
     @property	  	
     def loc(self, *args, **kwargs):      	
-        ''' Pandas Indexing.  Note, this has been modified to ensure that series returns (eg ix[3])
-        still maintain attributes.  To remove this behavior, replace the following:
-        
-        self._ix = _MetaIndexer(self, _IXIndexer(self) ) --> self._ix=_IXIndexer(self)
-        
-        The above works because slicing preserved attributes because the _IXIndexer is a python object 
-        subclass.'''
-        if self._iloc is None:
+        """"""
+        if self._loc is None:
             try:
-                self._iloc =_LocMeta(self)
+                self._loc = _MetaLocIndexer(self)
             ### New versions of _IXIndexer require "name" attribute.
             except TypeError as TE:
-                self._iloc=_LocMeta(self, '_loc')
-        return self._iloc         
-
-
-class _LocMeta(_IXIndexer):
-    
-    def __getitem__(self, key):
-        try:
-            out=super(_LocMeta, self).__getitem__(key)   
-            
-        except KeyError as ke:
-            if not isinstance(key, slice):
-                row, col = key #ix[rstart:rend, cstart:cend]
-            else:
-                row = key   #ix[rstart:rend]
-                col = slice(None, None, None)
-            if row.start > row.stop and isinstance(self.obj.index, Float64Index):
-                obj = self.obj
-                out = obj[(obj.index>row.stop)&(obj.index<row.start)]
-
-                # Hack to enforce index conversion
-                try:
-                    out.index._unit = obj.index._unit
-                except AttributeError:
-                    pass
-
-                #Still handle column slice
-                out = out[out.columns.__getitem__(col)]
-                
-            else:
-                raise ke      
-
-        ### Series returns transformed to MetaDataFrame
-        if isinstance(out, Series) or isinstance(out, TimeSeries):
-            df = DataFrame(out)
-            return self.obj._transfer(out)
-
-        ### Make sure the new object's index property is syched to its ._df index.
-        else:
-            return out 
-
-
-class _IlocMeta(_IXIndexer):
-    
-    def __getitem__(self, key):
-        try:
-            out=super(_IlocMeta, self).__getitem__(key)   
-            
-        except KeyError as ke:
-            if not isinstance(key, slice):
-                row, col = key #ix[rstart:rend, cstart:cend]
-            else:
-                row = key   #ix[rstart:rend]
-                col = slice(None, None, None)
-            if row.start > row.stop and isinstance(self.obj.index, Float64Index):
-                obj = self.obj
-                out = obj[(obj.index>row.stop)&(obj.index<row.start)]
-
-                # Hack to enforce index conversion
-                try:
-                    out.index._unit = obj.index._unit
-                except AttributeError:
-                    pass
-
-                #Still handle column slice
-                out = out[out.columns.__getitem__(col)]
-                
-            else:
-                raise ke      
-
-        ### Series returns transformed to MetaDataFrame
-        if isinstance(out, Series) or isinstance(out, TimeSeries):
-            df = DataFrame(out)
-            return self.obj._transfer(out)
-
-        ### Make sure the new object's index property is syched to its ._df index.
-        else:
-            return out 
+                self._loc= _MetaLocIndexer(self, 'loc')
+        return self._loc         
     
             
-class _MetaIndexer(_IXIndexer):
-    ''' Intercepts the slicing of ix so Series returns can be handled properly.  In addition,
-        it makes sure that the new index is assigned properly.
-        
-        Notes:
-        -----
-          Under the hood pandas called upon _IXIndexer methods, so this merely overwrites the
-          ___getitem__() method and leaves all the rest intact'''
+class _MetaIXIndexer(_IXIndexer):
+    ''' Intercepts the slicing of ix so Series returns can be handled. 
+    
+    The self.obj attribute is how the indexer refers to its calling object.
+    '''
     
     def __getitem__(self, key):
+                                  
+        out=super(_MetaIXIndexer, self).__getitem__(key)               
+        if issubclass(out.__class__, MetaDataFrame): #If Series or Series subclass
+            out = self.obj._transfer(out) 
+        return out  
 
-        # Hack to allow for reversed slicing
-        try:
-            out=super(_MetaIndexer, self).__getitem__(key)   
-        except KeyError as ke:
-            if not isinstance(key, slice):
-                row, col = key #ix[rstart:rend, cstart:cend]
-            else:
-                row = key   #ix[rstart:rend]
-                col = slice(None, None, None)
-            if row.start > row.stop and isinstance(self.obj.index, Float64Index):
-                obj = self.obj
-                out = obj[(obj.index>row.stop)&(obj.index<row.start)]
 
-                # Hack to enforce index conversion
-                try:
-                    out.index._unit = obj.index._unit
-                except AttributeError:
-                    pass
+class _MetaLocIndexer(_LocIndexer):
+    ''' Intercepts the slicing of ix so Series returns can be handled. 
+    
+    The self.obj attribute is how the indexer refers to its calling object.
+    '''
+    
+    def __getitem__(self, key):
+                 
+        out=super(_MetaLocIndexer, self).__getitem__(key)               
+        if issubclass(out.__class__, MetaDataFrame): #If Series or Series subclass
+            out = self.obj._transfer(out) 
+        return out  
 
-                #Still handle column slice
-                out = out[out.columns.__getitem__(col)]
-                
-            else:
-                raise ke
-                                          
 
-        ### Series returns transformed to MetaDataFrame
-        if isinstance(out, Series) or isinstance(out, TimeSeries):
-            df=  DataFrame(out)
-            return self.obj._transfer(out)
-
-        ### Make sure the new object's index property is syched to its ._df index.
-        else:
-            return out  
+class _MetaiLocIndexer(_iLocIndexer):
+    ''' Intercepts the slicing of ix so Series returns can be handled. 
+    
+    The self.obj attribute is how the indexer refers to its calling object.
+    '''
+    
+    def __getitem__(self, key):
+                 
+        out=super(_MetaiLocIndexer, self).__getitem__(key)               
+        if issubclass(out.__class__, MetaDataFrame): #If Series or Series subclass
+            out = self.obj._transfer(out) 
+        return out              
+            
     
 
 
@@ -488,17 +401,23 @@ if __name__ == '__main__':
     print '\nSave me by using x.save() / x.dumps() and load using mload(x) / mloads(x).'
     
     # INDEX SLICING THROUGH LOC AND ILOC
-    print 'slicing one column \n'
+    print '\nslicing one column \n'
     print meta_df.iloc[0]
+    print meta_df._df.iloc[0]
 
-    print 'slicing many columns\n'
+    print '\nslicing many columns\n'
     print  meta_df.iloc[0:1]
+    print meta_df._df.iloc[0:1]
     
-    print 'Indexing by label\n'
+    print '\nIndexing by label\n'
     print meta_df.loc['A':'B']
+
+    #GOOD EXPLANATION OF WHY CANT STRING SLICE COLUMNS
+    #http://stackoverflow.com/questions/11285613/selecting-columns    
+    print '\nColumn slicing\n'
+    print meta_df[['c11','c33']]
+    print meta_df[['c11','c33']].a
     
-    print 'Column slicing\n'
-    print meta_df['c11':'c33']
 #    df.save('outpath')
 #    f=open('outpath', 'r')
 #    df2=load(f)    

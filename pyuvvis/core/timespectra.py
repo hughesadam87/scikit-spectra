@@ -37,6 +37,7 @@ class TimeSpectra(Spectra):
         super(TimeSpectra, self).__init__(*dfargs, **dfkwargs)
 
 
+
 ## TESTING ###
 if __name__ == '__main__':
     from specindex import SpecIndex
@@ -85,68 +86,78 @@ if __name__ == '__main__':
     from pyuvvis.data import solvent_evap, aunps_glass, aunps_water
     import matplotlib.pyplot as plt
     from pyuvvis.plotting import areaplot
-#    ts = solvent_evap()
-    ts = aunps_glass()
-    ts.iloc[:, 50.5, 520.0]
-    #area = ts.area()
-    #tf=ts[ts.columns[-1]]
-    #print tf 
-    cols = ts.columns[0:5]
-    c2 = ts.columns[0:5].convert('m')
-    c2.datetimeindex
-    mins = cols.convert('m')
-    print mins
-    ts.as_varunit('m')
+    ts = solvent_evap()
+    ts = ts.as_varunit('m')
 
-    t2 = ts.ix[1500.0:1000.0]
-    print ts.index
-    print t2.index
+    from pandas import DataFrame
+    df = DataFrame(np.random.randn(50,50), index=np.linspace(0,50,50))
+    
+    ts.nearby[50:]
+        
+    ts.iloc[:, 2:4.4].columns
+    ts._df.iloc[:, 2:4.4].columns
+#    ts = aunps_glass()
+    print ts.ix[1505.0:1500.0]
+    #ts.loc[:, 50.5, 520.0]
+    ##area = ts.area()
+    ##tf=ts[ts.columns[-1]]
+    ##print tf 
+    #cols = ts.columns[0:5]
+    #c2 = ts.columns[0:5].convert('m')
+    #c2.datetimeindex
+    #mins = cols.convert('m')
+    #print mins
+    #ts.as_varunit('m')
 
-
-    #t2 = ts.as_interval('m')
-
-    #t2 = t2.as_iunit('r')
-
-    ##stack = ts.split_by(1)
-    ##stack.iunit = 'a'
-
-    ##ts[ts.columns[0]].plot(colormap='RdBu')
-    ##plt.show()
-    #t2 = ts.as_interval('m')
-    ##t2 = ts.as_iunit('r')
-    ##ts.area().plot()
-    ##import sys
-    ##sys.exit()
-
-###    stack.plot(title='Big bad plots')
-    #from pyuvvis.plotting import six_plot
-    #import matplotlib.pyplot as plt
-    #six_plot(ts, striplegend=True)
-    #plt.show()
-    ##t1 = ts.as_interval()
-    ##print t1.columns
-    ##t1.plot(cbar=True)
-    ##t1.to_datetime()
-    ##t1.ix[500.0:600.0]
-    ##t2 = ts.as_specunit('ev')
-    ##t3 = ts.as_iunit('a')
-    ##print t2.specunit, 'hi t2'
-    ##print t3.specunit, 'hi t3'
-    ##print t2.specunit, 'hi t2'
-    ##specplot(ts, cbar=True)
+    #t2 = ts.ix[1500.0:1000.0]
+    #print ts.index
+    #print t2.index
 
 
+    ##t2 = ts.as_interval('m')
 
-###    a=ts.area()
-###    print 'hi', a.specunit
-###    ts.specunit = 'ev'
-    ###from pyuvvis.plotting import specplot, areaplot
-    ###areaplot(ts)
+    ##t2 = t2.as_iunit('r')
+
+    ###stack = ts.split_by(1)
+    ###stack.iunit = 'a'
+
+    ###ts[ts.columns[0]].plot(colormap='RdBu')
     ###plt.show()
+    ##t2 = ts.as_interval('m')
+    ###t2 = ts.as_iunit('r')
+    ###ts.area().plot()
+    ###import sys
+    ###sys.exit()
 
-    ###from pyuvvis.IO.gwu_interfaces import from_spec_files, get_files_in_dir
-    ###from pyuvvis.exampledata import get_exampledata
-    ###ts=from_spec_files(get_files_in_dir(get_exampledata('NPSAM'), sort=True), name='foofromfile')
+####    stack.plot(title='Big bad plots')
+    ##from pyuvvis.plotting import six_plot
+    ##import matplotlib.pyplot as plt
+    ##six_plot(ts, striplegend=True)
+    ##plt.show()
+    ###t1 = ts.as_interval()
+    ###print t1.columns
+    ###t1.plot(cbar=True)
+    ###t1.to_datetime()
+    ###t1.ix[500.0:600.0]
+    ###t2 = ts.as_specunit('ev')
+    ###t3 = ts.as_iunit('a')
+    ###print t2.specunit, 'hi t2'
+    ###print t3.specunit, 'hi t3'
+    ###print t2.specunit, 'hi t2'
+    ###specplot(ts, cbar=True)
+
+
+
+####    a=ts.area()
+####    print 'hi', a.specunit
+####    ts.specunit = 'ev'
+    ####from pyuvvis.plotting import specplot, areaplot
+    ####areaplot(ts)
+    ####plt.show()
+
+    ####from pyuvvis.IO.gwu_interfaces import from_spec_files, get_files_in_dir
+    ####from pyuvvis.exampledata import get_exampledata
+    ####ts=from_spec_files(get_files_in_dir(get_exampledata('NPSAM'), sort=True), name='foofromfile')
 
     ###ts.to_interval('s')
     ###ts=ts.ix[440.0:700.0,0.0:100.0]
