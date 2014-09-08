@@ -52,7 +52,6 @@ def _load_gwuspec(filepath, *args, **kwargs):
     # TimeSpec KWARGS
     kwargs.setdefault('reference', 0) #Index col will be removed.
     kwargs.setdefault('specunit', 'nm')
-#    kwargs.setdefault('varunit', 'dti')
         
     ts = load_ts(filepath, *args, **kwargs)
 

@@ -562,7 +562,7 @@ class Controller(object):
             try:
                 ts.varunit = self.params.intvlunit
             except KeyError:
-                ts.varunit = 'intv'        
+                ts.varunit = 'intvl'        
                 logger.warn('Cannot set "intvlunit" from parameters; running'
                         ' ts.to_interval()')
         else:
@@ -854,7 +854,7 @@ class Controller(object):
                  xlabel='Time ('+ts.varunit+')',
                  legend=False,
                  title='Spectral Power vs. Time (%i - %i %s)' % 
-                    (min(ts.index), max(ts.index), ts.specunit), color='bkack', **sizeargs)
+                    (min(ts.index), max(ts.index), ts.specunit), color='black', **sizeargs)
         self.plt_clrsave(op.join(outpath, prefix +'_area'))
 
         # Short wavelengths min:525nm

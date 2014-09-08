@@ -12,7 +12,7 @@ from scipy import integrate
 
 from pandas import DataFrame, DatetimeIndex, Index, Series, read_csv, MultiIndex
 from pandas.core.common import _is_bool_indexer
-from pandas.core.indexing import _is_list_like
+from pandas.core.indexing import _is_list_like, _is_nested_tuple
 
 # pyuvvis imports 
 from pyuvvis.core.specindex import SpecIndex
@@ -1466,7 +1466,7 @@ class _NearbyIndexer(_MetaLocIndexer):
          if isinstance(labels, MultiIndex):
             raise SpecIndexError("MultiIndex nearby slicing not supported.")
 
-         # an iterable multi-selection
+         # an iterable multi-selection (eg nearby[[50, 55, 65]])
          if not (isinstance(key, tuple) and
                  isinstance(labels, MultiIndex)):
 
@@ -1476,10 +1476,13 @@ class _NearbyIndexer(_MetaLocIndexer):
             if validate_iterable:
                self._has_valid_type(key, axis)
 
+            # WILL OUTPUT WRONG INDEX STUFF LIKE TIMEINDEX
+            # NEED TO FIX
+            raise NotImplementedError("See GH #107")
             out = self._getitem_iterable(key, axis=axis)
 
          # nested tuple slicing
-         if super(_NearbyIndexer, self)._is_nested_tuple(key, labels):
+         if _is_nested_tuple(key, labels):
             locs = labels.get_locs(key)
             indexer = [ slice(None) ] * self.ndim
             indexer[axis] = locs

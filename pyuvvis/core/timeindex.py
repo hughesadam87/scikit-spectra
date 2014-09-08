@@ -43,6 +43,11 @@ class TimeIndex(ConversionIndex):
             input_array = np.array(input_array.to_pydatetime())
             input_array = np.array([Timestamp(x) for x in input_array])
 
+            # Could force unit = DTI at this point, but are there cases
+            # where they want to retain unit = None? 
+            # Decided default behavior should be DTI and None set if desired
+            unit = 'dti'
+
                         
         if unit:
             # dti, timedelta
@@ -77,11 +82,20 @@ class TimeIndex(ConversionIndex):
         TimeIndex class and needs to be handled separately.
         """
 
+        # Hack: when going from None to seconds or another float unit, 
+        # the array dtype will change.  This isn't an issue for ABCIndex
+        # which is always float type.
+
         # Handle non-dti conversion and conversions involvin DTI and None
+
+        inunit = self._unit.short        
+        if inunit is None and outunit is not None and outunit != 'dti':
+            raise IndexError("Converting TimeIndex from None to float type"
+                  "is not allowed; please set the timeindex unit first.")
+
         try:
             out = super(TimeIndex, self).convert(outunit)
         except DatetimeCanonicalError:
-            inunit = self._unit.short        
  
             # DTI (just pass self.datetimeindex into the constructor)
             if outunit == 'dti':

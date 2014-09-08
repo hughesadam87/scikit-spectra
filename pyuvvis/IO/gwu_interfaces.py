@@ -199,6 +199,7 @@ def from_spec_files(file_list, name='', skiphead=17, skipfoot=1, check_for_overl
             
     return timespec
 
+
 def _get_datetime_specsuite(specsuiteheader):
     ''' Special, Ocean-optics specific function to get date information from a their customized header.'''
     dateline=specsuiteheader[2].split()
@@ -209,6 +210,7 @@ def _get_datetime_specsuite(specsuiteheader):
     hrs, mins, secs=dateline[4].split(':')
     hrs=int(hrs) ; mins=int(mins) ; secs=int(secs)
     return datetime(year, month, day, hrs, mins, secs)
+
 
 def _get_metadata_fromheader(specsuiteheader):
     ''' Populates metadata attributes from the speactrasuite datafile header'''
