@@ -31,7 +31,7 @@ class Parameters(object):
 
     reference_default = 0
     specunit_default = 'nm'
-    intvlunit_default = 's'
+    intvlunit_default = 'm'
     uv_ranges_default = 8
     # or((430.0,450.0), (450.0,515.0), (515.0, 570.0),
     #(570.0,620.0), (620.0,680.0))

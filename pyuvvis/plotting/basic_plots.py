@@ -123,6 +123,9 @@ def _genplot(ts, **pltkwargs):
     # Not normazling padding correctly!
     
     def _correct_padding(xi,xf):
+        """ Note, when making multiplots, this can be an issue and users
+        will want to do padding=None
+        """
         dlt_x = xf-xi
         boundary = abs(dlt_x *padding)
         low_bound = xi-boundary

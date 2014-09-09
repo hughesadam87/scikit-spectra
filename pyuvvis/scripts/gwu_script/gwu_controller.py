@@ -630,8 +630,14 @@ class Controller(object):
             quadname = self.infolder 
         else:
             quadname = "%s:%s" % (op.basename(self.inroot), self.infolder)
+
+        # SIXPLOT
         six_plot(ts, title=quadname, striplegend=True)
         self.plt_clrsave(op.join(rundir, '%s_sixplot.png' % self.infolder))
+        
+        # AREA THIRDS
+        self.area_thirds_plot(ts)
+        self.plt_clrsave(op.join(rundir, '%s_area_thirds.png' % self.infolder))
         
         
         #Iterate over various iunits
@@ -900,7 +906,10 @@ class Controller(object):
                  legend=False, 
                  title='Normalized ABSOLUTE Power vs. Time (%i - %i %s)' % 
                      (min(ts.index), max(ts.index), ts.specunit), color='purple', **sizeargs)
-        self.plt_clrsave(op.join(outpath, prefix +'_area_normal'))        
+        self.plt_clrsave(op.join(outpath, prefix +'_area_normal'))   
+        
+        
+        
         
         # Lambda max vs. t plot
         
@@ -919,6 +928,40 @@ class Controller(object):
                        'Time ('+ts.varunit+')', **sizeargs ) #legstyle =1 for upper left
         self.plt_clrsave(op.join(outpath, prefix +'_strip'))        
         
+    def area_thirds_plot(self, ts):
+        # Special areaplot of normalized raw area in thirds
+        # Should work on USB650, but untested.  Slices data into thirds to 
+        # find limits, so should be independent.
+        def _scaleto1(tslice):
+            return np.divide(tslice, tslice[0])
+        
+        ax = areaplot(_scaleto1(ts.area()), linewidth=2, alpha=1, ls='--', padding=None)
+        
+        tspace = (ts.index.max() - ts.index.min()) /3
+        tim = ts.index.min()
+        
+        short = ts.nearby[:tim+tspace].area()
+        mid = ts.nearby[tim+tspace:tim+2*tspace].area()
+        longer = ts.nearby[2*tspace+tim:].area()
+        
+        for t, color in [(short, 'b'), (mid, 'g'), (longer, 'r')]:
+            ax = range_timeplot(_scaleto1(t), ax=ax, color=color, 
+                                linewidth=4, alpha=.4, padding=None)
+        
+        def _shortname(string):
+            """ Rounds name of format 324.23:960.32 to int, 324:960"""
+            ints = [int(round(float(i),0)) for i in string.split(':')]
+            return '%s:%s' % (ints[0], ints[1])    
+            
+        plt.title('Area slices %s: normalized at t=0' % ts.specunit)
+            
+        plt.legend(['All $\lambda$', 
+                    _shortname(short.index[0]), 
+                    _shortname(mid.index[0]), 
+                    _shortname(longer.index[0])],
+                    ncol=4, 
+                    fontsize='10')        
+
         
     def corr_analysis(self, ts, outpath, prefix=''):
         
