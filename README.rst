@@ -138,6 +138,11 @@ install to an arbitrary directory using the home keyword option::
   
 .. _source: https://github.com/hugadams/pyuvvis
 
+To install all of the dependencies (pandas, scipy and their various dependencies), download ``pyuvvis`` from github, navigate
+to the base directory and type:
+
+    pip install -r requirements.txt
+
 Testing Installation
 --------------------
 
