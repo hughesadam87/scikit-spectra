@@ -56,7 +56,7 @@ def _genplot(ts, **pltkwargs):
 
     xlim = pltkwargs.pop('xlim', None)
     ylim = pltkwargs.pop('ylim', None)
-    autopadding = pltkwargs.pop('autopadding', 0.05)
+    custompadding = pltkwargs.pop('custompadding', 0.05)
             
             
     if not ax:
@@ -127,13 +127,13 @@ def _genplot(ts, **pltkwargs):
         will want to do padding=None
         """
         dlt_x = xf-xi
-        boundary = abs(dlt_x *autopadding)
+        boundary = abs(dlt_x *custompadding)
         low_bound = xi-boundary
         high_bound = xf+boundary
         return (low_bound, high_bound)
     
     
-    if not xlim and autopadding is not None:
+    if not xlim and custompadding is not None:
         try:
             xlim = _correct_padding(min(ts.index), max(ts.index))
             ax.set_xlim(xlim)
@@ -141,7 +141,7 @@ def _genplot(ts, **pltkwargs):
         except Exception:
             pass
                  
-    if not ylim and autopadding is not None:
+    if not ylim and custompadding is not None:
         try:
             ylim = _correct_padding(ts.min().min(), ts.max().max())
             ax.set_ylim(ylim)
