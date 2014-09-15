@@ -141,3 +141,10 @@ class ConversionFloat64Index(ConversionIndex, Float64Index):
    
    _forcetype = 'float64' 
    
+   #def __new__(cls, input_array, unit=None):
+      #""" Unit is valid key of unitdict """
+
+      #input_array = np.around(input_array, decimals=6)
+      #return super(ConversionFloat64Index, cls).__new__(cls, input_array, unit=unit)
+   
+   

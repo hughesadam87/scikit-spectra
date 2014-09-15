@@ -4,7 +4,8 @@ from pandas import DatetimeIndex, Timestamp
 
 from pyuvvis.core.abcindex import ConversionIndex, _parse_unit
 from pyuvvis.units.abcunits import UnitError
-from pyuvvis.units.intvlunit import INTVLUNITS, TimeDelta, DateTime, DatetimeCanonicalError
+from pyuvvis.units.intvlunit import INTVLUNITS, TimeDelta, DateTime, \
+    DatetimeCanonicalError
 
 class TimeIndex(ConversionIndex):
     """ Stores time labels as Timestamps, Time Deltas or cumulative intervals
@@ -55,6 +56,8 @@ class TimeIndex(ConversionIndex):
                 dtype = 'object'
             else:
                 dtype = 'float64'
+                # FLOAT ROUNDING
+#                input_array = np.around(input_array, decimals=6)
 
             obj = np.asarray(input_array, dtype=dtype).view(cls)   
         else:
@@ -83,7 +86,15 @@ class TimeIndex(ConversionIndex):
         """
 
         inunit = self._unit.short        
-
+        
+        # Corner case: None to DTI --> DTI constructor accepts most anything so
+        # Enforce that user has set datetimeinex manually
+        if outunit == 'dti' and inunit is None:
+            try:
+                self.datetimeindex
+            except AttributeError:
+                raise IndexError("Going from None to DTI can result in incorrect datetimeindex."
+                        " therefore, please construct index from datetime index from begining.")
         # Hack: when going from None to seconds or another float unit, 
         # the array dtype will change.  This isn't an issue for ABCIndex
         # which is always float type.
@@ -155,7 +166,8 @@ class TimeIndex(ConversionIndex):
                 if len(self) != len(dti):
                     raise IndexError("Length mismatch between passed"
                          "datetimeindex %s and object %s" % (len(dti), len(self)))
-                self._stored_dti = dti
+                
+        self._stored_dti = dti
 
 
     def __getslice__(self, start, stop) :

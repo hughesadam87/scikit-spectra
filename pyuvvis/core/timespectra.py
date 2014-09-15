@@ -43,6 +43,39 @@ if __name__ == '__main__':
     from specindex import SpecIndex
     from pandas import date_range
     import numpy as np
+    from pyuvvis.data import solvent_evap, aunps_glass, aunps_water
+    
+
+    def sumdiff(array, absolute=False, cumsum=False):
+        """ Sum of the differences of an array (usually array of areas).  If absolute, absolute difference is used.
+        If cumsum, the cumulative sum is returned.
+        """
+        sdiff = []
+        # Compute the forward difference up to i=final -1
+    #    array = array.values
+        for idx, value in enumerate(array):
+            if idx < len(array)-1:
+                new = array[idx+1]
+                out = new-value          
+                if absolute:
+                    out = abs(out)        
+                sdiff.append(out)
+    
+        if cumsum:
+            sdiff = list(np.cumsum(sdiff)) 
+        sdiff.append(sdiff[-1]) #REPEAST LAST VALUE
+        return sdiff
+
+    ts = aunps_glass()
+
+    ts.iunit = None #is the most accurate
+    ts.varunit = 'm'
+    from pandas import Index
+    ts.columns = Index(ts.columns)
+    area = ts.area()
+    
+    DIFF = area.apply(sumdiff, axis=1, raw=False)
+    
 
     # Be careful when generating test data from Pandas Index/DataFrame objects, as this module has overwritten their defaul behavior
     # best to generate them in other modules and import them to simulate realisitc usec ase
@@ -83,7 +116,6 @@ if __name__ == '__main__':
                     ###index=spec, 
                     ###name='ts2') 
 
-    from pyuvvis.data import solvent_evap, aunps_glass, aunps_water
     import matplotlib.pyplot as plt
     from pyuvvis.plotting import areaplot
     ts = solvent_evap()

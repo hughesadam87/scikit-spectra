@@ -935,7 +935,7 @@ class Controller(object):
         def _scaleto1(tslice):
             return np.divide(tslice, tslice[0])
         
-        ax = areaplot(_scaleto1(ts.area()), linewidth=2, alpha=1, ls='--', padding=None)
+        ax = areaplot(_scaleto1(ts.area()), linewidth=2, alpha=1, ls='--', custompadding=None)
         
         tspace = (ts.index.max() - ts.index.min()) /3
         tim = ts.index.min()
@@ -946,7 +946,7 @@ class Controller(object):
         
         for t, color in [(short, 'b'), (mid, 'g'), (longer, 'r')]:
             ax = range_timeplot(_scaleto1(t), ax=ax, color=color, 
-                                linewidth=4, alpha=.4, padding=None)
+                                linewidth=4, alpha=.4, custompadding=None)
         
         def _shortname(string):
             """ Rounds name of format 324.23:960.32 to int, 324:960"""
