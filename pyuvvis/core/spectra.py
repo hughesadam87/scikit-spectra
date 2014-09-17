@@ -1177,9 +1177,13 @@ class Spectra(MetaDataFrame):
       can either return unicode or bytes.  This is better than overwriting __repr__()
       """
 
+      # Certain methods aren't copying this correctly.  Delete later if fix
+      fullspecunit = pvutils.hasgetattr(self, 'full_specunit', 'invalid')
+      fullvarunit = pvutils.hasgetattr(self, 'full_varunit', 'invalid')
+
       delim = '\t'
       header = "*%s*%sSpectral unit:%s%sPerturbation unit:%s\n" % \
-         (self.name, delim, self.full_specunit, delim, self.full_varunit)
+         (self.name, delim, fullspecunit, delim, fullvarunit)
 
       return ''.join(header)+'\n'+self._df.__repr__()+'   ID: %s' % id(self)   
 
@@ -1540,11 +1544,16 @@ if __name__ == '__main__':
                ##columns=testdates2, 
                ##index=spec, 
                ##name='ts2') 
+               
+               
 
    from pyuvvis.data import solvent_evap, aunps_glass
    import matplotlib.pyplot as plt
    from pyuvvis.plotting import areaplot
    ts = aunps_glass()
+
+   print ts.area()
+   raise SyntaxError
 
    #  ts = ts.as_varunit('m')
 

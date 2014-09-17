@@ -1,18 +1,8 @@
-''' Various utilities used for manipultating custom spectral dataframe objects.
+""" Various utilities used for manipultating custom spectral dataframe objects.
     Some of these may work for any dataframe, but others require special attributes
     such as "baseline" and "filedict".  For serialization operations, import 
     from spec_serial.py 
-    
-    FOR ALL TIMESPECTRA-RELATED RETURNS, see ts_utils.py'''
-
-__author__ = "Adam Hughes"
-__copyright__ = "Copyright 2012, GWU Physics"
-__license__ = "Free BSD"
-__maintainer__ = "Adam Hughes"
-__email__ = "hugadams@gwmail.gwu.edu"
-__status__ = "Development"
-
-### slicing with pandas is so easy, might not even be worth writing my own methods.
+    """
 
 from pandas import Series, DataFrame
 import numpy as np
@@ -28,6 +18,12 @@ logger = logging.getLogger(__name__)
 
 class UtilsError(Exception):
     """ """
+
+def hasgetattr(obj, attr, default=None):
+    """ Combines hasattr/getattr to return a default if hasattr fail."""
+    if not hasattr(obj, attr):
+        return default
+    return getattr(obj, attr)
 
 def countNaN(obj):
     ''' Returns counts of nans in an object'''
