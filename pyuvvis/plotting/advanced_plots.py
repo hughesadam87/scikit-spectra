@@ -29,8 +29,8 @@ from pyuvvis.exceptions import badvalue_error
 # Smart float to int conversion
 _ir=lambda(x): int(round(x))
 
-def _gen2d(xx, yy, zz, contours=6, label=None, colorbar=None, 
-           background=None, **pltkwargs):
+def _gencontour(xx, yy, zz, contours=6, label=None, colorbar=None, 
+           background=None, projection=None, **pltkwargs):
     """ Abstract layout for 2d plot.
     For convienence, a few special labels, colorbar and background keywords 
     have been implemented.  If these are not adequate, it one can add 
@@ -62,16 +62,23 @@ def _gen2d(xx, yy, zz, contours=6, label=None, colorbar=None,
 
     
 #    pltkwargs.setdefault('legend', False) #(any purpose in 2d?)
+#   LEGEND FOR 2D PLOT: http://stackoverflow.com/questions/10490302/how-do-you-create-a-legend-for-a-contour-plot-in-matplotlib
     pltkwargs.setdefault('linewidth', 1)    
     
     cbar = pltkwargs.pop('cbar', False)
     
-    fig = pltkwargs.pop('fig', plt.gcf())
+    fig = pltkwargs.pop('fig', None)
     ax = pltkwargs.pop('ax', None)  
     
-    # Overwrites fig (desireable?)
+    # Different logic than 1d, but I think necessary for sideplots?
+
+    # Is this the best logic for 2d/3d fig?
     if not ax:
-        fig, ax = plt.subplots(1)
+        f = plt.figure()
+        ax = f.gca(projection=projection)       
+        if not fig:
+            fig = f
+        
 
     labelsize = pltkwargs.pop('labelsize', 'medium') #Can also be ints
     titlesize = pltkwargs.pop('titlesize', 'large')
@@ -92,24 +99,25 @@ def _gen2d(xx, yy, zz, contours=6, label=None, colorbar=None,
     # Refactored with xx, yy instead of df.columns/index UNTESTED
     if background:
         xmin, xmax, ymin, ymax = xx.min(), xx.max(), yy.min(), yy.max()
+        
+        # Could try rescaling contour rather than image:
+        #http://stackoverflow.com/questions/10850882/pyqt-matplotlib-plot-contour-data-on-top-of-picture-scaling-issue
         if background==1:
-            im = plt.imshow(zz, interpolation='bilinear', origin='lower',
+            im = ax.imshow(zz, interpolation='bilinear', origin='lower',
                         cmap=cm.gray, extent=(xmin, xmax, ymin, ymax))     
             
         elif background==2:
-            im = plt.imshow(zz, interpolation='bilinear', origin='lower',
+            im = ax.imshow(zz, interpolation='bilinear', origin='lower',
                        cmap=cm.autumn, extent=(xmin, xmax, ymin, ymax))            
 
-    ### This will take a custom image opened in PIL or it will take plt.imshow() returned from somewhere else
-        else:
-            try:
-                im = plt.imshow(background) 
-            ### Perhaps image was not correctly opened    
-            except Exception:
-                raise badvalue_error(background, 'integer 1,2 or a PIL-opened image')
-    else:
-        im=None
-        
+    #### This will take a custom image opened in PIL or it will take plt.imshow() returned from somewhere else
+        #else:
+            #try:
+                #im = ax.imshow(background) 
+            #### Perhaps image was not correctly opened    
+            #except Exception:
+                #raise badvalue_error(background, 'integer 1,2 or a PIL-opened image')
+
     if fill:
         contours = ax.contourf(xx, yy, zz, contours, **pltkwargs)    #linewidths is a pltkwargs arg
     else:
@@ -135,7 +143,7 @@ def _gen2d(xx, yy, zz, contours=6, label=None, colorbar=None,
         
     return (ax, contours)    
 
-# Refactor to be more of a skeleton with xx, yy, zz like in _gen2d
+# Refactor to be more of a skeleton with xx, yy, zz like in _gencontour
 def plot3d(df, kind='contour', elev=0, azim=0, proj_xy=True, proj_zy=True, proj_xz=True,
                contour_color=None, contour_cmap=None, c_iso=10, r_iso=10,*args, **pltkwargs):
     """ Matplotlib Axes3d wrapper for dataframe. Made to handle surface plots, so pure contour plots,
@@ -348,7 +356,7 @@ def _gencorr2d(xx, yy, zz, a1_label=r'$\bar{A}(\nu_1)$',
     """ Abstract layout for 2d correlation analysis plot.  
     
     **contourkwds
-        Passed directly to _gen2d; includes keywords like xlabel, ylabel
+        Passed directly to _gencontour; includes keywords like xlabel, ylabel
         and so forth.
     """
 
@@ -366,8 +374,10 @@ def _gencorr2d(xx, yy, zz, a1_label=r'$\bar{A}(\nu_1)$',
     contourkwds.setdefault('fill', True)        
     
     
+    # This will create a fig
     ax1 = plt.subplot2grid((5,5), (0,0), colspan=1) # top left
     plt.subplots_adjust(hspace = 0, wspace=0)    # Remove whitespace
+    
     ax1.plot([0,-1], color='black')
     ax1.text(.18, -.78, a1_label, size=12) 
     ax1.text(.55, -.35, a2_label, size=12)    
@@ -380,13 +390,18 @@ def _gencorr2d(xx, yy, zz, a1_label=r'$\bar{A}(\nu_1)$',
     ax4.xaxis.tick_bottom() #remove top xticks
     ax4.yaxis.set_label_position('right')
     
-    ax4, contours = _gen2d(xx, yy, zz, ax=ax4, **contourkwds)
+    ax4, contours = _gencontour(xx, yy, zz, ax=ax4, **contourkwds)
     
  #   plt.colorbar(ax4)  #oesn't work http://matplotlib.org/examples/pylab_examples/contourf_demo.html
     
     # Bisecting line
-    ax4.plot(ax4.get_xlim(), ax4.get_ylim(), ls = '--', color='black', linewidth=1)  
+    ax4.plot(ax4.get_xlim(), 
+             ax4.get_ylim(), 
+             ls = '--', 
+             color='black', 
+             linewidth=1)  
     
+    # Fig is created by _gen2d in ax4 _gencontour
     fig = plt.gcf()
 
     if grid:
@@ -431,7 +446,7 @@ if __name__ == '__main__':
     from matplotlib import rc
     from pyuvvis.data import aunps_glass
     
-    ts = aunps_glass().as_interval('s')
+    ts = aunps_glass().as_varunit('s')
     ts.specunit = 'ev'
     xx,yy = np.meshgrid(ts.columns, ts.index)
 
@@ -444,7 +459,15 @@ if __name__ == '__main__':
                #cbar = True,
                #background=False)
  
-#    _gen2d(xx, yy, ts, cbar=True, fill=True, contours=20)
+    _gencontour(xx, yy, ts,
+                cbar=False,
+                background=1,
+                fill=False,
+                contours=9,
+#                linewidth=50,
+                projection=None)
+    
+    
     
     
 

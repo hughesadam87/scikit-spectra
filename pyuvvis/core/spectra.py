@@ -336,8 +336,12 @@ class Spectra(MetaDataFrame):
       """ Before changing reference, first validates.  Then considers various cases, and changes 
       class attributes and dataframe values appropriately."""
 
+      int_or_column = False
+      if ref in self._df.columns or isinstance(ref, int):            
+         int_or_column = True
+
       # Adding or changing reference
-      if not isinstance(reference, NoneType):
+      if reference is not NoneType:
 
          # If data is in raw/full mode (itype=None)
          if self._itype == None:
@@ -348,6 +352,9 @@ class Spectra(MetaDataFrame):
          # Let _set_itype() do lifting.  Basically convert to full and back to current itype. 
          else:
             self._set_itype(self._itype, ref=reference)
+            if int_or_column:            
+               logger.warn('Reference changed based on column data while'
+                           'Spectra was normalized.')            
 
       # Removing reference.  
       else:
@@ -865,9 +872,9 @@ class Spectra(MetaDataFrame):
       """Function used to change spectral intensity representation in a convertible manner. Not called on
       initilization of Spectra(); rather, only called by as_iunit() method."""
 
-      sout=_valid_iunit(sout)
-      sin=self._itype
-      df=self._df #Could also work just by calling self...
+      sout = _valid_iunit(sout)
+      sin = self._itype
+      df = self._df #Could also work just by calling self...
 
       # Corner case, for compatibility with reference.setter
       if sin==None and sout==None:
@@ -881,7 +888,7 @@ class Spectra(MetaDataFrame):
 
          # If user tries to downconvert but doesn't pass reference, use stored one
          if rout == None:
-            rout=self._reference
+            rout = self._reference
 
          # If ref not passed, use current reference.  Want to make sure it is 
          # not none, but have to roundabout truthtest

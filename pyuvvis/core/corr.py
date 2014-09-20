@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 from math import pi
 import numpy as np
 
-from pyuvvis.plotting.advanced_plots import _gencorr2d, _gen2d
+from pyuvvis.plotting.advanced_plots import _gencorr2d, _gencontour
 import pyuvvis.config as pvconfig
 import pyuvvis.plotting.plot_utils as pvutil
 from pca_lite import PCA
@@ -326,8 +326,8 @@ class Corr2d(object):
             if sideplots == True:
                 sideplots = 'mean'
             
+            symbol = self.index._unit.symbol
             if self._centered:
-                symbol = self.index._unit.symbol
                 label1 = r'$\bar{A}(%s_1)$' % symbol
                 label2 = r'$\bar{A}(%s_2)$' % symbol
                 
@@ -369,7 +369,7 @@ class Corr2d(object):
 
 
         else:
-            return _gen2d(xx, yy, data, **plotkwargs)[0] #return axes, not contours
+            return _gencontour(xx, yy, data, **plotkwargs)[0] #return axes, not contours
 
     @property
     def shape(self):
