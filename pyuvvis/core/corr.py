@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 from math import pi
 import numpy as np
 
-from pyuvvis.plotting.advanced_plots import _gencorr2d, _gencontour
+from pyuvvis.plotting.advanced_plots import _gencorr2d, _genmesh
 import pyuvvis.config as pvconfig
 import pyuvvis.plotting.plot_utils as pvutil
 from pca_lite import PCA
@@ -369,7 +369,7 @@ class Corr2d(object):
 
 
         else:
-            return _gencontour(xx, yy, data, **plotkwargs)[0] #return axes, not contours
+            return _genmesh(xx, yy, data, **plotkwargs)[0] #return axes, not contours
 
     @property
     def shape(self):

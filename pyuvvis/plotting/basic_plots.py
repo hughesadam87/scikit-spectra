@@ -172,25 +172,6 @@ def _genplot(ts, **pltkwargs):
 
     return ax    
 
-	
-# The following three plots are simply wrappers to genplot.  Up to the user to pass
-# the correct dataframes to fill these plots.
-def specplot(ts, **pltkwds):
-    ''' Basically a call to gen plot with special attributes, and a default color mapper.'''
-          
-    pltkwds.setdefault('xlabel', ts.full_specunit)  
-    pltkwds.setdefault('ylabel', ts.full_iunit)    
-#    title = pltkwds.pop('title', '(%s) %s' % (ts.full_iunit, ts.name) )    
-    pltkwds.setdefault('title', ts.name )    
-
-    ax = _genplot(ts, **pltkwds)
-
-    #Reversed specindex ie cm-1
-    if ts.index[0] > ts.index[-1]:
-        ax.set_xlim(ax.get_xlim()[::-1])
-    
-    return ax       
-    
     
 def timeplot(ts, **pltkwds):
     ''' Sends transposed dataframe into _genplot(); however, this is only useful if one wants to plot
@@ -208,23 +189,6 @@ def timeplot(ts, **pltkwds):
         
     return _genplot(ts.transpose(), **pltkwds)
 
-def normplot(ts, iunit='a', **pltkwds):    
-    ''' Absorbance plot.  Note: This will autoconvert data.  This is a convienence method
-    but if data is already in absorbance mode, then it's redundant to have this as specplot()
-    will produce same plot.'''
-    # Make sure ts is absorbance, or readily convertable
-    if ts.iunit != iunit:  #Better/general way to do this? (Idic.keys())
-        ts = ts.as_iunit(iunit)
-
-    if not ts._base_sub:
-        logger.warn('Spectrum does not have subtracted baseline; could affect '
-                    'result in specious absorbance data.')
-                    
-    pltkwds.setdefault('xlabel', ts.full_specunit)  
-    pltkwds.setdefault('ylabel', ts.full_iunit)    
-    pltkwds.setdefault('title', 'Normalized: '+ ts.name )    
-        
-    return _genplot(ts, **pltkwds)
 
 # Requires ranged dataframe used wavelength slices method
 def range_timeplot(ranged_ts, **pltkwds):

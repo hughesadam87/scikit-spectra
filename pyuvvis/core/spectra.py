@@ -23,7 +23,8 @@ import pyuvvis.core.utilities as pvutils
 # Merge
 from pyuvvis.pandas_utils.metadframe import MetaDataFrame, _MetaLocIndexer
 from pyuvvis.logger import decode_lvl, logclass
-from pyuvvis.plotting import specplot
+from pyuvvis.plotting import _genplot
+from pyuvvis.plotting.advanced_plots import _genmesh
 from pyuvvis.exceptions import badkey_check, badcount_error, RefError, BaselineError
 
 
@@ -88,6 +89,55 @@ def _valid_indextype(index):
                       ' got type %s' % type(index))    
 
 
+def specplot(ts, *args, **pltkwargs):   
+   """ Plotting interface.  Use kind='surf, wire etc...' to go through 
+   various plot types.  Will append correct x and y labels.
+   
+   Parameters
+   ----------
+   
+   iunit : None or str
+       Shortcut to return timespectra in normalized ref system (ie Absorbance)
+       without changing the Spectra.
+       
+   kind : valid pyuvvis plot type (contour, surface, etc...) 
+   """
+   
+   iunit = pltkwargs.pop('iunit', None)
+   kind = pltkwargs.pop('kind', None) #Should be like 1D or something
+   
+   if ts.iunit != iunit:  #Better/general way to do this? (Idic.keys())
+      ts = ts.as_iunit(iunit)      
+
+
+   if not ts._base_sub:
+      logger.warn('Spectrum does not have subtracted baseline; could affect '
+                           'result in specious absorbance data.')          
+   
+   pltkwargs.setdefault('xlabel', ts.full_specunit)
+   pltkwargs.setdefault('ylabel', ts.full_varunit)
+   
+   if iunit:
+         pltkwargs.setdefault('title', 'Normalized: '+ ts.name )    
+   else:
+         pltkwargs.setdefault('title', ts.name)      
+
+   # Later, if put 1D plot into _genmesh, need to modify this again
+   if kind:
+      pltkwargs.setdefault('zlabel', ts.full_iunit)         
+      yy,xx = np.meshgrid(ts.columns, ts.index)
+      ax = _genmesh(xx, yy, ts, *args, kind=kind, **pltkwargs) #returns ax only
+
+    
+   else:
+      ax = _genplot(ts, *args, **pltkwargs)
+
+      #Reversed specindex ie cm-1 (only need for 1d plot, yes?)
+      if ts.index[0] > ts.index[-1]:
+         ax.set_xlim(ax.get_xlim()[::-1])
+
+   return ax
+
 class SpecError(Exception):
    """ """
 
@@ -122,7 +172,12 @@ def spec_from_dir(directory, csvargs, sortnames=False, concat_axis=1, shortname=
 
       cut_extension- If kwd shortname is True, this will determine if the file extension is saved or cut from the data."""
 
-   return Spectra(df_from_directory(directory, csvargs, sortnames=sortnames, concat_axis=concat_axis, shortname=shortname, cut_extension=cut_extension))
+   return Spectra(df_from_directory(directory, 
+                                    csvargs,
+                                    sortnames=sortnames, 
+                                    concat_axis=concat_axis, 
+                                    shortname=shortname, 
+                                    cut_extension=cut_extension))
 
 
 # Ignore all class methods!
@@ -805,8 +860,12 @@ class Spectra(MetaDataFrame):
                                 'match the current spectral index.'%len(self._df.index))
 
 
-   def plot(self, *args, **kwargs):
-      return specplot(self, *args, **kwargs)
+   def plot(self, *args, **pltkwargs):   
+      """ Plotting interface.  Use kind='surf, wire etc...' to go through 
+      various plot types.  Will append correct x and y labels.
+      """
+      return specplot(self, *args, **pltkwargs)
+
 
    @property
    def baseline(self):
@@ -1557,10 +1616,13 @@ if __name__ == '__main__':
    from pyuvvis.data import solvent_evap, aunps_glass
    import matplotlib.pyplot as plt
    from pyuvvis.plotting import areaplot
-   ts = aunps_glass()
+   ts = aunps_glass()#.as_varunit('s')
+
+   ts.plot(kind='surf')
+   plt.show()
 
    print ts.area()
-   raise SyntaxError
+#   raise SyntaxError
 
    #  ts = ts.as_varunit('m')
 

@@ -1,7 +1,7 @@
 import plot_utils as put
 import matplotlib.pyplot as plt
 from pyuvvis.core.utilities import split_by
-from basic_plots import specplot, normplot, areaplot, range_timeplot
+from basic_plots import areaplot, range_timeplot
 
 # Used by SpecStack.plot()
 def slice_plot(ts_list, names=[], n=4, *plotargs, **plotkwds):
@@ -57,7 +57,7 @@ def quad_plot(ts, *plotargs, **plotkwds):
     
     striplegend = plotkwds.pop('striplegend', False)
     
-    specplot(ts, *plotargs, 
+    ts.plot(*plotargs, 
              ax=axes[0], 
              title='Spectra', 
              colormap = cmap,
@@ -73,7 +73,8 @@ def quad_plot(ts, *plotargs, **plotkwds):
                    **plotkwds)    
     
     
-    normplot(ts, *plotargs,
+    ts.plot(*plotargs,
+             iunit='r',
             ax=axes[2], 
             colormap=cmap, 
             title='Normalized',
@@ -145,7 +146,7 @@ def six_plot(ts, *plotargs, **plotkwds):
     
     striplegend = plotkwds.pop('striplegend', False)
     
-    specplot(ts, *plotargs, 
+    ts.plot(*plotargs, 
              ax=axes[0], 
              title='Spectra', 
              colormap = cmap,
@@ -160,7 +161,7 @@ def six_plot(ts, *plotargs, **plotkwds):
                    title='Slices (Full)',
                    **plotkwds)    
     
-    normplot(ts, *plotargs,
+    ts.plot(*plotargs,
             ax=axes[2], 
             colormap=cmap, 
             iunit = 'r',
@@ -173,7 +174,7 @@ def six_plot(ts, *plotargs, **plotkwds):
              fig=f,
              **plotkwds)
 
-    normplot(ts, *plotargs,
+    ts.plot(*plotargs,
             ax=axes[4], 
             iunit='a',
             colormap=cmap, 
