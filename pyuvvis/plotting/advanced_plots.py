@@ -9,7 +9,7 @@ __status__ = "Development"
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mplticker
-from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d import Axes3D #Need import for 3d projection!
 import numpy as np
 import matplotlib.colorbar as mplcbar
 import matplotlib.cm as cm
@@ -94,27 +94,21 @@ def _genmesh(xx, yy, zz, **pltkwargs):
         elev = pltkwargs.pop('elev', 35)
         azim = pltkwargs.pop('azim', -135)        
 
-        # If plane (xy) is input backwards (yx), still works    
-        proj_xy = pltkwargs.pop('proj_xy', False)
-        proj_zy = pltkwargs.pop('proj_zy', False)
-        proj_xz = pltkwargs.pop('proj_xz', False)
-
         c_iso = pltkwargs.pop('c_iso', 10)
         r_iso = pltkwargs.pop('r_iso', 10)
 
         
 
-        cstride = _ir(zz.shape[1]/float(c_iso) ) 
-        rstride = _ir(zz.shape[0]/float(r_iso) )   
-        
-        ### This occurs if the 
-        if cstride == 0:
-            logger.warn("Warning, dataset is too small to accomodate c_iso of %i, setting to 1." % c_iso)
-            cstride=1
-
-        if rstride == 0:
-            logger.warn("Warning, dataset is too small to accomodate r_iso of %i, setting to 1."% r_iso)      
-            rstride=1
+        if c_iso == 0:
+            cstride = 0
+        else:
+            cstride = _ir(zz.shape[1]/float(c_iso) ) 
+            
+        if r_iso == 0:
+            rstride = 0
+        else:
+            rstride = _ir(zz.shape[0]/float(r_iso) )   
+    
             
         pltkwargs.setdefault('cstride', cstride)
         pltkwargs.setdefault('rstride', rstride)
@@ -229,28 +223,74 @@ def _genmesh(xx, yy, zz, **pltkwargs):
     # Set elevation/azimuth for 3d plots
     if projection:
         ax.set_zlabel(zlabel, fontsize=labelsize)        
-        ax.view_init(elev, azim)         
-
-        # MIGRATE THIS TO ITS OWN METHODS THAT TAKE IN AX
-        if fill:
-            cfunc=ax.contourf
-        else:
-            cfunc=ax.contour
-
-        if proj_xy:
-            cset = cfunc(xx, yy, zz, zdir='z', offset=zz.min().min())   #project z onto xy (zmid to bottom)
-          
-        if proj_zy:
-            cset = cfunc(xx, yy, zz, zdir='x', offset=xx.min().min()) #project x onto zy (timestart)  (negative half time interval)
-      
-        if proj_xz:
-            cset = cfunc(xx, yy, zz, zdir='y', offset=yy.max().max()) #project y onto xz (ymid to 0)  (negative mid wavelength)
-        
-        
+        ax.view_init(elev, azim)                 
         
     # NEEDS TO RETURN CONTOURS (Do other plots return anythign?)
     return ax #(ax, mappable)   WHERE MAPPABLE IS CONTOURS 
 
+
+def add_projection(xx, yy, zz, plane='xz', ax=None, fill=False, flip=False, **contourkwds):
+    """ Add a contour plot/projection onto the xy, xz, or yz plane of a 3d
+    plot.
+    
+    xx, yy, zz : 2D Arrays
+    
+    fill : bool (False)
+        Fill in contours (ax.contour vs. ax.contourf).
+        
+    flip : bool (False)
+        The 3d plot is a square of 6 sides.  Flip will change the projeciton
+        from the left wall to right wall, or from floor to ceiling in the 
+        same plane.
+        
+    **contourkwds
+        Keywords passed directly to ax.contour or ax.contourf.  
+    """
+    
+    plane = plane.lower()
+
+    if plane == 'zx': plane = 'xz'
+    if plane == 'zy': plane = 'yz'
+    if plane == 'yx': plane = 'xy'
+    
+    # Is this the best logic for 2d/3d fig?
+    if not ax:
+        f = plt.figure()
+        ax = f.gca(projection='3d')          
+    
+    # MIGRATE THIS TO ITS OWN METHODS THAT TAKE IN AX
+    if fill:
+        cfunc=ax.contourf
+    else:
+        cfunc=ax.contour
+
+    if plane == 'xy':
+        offset=zz.min().min()
+        if flip:
+            offset=zz.max().max()
+        zdir = 'z'
+
+      
+    elif plane == 'yz':
+        offset=xx.min().min()
+        if flip:
+            offset=xx.max().max()
+        zdir = 'x'        
+
+
+    elif plane == 'xz':
+        offset = yy.max().max()
+        if flip:
+            offset = yy.min().min()
+        zdir = 'y'           
+    
+    else:
+        raise PlotError('Invalid plane "%s": must be "xy, xz or yz".' % plane)
+
+    cset = cfunc(xx, yy, zz, zdir=zdir, offset=offset, **contourkwds)  
+   
+    return ax #Return contours?
+   
    
 def _gencorr2d(xx, yy, zz, a1_label=r'$\bar{A}(\nu_1)$', 
                a2_label=r'$\bar{A}(\nu_2)$', **contourkwds): 
@@ -342,6 +382,7 @@ def _gencorr2d(xx, yy, zz, a1_label=r'$\bar{A}(\nu_1)$',
     fig.suptitle(title, fontsize='large') # Still overpads
     return (ax1, ax2, ax3, ax4)
 
+
 if __name__ == '__main__':
 
     from matplotlib import rc
@@ -358,28 +399,32 @@ if __name__ == '__main__':
                #contours=20,
                #cbar = True,
                #background=False)
+               # Is this the best logic for 2d/3d fig?
  
-    ax = _genmesh(xx, yy, ts,
+    ax = add_projection(xx, yy, ts, plane='xz', fill=True, flip=False, alpha=.8, cmap='cool')
+ 
+ 
+    _genmesh(xx, yy, ts,
 #                kind='contour3d',
                 cmap='autumn_r',
                 kind='wire',
                 cbar=False,
+                ax=ax,
                 alpha=1,
-#                proj_xy=True,
-                proj_xz=True,
-#                proj_zy=True,
+                linewidth=1,
                 fill=False,
-                c_iso=5,
-                r_iso = 1,
+                c_iso=50,
+                r_iso = 5,
                 # proj alpha?
 #                contours=9,
 #                linewidth=50,
                 xlabel = ts.full_specunit,
                 ylabel = ts.full_varunit,
                 zlabel = ts.full_iunit)    
-    
+        
     
 
     rc('text', usetex=True)    
+    
     print ts.shape
     plt.show()

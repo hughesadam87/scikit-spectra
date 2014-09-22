@@ -392,7 +392,7 @@ class Spectra(MetaDataFrame):
       class attributes and dataframe values appropriately."""
 
       int_or_column = False
-      if ref in self._df.columns or isinstance(ref, int):            
+      if reference in self._df.columns or isinstance(reference, int):            
          int_or_column = True
 
       # Adding or changing reference

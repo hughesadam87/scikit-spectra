@@ -23,7 +23,7 @@ from time import gmtime, strftime
 
 # PYUVVIS IMPORTS
 #from pyuvvis.bundled import run_nb_offline
-from pyuvvis.plotting import areaplot, normplot, range_timeplot, six_plot
+from pyuvvis.plotting import areaplot, range_timeplot, six_plot
 #from pyuvvis.plotting.advanced_plots import spec_surface3d, surf3d, spec_poly3d, plot2d, plot3d
 from pyuvvis.core.utilities import boxcar, countNaN
 from pyuvvis.core.baseline import dynamic_baseline
