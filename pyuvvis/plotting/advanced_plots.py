@@ -9,7 +9,7 @@ __status__ = "Development"
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mplticker
-from mpl_toolkits.mplot3d import Axes3D #Need import for 3d projection!
+from mpl_toolkits.mplot3d import Axes3D, art3d #Need Axes3d for 3d projection!
 import numpy as np
 import matplotlib.colorbar as mplcbar
 import matplotlib.cm as cm
@@ -25,8 +25,71 @@ from pyuvvis.exceptions import badvalue_error
 _ir=lambda(x): int(round(x))
 
 
+# ALL HANDLED BY GENMESH_2D
 KINDS2D = ['contour']
 KINDS3D = ['scatter3d', 'contour3d', 'wire', 'surf', 'poly'] 
+
+
+def overload_plot_wireframe(ax, X, Y, Z, *args, **kwargs):
+    '''
+    Overoad matplotlib's plot_wireframe for a special use-case.  
+    In future versions, this may be incorporated into matplotlib natively.
+    This would still be required for backwards compatibility.
+    '''
+
+    rstride = kwargs.pop("rstride", 1)
+    cstride = kwargs.pop("cstride", 1)
+
+    had_data = ax.has_data()
+    Z = np.atleast_2d(Z)
+    # FIXME: Support masked arrays
+    X, Y, Z = np.broadcast_arrays(X, Y, Z)
+    rows, cols = Z.shape
+
+    # We want two sets of lines, one running along the "rows" of
+    # Z and another set of lines running along the "columns" of Z.
+    # This transpose will make it easy to obtain the columns.
+    tX, tY, tZ = np.transpose(X), np.transpose(Y), np.transpose(Z)
+
+    if rstride:
+        rii = list(xrange(0, rows, rstride))
+        # Add the last index only if needed
+        if rows > 0 and rii[-1] != (rows - 1) :
+            rii += [rows-1]        
+    else:
+        rii = []
+
+    if cstride:                
+        cii = list(xrange(0, cols, cstride))
+        if cols > 0 and cii[-1] != (cols - 1) :
+            cii += [cols-1]        
+    else:
+        cii = []
+
+    # If the inputs were empty, then just
+    # reset everything.
+    if Z.size == 0 :
+        rii = []
+        cii = []
+
+    xlines = [X[i] for i in rii]
+    ylines = [Y[i] for i in rii]
+    zlines = [Z[i] for i in rii]
+
+    txlines = [tX[i] for i in cii]
+    tylines = [tY[i] for i in cii]
+    tzlines = [tZ[i] for i in cii]
+
+    lines = [list(zip(xl, yl, zl)) for xl, yl, zl in \
+             zip(xlines, ylines, zlines)]
+    lines += [list(zip(xl, yl, zl)) for xl, yl, zl in \
+              zip(txlines, tylines, tzlines)]
+
+    linec = art3d.Line3DCollection(lines, *args, **kwargs)
+    ax.add_collection(linec)
+    ax.auto_scale_xyz(X, Y, Z, had_data)
+
+    return linec
 
 # Rename
 def _genmesh(xx, yy, zz, **pltkwargs):
@@ -79,8 +142,7 @@ def _genmesh(xx, yy, zz, **pltkwargs):
     fill = pltkwargs.pop('fill', False)            
 
     
-    # Different logic than 1d, but I think necessary for sideplots?
-
+    # Different logic than 1d, but I think necessary for sideplots
 
     if kind in KINDS2D:
         projection = None
@@ -109,7 +171,7 @@ def _genmesh(xx, yy, zz, **pltkwargs):
         else:
             rstride = _ir(zz.shape[0]/float(r_iso) )   
     
-            
+                        
         pltkwargs.setdefault('cstride', cstride)
         pltkwargs.setdefault('rstride', rstride)
 
@@ -132,11 +194,11 @@ def _genmesh(xx, yy, zz, **pltkwargs):
     ticksize = pltkwargs.pop('ticksize', '') #Put in default and remove bool gate
     
     
-    # BUG, PLT.CONTOUR() doesn't take 'color'; rather, takes 'colors' for now
+    # PLT.CONTOUR() doesn't take 'color'; rather, takes 'colors' for now
     if 'color' in pltkwargs:        
         pltkwargs['colors']=pltkwargs.pop('color')
         
-    ### Convienence method to pass in string colors
+    # Convienence method to pass in string colors
     if 'cmap' in pltkwargs and isinstance(pltkwargs['cmap'], basestring):
         pltkwargs['cmap']=pu.cmget(pltkwargs['cmap'])
     
@@ -189,7 +251,7 @@ def _genmesh(xx, yy, zz, **pltkwargs):
         
     elif kind == 'wire':
         pltkwargs.setdefault('color', 'black')
-        mappable = ax.plot_wireframe(xx, yy, zz, **pltkwargs)
+        mappable = overload_plot_wireframe(ax, xx, yy, zz, **pltkwargs)
 
     # I THINK THIS IS ALSO A 1D TYPE PLOT!  
     elif kind == 'poly':
@@ -222,8 +284,9 @@ def _genmesh(xx, yy, zz, **pltkwargs):
         
     # Set elevation/azimuth for 3d plots
     if projection:
-        ax.set_zlabel(zlabel, fontsize=labelsize)        
         ax.view_init(elev, azim)                 
+        ax.set_zlabel(zlabel, fontsize=labelsize, rotation=90) #Rotation doens't work      
+        
         
     # NEEDS TO RETURN CONTOURS (Do other plots return anythign?)
     return ax #(ax, mappable)   WHERE MAPPABLE IS CONTOURS 
@@ -287,10 +350,55 @@ def add_projection(xx, yy, zz, plane='xz', ax=None, fill=False, flip=False, **co
     else:
         raise PlotError('Invalid plane "%s": must be "xy, xz or yz".' % plane)
 
+    # PLT.CONTOUR() doesn't take 'color'; rather, takes 'colors' for now
+    if 'color' in contourkwds:        
+        contourkwds['colors']=contourkwds.pop('color')
+
     cset = cfunc(xx, yy, zz, zdir=zdir, offset=offset, **contourkwds)  
    
     return ax #Return contours?
    
+   
+def spec3d(xx, yy, zz, projection=True, samples=5, **pltkwargs):
+    """ Wireframe plot with no connected clines.  By default, adds an xz 
+    projection. 
+    
+    Notes
+    -----
+    Mostly a shortcut for a very useful 3d look at data. Thus, did not add
+    much customizability as this plot can be assembled from _genmesh2d and
+    add_projeciton.
+    """
+
+    for invalid in ['c_iso', 'r_iso', 'cstride', 'rstride']:
+        if invalid in pltkwargs:
+            raise PlotError('Unsupported Keyword %s.'
+                            'Please use the samples argument' % invalid)
+        
+    pltkwargs['kind'] = 'wire'
+    pltkwargs['r_iso'] = 0
+    pltkwargs['c_iso'] = samples
+    pltkwargs.setdefault('linewidth', 2)
+    ax = _genmesh(xx, yy, zz, **pltkwargs)
+    
+    if projection:
+        if projection == True:
+            projection = 'jet' 
+
+        contourkwds = {}
+
+        # Parse colormap vs. color for projection
+        try: 
+            contourkwds['cmap'] = pu.cmget(projection)
+            contourkwds['alpha'] = 0.3 #     
+            
+        except AttributeError:
+            contourkwds['colors'] = projection
+            
+        ax = add_projection(xx, yy, zz, ax=ax, fill=True, **contourkwds)
+   
+    return ax
+    
    
 def _gencorr2d(xx, yy, zz, a1_label=r'$\bar{A}(\nu_1)$', 
                a2_label=r'$\bar{A}(\nu_2)$', **contourkwds): 
@@ -383,14 +491,68 @@ def _gencorr2d(xx, yy, zz, a1_label=r'$\bar{A}(\nu_1)$',
     return (ax1, ax2, ax3, ax4)
 
 
+def poly3d(ts, elev=0, azim=0, **pltkwargs):
+    """ Written by evelyn, updated by Adam 12/1/12."""
+    # Bugs: Facecolors must be exact length of number of columns
+    # Requires closing (not a bug, just an issue; polygones need to be)
+    #    closed.  Thus, what I really want is fill under a line plot.
+    # Maybe want a path instead of poly?
+
+    xlabel = pltkwargs.pop('xlabel', '')
+    ylabel = pltkwargs.pop('ylabel', '')
+    title = pltkwargs.pop('title', '')
+    
+    zlabel_def=''         
+    zlabel=pltkwargs.pop('zlabel', zlabel_def)   
+
+    # Verts are index dotted with data
+    verts = []
+    for col in ts.columns:
+        values = ts[col]
+#        values[0], values[-1] = 0, 0
+        verts.append(list(zip(ts.index, values)))
+    
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
+       
+ ### Convert verts(type:list) to poly(type:mpl_toolkits.mplot3d.art3d.Poly3DCollection)  
+ ### poly used in plotting function ax.add_collection3d to do polygon plot    
+    cc = lambda arg: colorConverter.to_rgba(arg, alpha=0.6)
+
+    poly = PolyCollection(verts, 
+                          closed=False, # This is where closed should be
+                          facecolors = [cc('y'), cc('r'), cc('g')])
+    poly.set_alpha(0.2)  
+    
+    #zdir is the direction used to plot,here we use time so y axis
+    ax.add_collection3d(poly, zs=ts.columns, zdir='x' )        
+    ax.set_xlabel(xlabel) 
+    ax.set_ylabel(ylabel)  #Y
+    ax.set_zlabel(zlabel)   #data     
+    ax.set_title(title)       
+
+    ax.set_ylim3d(min(ts.index), max(ts.index))
+    ax.set_xlim3d(min(ts.columns), max(ts.columns))    #x 
+    ax.set_zlim3d(min(ts.min()), max(ts.max()))  #How to get absolute min/max of ts values
+    
+    ax.view_init(elev, azim) 
+
+    return ax
+
 if __name__ == '__main__':
 
     from matplotlib import rc
     from pyuvvis.data import aunps_glass, aunps_water, solvent_evap
     
     ts = aunps_glass().as_varunit('s')
-    yy,xx = np.meshgrid(ts.columns, ts.index)
-
+    ts=ts.iloc[:, 65:68]
+    xx,yy = ts.meshgrid()
+    
+    #fig = plt.figure(figsize=plt.figaspect(0.5))
+    #ax1 = fig.add_subplot(1, 2, 2, projection='3d')
+    
+    ##---- First subplot
+    #ax2 = fig.add_subplot(1, 2, 1, projection='3d')
     #_gencorr2d(xx, yy, ts, 
                #fill=True,
                #title='My baller plot',
@@ -400,27 +562,32 @@ if __name__ == '__main__':
                #cbar = True,
                #background=False)
                # Is this the best logic for 2d/3d fig?
+               
+    
  
-    ax = add_projection(xx, yy, ts, plane='xz', fill=True, flip=False, alpha=.8, cmap='cool')
  
- 
-    _genmesh(xx, yy, ts,
-#                kind='contour3d',
-                cmap='autumn_r',
-                kind='wire',
-                cbar=False,
-                ax=ax,
-                alpha=1,
-                linewidth=1,
-                fill=False,
-                c_iso=50,
-                r_iso = 5,
-                # proj alpha?
-#                contours=9,
-#                linewidth=50,
-                xlabel = ts.full_specunit,
+    #ax2 = _genmesh(xx, yy, ts,
+##                kind='contour3d',
+                #cmap='autumn_r',
+                #kind='wire',
+                #cbar=False,
+                #alpha=1,
+                #linewidth=1,
+                #fill=False,
+                #c_iso=15,
+                #r_iso = 0,
+##                contours=9,
+##                linewidth=50,
+                #xlabel = ts.full_specunit,
+                #ylabel = ts.full_varunit,
+                #zlabel = ts.full_iunit)    
+    
+    #ax1 = add_projection(xx, yy, ts, ax=ax2, plane='xz', fill=True, flip=False, alpha=.8, cmap='cool')
+    
+#    spec3d(xx, yy, ts)
+    poly3d(ts,                 xlabel = ts.full_specunit,
                 ylabel = ts.full_varunit,
-                zlabel = ts.full_iunit)    
+                zlabel = ts.full_iunit)
         
     
 

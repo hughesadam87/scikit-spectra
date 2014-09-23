@@ -24,11 +24,22 @@ import pyuvvis.core.utilities as pvutils
 from pyuvvis.pandas_utils.metadframe import MetaDataFrame, _MetaLocIndexer
 from pyuvvis.logger import decode_lvl, logclass
 from pyuvvis.plotting import _genplot
-from pyuvvis.plotting.advanced_plots import _genmesh
+from pyuvvis.plotting.advanced_plots import _genmesh, KINDS2D, KINDS3D, spec3d
 from pyuvvis.exceptions import badkey_check, badcount_error, RefError, BaselineError
 
 
 logger = logging.getLogger(__name__) 
+
+# Map plot keywords to plot functions for Spectra.plot()
+# ------------------------------------------------------
+
+PLOTKINDS = { None: 'Spectra vs. Variation', 
+             'spec3d':'3D Spectra vs. Variation',
+             'scatter3d':'3D Scatter Plot',
+             'contour3d':'3D Contour Plot',
+             'wire':'Fishnet/Wireframe Plot',
+             'surf':'3D Surface Plot',
+             'ploy':'3D Polygon Plot'}
 
 ### Idic, from_T, to_T and spec_slice all used to be in speclabeltool.py###
 Idic={None:'Counts', #Don't change without updating normplot; relies on these keys 
@@ -292,6 +303,10 @@ class Spectra(MetaDataFrame):
    def list_iunits(self, delim='\t'):
       """ Intensity units of dateframe.  Eg %Transmittance vs. Absorbance"""
       self._list_out(Idic, delim=delim)
+
+   def list_plots(self, delim='\t'):
+      """ List available plot kinds"""
+      self._list_out(PLOTKINDS)
 
    # Self necessary here or additional df stuff gets printed   
    def list_specunits(self, delim='\t'):
@@ -864,8 +879,49 @@ class Spectra(MetaDataFrame):
       """ Plotting interface.  Use kind='surf, wire etc...' to go through 
       various plot types.  Will append correct x and y labels.
       """
-      return specplot(self, *args, **pltkwargs)
 
+      kind = pltkwargs.pop('kind', None)
+      
+      # Set defaults
+      pltkwargs.setdefault('xlabel', self.full_specunit)
+      pltkwargs.setdefault('ylabel', self.full_varunit)
+
+      if not kind:     
+         return specplot(self, *args, **pltkwargs)
+      
+      kind = kind.lower()
+      pltkwargs.setdefault('zlabel', self.full_iunit)               
+      
+      xx, yy = self.meshgrid()      
+      
+      if kind in KINDS2D + KINDS3D:
+         return _genmesh(xx, yy, self, *args,  kind=kind, **pltkwargs)
+       
+      elif kind == 'spec3d':
+         return spec3d(xx, yy, self, *args, **pltkwargs)
+
+
+   def meshgrid(self):
+      """Return 2d meshgrid (xx, yy) for use with matplotlib 3d plots.
+      
+      Notes
+      -----
+      Matplotlib 3d surfaces require data in a meshgrid, generally of
+      call signature mpl3d(xx, yy, zz, *args, **kwargs), where zz is the
+      data (i.e. Spectra) itself.  So one would do:
+      
+      >>>xx, yy = ts.meshgrid()
+      >>>plot3d(xx, yy, ts)
+      """
+      
+      # For correct view, mesh is done yy, xx and returned as xx, yy
+      try:
+         yy,xx = np.meshgrid(self.columns, self.index)
+      except Exception:
+         raise SpecError("Failed to create meshgrid.  Can happen when data labels"
+                         " are non numerical (e.g. TimeStamps).")
+      return xx, yy
+      
 
    @property
    def baseline(self):
@@ -1616,10 +1672,29 @@ if __name__ == '__main__':
    from pyuvvis.data import solvent_evap, aunps_glass
    import matplotlib.pyplot as plt
    from pyuvvis.plotting import areaplot
-   ts = aunps_glass()#.as_varunit('s')
+   ts = aunps_glass().as_varunit('s')
 
-   ts.plot(kind='surf')
+   fig = plt.figure(figsize=plt.figaspect(0.5))
+   ax1 = fig.add_subplot(1, 2, 2, projection='3d')
+   
+   ##---- First subplot
+   ax2 = fig.add_subplot(1, 2, 1, projection=None)
+   ax3 = fig.add_subplot(2,2,1, projection=None)
+
+   #ts.plot(kind='contour')
+   #plt.show()
+   
+   ts.plot(ax=ax3)
    plt.show()
+ 
+   ts.plot(kind='spec3d', ax=ax2)
+   #plt.show()
+
+   ts.plot(kind='wire', ax=ax1)
+   plt.show()
+
+   #ts.plot(kind='surf')
+   #plt.show()
 
    print ts.area()
 #   raise SyntaxError
@@ -1632,6 +1707,7 @@ if __name__ == '__main__':
 #    ts.loc[677.67, 678.68]
    print ts.loc[500.0:, :]
    print ts.nearby[500.0:, :]
+   ts.list_plots()
    x = ts.columns[5]
    print ts.loc[500.0:, x]
    ts.nearby[500.0]
