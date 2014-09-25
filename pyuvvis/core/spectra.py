@@ -892,24 +892,23 @@ class Spectra(MetaDataFrame):
       various plot types.  Will append correct x and y labels.
       """
 
-      kind = pltkwargs.pop('kind', None)
+      kind = pltkwargs.setdefault('kind', None)
       
       # 1d specplot (defined in this file)
       if not kind:     
+         pltkwargs.pop('kind')
          return specplot(self, *args, **pltkwargs)
       
       kind = kind.lower()
       # y unit in 2d is not same in 1d!
       pltkwargs.setdefault('ylabel', self.full_varunit)      
       pltkwargs.setdefault('zlabel', self.full_iunit)               
-      
-      xx, yy = self.meshgrid()      
-      
+            
       if kind in KINDS2D + KINDS3D:
-         return _gen2d3d(xx, yy, self, *args,  kind=kind, **pltkwargs)
+         return _gen2d3d(self, *args,  **pltkwargs)
        
       elif kind == 'spec3d':
-         return spec3d(xx, yy, self, *args, **pltkwargs)
+         return spec3d(self, *args, **pltkwargs)
 
 
    def meshgrid(self):
