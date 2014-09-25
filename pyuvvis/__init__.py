@@ -3,6 +3,7 @@ import os.path as op
 __docformat__ = 'restructuredtext' #What's this actually do
 
 ### Core classes
+from pyuvvis.core.spectra import Spectra
 from pyuvvis.core.timespectra import TimeSpectra
 from pyuvvis.core.specstack import SpecStack
 

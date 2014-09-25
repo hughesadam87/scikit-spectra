@@ -1,13 +1,3 @@
-''' Plotting wrappers for dataframes, for implementation in pyuvvis.  See plot_utils
-for most of the real work.  Recently updated to work on timespectra and not dataframes.'''
-
-__author__ = "Adam Hughes"
-__copyright__ = "Copyright 2012, GWU Physics"
-__license__ = "Free BSD"
-__maintainer__ = "Adam Hughes"
-__email__ = "hugadams@gwmail.gwu.edu"
-__status__ = "Development"
-
 import plot_utils as put
 import logging
 import numpy as np

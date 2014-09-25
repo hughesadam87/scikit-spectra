@@ -24,7 +24,7 @@ import pyuvvis.core.utilities as pvutils
 from pyuvvis.pandas_utils.metadframe import MetaDataFrame, _MetaLocIndexer
 from pyuvvis.logger import decode_lvl, logclass
 from pyuvvis.plotting import _genplot
-from pyuvvis.plotting.advanced_plots import _genmesh, KINDS2D, KINDS3D, spec3d
+from pyuvvis.plotting.advanced_plots import _gen2d3d, KINDS2D, KINDS3D, spec3d
 from pyuvvis.exceptions import badkey_check, badcount_error, RefError, BaselineError
 
 
@@ -111,43 +111,44 @@ def specplot(ts, *args, **pltkwargs):
        Shortcut to return timespectra in normalized ref system (ie Absorbance)
        without changing the Spectra.
        
-   kind : valid pyuvvis plot type (contour, surface, etc...) 
    """
    
+   kind = pltkwargs.pop('kind', None)   
    iunit = pltkwargs.pop('iunit', None)
-   kind = pltkwargs.pop('kind', None) #Should be like 1D or something
    
    if ts.iunit != iunit:  #Better/general way to do this? (Idic.keys())
       ts = ts.as_iunit(iunit)      
-
 
    if not ts._base_sub:
       logger.warn('Spectrum does not have subtracted baseline; could affect '
                            'result in specious absorbance data.')          
    
    pltkwargs.setdefault('xlabel', ts.full_specunit)
-   pltkwargs.setdefault('ylabel', ts.full_varunit)
-   
    if iunit:
          pltkwargs.setdefault('title', 'Normalized: '+ ts.name )    
    else:
          pltkwargs.setdefault('title', ts.name)      
 
-   # Later, if put 1D plot into _genmesh, need to modify this again
-   if kind:
-      pltkwargs.setdefault('zlabel', ts.full_iunit)         
-      yy,xx = np.meshgrid(ts.columns, ts.index)
-      ax = _genmesh(xx, yy, ts, *args, kind=kind, **pltkwargs) #returns ax only
 
-    
-   else:
-      ax = _genplot(ts, *args, **pltkwargs)
-
+   # 1d specplot (defined in this file)
+   if not kind:     
+      ax =_genplot(ts, *args, **pltkwargs)
       #Reversed specindex ie cm-1 (only need for 1d plot, yes?)
       if ts.index[0] > ts.index[-1]:
-         ax.set_xlim(ax.get_xlim()[::-1])
+         ax.set_xlim(ax.get_xlim()[::-1]) 
+      return ax
+   
+   kind = kind.lower()
+   # y unit in 2d is not same in 1d!
+   pltkwargs.setdefault('ylabel', ts.full_varunit)      
+   pltkwargs.setdefault('zlabel', ts.full_iunit)               
+      
+   if kind in KINDS2D + KINDS3D:
+      return _gen2d3d(ts, *args,  kind=kind, **pltkwargs)
+    
+   elif kind == 'spec3d':
+      return spec3d(xx, yy, ts, *args, **pltkwargs)
 
-   return ax
 
 class SpecError(Exception):
    """ """
@@ -295,25 +296,36 @@ class Spectra(MetaDataFrame):
          print k,delim,v
       print '\n'
 
-   def list_varunits(self, delim='\t'):
+   def varunits(self, delim='\t', pprint = False):
       """ Print out all available variable units in a nice format"""
       _valid_indextype(self.columns)
-      self._list_out(self.columns.unitshortdict, delim=delim)        
+      out = self.columns.unitshortdict
+      if pprint:
+         return out
+      return self._list_out(out, delim=delim)        
 
-   def list_iunits(self, delim='\t'):
+   def iunits(self, delim='\t', pprint = False):
       """ Intensity units of dateframe.  Eg %Transmittance vs. Absorbance"""
-      self._list_out(Idic, delim=delim)
+      if pprint:
+         return Idic
+      return self._list_out(Idic, delim=delim)
 
-   def list_plots(self, delim='\t'):
+   # Rename
+   def plot_types(self, delim='\t', pprint = False):
       """ List available plot kinds"""
-      self._list_out(PLOTKINDS)
+      out = PLOTKINDS
+      if pprint:
+         return out
+      return self._list_out(out, delim=delim)
 
    # Self necessary here or additional df stuff gets printed   
-   def list_specunits(self, delim='\t'):
+   def specunits(self, delim='\t', pprint = False):
       """ Print out all available units in a nice format"""
       _valid_indextype(self.index)
-      self._list_out(self.index.unitshortdict, delim=delim)         
-
+      out = self.index.unitshortdict
+      if pprint:
+         return out
+      return self._list_out(out, delim=delim) 
 
    # ADD PYTHON STRING FORMATTING TO THIS
    def list_attr(self, privattr=False, dfattr=False, methods=False, types=False, delim='\t', sortby='name'): #values=False,):
@@ -882,20 +894,19 @@ class Spectra(MetaDataFrame):
 
       kind = pltkwargs.pop('kind', None)
       
-      # Set defaults
-      pltkwargs.setdefault('xlabel', self.full_specunit)
-      pltkwargs.setdefault('ylabel', self.full_varunit)
-
+      # 1d specplot (defined in this file)
       if not kind:     
          return specplot(self, *args, **pltkwargs)
       
       kind = kind.lower()
+      # y unit in 2d is not same in 1d!
+      pltkwargs.setdefault('ylabel', self.full_varunit)      
       pltkwargs.setdefault('zlabel', self.full_iunit)               
       
       xx, yy = self.meshgrid()      
       
       if kind in KINDS2D + KINDS3D:
-         return _genmesh(xx, yy, self, *args,  kind=kind, **pltkwargs)
+         return _gen2d3d(xx, yy, self, *args,  kind=kind, **pltkwargs)
        
       elif kind == 'spec3d':
          return spec3d(xx, yy, self, *args, **pltkwargs)
