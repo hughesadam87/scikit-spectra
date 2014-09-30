@@ -315,17 +315,22 @@ def _gen2d3d(ts, **pltkwargs):
     
     
     # PLT.CONTOUR() doesn't take 'color'; rather, takes 'colors' for now
-    if 'color' in pltkwargs:        
-        pltkwargs['colors']=pltkwargs.pop('color')
+    if 'color' in pltkwargs:       
+        if kind == 'contour':
+            pltkwargs['colors'] = pltkwargs.pop('color')
         
     # Convienence method to pass in string colors
-    if 'cmap' in pltkwargs and isinstance(pltkwargs['cmap'], basestring):
-        pltkwargs['cmap']=pu.cmget(pltkwargs['cmap'])
+    if 'colormap' in pltkwargs:
+        pltkwargs['cmap'] = pltkwargs.pop('colormap')
+
+    if 'cmap' in pltkwargs:
+        if isinstance(pltkwargs['cmap'], basestring):
+            pltkwargs['cmap'] = pu.cmget(pltkwargs['cmap'])
     
     # Contour Plots    
     # -------------
 
-    if kind == 'contour' or kind == 'contourf':
+    if kind == 'contour':
 
         # Broken background image
         ### More here http://matplotlib.org/examples/pylab_examples/image_demo3.html ###
@@ -384,8 +389,8 @@ def _gen2d3d(ts, **pltkwargs):
         alpha = pltkwargs.setdefault('alpha', None)
 
         # Need to handle cmap/colors a bit differently for PolyCollection API
-        if 'colors' in pltkwargs:
-            pltkwargs['facecolors']=pltkwargs.pop('colors')
+        if 'color' in pltkwargs:
+            pltkwargs['facecolors']=pltkwargs.pop('color')
         cmap = pltkwargs.setdefault('cmap', None)
         
         if alpha is None: #as opposed to 0
@@ -688,7 +693,7 @@ if __name__ == '__main__':
     from matplotlib import rc
     from pyuvvis.data import aunps_glass, aunps_water, solvent_evap
     
-    ts = aunps_glass().as_varunit('m')#.as_iunit('a')
+    ts = solvent_evap().as_varunit('m')#.as_iunit('a')
 #    ts = ts.nearby[400:700]
 #    ts = ts.nearby[1520:1320]
 #    ts=ts.iloc[450:500, 50:100]
@@ -711,20 +716,23 @@ if __name__ == '__main__':
  
  
     ax2, contours = _gen2d3d(ts,
-                kind='surf',
-                cmap='jet_r',
+                kind='contour',
+#                cmap='jet_r',
 #                edgecolors='jet',
                 linewidth=2,
                 alpha=.1,
                 fill=False,
-                cbar=True,
-                c_iso=20,
-                r_iso=20,
+#                cbar=True,
+#                c_iso=20,
+#                r_iso=20,
 #                contours=9,
 #                linewidth=50,
                 xlabel = ts.full_specunit,
                 ylabel = ts.full_varunit,
-                zlabel = ts.full_iunit)           
+                zlabel = ts.full_iunit) 
+    if ts.index[0] > ts.index[-1]:
+       ax2.set_xlim(ax2.get_xlim()[::-1]) 
+    
 
     add_projection(ts, ax=ax2, cmap='cool')
 

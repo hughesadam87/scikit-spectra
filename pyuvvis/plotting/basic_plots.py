@@ -10,7 +10,7 @@ class PlotError(Exception):
     """ """
 
 #XXX UPDATE DOCSTRING (HOW TO REFERENCE SPECPLOT TO THIS ONE)
-def _genplot(ts, **pltkwargs):
+def _genplot(ts, *args, **pltkwargs):
     """ Generic wrapper to ts._df.plot(), that takes in x/y/title as parsed
     from various calling functions:
     NEW KEYWORDS:
@@ -37,6 +37,10 @@ def _genplot(ts, **pltkwargs):
     pltkwargs.setdefault('legend', False)
     pltkwargs.setdefault('linewidth', 1)
     legstyle = pltkwargs.pop('legstyle', None)   
+    
+    # Adhere to cananoical "cmap" 
+    if 'cmap' in pltkwargs:
+        pltkwargs['colormap'] = pltkwargs.pop('cmap')    
     pcmap = pltkwargs.setdefault('colormap', 'jet')
     
     fig = pltkwargs.pop('fig', None)
@@ -67,7 +71,7 @@ def _genplot(ts, **pltkwargs):
     
     if cbar:
         if 'color' in pltkwargs:
-            raise PlotError('Colorbar requires colormap; solid color \
+            raise PlotError('Colorbar requires cmap; solid color \
             "%s" found.' % pltkwargs['color'])
 
         c_rotation, c_reverse = 90, False
@@ -186,7 +190,7 @@ def range_timeplot(ranged_ts, **pltkwds):
     Uses a special function, put._uvvis_colorss() to map the visible spectrum.  Changes default legend
     behavior to true.'''
 
-    pltkwds['colormap'] = pltkwds.pop('colormap', 'jet')
+    pltkwds['cmap'] = pltkwds.pop('cmap', 'jet')
     pltkwds['legend'] = pltkwds.pop('legend', True)
     pltkwds['linewidth'] = pltkwds.pop('linewidth', 2.0 )  
           

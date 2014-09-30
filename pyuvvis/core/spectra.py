@@ -128,26 +128,30 @@ def specplot(ts, *args, **pltkwargs):
          pltkwargs.setdefault('title', 'Normalized: '+ ts.name )    
    else:
          pltkwargs.setdefault('title', ts.name)      
-
-
+         
    # 1d specplot (defined in this file)
    if not kind:     
       ax =_genplot(ts, *args, **pltkwargs)
-      #Reversed specindex ie cm-1 (only need for 1d plot, yes?)
-      if ts.index[0] > ts.index[-1]:
-         ax.set_xlim(ax.get_xlim()[::-1]) 
-      return ax
-   
-   kind = kind.lower()
-   # y unit in 2d is not same in 1d!
-   pltkwargs.setdefault('ylabel', ts.full_varunit)      
-   pltkwargs.setdefault('zlabel', ts.full_iunit)               
+
+   # 2d/3D plots
+   else:
       
-   if kind in KINDS2D + KINDS3D:
-      return _gen2d3d(ts, *args,  kind=kind, **pltkwargs)
+      kind = kind.lower()
+      # y unit in 2d is not same in 1d!
+      pltkwargs.setdefault('ylabel', ts.full_varunit)      
+      pltkwargs.setdefault('zlabel', ts.full_iunit)               
+      
+      if kind in KINDS2D + KINDS3D:
+         ax = _gen2d3d(ts, *args,  kind=kind, **pltkwargs)
     
-   elif kind == 'spec3d':
-      return spec3d(xx, yy, ts, *args, **pltkwargs)
+      elif kind == 'spec3d':
+         ax = spec3d(xx, yy, ts, *args, **pltkwargs)
+
+         # Reverse X-axis for all PLOT TYPES (EXCEPT CONTOUR)
+         if ts.index[0] > ts.index[-1]:
+            if kind != 'contour':
+               ax.set_xlim(ax.get_xlim()[::-1]) 
+   return ax
 
 
 class SpecError(Exception):
@@ -892,25 +896,9 @@ class Spectra(MetaDataFrame):
       various plot types.  Will append correct x and y labels.
       """
 
-      kind = pltkwargs.setdefault('kind', None)
+      return specplot(self, *args, **pltkwargs)
       
-      # 1d specplot (defined in this file)
-      if not kind:     
-         pltkwargs.pop('kind')
-         return specplot(self, *args, **pltkwargs)
       
-      kind = kind.lower()
-      # y unit in 2d is not same in 1d!
-      pltkwargs.setdefault('ylabel', self.full_varunit)      
-      pltkwargs.setdefault('zlabel', self.full_iunit)               
-            
-      if kind in KINDS2D + KINDS3D:
-         return _gen2d3d(self, *args,  **pltkwargs)
-       
-      elif kind == 'spec3d':
-         return spec3d(self, *args, **pltkwargs)
-
-
    def meshgrid(self):
       """Return 2d meshgrid (xx, yy) for use with matplotlib 3d plots.
       
