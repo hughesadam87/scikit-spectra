@@ -197,8 +197,8 @@ def spec_from_dir(directory, csvargs, sortnames=False, concat_axis=1, shortname=
 
 
 # Ignore all class methods!
-@logclass(log_name=__name__, skip = ['wraps','_dfgetattr', 'from_csv', 
-                                     '_comment', '_transfer'])
+#@logclass(log_name=__name__, skip = ['wraps','_dfgetattr', 'from_csv', 
+ #                                    '_comment', '_transfer'])
 class Spectra(MetaDataFrame):
    """ Provides core Spectra composite pandas DataFrame to represent a set 
    of spectral data.  Enforces spectral data along the index and temporal 
@@ -304,13 +304,13 @@ class Spectra(MetaDataFrame):
       """ Print out all available variable units in a nice format"""
       _valid_indextype(self.columns)
       out = self.columns.unitshortdict
-      if pprint:
+      if not pprint:
          return out
       return self._list_out(out, delim=delim)        
 
    def iunits(self, delim='\t', pprint = False):
       """ Intensity units of dateframe.  Eg %Transmittance vs. Absorbance"""
-      if pprint:
+      if not pprint:
          return Idic
       return self._list_out(Idic, delim=delim)
 
@@ -318,7 +318,7 @@ class Spectra(MetaDataFrame):
    def plot_types(self, delim='\t', pprint = False):
       """ List available plot kinds"""
       out = PLOTKINDS
-      if pprint:
+      if not pprint:
          return out
       return self._list_out(out, delim=delim)
 
@@ -327,7 +327,7 @@ class Spectra(MetaDataFrame):
       """ Print out all available units in a nice format"""
       _valid_indextype(self.index)
       out = self.index.unitshortdict
-      if pprint:
+      if not pprint:
          return out
       return self._list_out(out, delim=delim) 
 
@@ -403,10 +403,6 @@ class Spectra(MetaDataFrame):
       outname = getattr(self, 'name', 'unnamed')
       return '%s:%s' % (self.__class__.__name__, self.name)
 
-   @property
-   def data(self):
-      """ Accesses self._df.  RETURNS COPY SO USER DOESNT OVERWRITE IN PLACE"""
-      return self._df.copy(deep=True)
 
    ########################
    # ts.refrence operations

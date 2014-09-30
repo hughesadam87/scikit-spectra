@@ -1,6 +1,6 @@
-''' Provides composition class, MetaDataFrame, which is an ordinary python object that stores a Dataframe and 
+''' Provides composition class, MetaPandasObject, which is an ordinary python object that stores a Dataframe and 
 attempts to promote attributes and methods to the instance level (eg self.x instead of self.df.x).  This object
-can be subclassed and ensures persistence of custom attributes.  The goal of this MetaDataFrame is to provide a 
+can be subclassed and ensures persistence of custom attributes.  The goal of this MetaPandasObject is to provide a 
 subclassing api beyond monkey patching (which currently fails in persisting attributes upon most method returns 
 and upon derialization.'''
 
@@ -32,25 +32,27 @@ _dfattrs=[x for x in dir(DataFrame) if '__' not in x]
 # Loading (perhaps change name?) ... Doesn't work correctly as instance methods
 
 def mload(inname):
-    ''' Load MetaDataFrame from file'''
+    ''' Load MetaPandasObject from file'''
     if isinstance(inname, basestring):
         inname=open(inname, 'r')
     return cPickle.load(inname)
 
 def mloads(string):
-    ''' Load a MetaDataFrame from string stored in memory.'''
+    ''' Load a MetaPandasObject from string stored in memory.'''
     return cPickle.loads(string)        
         
 
 # Log all public/private methods to debug
-@logclass(public_lvl='debug', log_name=__name__, skip=['_transfer'])
-class MetaDataFrame(object):
-    ''' Base composition for subclassing dataframe.'''
+#@logclass(public_lvl='debug', log_name=__name__, skip=['_transfer'])
+class MetaPandasObject(object):
+    ''' Base composition for subclassing pandas DataFrame and Series.'''
+    
+    cousin = None #OVERWRITE
     
     def __init__(self, *dfargs, **dfkwargs):
         ''' Stores a dataframe under reserved attribute name, self._df'''      
-        self._df = DataFrame(*dfargs, **dfkwargs)
-                
+        self._df = self.cousin(*dfargs, **dfkwargs)
+
     ### Save methods    
     def save(self, outname):
         ''' Takes in str or opened file and saves. cPickle.dump wrapper.'''
@@ -60,11 +62,7 @@ class MetaDataFrame(object):
 
     def dumps(self):
         ''' Output TimeSpectra into a pickled string in memory.'''
-        return cPickle.dumps(self)  
-
-    def as_dataframe(self):
-        ''' Convience method to return a raw dataframe, self._df'''
-        return self._df    
+        return cPickle.dumps(self)    
 
     #----------------------------------------------------------------------
     # Overwrite Dataframe methods and operators
@@ -101,7 +99,8 @@ class MetaDataFrame(object):
         try:
             refout=getattr(self._df, attr)
         except AttributeError:
-            raise AttributeError('Could not find attribute "%s" in %s or its underlying DataFrame'%(attr, self.__class__.__name__))           
+            raise AttributeError('Could not find attribute "%s" in %s or '
+             'its underlying pandas object'%(attr, self.__class__.__name__))           
            
         if not isinstance(refout, MethodType):
             return refout
@@ -119,7 +118,7 @@ class MetaDataFrame(object):
         of the time due to implicit possible issues with dir() and inspection in Python.  Best practice is for users to avoid name
         conflicts when possible.'''
         
-        super(MetaDataFrame, self).__setattr__(name, value)        
+        super(MetaPandasObject, self).__setattr__(name, value)        
         if name in _dfattrs:
             setattr(self._df, name, value)
         else:
@@ -130,7 +129,7 @@ class MetaDataFrame(object):
         """ Copy current attributes into a new dataframe.  For methods that
         return a dataframe and need to append current attributes/columns/index.
         """
-        newobj = copy.deepcopy(self)  #This looks like None, but is it type (MetaDataFrame, just __union__ prints None
+        newobj = copy.deepcopy(self)  #This looks like None, but is it type (MetaPandasObject, just __union__ prints None
         newobj._df = dfnew
         
         # THESE ARE NEVER TRANSFERED AT DF LEVEL, JUST CREATED NEW.  TRY
@@ -149,9 +148,9 @@ class MetaDataFrame(object):
 
     def _dfgetattr(self, attr, *fcnargs, **fcnkwargs):
         ''' Called by __getattr__ as a wrapper, this private method is used 
-        to ensure that any DataFrame method that returns a new DataFrame 
-        will actually return a TimeSpectra object
-        instead.  It does so by typechecking the return of attr().
+        to ensure that output is MetaPandasObject.  For example, MetaDataFrame
+        will return DataFrame, MetaSeries will return Series.  This is done
+        through inspecting the output object type and comparing with self.cousin.
 
         **kwargs: use_base - If true, program attempts to call attribute on
         the reference.  reference ought to be maintained as a series, and 
@@ -167,7 +166,7 @@ class MetaDataFrame(object):
         out=getattr(self._df, attr)(*fcnargs, **fcnkwargs)
 
         ### If operation returns a dataframe, return new TimeSpectra
-        if isinstance(out, DataFrame): #metadataframe or won't have _transfer method
+        if isinstance(out, self.cousin): #metadataframe or won't have _transfer method
             dfout=self._transfer(out)
             return dfout
 
@@ -236,24 +235,21 @@ class MetaDataFrame(object):
     
     def __pow__(self, exp):
         return self._transfer(self._df.__pow__(exp))
-    
+
+    @property
+    def data(self):
+        """ Accesses self._df.  RETURNS COPY SO USER DOESNT OVERWRITE IN PLACE"""
+        return self._df.copy(deep=True)    
 
     @property
     def index(self):
         return self._df.index
     
-    @property
-    def columns(self):
-        return self._df.columns
-
     #To avoid accidentally setting index ie ts.index()
     @index.setter
     def index(self, index):
         self._df.index = index
         
-    @columns.setter
-    def columns(self, columns):
-        self._df.columns = columns
 
     ## Fancy indexing
     _ix=None     
@@ -342,13 +338,34 @@ class _MetaiLocIndexer(_iLocIndexer):
         if isinstance(out, DataFrame): #If Series or Series subclass
             out = self.obj._transfer(out) 
         return out              
-            
+
+
+#@logclass(public_lvl='debug', log_name=__name__, skip=['_transfer'])
+class MetaDataFrame(MetaPandasObject):
+
+    # Repeated for clarity
+    cousin = DataFrame
+
+    @property
+    def columns(self):
+        return self._df.columns
+
+    @columns.setter
+    def columns(self, columns):
+        self._df.columns = columns
+
+        
+#@logclass(public_lvl='debug', log_name=__name__, skip=['_transfer'])
+class MetaSeries(MetaPandasObject):
+    
+    cousin = Series
+	            
     
 
 # Test Subclass
 # -------------
 class SubFoo(MetaDataFrame):
-    ''' Shows an example of how to subclass MetaDataFrame with custom attributes, a and b.'''
+    ''' Shows an example of how to subclass MetaPandasObject with custom attributes, a and b.'''
 
     def __init__(self, a, b, *dfargs, **dfkwargs):
         self.a = a
@@ -359,16 +376,11 @@ class SubFoo(MetaDataFrame):
     def __repr__(self):
         return "Hi I'm SubFoo. I'm not really a DataFrame, but I quack like one."
 
-    @property
-    def data(self):
-        ''' Return underyling dataframe attribute self._df'''
-        return self._data
-
 
 #### TESTING ###
 if __name__ == '__main__':
 
-    ### Create a MetaDataFrame
+    ### Create a MetaPandasObject
     meta_df=MetaDataFrame(abs(randn(3,3)), index=['A','B','C'], columns=['c11','c22', 'c33'])    
     
     meta_df.to_csv('deletejunkme')
@@ -424,5 +436,8 @@ if __name__ == '__main__':
 #    f=open('outpath', 'r')
 #    df2=load(f)    
 
-
-
+    print '\nCreating MetaSeries'
+    s = MetaSeries(range(0,10))
+    print s, type(s)
+    print '\nSeries Slicing 0:5'
+    print s[0:5]

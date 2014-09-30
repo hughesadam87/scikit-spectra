@@ -15,8 +15,8 @@ def _valid_intvlunit(sout):
     return _valid_xunit(sout, intvl_dic)
 
 # Ignore all class methods!
-@logclass(log_name=__name__, skip = ['wraps','_dfgetattr', 'from_csv', 
-                                     '_comment', '_transfer'])
+#@logclass(log_name=__name__, skip = ['wraps','_dfgetattr', 'from_csv', 
+ #                                    '_comment', '_transfer'])
 class TimeSpectra(Spectra):
     """ Spectra that enforces a TimeIndex.  TimeIndex converts representations
     between DatetimeIndex and Intervals.
