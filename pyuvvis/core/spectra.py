@@ -82,6 +82,44 @@ def _valid_xunit(value, dic):
       badkey_check(value, dic.keys())
       return value.lower()    
 
+def spectra_to_html(spectra, *args, **kwargs):
+   """ HTML representation used for Spectra and Spectrum for ipython notebooks"""
+
+   delim = '&nbsp;' * 8
+
+   if spectra.ndim > 1:
+      colorshape = '<font color="#0000CD">(%s X %s)</font>' % (spectra.shape)
+   else:
+      colorshape = '<font color="#0000CD">(%s</font>' % (spectra.shape)
+      
+   #Color iunit if referenced or not
+   if not spectra.iunit:
+      countstring = 'Iunit:&nbsp<font color="#197519">%s</font>' % spectra.full_iunit
+   else: #orange
+      countstring = 'Iunit:&nbsp<font color="#FF3300">%s</font>' % spectra.full_iunit
+
+   ftunit = getattr(spectra, 'full_varunit', 'None')
+   spunit = getattr(spectra, 'full_specunit', 'None')
+
+
+   outline = "%s&nbsp%s%s [%s X %s] %s %s\n" % \
+      (spectra.name, 
+       colorshape,
+       delim,
+       ftunit,
+       spunit,
+       delim,
+       countstring)        
+
+   obj = spectra._df
+   if isinstance(obj, Series):
+      obj = DataFrame(obj)
+      
+   # Call DataFrame _repr_html
+   #outline += '<font color="#0000CD">This is some text!</font>'
+   dfhtml = obj._repr_html_(*args, **kwargs)
+   return ('<h4>%s</h4>' % ''.join(outline)) +'<br>'+ dfhtml
+
 
 def _valid_iunit(sout):
    """When user is switching spectral intensity units, make sure they do it write."""
@@ -204,6 +242,7 @@ class Spectrum(MetaSeries):
    
    def __init__(self, *args, **kwargs):
       
+      # CUSTOMIZE!?
       super(Spectrum, self).__init__(*args, **kwargs)        
 
    def __repr__(self):
@@ -213,13 +252,12 @@ class Spectrum(MetaSeries):
       """
 
       # Certain methods aren't copying this correctly.  Delete later if fix
-      fullspecunit = pvutils.hasgetattr(self, 'full_specunit', 'invalid')
-      fullvarunit = pvutils.hasgetattr(self, 'full_varunit', 'invalid')
+      full_specunit = pvutils.hasgetattr(self, 'full_specunit', 'invalid')
 
       delim = '\t'
       # Does not output varunit; although it is retained
       header = "*%s*%sSpectral unit:%s\n" % \
-         (self.name, delim, fullspecunit)
+         (self.name, delim, full_specunit)
 
       return ''.join(header)+'\n'+self._df.__repr__()+'   ID: %s' % id(self)   
 
@@ -232,17 +270,43 @@ class Spectrum(MetaSeries):
    def full_specunit(self):
       return self._df.index._unit.full
    
-   def plot(self, *args, **kwargs):
-      out = self._df.plot(*args, **kwargs)
-      return out
+   def plot(self, *args, **pltkwds):
+
+      # Replace w/ set defaults
+      pltkwds.setdefault('legend', False)
+      pltkwds.setdefault('linewidth', 3.0)
+      pltkwds.setdefault('color', 'black') # If removing, colormap default in _genplot
+                                           # Will cause bug
+        
+      # Should I relax these?  
+      tunit = getattr(self, 'full_varunit', 'Perturbation')
+      
+      pltkwds.setdefault('xlabel', self.full_varunit)  
+      pltkwds.setdefault('ylabel', '$\int$ %s d$\lambda$'%self.full_iunit)    
+      
+      # HOW TO DEAL WITH 
+      return _genplot(self, *args, **pltkwds)
+
+   def _repr_html_(self, *args, **kwargs):
+      """ Ipython Notebook HTML appearance basically.  This only generates
+      the colored header; under the hood, self._df._repr_html_ calculates
+      the table, including the proper size for optimal viewing and so on.
+      """
+      return spectra_to_html(self, *args, **kwargs)
+
    
    @classmethod
-   def from_spectra(cls, spectra, series, **kwargs):
+   def from_series(cls, spectra, series, **kwargs):
       """ When Spectra methods need to return a Spectrum, this is called
       so that metadata is properly transferred.
       """
-      
-      out = cls(series, index=spectra.index)
+
+      # Will I ever want to construct from something other than Series?
+      if not isinstance(series, Series):
+         raise SpecError('Spectrum.from_series() requires series input,'
+                         'got %s' % type(series))
+     
+      out = cls(series.values, index=series.index)
 
       def _transfer(attr):
          '''If attr not in kwargs, trasnfer from spectra object'''
@@ -254,7 +318,7 @@ class Spectrum(MetaSeries):
             value = pvutils.hasgetattr(spectra, attr, 'invalid')
          setattr(out, attr, value)
       
-      for attr in ['baseline', 'varunit', 'fullvarunit', 'name']:
+      for attr in ['baseline', 'varunit', 'full_varunit', 'name', 'iunit', 'full_iunit']:
          _transfer(attr)
       
       return out
@@ -611,7 +675,6 @@ class Spectra(MetaDataFrame):
                  results in collapsed data (eg averging function/integrators/etc...) can 
                  be passed in with any relevant keywords.
 
-
       **apply_fcn_kdws: 
                  If user is passing a function to apply_fcn that requires keywords, 
                  the get passed in to dfcut.apply() 
@@ -681,7 +744,9 @@ class Spectra(MetaDataFrame):
             # OK
             dflist.append(series)
 
-      #return self._transfer(DataFrame(dflist, index=snames), strict_columns=False)
+      # Out is a series (e.g. Area)
+      if len(dflist) == 1:
+         return dflist[0]
       return self._transfer(DataFrame(dflist, index=snames))
 
 
@@ -705,7 +770,9 @@ class Spectra(MetaDataFrame):
 
       Parameters
       ----------
-         apply_fcn: Integration method-'simps', 'trapz', 'romb', 'cumtrapz'
+         
+      apply_fcn: Integration method-'simps', 'trapz', 'romb', 'cumtrapz'
+         
 
       Notes
       -----
@@ -1320,7 +1387,7 @@ class Spectra(MetaDataFrame):
 
       # Otherwise return whatever the method return would be
       elif isinstance(out, Series):
-         return Spectrum.from_spectra(self, out)
+         return Spectrum.from_series(self, out)
          
       else:
          return out
@@ -1331,32 +1398,7 @@ class Spectra(MetaDataFrame):
       the colored header; under the hood, self._df._repr_html_ calculates
       the table, including the proper size for optimal viewing and so on.
       """
-      delim = '&nbsp;' * 8
-
-      colorshape = '<font color="#0000CD">(%s X %s)</font>' % (self.shape)
-      #Color iunit if referenced or not
-      if not self.iunit:
-         countstring = 'Iunit:&nbsp<font color="#197519">%s</font>' % self.full_iunit
-      else: #orange
-         countstring = 'Iunit:&nbsp<font color="#FF3300">%s</font>' % self.full_iunit
-
-      ftunit = getattr(self, 'full_varunit', 'None')
-      spunit = getattr(self, 'full_specunit', 'None')
-
-
-      outline = "%s&nbsp%s%s [%s X %s] %s %s\n" % \
-         (self.name, 
-          colorshape,
-          delim,
-          ftunit,
-          spunit,
-          delim,
-          countstring)        
-
-
-      #outline += '<font color="#0000CD">This is some text!</font>'
-      dfhtml = self._df._repr_html_(*args, **kwargs)
-      return ('<h4>%s</h4>' % ''.join(outline)) +'<br>'+ dfhtml
+      return spectra_to_html(self, *args, **kwargs)
 
    def __getitem__(self, keyslice):
       ''' Item lookup.  If output is an interable, _transfer is called.  
@@ -1366,7 +1408,7 @@ class Spectra(MetaDataFrame):
       dfout = self._df.__getitem__(keyslice)
        
       if isinstance(dfout, Series):
-         return Spectrum.from_spectra(self, dfout)
+         return Spectrum.from_series(self, dfout)
        
       return super(Spectra, self).__getitem__(keyslice)
  
@@ -1378,12 +1420,12 @@ class Spectra(MetaDataFrame):
       """
 
       # Certain methods aren't copying this correctly.  Delete later if fix
-      fullspecunit = pvutils.hasgetattr(self, 'full_specunit', 'invalid')
-      fullvarunit = pvutils.hasgetattr(self, 'full_varunit', 'invalid')
+      full_specunit = pvutils.hasgetattr(self, 'full_specunit', 'invalid')
+      full_varunit = pvutils.hasgetattr(self, 'full_varunit', 'invalid')
 
       delim = '\t'
       header = "*%s*%sSpectral unit:%s%sPerturbation unit:%s\n" % \
-         (self.name, delim, fullspecunit, delim, fullvarunit)
+         (self.name, delim, full_specunit, delim, full_varunit)
 
       return ''.join(header)+'\n'+self._df.__repr__()+'   ID: %s' % id(self)   
 
@@ -1586,7 +1628,7 @@ class Spectra(MetaDataFrame):
       return cls(df, **kwargs) 
 
    @classmethod
-   def from_spectra(cls, pandas_object, **dfkwargs):
+   def from_series(cls, pandas_object, **dfkwargs):
       """ Return a Spectra from a similiar object, either a pandas DataFrame
       or a pyuvvis Spectra subclass.  Useful for type-casting, for example
       have a DataFrame and want it as a TimeSpectra, which will do its
@@ -1735,182 +1777,189 @@ if __name__ == '__main__':
    from pyuvvis.plotting import areaplot
    ts = aunps_glass().as_varunit('s')
    s = ts[ts.columns[0]]
-
-   fig = plt.figure(figsize=plt.figaspect(0.5))
-   ax1 = fig.add_subplot(1, 2, 2, projection='3d')
-   
-   ##---- First subplot
-   ax2 = fig.add_subplot(1, 2, 1, projection=None)
-   ax3 = fig.add_subplot(2,2,1, projection=None)
-
-   #ts.plot(kind='contour')
-   #plt.show()
-   
-   ts.plot(ax=ax3)
-   plt.show()
- 
-   ts.plot(kind='spec3d', ax=ax2)
-   #plt.show()
-
-   ts.plot(kind='wire', ax=ax1)
+#   ts.area().plot()
+   x = ts.area()
+   x._repr_html_()
+   areaplot(x)
+#   x.plot()
+   print x
    plt.show()
 
-   #ts.plot(kind='surf')
-   #plt.show()
+   #fig = plt.figure(figsize=plt.figaspect(0.5))
+   #ax1 = fig.add_subplot(1, 2, 2, projection='3d')
+   
+   ###---- First subplot
+   #ax2 = fig.add_subplot(1, 2, 1, projection=None)
+   #ax3 = fig.add_subplot(2,2,1, projection=None)
 
-   print ts.area()
-#   raise SyntaxError
-
-   #  ts = ts.as_varunit('m')
-
-
-      # DO BOOLEAN CASE LAST   
-#    ts.loc[:,ts.loc['a']>0]
-#    ts.loc[677.67, 678.68]
-   print ts.loc[500.0:, :]
-   print ts.nearby[500.0:, :]
-   ts.list_plots()
-   x = ts.columns[5]
-   print ts.loc[500.0:, x]
-   ts.nearby[500.0]
-   ts.nearby[500.0, :]
-
-   ts.area()
-   ts.boxcar(10)
-   # ts.index = SpecIndex(ts.index)
-
-   t2 = ts.ix[1500.0:1000.0]
-   print ts.index
-   print t2.index
-
-
-   #t2 = ts.as_interval('m')
-
-   #t2 = t2.as_iunit('r')
-
-   ##stack = ts.split_by(1)
-   ##stack.iunit = 'a'
-
-   ##ts[ts.columns[0]].plot(colormap='RdBu')
+   ##ts.plot(kind='contour')
    ##plt.show()
-   #t2 = ts.as_interval('m')
-   ##t2 = ts.as_iunit('r')
-   ##ts.area().plot()
-   ##import sys
-   ##sys.exit()
-
-###    stack.plot(title='Big bad plots')
-   #from pyuvvis.plotting import six_plot
-   #import matplotlib.pyplot as plt
-   #six_plot(ts, striplegend=True)
+   
+   #ts.plot(ax=ax3)
    #plt.show()
-   ##t1 = ts.as_interval()
-   ##print t1.columns
-   ##t1.plot(cbar=True)
-   ##t1.to_datetime()
-   ##t1.ix[500.0:600.0]
-   ##t2 = ts.as_specunit('ev')
-   ##t3 = ts.as_iunit('a')
-   ##print t2.specunit, 'hi t2'
-   ##print t3.specunit, 'hi t3'
-   ##print t2.specunit, 'hi t2'
-   ##specplot(ts, cbar=True)
+ 
+   #ts.plot(kind='spec3d', ax=ax2)
+   ##plt.show()
+
+   #ts.plot(kind='wire', ax=ax1)
+   #plt.show()
+
+   ##ts.plot(kind='surf')
+   ##plt.show()
+
+   #print ts.area()
+##   raise SyntaxError
+
+   ##  ts = ts.as_varunit('m')
 
 
+      ## DO BOOLEAN CASE LAST   
+##    ts.loc[:,ts.loc['a']>0]
+##    ts.loc[677.67, 678.68]
+   #print ts.loc[500.0:, :]
+   #print ts.nearby[500.0:, :]
+   #ts.list_plots()
+   #x = ts.columns[5]
+   #print ts.loc[500.0:, x]
+   #ts.nearby[500.0]
+   #ts.nearby[500.0, :]
 
-###    a=ts.area()
-###    print 'hi', a.specunit
-###    ts.specunit = 'ev'
-   ###from pyuvvis.plotting import specplot, areaplot
-   ###areaplot(ts)
+   #ts.area()
+   #ts.boxcar(10)
+   ## ts.index = SpecIndex(ts.index)
+
+   #t2 = ts.ix[1500.0:1000.0]
+   #print ts.index
+   #print t2.index
+
+
+   ##t2 = ts.as_interval('m')
+
+   ##t2 = t2.as_iunit('r')
+
+   ###stack = ts.split_by(1)
+   ###stack.iunit = 'a'
+
+   ###ts[ts.columns[0]].plot(colormap='RdBu')
    ###plt.show()
+   ##t2 = ts.as_interval('m')
+   ###t2 = ts.as_iunit('r')
+   ###ts.area().plot()
+   ###import sys
+   ###sys.exit()
 
-   ###from pyuvvis.IO.gwu_interfaces import from_spec_files, get_files_in_dir
-   ###from pyuvvis.exampledata import get_exampledata
-   ###ts=from_spec_files(get_files_in_dir(get_exampledata('NPSAM'), sort=True), name='foofromfile')
-
-   ###ts.to_interval('s')
-   ###ts=ts.ix[440.0:700.0,0.0:100.0]
-   ###ts.reference=0    
-   ###print ts._baseline.shape, ts.shape
-
-   #### Goes to site packages because using from_spec_files, which is site package module
-   ###ts.run_pca()
-   ####   ts.pca_evals
-
-   ####from pandas import Panel
-   ####Panel._constructor_sliced=Spectra
-   ####pdic={'ts':ts}
-   ####tp=Panel.from_dict(pdic)
-
-   ###d={'start':2/22/12, 'periods':len(ts.columns), 'freq':'45s'}
-   ###ts.set_daterange(start='2/22/12', periods=len(ts.columns), freq='45s')
-
-   ###ts.baseline=ts.reference
-   ###ts.sub_base()
-
-   #### THIS FAILS WHEN INDEX=SPEC 
-   ###t3=Spectra(abs(np.random.randn(ts.baseline.shape[0], 30)), columns=\
-               ###testdates, 
-               ###baseline=ts._baseline, name='foobar')  
+####    stack.plot(title='Big bad plots')
+   ##from pyuvvis.plotting import six_plot
+   ##import matplotlib.pyplot as plt
+   ##six_plot(ts, striplegend=True)
+   ##plt.show()
+   ###t1 = ts.as_interval()
+   ###print t1.columns
+   ###t1.plot(cbar=True)
+   ###t1.to_datetime()
+   ###t1.ix[500.0:600.0]
+   ###t2 = ts.as_specunit('ev')
+   ###t3 = ts.as_iunit('a')
+   ###print t2.specunit, 'hi t2'
+   ###print t3.specunit, 'hi t3'
+   ###print t2.specunit, 'hi t2'
+   ###specplot(ts, cbar=True)
 
 
 
-   ####ts._reference.x='I WORK'
-   ####ts._reference.name='joe'
-   ###ts.baseline=Series([20,30,50,50], index=[400., 500., 600., 700.])
-#####    t2.baseline=ts.baseline
-   ####ts._df.ix[:, 0:4]
-   ####ts.ix[:,0:4]
-   ####ts.pvutils.boxcar(binwidth=20, axis=1)
-   ####x=ts.ix[450.0:650.]
-   ####y=t2.ix[500.:650.]
+####    a=ts.area()
+####    print 'hi', a.specunit
+####    ts.specunit = 'ev'
+   ####from pyuvvis.plotting import specplot, areaplot
+   ####areaplot(ts)
+   ####plt.show()
 
-   ####ts.cnsvdmeth='name'
+   ####from pyuvvis.IO.gwu_interfaces import from_spec_files, get_files_in_dir
+   ####from pyuvvis.exampledata import get_exampledata
+   ####ts=from_spec_files(get_files_in_dir(get_exampledata('NPSAM'), sort=True), name='foofromfile')
 
-   ###from pyuvvis.pandas_utils.metadframe import mload
-   ####from pyuvvis import areaplot, absplot
-   ###ts=mload('rundata.pickle')    
-   ###ts=ts.as_interval('m')
-   ###x=ts.area()    
-   ###print 'hi', x
-   ####ts.reference=0
-   ####ts=ts[ts.columns[800.0::]]
-   ####ts=ts.ix[400.0:800.0]
-   ####c=haiss_m2(ts, peak_width=2.0, ref_width=2.0)
-   ####a=haiss_m3(ts, 0.000909, peak_width=None, dilution=0.1)
-   ####b=haiss_conc(ts, 12.0)
-   #####b2=haiss_conc(ts, 12.0, dilution=0.2)
+   ####ts.to_interval('s')
+   ####ts=ts.ix[440.0:700.0,0.0:100.0]
+   ####ts.reference=0    
+   ####print ts._baseline.shape, ts.shape
 
-#####    bline=ts[ts.columns[0]]
-#####    ts=ts.ix[:,25.0:30.0]
-#####    ts.reference=bline
+   ##### Goes to site packages because using from_spec_files, which is site package module
+   ####ts.run_pca()
+   #####   ts.pca_evals
 
-   ####uv_ranges=((430.0,450.0))#, (450.0,515.0), (515.0, 570.0), (570.0,620.0), (620.0,680.0))
+   #####from pandas import Panel
+   #####Panel._constructor_sliced=Spectra
+   #####pdic={'ts':ts}
+   #####tp=Panel.from_dict(pdic)
 
-   ####tssliced=ts.wavelength_slices(uv_ranges, apply_fcn='mean')
+   ####d={'start':2/22/12, 'periods':len(ts.columns), 'freq':'45s'}
+   ####ts.set_daterange(start='2/22/12', periods=len(ts.columns), freq='45s')
 
-   ####from pyuvvis.core.utilities import find_nearest
-   ####x=ts.ix[500.:510, 0]
-   ####b=pvutils.maxmin_xy(x)
-   ####a=find_nearest(x, .15)
-   ####ts.iunit=None
-   ####ts.iunit='a'
-   ####ts.iunit=None
+   ####ts.baseline=ts.reference
+   ####ts.sub_base()
+
+   ##### THIS FAILS WHEN INDEX=SPEC 
+   ####t3=Spectra(abs(np.random.randn(ts.baseline.shape[0], 30)), columns=\
+               ####testdates, 
+               ####baseline=ts._baseline, name='foobar')  
 
 
-   ####ts.to_csv('junk')
-   ####range_timeplot(ts)
 
-   ####ts.a=50; ts.b='as'
-   ####ts.iunit='t'
+   #####ts._reference.x='I WORK'
+   #####ts._reference.name='joe'
+   ####ts.baseline=Series([20,30,50,50], index=[400., 500., 600., 700.])
+######    t2.baseline=ts.baseline
+   #####ts._df.ix[:, 0:4]
+   #####ts.ix[:,0:4]
+   #####ts.pvutils.boxcar(binwidth=20, axis=1)
+   #####x=ts.ix[450.0:650.]
+   #####y=t2.ix[500.:650.]
 
-   ####ts.list_attr(dfattr=False, methods=False, types=True)    
-   ####ts.as_iunit('a')
-   ####x=ts.as_iunit('a')
-   #####ts.as_interval()
-   #####spec_surface3d(ts)  ##Not working because of axis format problem
-   #####plt.show()
-#####    ts.rank(use_base=True)
-   ####x=ts.dumps()
-   ####ts=mloads(x)
+   #####ts.cnsvdmeth='name'
+
+   ####from pyuvvis.pandas_utils.metadframe import mload
+   #####from pyuvvis import areaplot, absplot
+   ####ts=mload('rundata.pickle')    
+   ####ts=ts.as_interval('m')
+   ####x=ts.area()    
+   ####print 'hi', x
+   #####ts.reference=0
+   #####ts=ts[ts.columns[800.0::]]
+   #####ts=ts.ix[400.0:800.0]
+   #####c=haiss_m2(ts, peak_width=2.0, ref_width=2.0)
+   #####a=haiss_m3(ts, 0.000909, peak_width=None, dilution=0.1)
+   #####b=haiss_conc(ts, 12.0)
+   ######b2=haiss_conc(ts, 12.0, dilution=0.2)
+
+######    bline=ts[ts.columns[0]]
+######    ts=ts.ix[:,25.0:30.0]
+######    ts.reference=bline
+
+   #####uv_ranges=((430.0,450.0))#, (450.0,515.0), (515.0, 570.0), (570.0,620.0), (620.0,680.0))
+
+   #####tssliced=ts.wavelength_slices(uv_ranges, apply_fcn='mean')
+
+   #####from pyuvvis.core.utilities import find_nearest
+   #####x=ts.ix[500.:510, 0]
+   #####b=pvutils.maxmin_xy(x)
+   #####a=find_nearest(x, .15)
+   #####ts.iunit=None
+   #####ts.iunit='a'
+   #####ts.iunit=None
+
+
+   #####ts.to_csv('junk')
+   #####range_timeplot(ts)
+
+   #####ts.a=50; ts.b='as'
+   #####ts.iunit='t'
+
+   #####ts.list_attr(dfattr=False, methods=False, types=True)    
+   #####ts.as_iunit('a')
+   #####x=ts.as_iunit('a')
+   ######ts.as_interval()
+   ######spec_surface3d(ts)  ##Not working because of axis format problem
+   ######plt.show()
+######    ts.rank(use_base=True)
+   #####x=ts.dumps()
+   #####ts=mloads(x)

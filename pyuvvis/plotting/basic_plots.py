@@ -210,6 +210,11 @@ def areaplot(ranged_ts, **pltkwds):
     Uses a special function, put._uvvis_colorss() to map the visible spectrum.  
     Changes default legend behavior to true.
     
+    Parameters:
+    -----------
+    ranged_ts: Spectra or Spectrum.  If n x m spectra, ts.area() will be called,
+    and transposed().  If Spectrum, passed directlyt hrough.
+    
     Notes:
     ------
     Added some extra functionality on 2/13/13, to make it ok if user passed in 
@@ -218,17 +223,18 @@ def areaplot(ranged_ts, **pltkwds):
     """
     
     # If not M x 1 shape, recompute area
-    rows, cols = ranged_ts.shape
-    if cols != 1 and rows != 1:
-        try:
-            ranged_ts = ranged_ts.area()
-        except Exception:
-            # Often error is if someone passed in transposed area using datetime index
-            raise IOError('Could not successfully run .area() on %s object.' % 
-                          type(ranged_ts))
-        else:
-            logger.warn('Recomputing area from shape (%s, %s) to %s' % 
-                        (rows, cols, str(ranged_ts.shape)))
+    if ranged_ts.ndim > 1:
+        rows, cols = ranged_ts.shape
+        if cols != 1 and rows != 1:
+            try:
+                ranged_ts = ranged_ts.area()
+            except Exception:
+                # Often error is if someone passed in transposed area using datetime index
+                raise IOError('Could not successfully run .area() on %s object.' % 
+                              type(ranged_ts))
+            else:
+                logger.warn('Recomputing area from shape (%s, %s) to %s' % 
+                            (rows, cols, str(ranged_ts.shape)))
 
     # Replace w/ set defaults
     pltkwds.setdefault('legend', False)
@@ -244,14 +250,19 @@ def areaplot(ranged_ts, **pltkwds):
 
 
     # If shape is wrong, take transpose    
-    rows, cols = ranged_ts.shape    
-    if cols == 1 and rows != 1:
-        out = ranged_ts
+    if ranged_ts.ndim > 1:
+        rows, cols = ranged_ts.shape    
+        if cols == 1 and rows != 1:
+            out = ranged_ts
+        else:
+            logger.warn("areaplot() forcing transpose on %s for plotting" 
+                        % ranged_ts.name)
+            # _df.transpose() causes error now because specunit is being transferred!
+            out = ranged_ts.transpose()
+
+    # If series, just pass in directly
     else:
-        logger.warn("areaplot() forcing transpose on %s for plotting" 
-                    % ranged_ts.name)
-        # _df.transpose() causes error now because specunit is being transferred!
-        out = ranged_ts.transpose()
+        out = ranged_ts
                     
     # Pass in df.tranpose() as hack until I fix specunit (otherwise it tries to
     # assign specunit to the index, which is a time index (this causes error in new pandas)
