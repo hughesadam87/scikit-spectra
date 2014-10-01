@@ -90,7 +90,7 @@ def spectra_to_html(spectra, *args, **kwargs):
    if spectra.ndim > 1:
       colorshape = '<font color="#0000CD">(%s X %s)</font>' % (spectra.shape)
    else:
-      colorshape = '<font color="#0000CD">(%s</font>' % (spectra.shape)
+      colorshape = '<font color="#0000CD"> (%s)</font>' % (spectra.shape)
       
    #Color iunit if referenced or not
    if not spectra.iunit:
@@ -113,7 +113,7 @@ def spectra_to_html(spectra, *args, **kwargs):
 
    obj = spectra._df
    if isinstance(obj, Series):
-      obj = DataFrame(obj)
+      obj = DataFrame(obj, columns=['Values'])
       
    # Call DataFrame _repr_html
    #outline += '<font color="#0000CD">This is some text!</font>'
