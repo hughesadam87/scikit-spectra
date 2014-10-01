@@ -21,7 +21,8 @@ from pyuvvis.core.specstack import SpecStack
 import pyuvvis.core.utilities as pvutils
 
 # Merge
-from pyuvvis.pandas_utils.metadframe import MetaDataFrame, _MetaLocIndexer
+from pyuvvis.pandas_utils.metadframe import MetaDataFrame, _MetaLocIndexer, \
+    MetaSeries
 from pyuvvis.logger import decode_lvl, logclass
 from pyuvvis.plotting import _genplot
 from pyuvvis.plotting.advanced_plots import _gen2d3d, KINDS2D, KINDS3D, spec3d
@@ -195,6 +196,70 @@ def spec_from_dir(directory, csvargs, sortnames=False, concat_axis=1, shortname=
                                     shortname=shortname, 
                                     cut_extension=cut_extension))
 
+
+class Spectrum(MetaSeries):
+   """ Compliment to pandas Series: single array of spectral values with
+   spectral Index.
+   """
+   
+   def __init__(self, *args, **kwargs):
+      
+      super(Spectrum, self).__init__(*args, **kwargs)        
+
+   def __repr__(self):
+      """ Add some header and spectral data information to the standard output of the dataframe.
+      Just ads a bit of extra data to the dataframe on printout.  This is called by __repr__, which 
+      can either return unicode or bytes.  This is better than overwriting __repr__()
+      """
+
+      # Certain methods aren't copying this correctly.  Delete later if fix
+      fullspecunit = pvutils.hasgetattr(self, 'full_specunit', 'invalid')
+      fullvarunit = pvutils.hasgetattr(self, 'full_varunit', 'invalid')
+
+      delim = '\t'
+      # Does not output varunit; although it is retained
+      header = "*%s*%sSpectral unit:%s\n" % \
+         (self.name, delim, fullspecunit)
+
+      return ''.join(header)+'\n'+self._df.__repr__()+'   ID: %s' % id(self)   
+
+      
+   @property
+   def specunit(self):
+      return self._df.index._unit.short    #Short name key
+   
+   @property
+   def full_specunit(self):
+      return self._df.index._unit.full
+   
+   def plot(self, *args, **kwargs):
+      out = self._df.plot(*args, **kwargs)
+      return out
+   
+   @classmethod
+   def from_spectra(cls, spectra, series, **kwargs):
+      """ When Spectra methods need to return a Spectrum, this is called
+      so that metadata is properly transferred.
+      """
+      
+      out = cls(series, index=spectra.index)
+
+      def _transfer(attr):
+         '''If attr not in kwargs, trasnfer from spectra object'''
+
+         # Should work for all valid attr, since spectra sets its own defaults 
+         if attr in kwargs:
+            value = kwargs[attr]
+         else:
+            value = pvutils.hasgetattr(spectra, attr, 'invalid')
+         setattr(out, attr, value)
+      
+      for attr in ['baseline', 'varunit', 'fullvarunit', 'name']:
+         _transfer(attr)
+      
+      return out
+   
+   
 
 # Ignore all class methods!
 #@logclass(log_name=__name__, skip = ['wraps','_dfgetattr', 'from_csv', 
@@ -1214,7 +1279,8 @@ class Spectra(MetaDataFrame):
          csvdout=None
          if attr in self._cnsvdmeth:    
             if self._cnsvdattr:
-               cnsvdattr=dict((k,v) for k, v in self.cnsvdattr.iteritems() if v is not None)
+               cnsvdattr=dict((k,v) for k, v in self.cnsvdattr.iteritems() 
+                              if v is not None)
 
 
                csvdf=DataFrame(cnsvdattr)  #STILL WORKS WITH NONEQUAL LENGTH
@@ -1229,12 +1295,14 @@ class Spectra(MetaDataFrame):
          # Create new timespectra object
          tsout = self._transfer(out)
 
+         # Apply conserved attributes for example, if baseline was sliced
          if not isinstance(csvdout, NoneType):
 
             for col in csvdout:
 
                # Restore custom attributes on the cnsvdattributes
-               restattr=[attr for attr in _csvdfattrs[col] if attr not in csvdout[col].__dict__]
+               restattr=[attr for attr in _csvdfattrs[col] if attr not in 
+                         csvdout[col].__dict__]
                if restattr:
                   for attr in restattr:
                      setattr(csvdout[col], attr, _csvdfattrs[col][attr]) 
@@ -1251,6 +1319,9 @@ class Spectra(MetaDataFrame):
          return tsout
 
       # Otherwise return whatever the method return would be
+      elif isinstance(out, Series):
+         return Spectrum.from_spectra(self, out)
+         
       else:
          return out
 
@@ -1286,6 +1357,19 @@ class Spectra(MetaDataFrame):
       #outline += '<font color="#0000CD">This is some text!</font>'
       dfhtml = self._df._repr_html_(*args, **kwargs)
       return ('<h4>%s</h4>' % ''.join(outline)) +'<br>'+ dfhtml
+
+   def __getitem__(self, keyslice):
+      ''' Item lookup.  If output is an interable, _transfer is called.  
+      Sometimes __getitem__ returns a float (indexing a series) at which 
+      point we just want to return that.'''
+
+      dfout = self._df.__getitem__(keyslice)
+       
+      if isinstance(dfout, Series):
+         return Spectrum.from_spectra(self, dfout)
+       
+      return super(Spectra, self).__getitem__(keyslice)
+ 
 
    def __repr__(self):
       """ Add some header and spectral data information to the standard output of the dataframe.
@@ -1646,27 +1730,11 @@ if __name__ == '__main__':
    from pandas import date_range
 
 
-   spec=SpecIndex(range(400, 700,1), unit='nm')
-###    spec=SpecIndex([400.,500.,600.])
-   testdates = date_range(start='3/3/12',periods=30,freq='h')
-   ##testdates2 = date_range(start='3/3/12',periods=30,freq='45s')
-
-   ts=Spectra(abs(np.random.randn(300,30)), 
-              columns=testdates, 
-              index=spec, 
-              name='ts1')  
-
-   ##t2=Spectra(abs(np.random.randn(300,30)), 
-               ##columns=testdates2, 
-               ##index=spec, 
-               ##name='ts2') 
-               
-               
-
    from pyuvvis.data import solvent_evap, aunps_glass
    import matplotlib.pyplot as plt
    from pyuvvis.plotting import areaplot
    ts = aunps_glass().as_varunit('s')
+   s = ts[ts.columns[0]]
 
    fig = plt.figure(figsize=plt.figaspect(0.5))
    ax1 = fig.add_subplot(1, 2, 2, projection='3d')
