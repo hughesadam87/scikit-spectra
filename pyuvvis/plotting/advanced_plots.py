@@ -29,6 +29,8 @@ _ir=lambda(x): int(round(x))
 KINDS2D = ['contour']
 KINDS3D = ['contour3d', 'wire', 'surf', 'waterfall'] 
 
+ALLKINDS = KINDS2D + KINDS3D + [None, 'spec3d']
+
 
 def wire_cmap(wires, ax, cmap='hsv'):
     """ Add a colormap to a set of wires (returned form ax.plot_wireframe)"""

@@ -34,9 +34,9 @@ def spectra_to_html(spectra, *args, **kwargs):
        countstring)        
 
    # Change output based on Spectra vs. Spectrum
-   obj = spectra._df
+   obj = spectra._frame
    if isinstance(obj, Series):
-      obj = DataFrame(obj, columns=['Values'])
+      obj = DataFrame(obj, columns=[spectra.specifier])
 
    # Call DataFrame _repr_html
    #outline += '<font color="#0000CD">This is some text!</font>'
@@ -59,7 +59,7 @@ def spectra_repr(spectra, *args, **kwargs):
    header = "*%s*%sSpectral unit:%s%sPerturbation unit:%s\n" % \
       (spectra.name, delim, full_specunit, delim, full_varunit)
 
-   return ''.join(header)+'\n'+spectra._df.__repr__()+'   ID: %s' % id(spectra)    
+   return ''.join(header)+'\n'+spectra._frame.__repr__()+'   ID: %s' % id(spectra)    
 
 # Exceptions
 # ----------
@@ -82,7 +82,7 @@ class ABCSpectra(object):
 
    def _repr_html_(self, *args, **kwargs):
       """ Ipython Notebook HTML appearance basically.  This only generates
-      the colored header; under the hood, self._df._repr_html_ calculates
+      the colored header; under the hood, self._frame._repr_html_ calculates
       the table, including the proper size for optimal viewing and so on.
       """
       return spectra_to_html(self, *args, **kwargs)

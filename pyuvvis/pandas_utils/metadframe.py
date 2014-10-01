@@ -24,8 +24,8 @@ logger = logging.getLogger(__name__)
 
 #----------------------------------------------------------------------
 # Store attributes/methods of dataframe for later inspection with __setattr__
-# Note: This is preferred to a storing individual instances of self._df with custom 
-#       attr as if user tried self.a and self._df.a existed, it would call this...
+# Note: This is preferred to a storing individual instances of self._frame with custom 
+#       attr as if user tried self.a and self._frame.a existed, it would call this...
 _dfattrs=[x for x in dir(DataFrame) if '__' not in x]
 
 #----------------------------------------------------------------------
@@ -50,8 +50,8 @@ class MetaPandasObject(object):
     cousin = None #OVERWRITE
     
     def __init__(self, *dfargs, **dfkwargs):
-        ''' Stores a dataframe under reserved attribute name, self._df'''      
-        self._df = self.cousin(*dfargs, **dfkwargs)
+        ''' Stores a dataframe under reserved attribute name, self._frame'''      
+        self._frame = self.cousin(*dfargs, **dfkwargs)
 
     ### Save methods    
     def save(self, outname):
@@ -72,17 +72,17 @@ class MetaPandasObject(object):
         Sometimes __getitem__ returns a float (indexing a series) at which 
         point we just want to return that.'''
 
-        dfout=self._df.__getitem__(keyslice)
+        frameout=self._frame.__getitem__(keyslice)
 
         try:
-            iter(dfout)  #Test if iterable without forcing user to have collections package.
+            iter(frameout)  #Test if iterable without forcing user to have collections package.
         except TypeError:
-            return dfout
+            return frameout
         else:
-            return self._transfer(self._df.__getitem__(keyslice) )               
+            return self._transfer(self._frame.__getitem__(keyslice) )               
 
     def __setitem__(self, key, value):
-        self._df.__setitem__(key, value)    
+        self._frame.__setitem__(key, value)    
 
     ### These tell python to ignore __getattr__ when pickling; hence, treat this like a normal class    
     def __getstate__(self): return self.__dict__
@@ -90,14 +90,14 @@ class MetaPandasObject(object):
 
     def __getattr__(self, attr, *fcnargs, **fcnkwargs):
         ''' Tells python how to handle all attributes that are not found.
-        Basic attributes are directly referenced to self._df; however, 
+        Basic attributes are directly referenced to self._frame; however, 
         instance methods (like df.corr() ) are handled specially using a
-        special private parsing method, _dfgetattr().'''
+        special private parsing method, _framegetattr().'''
 
         ### Return basic attribute
         
         try:
-            refout=getattr(self._df, attr)
+            refout=getattr(self._frame, attr)
         except AttributeError:
             raise AttributeError('Could not find attribute "%s" in %s or '
              'its underlying pandas object'%(attr, self.__class__.__name__))           
@@ -105,22 +105,22 @@ class MetaPandasObject(object):
         if not isinstance(refout, MethodType):
             return refout
 
-        ### Handle instance methods using _dfgetattr().
+        ### Handle instance methods using _framegetattr().
         ### see http://stackoverflow.com/questions/3434938/python-allowing-methods-not-specifically-defined-to-be-called-ala-getattr
         else:         
-            return functools.partial(self._dfgetattr, attr, *fcnargs, **fcnkwargs)
+            return functools.partial(self._framegetattr, attr, *fcnargs, **fcnkwargs)
             ### This is a reference to the fuction (aka a wrapper) not the function itself
             
     def __setattr__(self, name, value):
         ''' When user sets an attribute, this tries to intercept any name conflicts.  For example, if user attempts to set
-        self.columns=50, this will actually try self._df.columns=50, which throws an error.  The behavior is acheived by
+        self.columns=50, this will actually try self._frame.columns=50, which throws an error.  The behavior is acheived by
         using dir() on the data frame created upon initialization, filtering __x__ type methods.   Not guaranteed to work 100%
         of the time due to implicit possible issues with dir() and inspection in Python.  Best practice is for users to avoid name
         conflicts when possible.'''
         
         super(MetaPandasObject, self).__setattr__(name, value)        
         if name in _dfattrs:
-            setattr(self._df, name, value)
+            setattr(self._frame, name, value)
         else:
             self.__dict__[name]=value
 
@@ -130,7 +130,7 @@ class MetaPandasObject(object):
         return a dataframe and need to append current attributes/columns/index.
         """
         newobj = copy.deepcopy(self)  #This looks like None, but is it type (MetaPandasObject, just __union__ prints None
-        newobj._df = dfnew
+        newobj._frame = dfnew
         
         # THESE ARE NEVER TRANSFERED AT DF LEVEL, JUST CREATED NEW.  TRY
         # df.loc
@@ -146,7 +146,7 @@ class MetaPandasObject(object):
         ''' Make a deepcopy of self, including the dataframe.'''
         return copy.deepcopy(self)  
 
-    def _dfgetattr(self, attr, *fcnargs, **fcnkwargs):
+    def _framegetattr(self, attr, *fcnargs, **fcnkwargs):
         ''' Called by __getattr__ as a wrapper, this private method is used 
         to ensure that output is MetaPandasObject.  For example, MetaDataFrame
         will return DataFrame, MetaSeries will return Series.  This is done
@@ -163,7 +163,7 @@ class MetaPandasObject(object):
         try to add this at the __getattr__ level; however, may not be worth it.
         '''
 
-        out=getattr(self._df, attr)(*fcnargs, **fcnkwargs)
+        out=getattr(self._frame, attr)(*fcnargs, **fcnkwargs)
 
         ### If operation returns a dataframe, return new TimeSpectra
         if isinstance(out, self.cousin): #metadataframe or won't have _transfer method
@@ -176,79 +176,79 @@ class MetaPandasObject(object):
 
     def _repr_html_(self):
         """ Allows ipython notebook to display as default html"""
-        return self._df._repr_html_()
+        return self._frame._repr_html_()
 
     def __repr__(self):
-        return self._df.__repr__()
+        return self._frame.__repr__()
 
     ### Operator overloading ####
-    ### In place operations need to overwrite self._df
+    ### In place operations need to overwrite self._frame
     def __add__(self, x):
-        return self._transfer(self._df.__add__(x))
+        return self._transfer(self._frame.__add__(x))
 
     def __sub__(self, x):
-        return self._transfer(self._df.__sub__(x))
+        return self._transfer(self._frame.__sub__(x))
 
     def __mul__(self, x):
-        return self._transfer(self._df.__mul__(x))
+        return self._transfer(self._frame.__mul__(x))
 
     def __div__(self, x):
-        return self._transfer(self._df.__div__(x))
+        return self._transfer(self._frame.__div__(x))
 
     def __truediv__(self, x):
-        return self._transfer(self._df.__truediv__(x))
+        return self._transfer(self._frame.__truediv__(x))
 
     ### From what I can tell, __pos__(), __abs__() builtin to df, just __neg__()    
     def __neg__(self):  
-        return self._transfer(self._df.__neg__() )
+        return self._transfer(self._frame.__neg__() )
 
     ### Object comparison operators
     def __lt__(self, x):
-        return self._transfer(self._df.__lt__(x))
+        return self._transfer(self._frame.__lt__(x))
 
     def __le__(self, x):
-        return self._transfer(self._df.__le__(x))
+        return self._transfer(self._frame.__le__(x))
 
     def __eq__(self, x):
-        return self._transfer(self._df.__eq__(x))
+        return self._transfer(self._frame.__eq__(x))
 
     def __ne__(self, x):
-        return self._transfer(self._df.__ne__(x))
+        return self._transfer(self._frame.__ne__(x))
 
     def __ge__(self, x):
-        return self._transfer(self._df.__ge__(x))
+        return self._transfer(self._frame.__ge__(x))
 
     def __gt__(self, x):
-        return self._transfer(self._df.__gt__(x))     
+        return self._transfer(self._frame.__gt__(x))     
 
     def __len__(self):
-        return self._df.__len__()
+        return self._frame.__len__()
 
     def __nonzero__(self):
-        return self._df.__nonzero__()
+        return self._frame.__nonzero__()
 
     def __contains__(self, x):
-        return self._df.__contains__(x)
+        return self._frame.__contains__(x)
 
     def __iter__(self):
-        return self._df.__iter__()
+        return self._frame.__iter__()
     
     def __pow__(self, exp):
-        return self._transfer(self._df.__pow__(exp))
+        return self._transfer(self._frame.__pow__(exp))
 
     @property
     def data(self):
-        """ Accesses self._df.  RETURNS COPY SO USER DOESNT OVERWRITE IN PLACE"""
-        return self._df.copy(deep=True)    
+        """ Accesses self._frame.  RETURNS COPY SO USER DOESNT OVERWRITE IN PLACE"""
+        return self._frame.copy(deep=True)    
 
     @property
     def index(self):
-        return self._df.index
+        return self._frame.index
     
     #To avoid accidentally setting index ie ts.index()
     @index.setter
     def index(self, index):
-        self._df.index = index
+        self._frame.index = index
         
 
     ## Fancy indexing
@@ -348,11 +348,11 @@ class MetaDataFrame(MetaPandasObject):
 
     @property
     def columns(self):
-        return self._df.columns
+        return self._frame.columns
 
     @columns.setter
     def columns(self, columns):
-        self._df.columns = columns
+        self._frame.columns = columns
 
         
 #@logclass(public_lvl='debug', log_name=__name__, skip=['_transfer'])
@@ -417,11 +417,11 @@ if __name__ == '__main__':
     # INDEX SLICING THROUGH LOC AND ILOC
     print '\nslicing one column \n'
     print meta_df.iloc[0]
-    print meta_df._df.iloc[0]
+    print meta_df._frame.iloc[0]
 
     print '\nslicing many columns\n'
     print  meta_df.iloc[0:1]
-    print meta_df._df.iloc[0:1]
+    print meta_df._frame.iloc[0:1]
     
     print '\nIndexing by label\n'
     print meta_df.loc['A':'B']

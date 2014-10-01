@@ -203,31 +203,33 @@ class Spectrum(ABCSpectra, MetaSeries):
    
    def __init__(self, *args, **kwargs):
       
+      specifier = kwargs.pop('specifier', '')
       # CUSTOMIZE!?
       super(Spectrum, self).__init__(*args, **kwargs)        
+      self.specifier = specifier
+      
       
    @property
    def specunit(self):
-      return self._df.index._unit.short    #Short name key
+      return self._frame.index._unit.short    #Short name key
    
    @property
    def full_specunit(self):
-      return self._df.index._unit.full
+      return self._frame.index._unit.full
    
    def plot(self, *args, **pltkwds):
 
       # Replace w/ set defaults
-      pltkwds.setdefault('legend', False)
       pltkwds.setdefault('linewidth', 3.0)
       pltkwds.setdefault('color', 'black') # If removing, colormap default in _genplot
                                            # Will cause bug
-      # Should I relax these?  
-      tunit = getattr(self, 'full_varunit', 'Perturbation')
       
       pltkwds.setdefault('xlabel', self.full_varunit)  
-      pltkwds.setdefault('ylabel', '$\int$ %s d$\lambda$'%self.full_iunit)    
+
+      # No ylabel, because most often, user will have custom value here as
+      # result form apply
+      # pltkwds.setdefault('ylabel', self.full_iunit)    
       
-      # HOW TO DEAL WITH 
       return _genplot(self, *args, **pltkwds)
    
    @classmethod
@@ -261,7 +263,7 @@ class Spectrum(ABCSpectra, MetaSeries):
    
 
 # Ignore all class methods!
-#@logclass(log_name=__name__, skip = ['wraps','_dfgetattr', 'from_csv', 
+#@logclass(log_name=__name__, skip = ['wraps','_framegetattr', 'from_csv', 
  #                                    '_comment', '_transfer'])
 class Spectra(ABCSpectra, MetaDataFrame):
    """ Provides core Spectra composite pandas DataFrame to represent a set 
@@ -307,21 +309,21 @@ class Spectra(ABCSpectra, MetaDataFrame):
       super(Spectra, self).__init__(*dfargs, **dfkwargs)        
 
       # Convert to the passed unit        
-      self._df.index = self._valid_index(self.index)
+      self._frame.index = self._valid_index(self.index)
       if specunit:
-         self._df.index = self._df.index.convert(specunit)          
+         self._frame.index = self._frame.index.convert(specunit)          
 
       # Convert to the passed unit
-      self._df.columns = self._valid_columns(self.columns)            
+      self._frame.columns = self._valid_columns(self.columns)            
       if varunit:
-         self._df.columns = self._df.columns.convert(varunit)     
+         self._frame.columns = self._frame.columns.convert(varunit)     
 
       # Assign spectral intensity related stuff but 
       # DONT CALL _set_itype function
       iunit =_valid_iunit(iunit)
       self._itype = iunit
 
-      # This has to be done AFTER self._df has been set
+      # This has to be done AFTER self._frame has been set
       self._reference = self._reference_valid(reference)#SHOULD DEFAULT TO NONE SO USER CAN PASS NORMALIZED DATA WITHOUT REF        
 
       # Baseline Initialization (UNTESTED)
@@ -427,7 +429,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
 
       # Include dataframe attributes if desired
       if dfattr==True:
-         atts=atts+[x for x in dir(self._df) if '__' not in x]
+         atts=atts+[x for x in dir(self._frame) if '__' not in x]
 
       # Remove methods if desired
       if methods==False:
@@ -476,7 +478,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
       class attributes and dataframe values appropriately."""
 
       int_or_column = False
-      if reference in self._df.columns or isinstance(reference, int):            
+      if reference in self._frame.columns or isinstance(reference, int):            
          int_or_column = True
 
       # Adding or changing reference
@@ -525,7 +527,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
              b. If dataframe, ensures proper index and shape (1-d) and converts to series (if force_series True).
              c. If iterable, converts to series (if force_series True)
 
-      Errors will be thrown if new reference does not have identical spectral values to self._df.index as evaluated by
+      Errors will be thrown if new reference does not have identical spectral values to self._frame.index as evaluated by
       numpy.np.array_equal()
 
       Zero_warn and nan_warn are useful when the user plans on changing intensity units of the data.  For example,
@@ -538,17 +540,17 @@ class Spectra(ABCSpectra, MetaDataFrame):
          return ref
 
       # First, try ref is itself a column name
-      if ref in self._df.columns:
-         rout=self._df[ref]
+      if ref in self._frame.columns:
+         rout=self._frame[ref]
 
       # If rtemp is an integer, return that column value.  
       # NOTE: IF COLUMN NAMES ARE ALSO INTEGERS, THIS CAN BE PROBLEMATIC.
       elif isinstance(ref, int):
-         rout=self._df[self._df.columns[ref]]        
+         rout=self._frame[self._frame.columns[ref]]        
 
       # Finally if ref is itself a series, make sure it has the correct spectral index
       elif isinstance(ref, Series):
-         if np.array_equal(ref.index, self._df.index) == False:
+         if np.array_equal(ref.index, self._frame.index) == False:
             raise RefError(ref.index, self)
          else:
             rout=ref
@@ -561,17 +563,17 @@ class Spectra(ABCSpectra, MetaDataFrame):
             if isinstance(ref, DataFrame):
                if ref.shape[1] != 1:
                   raise TypeError('reference must be a dataframe of a single column with index values equivalent to those of %s'%self._name)
-               if ref.index.all() != self._df.index.all():
+               if ref.index.all() != self._frame.index.all():
                   raise RefError(ref, self)                    
                else:
                   rout=Series(ref[ref.columns[0]], index=ref.index) 
 
             # Add index to current iterable 
             else:
-               if len(ref) != len(self._df.index):
+               if len(ref) != len(self._frame.index):
                   raise RefError(ref, self)
                else:
-                  rout=Series(ref, index=self._df.index)
+                  rout=Series(ref, index=self._frame.index)
 
          # Return itrable as is
          else:
@@ -591,6 +593,19 @@ class Spectra(ABCSpectra, MetaDataFrame):
       return rout  #MAKES MORE SENSE TO MAKE THIS A 1D DATAFRAME
 
 
+   def apply(self, *args, **kwargs):
+      """ Raw=True seems to produce correct results more often from some
+      #deep issue that is not fully tracked. """
+      kwargs.setdefault('raw', True)
+      specifier = kwargs.pop('specifier', args[0].__name__)
+      # Call _dataframe attribute and transfer attributes
+      out = self._framegetattr('apply', *args, **kwargs)
+      
+      # If Spectrum, use function name as specifier!
+      if isinstance(out, Spectrum):
+         out.specifier = specifier
+      return out
+   
    def wavelength_slices(self, ranges, apply_fcn='mean', **applyfcn_kwds):
       """Returns sliced averages/sums of wavelength regions. Composite dataframe will nicely
       plot when piped into spec aesthetics timeplot.
@@ -711,9 +726,12 @@ class Spectra(ABCSpectra, MetaDataFrame):
          WHEN PLOTTING, PLOT THE TRANSPOSE OF THE RETURNED DF.
       """
 
-      return self.wavelength_slices((self.index[0],#min(self.index),
+      out = self.wavelength_slices((self.index[0],#min(self.index),
                                      self.index[-1]),#max(self.index)), 
                                     apply_fcn=apply_fcn)
+
+      out.specifier = 'Area (%s)' % apply_fcn
+      return out
 
 
    # Spectral column attributes/properties
@@ -721,30 +739,30 @@ class Spectra(ABCSpectra, MetaDataFrame):
    ### RETURN A NEW INDEX, AND ALSO UPDATE SPECUNIT IN SAID INDEX!
    @property
    def specunit(self):
-      return self._df.index._unit.short    #Short name key
+      return self._frame.index._unit.short    #Short name key
 
    @property
    def full_specunit(self):
-      return self._df.index._unit.full
+      return self._frame.index._unit.full
 
    @specunit.setter
    def specunit(self, unit):
-      _valid_indextype(self._df.index)        
-      self._df.index = self._df.index.convert(unit) 
+      _valid_indextype(self._frame.index)        
+      self._frame.index = self._frame.index.convert(unit) 
 
 
    @property
    def varunit(self):
-      return self._df.columns._unit.short    #Short name key
+      return self._frame.columns._unit.short    #Short name key
 
    @property
    def full_varunit(self):
-      return self._df.columns._unit.full
+      return self._frame.columns._unit.full
 
    @varunit.setter
    def varunit(self, unit):
-      _valid_indextype(self._df.columns) #To raise error
-      self._df.columns = self._df.columns.convert(unit) 
+      _valid_indextype(self._frame.columns) #To raise error
+      self._frame.columns = self._frame.columns.convert(unit) 
 
    def as_specunit(self, unit):
       """ Returns new dataframe with different spectral unit on the index."""
@@ -829,7 +847,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
       if not start or not stop:
          raise badcount_error(2,1,3, argnames='start, stop, keywords')
 
-      self._df.index = self._strict_index(np.linspace(start, stop, numpts), unit=unit)
+      self._frame.index = self._strict_index(np.linspace(start, stop, numpts), unit=unit)
 
 
    ###################################
@@ -848,7 +866,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
 
           Notes:
           -----
-            Does have to call self._df.  Just doing self.sub will not work, even though
+            Does have to call self._frame.  Just doing self.sub will not work, even though
             calling ts.sub() from an outside program does in fact work.  Behavior is due
             to way in which python classes deal with overwrites of self."""
 
@@ -859,7 +877,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
       if not self._base_sub:
          # Index, although should be correct, is type object and is getting falses for entries...
          logger.critical('Subtracting baseline, but may not have all: elements being equal.  Fix index')
-         self._df = self._df.sub(self._baseline, axis=0)
+         self._frame = self._frame.sub(self._baseline, axis=0)
          if self._reference is not None:
             self._reference = self._reference.sub(self._baseline, axis=0)
          self._base_sub = True
@@ -875,7 +893,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
 
       # Only add if baseline is currently in a subtracted state
       if self._base_sub:
-         self._df = self._df.add(self._baseline, axis=0)   
+         self._frame = self._frame.add(self._baseline, axis=0)   
          if self._reference is not None:
             self._reference = self._reference.add(self._baseline, axis=0)
             self._base_sub = False
@@ -892,7 +910,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
 
    def _valid_baseline(self, baseline):
       """ Validates user-supplied baseline before setting.  Mostly,
-          ensures that baseline.index == self._df.index"""
+          ensures that baseline.index == self._frame.index"""
 
 
       if baseline is None:
@@ -905,7 +923,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
       except AttributeError:
          self._comment('Baseline is not iterable; filling with constant '
                        'value %s' % baseline)
-         return Series(baseline, index=self._df.index)
+         return Series(baseline, index=self._frame.index)
 
 
       # If Series compare index values
@@ -915,14 +933,14 @@ class Spectra(ABCSpectra, MetaDataFrame):
             raise BaselineError('Baseline shape mismatch %s vs %s %s'
                                 %(baseline.shape, self.name, self.index.shape))
          else:
-            if np.array_equal(baseline.index, self._df.index):
+            if np.array_equal(baseline.index, self._frame.index):
                self._comment('Baseline is a series; has identical index ' 
-                             'to self._df.index')
+                             'to self._frame.index')
                return baseline
             else:
                self._comment('Baseline is a series; shape identical to'
                              ' self.index.shape; but elements are not equal.')
-               mytype = self._df.index.dtype
+               mytype = self._frame.index.dtype
                bline_type = baseline.index.dtype
 
                try:
@@ -933,20 +951,20 @@ class Spectra(ABCSpectra, MetaDataFrame):
                else:
                   logger.warn('Baseline index type (%s) converted to self.index '
                               'type (%s)' % (bline_type, mytype))
-                  if np.array_equal(baseline.index, self._df.index):
+                  if np.array_equal(baseline.index, self._frame.index):
                      return baseline
                   else:
-                     raise BaselineError('Baseline index != self._df.index')
+                     raise BaselineError('Baseline index != self._frame.index')
 
    # If other type of iterable, make series
       else:
          # Make sure length is correct
-         if len(baseline) == len(self._df.index):
+         if len(baseline) == len(self._frame.index):
             self._comment("Baseline is iterable, but not a Series; converting")
-            return Series(baseline, index=self._df.index, dtype=float)
+            return Series(baseline, index=self._frame.index, dtype=float)
          else:
             raise BaselineError('Baseline must be of length %s to '
-                                'match the current spectral index.'%len(self._df.index))
+                                'match the current spectral index.'%len(self._frame.index))
 
 
    def plot(self, *args, **pltkwargs):   
@@ -1044,7 +1062,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
 
       sout = _valid_iunit(sout)
       sin = self._itype
-      df = self._df #Could also work just by calling self...
+      df = self._frame #Could also work just by calling self...
 
       # Corner case, for compatibility with reference.setter
       if sin==None and sout==None:
@@ -1107,7 +1125,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
 
       self._reference=rout       
       self._itype=sout        
-      self._df=df    
+      self._frame=df    
 
    ############################################ 
    #####Overwrite MetaDataFrame behavior ########
@@ -1131,7 +1149,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
             else:
                # If subclassing ConversionIndex
                try:
-                  unit = self._df.index.unit
+                  unit = self._frame.index.unit
                except AttributeError:
                   pass
                else:
@@ -1157,7 +1175,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
                                self._strict_columns )
             try:                    
                # If subclassing ConversionIndex
-               unit = self._df.columns.unit
+               unit = self._frame.columns.unit
             except AttributeError:
                pass
             else:
@@ -1174,21 +1192,21 @@ class Spectra(ABCSpectra, MetaDataFrame):
    # Setter looks for them on this object
    @property
    def index(self):
-      return self._df.index
+      return self._frame.index
 
    @property
    def columns(self):
-      return self._df.columns
+      return self._frame.columns
 
 
    @index.setter
    def index(self, index):
-      self._df.index = self._valid_index(index)    
+      self._frame.index = self._valid_index(index)    
 
 
    @columns.setter
    def columns(self, columns):
-      self._df.columns = self._valid_columns(columns)
+      self._frame.columns = self._valid_columns(columns)
 
 
    @property
@@ -1235,11 +1253,11 @@ class Spectra(ABCSpectra, MetaDataFrame):
 
       self._cnsvdmeth=attrs        
 
-   def _dfgetattr(self, attr, *fcnargs, **fcnkwargs):
-      """ This is overwritten from MetaDataFrame to allow special attributes to
-      be manipulated under dataframe operations.  For example, if a user
-      slices the dataframe, then the reference auto get sliced on the 
-      return array; otherwise, get tough-to-track length mismatch issues.
+   def _framegetattr(self, attr, *fcnargs, **fcnkwargs):
+      """ Overloading MEtaPandas Object, returns a new object, either
+      Spectra or Spectrum with attributes properly conserved.  Handles special
+      cases, for example, if returning Spectrum instead of Spectra.  Will
+      conserve attributes such as baseline/reference.
 
       Notes:
       -----
@@ -1247,7 +1265,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
       attribute (such as reference) will end with a name=_reference afterwards.  Added a hack
       to intercept this highly common attribute and apply to output."""
 
-      out=getattr(self._df, attr)(*fcnargs, **fcnkwargs)
+      out=getattr(self._frame, attr)(*fcnargs, **fcnkwargs)
 
       # If operation returns a dataframe, return new Spectra
       if isinstance(out, DataFrame):
@@ -1258,7 +1276,6 @@ class Spectra(ABCSpectra, MetaDataFrame):
             if self._cnsvdattr:
                cnsvdattr=dict((k,v) for k, v in self.cnsvdattr.iteritems() 
                               if v is not None)
-
 
                csvdf=DataFrame(cnsvdattr)  #STILL WORKS WITH NONEQUAL LENGTH
                _csvdfattrs=dict((attr, (cnsvdattr[attr].__dict__)) for attr in cnsvdattr)
@@ -1307,7 +1324,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
       Sometimes __getitem__ returns a float (indexing a series) at which 
       point we just want to return that.'''
 
-      dfout = self._df.__getitem__(keyslice)
+      dfout = self._frame.__getitem__(keyslice)
        
       if isinstance(dfout, Series):
          return Spectrum.from_series(self, dfout)
@@ -1340,7 +1357,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
 
       from pandas.rpy.common import convert_to_r_dataframe
       logger.info('Converting %s to R dataframe.' % self.full_name)
-      return( convert_to_r_dataframe(self._df) )      
+      return( convert_to_r_dataframe(self._frame) )      
 
    def to_csv(self, path_or_buff, meta_separate=None, **csv_kwargs):
       """ Output to CSV file.  
@@ -1350,11 +1367,11 @@ class Spectra(ABCSpectra, MetaDataFrame):
              path_or_buff: string path to outfile destination.
 
              meta_separate: 
-                 If None: metadata is lost and self._df.to_csv(**csv_kwargs) is called.
+                 If None: metadata is lost and self._frame.to_csv(**csv_kwargs) is called.
                  If False: metadata is serialized and output at tail file the path_or_buff file.
                  If True: metadata is added to it's own file named path_or_buff.mdf
 
-             csv_kwargs: csv formatting arguments passed directoy to self._df.to_csv()
+             csv_kwargs: csv formatting arguments passed directoy to self._frame.to_csv()
 
           Notes:
           ------
@@ -1365,7 +1382,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
       """
 
       meta=cPickle.dumps(self.__dict__)
-      self._df.to_csv(path_or_buff, **csv_kwargs)
+      self._frame.to_csv(path_or_buff, **csv_kwargs)
       if meta_separate == None:
          return
       elif meta_separate == True:
@@ -1548,6 +1565,8 @@ if __name__ == '__main__':
    from pyuvvis.plotting import areaplot
    ts = aunps_glass().as_varunit('s')
    s = ts[ts.columns[0]]
+   s=ts.area()
+   print s
 #   ts.area().plot()
    x = ts.area()
    x._repr_html_()
@@ -1680,7 +1699,7 @@ if __name__ == '__main__':
    #####ts._reference.name='joe'
    ####ts.baseline=Series([20,30,50,50], index=[400., 500., 600., 700.])
 ######    t2.baseline=ts.baseline
-   #####ts._df.ix[:, 0:4]
+   #####ts._frame.ix[:, 0:4]
    #####ts.ix[:,0:4]
    #####ts.pvutils.boxcar(binwidth=20, axis=1)
    #####x=ts.ix[450.0:650.]

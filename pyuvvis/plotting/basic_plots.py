@@ -11,7 +11,7 @@ class PlotError(Exception):
 
 #XXX UPDATE DOCSTRING (HOW TO REFERENCE SPECPLOT TO THIS ONE)
 def _genplot(ts, *args, **pltkwargs):
-    """ Generic wrapper to ts._df.plot(), that takes in x/y/title as parsed
+    """ Generic wrapper to ts._frame.plot(), that takes in x/y/title as parsed
     from various calling functions:
     NEW KEYWORDS:
         grid
@@ -67,7 +67,7 @@ def _genplot(ts, *args, **pltkwargs):
     ticksize = pltkwargs.pop('ticksize', '') #Put in default and remove bool gate below
 
     pltkwargs['ax'] = ax            
-    ax = ts._df.plot(**pltkwargs)
+    ax = ts._frame.plot(**pltkwargs)
     
     if cbar:
         if 'color' in pltkwargs:

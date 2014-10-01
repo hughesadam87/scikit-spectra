@@ -15,7 +15,7 @@ def _valid_intvlunit(sout):
     return _valid_xunit(sout, intvl_dic)
 
 # Ignore all class methods!
-#@logclass(log_name=__name__, skip = ['wraps','_dfgetattr', 'from_csv', 
+#@logclass(log_name=__name__, skip = ['wraps','_framegetattr', 'from_csv', 
  #                                    '_comment', '_transfer'])
 class TimeSpectra(Spectra):
     """ Spectra that enforces a TimeIndex.  TimeIndex converts representations
@@ -128,7 +128,7 @@ if __name__ == '__main__':
     ts.nearby[[1200,1400]]
         
     ts.iloc[:, 2:4.4].columns
-    ts._df.iloc[:, 2:4.4].columns
+    ts._frame.iloc[:, 2:4.4].columns
 #    ts = aunps_glass()
     print ts.ix[1505.0:1500.0]
     #ts.loc[:, 50.5, 520.0]
@@ -223,7 +223,7 @@ if __name__ == '__main__':
     ####ts._reference.name='joe'
     ###ts.baseline=Series([20,30,50,50], index=[400., 500., 600., 700.])
 #####    t2.baseline=ts.baseline
-    ####ts._df.ix[:, 0:4]
+    ####ts._frame.ix[:, 0:4]
     ####ts.ix[:,0:4]
     ####ts.pvutils.boxcar(binwidth=20, axis=1)
     ####x=ts.ix[450.0:650.]
