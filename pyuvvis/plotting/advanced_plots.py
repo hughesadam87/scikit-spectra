@@ -171,7 +171,7 @@ def overload_plot_wireframe(ax, X, Y, Z, *args, **kwargs):
     return linec
 
 # Rename
-def _gen2d3d(ts, **pltkwargs):
+def _gen2d3d(*args, **pltkwargs):
     # UPDATE
     """ Abstract layout for 2d plot.
     For convienence, a few special labels, colorbar and background keywords 
@@ -206,8 +206,16 @@ def _gen2d3d(ts, **pltkwargs):
         contour plot.  Surface for surface plot.
     
     """
+    
+    if len(args) == 1:
+        ts = args[0]
+        xx, yy = ts.meshgrid()
 
-    xx, yy = ts.meshgrid()
+    elif len(args) == 3:
+        xx, yy, ts = args
+        
+    else:
+        raise PlotError("Please pass a single spectra, or xx, yy, zz.  Got %s args" % len(args))
              
     # Boilerplate from basic_plots._genplot(); could refactor as decorator
     xlabel = pltkwargs.pop('xlabel', '')
