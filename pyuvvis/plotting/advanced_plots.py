@@ -53,9 +53,7 @@ def wire_cmap(wires, ax, cmap='hsv'):
 
     wire_y = np.array([wires._segments3d[i][:,1] for i in range(nx)]).ravel()
     wire_z = np.array([wires._segments3d[i][:,2] for i in range(nx)]).ravel()
-        
-    print 'HI, foo'    
-        
+                
 #    wire_x = np.array(wires._segments3d)[:, :, 0].ravel()
 #    wire_y = np.array(wires._segments3d)[:, :, 1].ravel()
 #    wire_z = np.array(wires._segments3d)[:, :, 2].ravel()
@@ -242,12 +240,12 @@ def _gen2d3d(*args, **pltkwargs):
     
     #Private attributes
     _modifyax = pltkwargs.pop('_modifyax', True)
+    contours = pltkwargs.pop('contours', 6)
+    label = pltkwargs.pop('label', None)
     
     if kind in KINDS2D:
         projection = None
 
-        label = pltkwargs.pop('label', None)
-        contours = pltkwargs.pop('contours', 6)
         
     elif kind in KINDS3D:
         projection = '3d'
@@ -312,7 +310,7 @@ def _gen2d3d(*args, **pltkwargs):
     if not ax:
         f = plt.figure()
 #        ax = f.gca(projection=projection)       
-        ax = f.add_subplot(111, projection='3d')
+        ax = f.add_subplot(111, projection=projection)
         if not fig:
             fig = f
         
@@ -338,8 +336,6 @@ def _gen2d3d(*args, **pltkwargs):
     # Contour Plots    
     # -------------
 
-    if kind == 'contour':
-
         # Broken background image
         ### More here http://matplotlib.org/examples/pylab_examples/image_demo3.html ###
         # Refactored with xx, yy instead of df.columns/index UNTESTED
@@ -361,23 +357,23 @@ def _gen2d3d(*args, **pltkwargs):
                     #raise badvalue_error(background, 'integer 1,2 or a PIL-opened image')
 
 
-        # Note this overwrites the 'contours' variable from an int to array
-        if kind == 'contour' or kind == 'contour3d':
-            if fill:
-                mappable = ax.contourf(xx, yy, ts, contours, **pltkwargs)    #linewidths is a pltkwargs arg
+    # Note this overwrites the 'contours' variable from an int to array
+    if kind == 'contour' or kind == 'contour3d':
+        if fill:
+            mappable = ax.contourf(xx, yy, ts, contours, **pltkwargs)    #linewidths is a pltkwargs arg
+        else:
+            mappable = ax.contour(xx, yy, ts, contours, **pltkwargs)    
+
+
+        ### Pick a few label styles to choose from.
+        if label:
+            if label==1:
+                ax.clabel(inline=1, fontsize=10)
+            elif label==2:
+                ax.clabel(levels[1::2], inline=1, fontsize=10)   #label every second line      
             else:
-                mappable = ax.contour(xx, yy, ts, contours, **pltkwargs)    
+                raise PlotError(label, 'integer of value 1 or 2')
 
-
-            ### Pick a few label styles to choose from.
-            if label:
-                if label==1:
-                    ax.clabel(inline=1, fontsize=10)
-                elif label==2:
-                    ax.clabel(levels[1::2], inline=1, fontsize=10)   #label every second line      
-                else:
-                    raise PlotError(label, 'integer of value 1 or 2')
- 
  
     elif kind == 'surf': 
         mappable = ax.plot_surface(xx, yy, ts, **pltkwargs)
@@ -469,7 +465,7 @@ def _gen2d3d(*args, **pltkwargs):
     if projection:
         ax.view_init(elev, azim)                 
         ax.set_zlabel(zlabel, fontsize=labelsize, rotation= _zlabel_rotation)     
-        
+    
     if xlim:
         ax.set_xlim3d(xlim)
 

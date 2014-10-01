@@ -369,7 +369,10 @@ class Corr2d(object):
 
 
         else:
+            # If no sideplots, can allow for 3d plots
+            plotkwargs.setdefault('kind', 'contour')
             return _gen2d3d(xx, yy, data, **plotkwargs)[0] #return axes, not contours
+
 
     @property
     def shape(self):
@@ -583,7 +586,7 @@ if __name__ == '__main__':
     cd = Corr2d.from_spectra(ts)
     cd.center()
 
-    cd.plot(fill=False, title="Blank sideplots", grid=False)
+    cd.plot(fill=False, sideplots=False, title="Blank sideplots", grid=False)
     plt.show()
     
 #    cd.scale()
