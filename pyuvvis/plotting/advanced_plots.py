@@ -203,9 +203,18 @@ def _gen2d3d(*args, **pltkwargs):
     
     """
     
+    _cols_isdti = _index_isdti = False
+    
     if len(args) == 1:
         ts = args[0]
         xx, yy = ts.meshgrid()
+
+        # Allow for datetime index in 3d plots only if ts is passed!
+        if isinstance(ts.columns[0], datetime.datetime):
+            _cols_isdti = True
+        if isinstance(ts.index[0], datetime.datetime):
+            _index_isdti = True
+        
 
     elif len(args) == 3:
         xx, yy, ts = args

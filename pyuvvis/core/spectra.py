@@ -28,6 +28,8 @@ from pyuvvis.logger import decode_lvl, logclass
 from pyuvvis.plotting import PLOTPARSER, _genplot, _gen2d3d
 from pyuvvis.exceptions import badkey_check, badcount_error, RefError, BaselineError
 
+from matplotlib.dates import date2num as _d2num
+
 
 logger = logging.getLogger(__name__) 
 
@@ -984,8 +986,21 @@ class Spectra(ABCSpectra, MetaDataFrame):
       try:
          yy,xx = np.meshgrid(self.columns, self.index)
       except Exception:
-         raise SpecError("Failed to create meshgrid.  Can happen when data labels"
-                         " are non numerical (e.g. TimeStamps).")
+
+         cols, index = self.columns, self.index
+
+         # Inspect first column to see if datetime
+         if isinstance(self.columns[0], datetime.datetime):
+            logger.warn("Converting COLUMNS from datetimeindex to float in meshgrid!")
+            cols = _d2num(self.columns)
+
+         # Inspect first column to see if datetime
+         if isinstance(self.index[0], datetime.datetime):
+            logger.warn("Converting INDEX from datetimeindex to float in meshgrid!")
+            index = _d2num(self.index)
+         
+         yy,xx = np.meshgrid(cols, index)
+
       return xx, yy
       
 
@@ -1556,7 +1571,8 @@ if __name__ == '__main__':
    from pyuvvis.data import solvent_evap, aunps_glass
    import matplotlib.pyplot as plt
    from pyuvvis.plotting import areaplot
-   ts = aunps_glass().as_varunit('s')
+   ts = aunps_glass()
+   ts.meshgrid()
    s = ts[ts.columns[0]]
    s=ts.area()
    print s
