@@ -166,23 +166,6 @@ def _genplot(ts, *args, **pltkwargs):
 
     return ax    
 
-    
-def timeplot(ts, **pltkwds):
-    ''' Sends transposed dataframe into _genplot(); however, this is only useful if one wants to plot
-    every single row in a dataframe.  For ranges of rows, see spec_utilities.wavelegnth_slices and
-    range_timeplot() below.'''
-    
-    pltkwds['legend']=pltkwds.pop('legend', True) #Turn legend on
-
-    tunit = getattr(ts, 'full_varunit', 'Perturbation')
-
-    pltkwds.setdefault('xlabel', tunit)          
-    pltkwds.setdefault('xlabel', ts.full_varunit)  
-    pltkwds.setdefault('ylabel', ts.full_iunit)    
-    pltkwds.setdefault('title', ts.name )    
-        
-    return _genplot(ts.transpose(), **pltkwds)
-
 
 # Requires ranged dataframe used wavelength slices method
 def range_timeplot(ranged_ts, **pltkwds):

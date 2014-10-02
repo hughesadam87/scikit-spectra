@@ -24,12 +24,8 @@ from pyuvvis.exceptions import badvalue_error
 # Smart float to int conversion
 _ir=lambda(x): int(round(x))
 
-
-# ALL HANDLED BY GENMESH_2D
-KINDS2D = ['contour']
-KINDS3D = ['contour3d', 'wire', 'surf', 'waterfall'] 
-
-ALLKINDS = KINDS2D + KINDS3D + [None, 'spec3d']
+from pyuvvis.plotting.basic_plots import range_timeplot, areaplot, _genplot    
+from pyuvvis.plotting.plot_registry import PlotRegister
 
 
 def wire_cmap(wires, ax, cmap='hsv'):
@@ -245,11 +241,9 @@ def _gen2d3d(*args, **pltkwargs):
     contours = pltkwargs.pop('contours', 6)
     label = pltkwargs.pop('label', None)
     
-    if kind in KINDS2D:
-        projection = None
-
+    projection = None
         
-    elif kind in KINDS3D:
+    if kind in PLOTPARSER.plots_3d:
         projection = '3d'
 
         elev = pltkwargs.pop('elev', 35)
@@ -304,9 +298,12 @@ def _gen2d3d(*args, **pltkwargs):
         pltkwargs.setdefault('cstride', cstride)
         pltkwargs.setdefault('rstride', rstride)
 
+    elif kind == 'contour':
+        pass
+
     else:
-        raise PlotError('Invalid plot kind: "%s".  '
-               'Choose from %s' % (kind, KINDS2D+KINDS3D))
+        raise PlotError('_gen2d3d invalid kind: "%s".  '
+               'Choose from %s' % (kind, PLOTPARSER.plots_2d_3d))
 
     # Is this the best logic for 2d/3d fig?
     if not ax:
@@ -693,6 +690,24 @@ def _gencorr2d(xx, yy, zz, a1_label=r'$\bar{A}(\nu_1)$',
 
     fig.suptitle(title, fontsize='large') # Still overpads
     return (ax1, ax2, ax3, ax4)
+
+# SET REGISTER HERE!  HAS TO BE HERE BECAUSE GEN2D USES IT, SO GET CIRCULAR IMPORT ISSUES
+# IF PUT THIS IN A SEPARATE MODULE.  STRICTLY SPEAKING, GEND2D IS MANY PLOTS SO IT HAS
+# TO INSPECT ITS OWN KIND ARGUMENT.  THIS IS ONE HEADACHE OF SUCH A DESIGN PATTERN!
+PLOTPARSER = PlotRegister()
+
+#Basic plots
+PLOTPARSER.add(None, _genplot, False, 'Spec vs. Variation' )
+PLOTPARSER.add('area', areaplot, False, 'Area vs. Variation' )
+PLOTPARSER.add('range_timeplot', range_timeplot, False, 'Slice Ranges vs. Variation' )
+
+#Advanced plots
+PLOTPARSER.add('contour', _gen2d3d, False, 'Contour Plot' )
+PLOTPARSER.add('contour3d',_gen2d3d, True, '3D Contour Plot')
+PLOTPARSER.add('wire', _gen2d3d, True, '3D Wireframe')
+PLOTPARSER.add('surf', _gen2d3d, True, '3D Surface' )
+PLOTPARSER.add('waterfall', _gen2d3d, True, '3D Waterfall' )
+PLOTPARSER.add('spec3d', spec3d, True, '3D Wire + Projection' )
 
 if __name__ == '__main__':
 

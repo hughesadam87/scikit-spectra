@@ -12,7 +12,6 @@ def slice_plot(ts_list, names=[], n=4, *plotargs, **plotkwds):
     
     figtitle = plotkwds.pop('title', '')
 
-
     # CURRENTLY, DOES NOT TAKE AXIS
     fig, axes, plotkwds = put.multi_axes(len(ts_list), **plotkwds)
     

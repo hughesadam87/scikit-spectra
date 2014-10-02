@@ -25,8 +25,7 @@ import pyuvvis.core.utilities as pvutils
 # Merge
 from pyuvvis.pandas_utils.metadframe import MetaDataFrame, MetaSeries
 from pyuvvis.logger import decode_lvl, logclass
-from pyuvvis.plotting import _genplot
-from pyuvvis.plotting.advanced_plots import _gen2d3d, KINDS2D, KINDS3D, spec3d
+from pyuvvis.plotting import PLOTPARSER, _genplot, _gen2d3d
 from pyuvvis.exceptions import badkey_check, badcount_error, RefError, BaselineError
 
 
@@ -130,25 +129,19 @@ def specplot(ts, *args, **pltkwargs):
          pltkwargs.setdefault('title', 'Normalized: '+ ts.name )    
    else:
          pltkwargs.setdefault('title', ts.name)      
-         
-   # 1d specplot (defined in this file)
-   if not kind:     
-      ax =_genplot(ts, *args, **pltkwargs)
 
-   # 2d/3D plots
-   else:
-      
-      kind = kind.lower()
-      # y unit in 2d is not same in 1d!
+   pltfcn, is_3d = PLOTPARSER[kind].function, PLOTPARSER.is_3d(kind)
+   
+   if is_3d:
       pltkwargs.setdefault('ylabel', ts.full_varunit)      
-      pltkwargs.setdefault('zlabel', ts.full_iunit)               
+      pltkwargs.setdefault('zlabel', ts.full_iunit) 
+               
+   # Hack 
+   if pltfcn == _gen2d3d:
+      pltkwargs['kind'] = kind
       
-      if kind in KINDS2D + KINDS3D:
-         ax = _gen2d3d(ts, *args,  kind=kind, **pltkwargs)
-    
-      elif kind == 'spec3d':
-         ax = spec3d(ts, *args, **pltkwargs)
-
+   ax = pltfcn(ts, *args, **pltkwargs)
+   
    # Reverse X-axis for all PLOT TYPES (EXCEPT CONTOUR)
    if ts.index[0] > ts.index[-1]:
       if kind != 'contour':
