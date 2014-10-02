@@ -132,11 +132,14 @@ def specplot(ts, *args, **pltkwargs):
    else:
          pltkwargs.setdefault('title', ts.name)      
 
-   pltfcn, is_3d = PLOTPARSER[kind].function, PLOTPARSER.is_3d(kind)
+   pltfcn, is_2d_3d = PLOTPARSER[kind].function, PLOTPARSER.is_2d_3d(kind)
    
-   if is_3d:
+   if is_2d_3d:
       pltkwargs.setdefault('ylabel', ts.full_varunit)      
       pltkwargs.setdefault('zlabel', ts.full_iunit) 
+   
+   else:
+      pltkwargs.setdefault('ylabel', ts.full_iunit)
                
    # Hack 
    if pltfcn == _gen2d3d:
@@ -976,31 +979,18 @@ class Spectra(ABCSpectra, MetaDataFrame):
       -----
       Matplotlib 3d surfaces require data in a meshgrid, generally of
       call signature mpl3d(xx, yy, zz, *args, **kwargs), where zz is the
-      data (i.e. Spectra) itself.  So one would do:
+      data (i.e. Spectra) itself.  When datetimes, this will fail.  Pyuvvis
+      plotting functions all handle this case independently.
       
       >>>xx, yy = ts.meshgrid()
       >>>plot3d(xx, yy, ts)
-      """
-      
+      """      
       # For correct view, mesh is done yy, xx and returned as xx, yy
       try:
          yy,xx = np.meshgrid(self.columns, self.index)
       except Exception:
-
-         cols, index = self.columns, self.index
-
-         # Inspect first column to see if datetime
-         if isinstance(self.columns[0], datetime.datetime):
-            logger.warn("Converting COLUMNS from datetimeindex to float in meshgrid!")
-            cols = _d2num(self.columns)
-
-         # Inspect first column to see if datetime
-         if isinstance(self.index[0], datetime.datetime):
-            logger.warn("Converting INDEX from datetimeindex to float in meshgrid!")
-            index = _d2num(self.index)
-         
-         yy,xx = np.meshgrid(cols, index)
-
+         raise SpecError("Failed to create meshgrid.  Can happen when data labels"
+                         " are non numerical (e.g. TimeStamps).")
       return xx, yy
       
 

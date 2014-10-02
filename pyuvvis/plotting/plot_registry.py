@@ -69,6 +69,18 @@ class PlotRegister(object):
         """ Is this kind a 3d plot """
         return self.plotdict[kind].is_3d
     
+    def is_2d(self, kind):
+        """ Is this a 2d plot (contour)"""
+        if kind in ['contour']:
+            return True
+        return False
+    
+    def is_2d_3d(self, kind):
+        """ Is 3d or contour/other mesh plots?"""
+        if self.is_2d(kind) or self.is_3d(kind):
+            return True
+        return False
+    
     @property
     def descriptions(self):
         return sorted([p.description for p in self.plots])   

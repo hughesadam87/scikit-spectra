@@ -6,9 +6,11 @@ __maintainer__ = "Adam Hughes"
 __email__ = "hugadams@gwmail.gwu.edu"
 __status__ = "Development"
 
+import datetime
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mplticker
+import matplotlib.dates as dates
 from mpl_toolkits.mplot3d import Axes3D, axes3d, art3d #Need Axes3d for 3d projection!
 
 import numpy as np
@@ -16,7 +18,7 @@ import matplotlib.colorbar as mplcbar
 import matplotlib.cm as cm
 from matplotlib.collections import PolyCollection
 from basic_plots import PlotError
-import datetime
+from pyuvvis.core.abcspectra import SpecError
 
 import plot_utils as pu
 
@@ -28,6 +30,8 @@ _ir=lambda(x): int(round(x))
 from pyuvvis.plotting.basic_plots import range_timeplot, areaplot, _genplot    
 from pyuvvis.plotting.plot_registry import PlotRegister
 
+_TIMESTAMPPADDING = 2.9 #Padding for timestamp labels
+_TIMESTAMPFORMAT = '%H:%M:%S'
 
 def wire_cmap(wires, ax, cmap='hsv'):
     """ Add a colormap to a set of wires (returned form ax.plot_wireframe)"""
@@ -167,6 +171,9 @@ def overload_plot_wireframe(ax, X, Y, Z, *args, **kwargs):
 
     return linec
 
+def format_date(x, pos=None):
+    return dates.num2date(x).strftime(_TIMESTAMPFORMAT) 
+
 # Rename
 def _gen2d3d(*args, **pltkwargs):
     # UPDATE
@@ -204,24 +211,35 @@ def _gen2d3d(*args, **pltkwargs):
     
     """
     
-    _cols_isdti = _index_isdti = False
-    
+    # Use a label mapper to allow for datetimes in any plot x/y axis
+    _x_dti = _ = _y_dti = False
+
+
+    # Passed Spectra
     if len(args) == 1:
         ts = args[0]
-        xx, yy = ts.meshgrid()
 
-        # Allow for datetime index in 3d plots only if ts is passed!
-        if isinstance(ts.columns[0], datetime.datetime):
-            _cols_isdti = True
-        if isinstance(ts.index[0], datetime.datetime):
-            _index_isdti = True
-        
+        try:
+            index = [dates.date2num(x) for x in ts.index]
+            _x_dti = True
+        except AttributeError:
+            index = ts.index
+            
+        try:
+            cols = [dates.date2num(x) for x in ts.columns]
+            _y_dti = True
+        except AttributeError:
+            cols = ts.columns
+                
+        yy, xx = np.meshgrid(cols, index)
 
+    # Passed xx, yy, ts/zz
     elif len(args) == 3:
         xx, yy, ts = args
         
     else:
-        raise PlotError("Please pass a single spectra, or xx, yy, zz.  Got %s args" % len(args))
+        raise PlotError("Please pass a single spectra, or xx, yy, zz.  Got %s args"
+                        % len(args))
              
     # Boilerplate from basic_plots._genplot(); could refactor as decorator
     xlabel = pltkwargs.pop('xlabel', '')
@@ -462,38 +480,31 @@ def _gen2d3d(*args, **pltkwargs):
         except Exception:
             raise PlotError("Colorbar failed; did you pass a colormap?")
                
-
     if grid:
-        ax.grid()
-        
-    def format_date(x, pos=None):
-        return num2date(x).strftime('%Y-%m-%d') #use FuncFormatter to format dates
-        
-        
-    # Set elevation/azimuth for 3d plots
-    if projection:
-        from matplotlib.dates import date2num as d2num
-        from matplotlib.dates import num2date as num2date
-        
-        ax.view_init(elev, azim)                 
-        ax.set_zlabel(zlabel, fontsize=labelsize, rotation= _zlabel_rotation)  
-        if _cols_isdti:
-            labels = [col.strftime('%H:%M:%S') for col in ts.columns[::20]]
-            plt.yticks(ts.columns[::20], labels)
+        ax.grid()        
+          
 
-        for tl in ax.w_yaxis.get_ticklabels(): # re-create what autofmt_xdate but with w_xaxis
-            tl.set_ha('right') #lines them up right
-            tl.set_rotation(30)    
-        
+    # Format datetime axis
+    # -------------------
+    if _x_dti:
+        ax.xaxis.set_major_formatter(mplticker.FuncFormatter(format_date))
+            
+        # Uncomment for custom 3d timestamp orientation
+ #       if projection:
+ #           for t1 in ax.yaxis.get_ticklabels():
+ #               t1.set_ha('right')
+ #               t1.set_rotation(30)        
+ #           ax.yaxis._axinfo['label']['space_factor'] = _TIMESTAMPPADDING
 
-#            import matplotlib.ticker as ticker            
-#            ax.w_yaxis.set_major_locator(ticker.FixedLocator([d2num(col) for col in ts.columns.values]))
-#            ax.w_yaxis.set_major_formatter(ticker.FuncFormatter(format_date))
+    if _y_dti:
+        ax.yaxis.set_major_formatter(mplticker.FuncFormatter(format_date))
 
-    ax.set_xlabel(xlabel, fontsize=labelsize)
-    ax.set_ylabel(ylabel, fontsize=labelsize)
-    ax.set_title(title, fontsize=titlesize)    
-    
+        # Uncomment for custom 3d timestamp orientation
+  #      if projection:
+  #          for t1 in ax.yaxis.get_ticklabels():
+  #              t1.set_ha('right')
+  #              t1.set_rotation(30)        
+  #          ax.yaxis._axinfo['label']['space_factor'] = _TIMESTAMPPADDING
 
     if xlim:
         ax.set_xlim3d(xlim)
@@ -504,6 +515,14 @@ def _gen2d3d(*args, **pltkwargs):
     if zlim:
         ax.set_zlim3d(zlim)    
                 
+    # Set elevation/azimuth for 3d plots
+    if projection:        
+        ax.view_init(elev, azim)                 
+        ax.set_zlabel(zlabel, fontsize=labelsize, rotation= _zlabel_rotation)  
+    
+    ax.set_xlabel(xlabel, fontsize=labelsize)
+    ax.set_ylabel(ylabel, fontsize=labelsize)
+    ax.set_title(title, fontsize=titlesize) 
         
     # Return Ax, contours/surface/polygons etc...
     return (ax, mappable)  
@@ -748,7 +767,7 @@ if __name__ == '__main__':
 #    ts = ts.nearby[400:700]
 #    ts = ts.nearby[1520:1320]
 #    ts=ts.iloc[450:500, 50:100]
-    xx,yy = ts.meshgrid()
+#    xx,yy = ts.meshgrid()
     
     
     ##---- First subplot
@@ -767,13 +786,13 @@ if __name__ == '__main__':
  
  
     ax2, contours = _gen2d3d(ts,
-                kind='contour3d',
+                kind='waterfall',
 #                cmap='jet_r',
 #                edgecolors='jet',
                 linewidth=2,
                 alpha=.5,
                 contours=50,
-                fill=True,
+#                fill=True,
 #                cbar=True,
 #                c_iso=20,
 #                r_iso=20,
