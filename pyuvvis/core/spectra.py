@@ -114,7 +114,7 @@ def specplot(ts, *args, **pltkwargs):
        
    """
    
-   kind = pltkwargs.pop('kind', None)   
+   kind = pltkwargs.pop('kind', 'spec')   
    iunit = pltkwargs.pop('iunit', None)
    
    if ts.iunit != iunit:  #Better/general way to do this? (Idic.keys())

@@ -697,7 +697,7 @@ def _gencorr2d(xx, yy, zz, a1_label=r'$\bar{A}(\nu_1)$',
 PLOTPARSER = PlotRegister()
 
 #Basic plots
-PLOTPARSER.add(None, _genplot, False, 'Spec vs. Variation' )
+PLOTPARSER.add('spec', _genplot, False, 'Spec vs. Variation' )
 PLOTPARSER.add('area', areaplot, False, 'Area vs. Variation' )
 PLOTPARSER.add('range_timeplot', range_timeplot, False, 'Slice Ranges vs. Variation' )
 
