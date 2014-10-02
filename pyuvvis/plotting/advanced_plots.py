@@ -16,6 +16,7 @@ import matplotlib.colorbar as mplcbar
 import matplotlib.cm as cm
 from matplotlib.collections import PolyCollection
 from basic_plots import PlotError
+import datetime
 
 import plot_utils as pu
 
@@ -461,19 +462,39 @@ def _gen2d3d(*args, **pltkwargs):
         except Exception:
             raise PlotError("Colorbar failed; did you pass a colormap?")
                
-    
-    ax.set_xlabel(xlabel, fontsize=labelsize)
-    ax.set_ylabel(ylabel, fontsize=labelsize)
-    ax.set_title(title, fontsize=titlesize)    
 
     if grid:
         ax.grid()
         
+    def format_date(x, pos=None):
+        return num2date(x).strftime('%Y-%m-%d') #use FuncFormatter to format dates
+        
+        
     # Set elevation/azimuth for 3d plots
     if projection:
+        from matplotlib.dates import date2num as d2num
+        from matplotlib.dates import num2date as num2date
+        
         ax.view_init(elev, azim)                 
-        ax.set_zlabel(zlabel, fontsize=labelsize, rotation= _zlabel_rotation)     
+        ax.set_zlabel(zlabel, fontsize=labelsize, rotation= _zlabel_rotation)  
+        if _cols_isdti:
+            labels = [col.strftime('%H:%M:%S') for col in ts.columns[::20]]
+            plt.yticks(ts.columns[::20], labels)
+
+        for tl in ax.w_yaxis.get_ticklabels(): # re-create what autofmt_xdate but with w_xaxis
+            tl.set_ha('right') #lines them up right
+            tl.set_rotation(30)    
+        
+
+#            import matplotlib.ticker as ticker            
+#            ax.w_yaxis.set_major_locator(ticker.FixedLocator([d2num(col) for col in ts.columns.values]))
+#            ax.w_yaxis.set_major_formatter(ticker.FuncFormatter(format_date))
+
+    ax.set_xlabel(xlabel, fontsize=labelsize)
+    ax.set_ylabel(ylabel, fontsize=labelsize)
+    ax.set_title(title, fontsize=titlesize)    
     
+
     if xlim:
         ax.set_xlim3d(xlim)
 
@@ -723,7 +744,7 @@ if __name__ == '__main__':
     from matplotlib import rc
     from pyuvvis.data import aunps_glass, aunps_water, solvent_evap
     
-    ts = solvent_evap().as_varunit('m')#.as_iunit('a')
+    ts = aunps_glass()
 #    ts = ts.nearby[400:700]
 #    ts = ts.nearby[1520:1320]
 #    ts=ts.iloc[450:500, 50:100]
@@ -746,12 +767,13 @@ if __name__ == '__main__':
  
  
     ax2, contours = _gen2d3d(ts,
-                kind='contour',
+                kind='contour3d',
 #                cmap='jet_r',
 #                edgecolors='jet',
                 linewidth=2,
-                alpha=.1,
-                fill=False,
+                alpha=.5,
+                contours=50,
+                fill=True,
 #                cbar=True,
 #                c_iso=20,
 #                r_iso=20,
@@ -760,11 +782,12 @@ if __name__ == '__main__':
                 xlabel = ts.full_specunit,
                 ylabel = ts.full_varunit,
                 zlabel = ts.full_iunit) 
+    # Done automatically by spec.plot
     if ts.index[0] > ts.index[-1]:
        ax2.set_xlim(ax2.get_xlim()[::-1]) 
     
 
-    add_projection(ts, ax=ax2, cmap='cool')
+#    add_projection(ts, ax=ax2, cmap='cool')
 
     rc('text', usetex=True)    
     
