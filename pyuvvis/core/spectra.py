@@ -119,8 +119,9 @@ def specplot(ts, *args, **pltkwargs):
    kind = pltkwargs.pop('kind', 'spec')   
    iunit = pltkwargs.pop('iunit', None)
    
-   if ts.iunit != iunit:  #Better/general way to do this? (Idic.keys())
-      ts = ts.as_iunit(iunit)      
+   if iunit:
+      if ts.iunit != iunit:  #Better/general way to do this? (Idic.keys())
+         ts = ts.as_iunit(iunit)      
 
    if not ts._base_sub:
       logger.warn('Spectrum does not have subtracted baseline; could affect '
@@ -1571,8 +1572,12 @@ if __name__ == '__main__':
    import matplotlib.pyplot as plt
    from pyuvvis.plotting import areaplot
    ts = aunps_glass()
-   ts.plot(kind='waterfall')
+   ts.reference = 0
+   ts = ts.as_iunit('a')
+   ts.plot()
    plt.show()
+#   ts.plot(kind='waterfall')
+#   plt.show()
 
    #fig = plt.figure(figsize=plt.figaspect(0.5))
    #ax1 = fig.add_subplot(1, 2, 2, projection='3d')
