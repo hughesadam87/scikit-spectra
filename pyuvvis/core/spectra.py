@@ -146,11 +146,20 @@ def specplot(ts, *args, **pltkwargs):
       pltkwargs['kind'] = kind
       
    ax = pltfcn(ts, *args, **pltkwargs)
+
+   # Some plot methods return (ax, mappable), some just ax
+   try:
+      ax = ax[0]
+   except TypeError:
+      pass
    
    # Reverse X-axis for all PLOT TYPES (EXCEPT CONTOUR)
    if ts.index[0] > ts.index[-1]:
       if kind != 'contour':
-         ax.set_xlim(ax.get_xlim()[::-1]) 
+         if kind == 'waterfall':
+            ax.set_ylim(ax.get_ylim()[::-1]) # HACK
+         else:
+            ax.set_xlim(ax.get_xlim()[::-1]) 
 
    return ax
 
@@ -1562,16 +1571,7 @@ if __name__ == '__main__':
    import matplotlib.pyplot as plt
    from pyuvvis.plotting import areaplot
    ts = aunps_glass()
-   ts.meshgrid()
-   s = ts[ts.columns[0]]
-   s=ts.area()
-   print s
-#   ts.area().plot()
-   x = ts.area()
-   x._repr_html_()
-   areaplot(x)
-#   x.plot()
-   print x
+   ts.plot(kind='waterfall')
    plt.show()
 
    #fig = plt.figure(figsize=plt.figaspect(0.5))

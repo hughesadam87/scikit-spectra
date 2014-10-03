@@ -214,28 +214,28 @@ def _gen2d3d(*args, **pltkwargs):
     # Use a label mapper to allow for datetimes in any plot x/y axis
     _x_dti = _ = _y_dti = False
 
-
     # Passed Spectra
     if len(args) == 1:
         ts = args[0]
 
         try:
-            index = [dates.date2num(x) for x in ts.index]
+            index = np.array([dates.date2num(x) for x in ts.index])
             _x_dti = True
         except AttributeError:
-            index = ts.index
+            index = ts.index.values #VALUES NECESSARY FOR POLY CMAP
             
         try:
-            cols = [dates.date2num(x) for x in ts.columns]
+            cols = np.array([dates.date2num(x) for x in ts.columns])
             _y_dti = True
         except AttributeError:
-            cols = ts.columns
+            cols = ts.columns.values #VALUES NECESSARY FOR POLY CMAP
                 
         yy, xx = np.meshgrid(cols, index)
 
     # Passed xx, yy, ts/zz
     elif len(args) == 3:
         xx, yy, ts = args
+        cols, index = ts.columns.values, ts.index.values
         
     else:
         raise PlotError("Please pass a single spectra, or xx, yy, zz.  Got %s args"
@@ -446,25 +446,28 @@ def _gen2d3d(*args, **pltkwargs):
         mappable = PolyCollection(verts, **pltkwargs)
         
         if cmap:
-            mappable.set_array(ts.columns.values), #If set array in __init__, autogens a cmap!
+            mappable.set_array(cols) #If set array in __init__, autogens a cmap!
             mappable.set_cmap(pltkwargs['cmap'])
 
         mappable.set_alpha(alpha)      
                     
         #zdir is the direction used to plot; dont' fully understand
-        ax.add_collection3d(mappable, zs=ts.columns, zdir='x' )      
+        ax.add_collection3d(mappable, zs=cols, zdir='x' )      
 
         # custom limits/labels polygon plot (reverse x,y)
         if not ylim:
-            ylim = (max(ts.index), min(ts.index))  #REVERSE AXIS FOR VIEWING PURPOSES
+            ylim = (max(index), min(index))  #REVERSE AXIS FOR VIEWING PURPOSES
 
         if not xlim:
-            xlim = (min(ts.columns), max(ts.columns))    #x 
+            xlim = (min(cols), max(cols))    #x 
 
         if not zlim:
             zlim = (min(ts.min()), max(ts.max()))  #How to get absolute min/max of ts values
             
-        xlabel, ylabel = ylabel, xlabel        
+        # Reverse labels/DTI call for correct orientaion
+        xlabel, ylabel = ylabel, xlabel    
+        _x_dti, _y_dti = _y_dti, _x_dti
+        azim = -1 * azim
 
     # General Features
     # ----------------
@@ -783,12 +786,12 @@ if __name__ == '__main__':
                # Is this the best logic for 2d/3d fig?
                
     
+    print ts.as_varunit('m').full_varunit
  
- 
-    ax2, contours = _gen2d3d(ts,
+    ax2, contours = _gen2d3d(ts.as_varunit('m'),
                 kind='waterfall',
-#                cmap='jet_r',
-#                edgecolors='jet',
+                cmap='jet_r',
+#edgecolors='jet',
                 linewidth=2,
                 alpha=.5,
                 contours=50,
@@ -802,8 +805,8 @@ if __name__ == '__main__':
                 ylabel = ts.full_varunit,
                 zlabel = ts.full_iunit) 
     # Done automatically by spec.plot
-    if ts.index[0] > ts.index[-1]:
-       ax2.set_xlim(ax2.get_xlim()[::-1]) 
+#    if ts.index[0] > ts.index[-1]:
+#       ax2.set_xlim(ax2.get_xlim()[::-1]) 
     
 
 #    add_projection(ts, ax=ax2, cmap='cool')
