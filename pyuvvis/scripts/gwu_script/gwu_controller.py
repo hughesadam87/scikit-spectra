@@ -944,21 +944,17 @@ class Controller(object):
         mid = ts.nearby[tim+tspace:tim+2*tspace].area()
         longer = ts.nearby[2*tspace+tim:].area()
         
+        # Store slice ranges for plt.legend() below
+        label_short = '%s:%s'% (ts.index[0], tim+tspace)
+        label_mid = '%s:%s' % (tim+tspace, tim+2*tspace)
+        label_long = '%s:%s' % (2*tspace+tim, ts.index[-1])
+        
         for t, color in [(short, 'b'), (mid, 'g'), (longer, 'r')]:
             ax = range_timeplot(_scaleto1(t), ax=ax, color=color, 
                                 linewidth=4, alpha=.4, custompadding=None)
         
-        def _shortname(string):
-            """ Rounds name of format 324.23:960.32 to int, 324:960"""
-            ints = [int(round(float(i),0)) for i in string.split(':')]
-            return '%s:%s' % (ints[0], ints[1])    
-            
-        plt.title('Area slices %s: normalized at t=0' % ts.specunit)
-            
-        plt.legend(['All $\lambda$', 
-                    _shortname(short.index[0]), 
-                    _shortname(mid.index[0]), 
-                    _shortname(longer.index[0])],
+        plt.title('Area slices %s: normalized at t=0' % ts.specunit)    
+        plt.legend(['All $\lambda$', label_short, label_mid, label_long],
                     ncol=4, 
                     fontsize='10')        
 
