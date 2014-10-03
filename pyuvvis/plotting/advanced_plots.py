@@ -464,7 +464,7 @@ def _gen2d3d(*args, **pltkwargs):
         if not zlim:
             zlim = (min(ts.min()), max(ts.max()))  #How to get absolute min/max of ts values
             
-        # Reverse labels/DTI call for correct orientaion
+        # Reverse labels/DTI call for correct orientaion HACK HACK HACK
         xlabel, ylabel = ylabel, xlabel    
         _x_dti, _y_dti = _y_dti, _x_dti
         azim = -1 * azim
@@ -789,7 +789,7 @@ if __name__ == '__main__':
     print ts.as_varunit('m').full_varunit
  
     ax2, contours = _gen2d3d(ts.as_varunit('m'),
-                kind='waterfall',
+                kind='surf',
                 cmap='jet_r',
 #edgecolors='jet',
                 linewidth=2,
