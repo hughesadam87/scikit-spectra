@@ -1571,7 +1571,7 @@ if __name__ == '__main__':
    from pyuvvis.data import solvent_evap, aunps_glass
    import matplotlib.pyplot as plt
    from pyuvvis.plotting import areaplot
-   ts = aunps_glass()
+   ts = aunps_glass().as_varunit('s')
    ts.reference = 0
    ts = ts.as_iunit('a')
    ts.plot()

@@ -100,9 +100,9 @@ class PlotRegister(object):
         return out
 
     @property
-    def plots_2d_3d(self, kind):
+    def plots_2d_3d(self):
         """ All 3d plots + contour"""
-        return self.is_3d + ['contour']
+        return self.plots_3d + ['contour']
     
     #Dict Interface / Magic
     def __getitem__(self, key):

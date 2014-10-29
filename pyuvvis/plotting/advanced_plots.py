@@ -33,35 +33,22 @@ from pyuvvis.plotting.plot_registry import PlotRegister
 _TIMESTAMPPADDING = 2.9 #Padding for timestamp labels
 _TIMESTAMPFORMAT = '%H:%M:%S'
 
+# Colormap of wire plot: hack and only works on a square mesh (eg 100x100)
+# https://github.com/matplotlib/matplotlib/issues/3562
 def wire_cmap(wires, ax, cmap='hsv'):
     """ Add a colormap to a set of wires (returned form ax.plot_wireframe)"""
     # Retrive data from internal storage of plot_wireframe, then delete it
-    print wires._segments3d.shape, 'segments shape'
-#    nx, ny, _  = np.shape(wires._segments3d)
-    
 
+    if wires._segments3d.ndim != 3:
+        raise PlotError('Wireframe colormapping for non-squre data (ie same '
+                        'number rows and columns) is not supported.')
 
-    #try:
-        #nx, ny, _  = np.shape(wires._segments3d)
-    #except ValueError:
-        #raise PlotError("WireCmap only supported for 2d mesh mesh.")
-
-    nx = len(wires._segments3d)
-    ny = len(wires._segments3d[0])
-
-    allx = []
-    for i in range(nx):
-        allx.append(wires._segments3d[i])
-
-
-    wire_y = np.array([wires._segments3d[i][:,1] for i in range(nx)]).ravel()
-    wire_z = np.array([wires._segments3d[i][:,2] for i in range(nx)]).ravel()
-                
-#    wire_x = np.array(wires._segments3d)[:, :, 0].ravel()
-#    wire_y = np.array(wires._segments3d)[:, :, 1].ravel()
-#    wire_z = np.array(wires._segments3d)[:, :, 2].ravel()
-    wires.remove()
-        
+    nx, ny, _  = np.shape(wires._segments3d)
+               
+    wire_x = np.array(wires._segments3d)[:, :, 0].ravel()
+    wire_y = np.array(wires._segments3d)[:, :, 1].ravel()
+    wire_z = np.array(wires._segments3d)[:, :, 2].ravel()
+    wires.remove()        
     
     # create data for a LineCollection
     wire_x1 = np.vstack([wire_x, np.roll(wire_x, 1)])
@@ -72,10 +59,7 @@ def wire_cmap(wires, ax, cmap='hsv'):
     wire_y1 = np.delete(wire_y1, to_delete, axis=1)
     wire_z1 = np.delete(wire_z1, to_delete, axis=1)
     scalars = np.delete(wire_z, to_delete)
-    
-    print scalars, 'scalars'
-    print wire_x.shape
-    
+        
     segs = [list(zip(xl, yl, zl)) for xl, yl, zl in \
                      zip(wire_x1.T, wire_y1.T, wire_z1.T)]
     
@@ -85,12 +69,14 @@ def wire_cmap(wires, ax, cmap='hsv'):
     ax.add_collection(new_wires)
     return new_wires
 
-def overload_plot_wireframe(ax, X, Y, Z, *args, **kwargs):
-    '''
-    Overoad matplotlib's plot_wireframe for a special use-case.  
+def custom_wireframe(ax, X, Y, Z, *args, **kwargs):
+    """
+    Overoad matplotlib's plot_wireframe for a special use case that we want
+    to plot a wireframe over a surface with customizability of those
+    lines.
     In future versions, this may be incorporated into matplotlib natively.
     This would still be required for backwards compatibility.
-    '''
+    """
 
     rstride = kwargs.pop("rstride", 1)
     cstride = kwargs.pop("cstride", 1)
@@ -145,34 +131,20 @@ def overload_plot_wireframe(ax, X, Y, Z, *args, **kwargs):
     lines += [list(zip(xl, yl, zl)) for xl, yl, zl in \
               zip(txlines, tylines, tzlines)]
 
-
-    #allzlines = np.concatenate([np.array(zlines).ravel(), 
-                                #np.array(tzlines).ravel()])
-    #allxlines = np.concatenate([np.array(xlines).ravel(), 
-                                #np.array(txlines).ravel()])
-    #allylines = np.concatenate([np.array(ylines).ravel(), 
-                                #np.array(tylines).ravel()])    
-
-    #ALL = np.concatenate([allzlines, allxlines, allylines])
-
-    #test = np.array(list(ts.columns.values.ravel()) +
-                    #list(ts.index.values.ravel().ravel()))
-
-#    kwargs = {} #REMOVE ME HACK
     linec = art3d.Line3DCollection(lines, *args, **kwargs)
-
-    #linec.set_array(test) 
-    #linec.set_cmap('jet_r')
-    #linec.set_clim(0,2500)
-
 
     ax.add_collection(linec)
     ax.auto_scale_xyz(X, Y, Z, had_data)
 
+    if 'cmap' in kwargs:
+        linec = wire_cmap(linec, ax, cmap=kwargs['cmap'])    
+    
     return linec
+
 
 def format_date(x, pos=None):
     return dates.num2date(x).strftime(_TIMESTAMPFORMAT) 
+
 
 # Rename
 def _gen2d3d(*args, **pltkwargs):
@@ -404,14 +376,14 @@ def _gen2d3d(*args, **pltkwargs):
  
     elif kind == 'surf': 
         mappable = ax.plot_surface(xx, yy, ts, **pltkwargs)
-#        pltkwargs.pop('edgecolors')
-        wires = overload_plot_wireframe(ax, xx, yy, ts, **pltkwargs)
-#        print np.shape(wires._segments3d)
-        wires = wire_cmap(wires, ax, cmap='jet')
-        
+#       if pltkwargs.pop('edgecolors', None):
+           
+        custom_wireframe(ax, xx, yy, ts, **pltkwargs)
+        # Wires are thrown out, since mappable is the surface
+
     elif kind == 'wire':
         pltkwargs.setdefault('color', 'black')
-        mappable = overload_plot_wireframe(ax, xx, yy, ts, **pltkwargs)
+        mappable = custom_wireframe(ax, xx, yy, ts, **pltkwargs)
 
     elif kind == 'waterfall':
         
@@ -429,7 +401,7 @@ def _gen2d3d(*args, **pltkwargs):
             if alpha > 0.6:
                 alpha = 0.6        
         
-        #Delete stride keywords
+        #Delete stride keywords (waterfall doesn't have strides: not a surface!)
         for key in ['cstride', 'rstride']:
             try:
                 del pltkwargs[key]
@@ -785,22 +757,21 @@ if __name__ == '__main__':
                #background=False)
                # Is this the best logic for 2d/3d fig?
                
-    
-    print ts.as_varunit('m').full_varunit
- 
-    ax2, contours = _gen2d3d(ts.as_varunit('m'),
+     
+    ts = ts.iloc[0:100, :] #.as_varunit('m')
+        
+    ts.plot(
                 kind='surf',
-                cmap='jet_r',
+                cmap='jet',
+                cbar=False,
+#                c_iso=5,
+                r_iso=5,
+#                edgecolors='r',
+    
 #edgecolors='jet',
                 linewidth=2,
                 alpha=.5,
-                contours=50,
-#                fill=True,
-#                cbar=True,
-#                c_iso=20,
-#                r_iso=20,
-#                contours=9,
-#                linewidth=50,
+                contours=5,
                 xlabel = ts.full_specunit,
                 ylabel = ts.full_varunit,
                 zlabel = ts.full_iunit) 
