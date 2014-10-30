@@ -150,9 +150,15 @@ def _genplot(ts, *args, **pltkwargs):
             ax.legend(loc='upper left', ncol=2, shadow=True, fancybox=True)  
         elif legstyle == 2:
             ax=put.easy_legend(ax, position='top', fancy=True)
-            
+
+    # http://matplotlib.org/api/axis_api.html           
+    # Other grid args like linestyle should be set directly with calls
+    # to ax.grid(**linekwds)
     if grid:
-        ax.grid(True)
+        if grid == True:
+            ax.grid()
+        else:
+            ax.grid(color=grid) #Let's any supported color in
         
     if ticksize:
         logger.info('Adjusting ticksize to "%s"' % ticksize)

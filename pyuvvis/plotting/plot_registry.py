@@ -31,6 +31,14 @@ class PlotInfo(object):
                           str(self.is_3d), 
                           description])
 
+    def __shortrepr__(self):
+        """ Short representaiton, substitue for __repr__() """
+        description = self.description
+        if len(description) > _DESCRIPTION_CHARS:
+            description = description[0:10] + '...'
+        return '\t'.join([str(self.key),description])
+
+
 class PlotRegister(object):
     """ Basic storage class to track all various plot types in pyuvvis;
     simple relational mapper for operations like "return all 3D plots.
@@ -125,9 +133,18 @@ class PlotRegister(object):
 
     def __repr__(self):
         # MAKE ACTUAL COLUMNS
-        out = '\t'.join(['KEY', 'FUNCTION', '3D', 'DESCRIPTION'])
+        out = '\t'.join(['KIND', 'FUNCTION', '3D', 'DESCRIPTION'])
         out += '\n------------------------------------------'
         out += '\n\n'
         out += '\n'.join([v.__repr__() for v in self.plots])
+        return out    
+    
+
+    def __shortrepr__(self):
+        # MAKE ACTUAL COLUMNS
+        out = '\t'.join(['KIND', 'DESCRIPTION'])
+        out += '\n----------------'
+        out += '\n\n'
+        out += '\n'.join([v.__shortrepr__() for v in self.plots])
         return out    
     

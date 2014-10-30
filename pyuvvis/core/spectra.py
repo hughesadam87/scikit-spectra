@@ -36,13 +36,13 @@ logger = logging.getLogger(__name__)
 # Map plot keywords to plot functions for Spectra.plot()
 # ------------------------------------------------------
 
-PLOTKINDS = { None: 'Spectra vs. Variation', 
-             'spec3d':'3D Spectra vs. Variation',
-             'scatter3d':'3D Scatter Plot',
-             'contour3d':'3D Contour Plot',
-             'wire':'Fishnet/Wireframe Plot',
-             'surf':'3D Surface Plot',
-             'ploy':'3D Polygon Plot'}
+#PLOTKINDS = { None: 'Spectra vs. Variation', 
+             #'spec3d':'3D Spectra vs. Variation',
+             #'scatter3d':'3D Scatter Plot',
+             #'contour3d':'3D Contour Plot',
+             #'wire':'Fishnet/Wireframe Plot',
+             #'surf':'3D Surface Plot',
+             #'ploy':'3D Polygon Plot'}
 
 ### Idic, from_T, to_T and spec_slice all used to be in speclabeltool.py###
 Idic={None:'Counts', #Don't change without updating normplot; relies on these keys 
@@ -388,13 +388,10 @@ class Spectra(ABCSpectra, MetaDataFrame):
          return Idic
       return self._list_out(Idic, delim=delim)
 
-   # Rename
-   def plot_types(self, delim='\t', pprint = False):
+   @property
+   def plot_kinds(self):
       """ List available plot kinds"""
-      out = PLOTKINDS
-      if not pprint:
-         return out
-      return self._list_out(out, delim=delim)
+      print PLOTPARSER.__shortrepr__()
 
    # Self necessary here or additional df stuff gets printed   
    def specunits(self, delim='\t', pprint = False):
@@ -981,27 +978,29 @@ class Spectra(ABCSpectra, MetaDataFrame):
       """
       return specplot(self, *args, **pltkwargs)
       
+   
+   # Is this work keeping?  Not actually used by plot function due to
+   # corner cases, 
+   #def meshgrid(self):
+      #"""Return 2d meshgrid (xx, yy) for use with matplotlib 3d plots.
       
-   def meshgrid(self):
-      """Return 2d meshgrid (xx, yy) for use with matplotlib 3d plots.
+      #Notes
+      #-----
+      #Matplotlib 3d surfaces require data in a meshgrid, generally of
+      #call signature mpl3d(xx, yy, zz, *args, **kwargs), where zz is the
+      #data (i.e. Spectra) itself.  When datetimes, this will fail.  Pyuvvis
+      #plotting functions all handle this case independently.
       
-      Notes
-      -----
-      Matplotlib 3d surfaces require data in a meshgrid, generally of
-      call signature mpl3d(xx, yy, zz, *args, **kwargs), where zz is the
-      data (i.e. Spectra) itself.  When datetimes, this will fail.  Pyuvvis
-      plotting functions all handle this case independently.
-      
-      >>>xx, yy = ts.meshgrid()
-      >>>plot3d(xx, yy, ts)
-      """      
-      # For correct view, mesh is done yy, xx and returned as xx, yy
-      try:
-         yy,xx = np.meshgrid(self.columns, self.index)
-      except Exception:
-         raise SpecError("Failed to create meshgrid.  Can happen when data labels"
-                         " are non numerical (e.g. TimeStamps).")
-      return xx, yy
+      #>>>xx, yy = ts.meshgrid()
+      #>>>plot3d(xx, yy, ts)
+      #"""      
+      ## For correct view, mesh is done yy, xx and returned as xx, yy
+      #try:
+         #yy,xx = np.meshgrid(self.columns, self.index)
+      #except Exception:
+         #raise SpecError("Failed to create meshgrid.  Can happen when data labels"
+                         #" are non numerical (e.g. TimeStamps).")
+      #return xx, yy
       
 
    @property
@@ -1573,8 +1572,11 @@ if __name__ == '__main__':
    from pyuvvis.plotting import areaplot
    ts = aunps_glass().as_varunit('s')
    ts.reference = 0
+   
+   print PLOTPARSER.__shortrepr__()
+   print ts.plot_kinds
+   raise Exception
    ts = ts.as_iunit('a')
-   ts.plot()
    plt.show()
 #   ts.plot(kind='waterfall')
 #   plt.show()

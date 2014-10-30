@@ -221,7 +221,7 @@ def _gen2d3d(*args, **pltkwargs):
 
     # Choose plot kind
     kind = pltkwargs.pop('kind', 'contour')
-    grid = pltkwargs.pop('grid', '')
+    grid = pltkwargs.pop('grid', True)
 #    pltkwargs.setdefault('legend', False) #(any purpose in 2d?)
 #   LEGEND FOR 2D PLOT: http://stackoverflow.com/questions/10490302/how-do-you-create-a-legend-for-a-contour-plot-in-matplotlib
     pltkwargs.setdefault('linewidth', 1)    
@@ -358,10 +358,17 @@ def _gen2d3d(*args, **pltkwargs):
 
     # Note this overwrites the 'contours' variable from an int to array
     if kind == 'contour' or kind == 'contour3d':
-        if fill:
-            mappable = ax.contourf(xx, yy, ts, contours, **pltkwargs)    #linewidths is a pltkwargs arg
+
+        # Cornercase datetimeindex and offest from add projection hack
+        try:
+            pltkwargs['offset'] = dates.date2num(pltkwargs['offset'])
+        except Exception:
+            pass
+
+        if fill:                           #Values of DTI doesn't work
+            mappable = ax.contourf(xx, yy, ts.values, contours, **pltkwargs)    #linewidths is a pltkwargs arg
         else:
-            mappable = ax.contour(xx, yy, ts, contours, **pltkwargs)    
+            mappable = ax.contour(xx, yy, ts.values, contours, **pltkwargs)    
 
 
         ### Pick a few label styles to choose from.
@@ -456,7 +463,10 @@ def _gen2d3d(*args, **pltkwargs):
             raise PlotError("Colorbar failed; did you pass a colormap?")
                
     if grid:
-        ax.grid()        
+        if grid == True:
+            ax.grid()
+        else:
+            ax.grid(color=grid) #Let's any supported color in     
           
 
     # Format datetime axis
@@ -539,30 +549,32 @@ def add_projection(ts, plane='xz', flip=False, fill=False, **contourkwds):
     if plane == 'yx': plane = 'xy'
     
     if plane == 'xy':
-        offset=zz.min().min()
+        offset=ts.min().min()
         if flip:
-            offset=zz.max().max()
+            offset=ts.max().max()
         zdir = 'z'
       
     elif plane == 'yz':
-        offset=xx.min().min()
+        offset=ts.index.min()
         if flip:
-            offset=xx.max().max()
+            offset=ts.index.max()
         zdir = 'x'        
 
     elif plane == 'xz':
-        offset = yy.max().max()
+        offset = ts.columns.max()
         if flip:
-            offset = yy.min().min()
+            offset = ts.columns.min()
         zdir = 'y'           
     
     else:
         raise PlotError('Invalid plane "%s": must be "xy, xz or yz".' % plane)
-
+    
+          
     ax, cset = _gen2d3d(ts, 
                         zdir=zdir, 
                         kind='contour', 
                         offset=offset, 
+                        fill=fill,
                         _modifyax=False,
                         **contourkwds)  
    
@@ -570,7 +582,7 @@ def add_projection(ts, plane='xz', flip=False, fill=False, **contourkwds):
     return ax 
    
    
-def spec3d(ts, projection=True, samples=5, **pltkwargs):
+def spec3d(ts, projection=True, fill=True, samples=5, **pltkwargs):
     """ Wireframe plot with no connected clines.  By default, adds an xz 
     projection. 
     
@@ -620,7 +632,7 @@ def spec3d(ts, projection=True, samples=5, **pltkwargs):
         except AttributeError:
             contourkwds['colors'] = projection
             
-        ax = add_projection(ts, ax=ax, fill=True, **contourkwds)
+        ax = add_projection(ts, ax=ax, fill=fill, **contourkwds)
    
     return ax, mappable
     
@@ -679,9 +691,15 @@ def _gencorr2d(xx, yy, zz, a1_label=r'$\bar{A}(\nu_1)$',
     fig = plt.gcf()
 
     if grid:
-        ax2.grid()
-        ax3.grid()
-        ax4.grid() 
+        if grid == True:
+            ax2.grid()
+            ax3.grid()
+            ax4.grid() 
+
+        else:
+            ax2.grid(color=grid)
+            ax3.grid(color=grid)
+            ax4.grid(color=grid) 
         
     # Hide axis labels 
     for ax in [ax2, ax3]:
@@ -745,6 +763,8 @@ if __name__ == '__main__':
 #    xx,yy = ts.meshgrid()
     
     
+    print PLOTPARSER
+    
     ##---- First subplot
     #ax2 = fig.add_subplot(1, 2, 1, projection='3d')
     #_gencorr2d(xx, yy, ts, 
@@ -758,27 +778,35 @@ if __name__ == '__main__':
                # Is this the best logic for 2d/3d fig?
                
      
-    ts = ts.iloc[0:100, :] #.as_varunit('m')
+    ts = ts.iloc[0:100, :].as_varunit('m')
+
+    ts.plot(kind='spec3d', fill=False)    
         
-    ts.plot(
-                kind='surf',
-                cmap='jet',
-                cbar=False,
-#                c_iso=5,
-                r_iso=5,
-#                edgecolors='r',
+        
+        
+    #ax = ts.plot(
+                #kind='waterfall',
+                #edgecolor='r',
+                
+##                cmap='jet',
+                #cbar=False,
+                #color='g',
+##                c_iso=5,
+                #r_iso=5,
+##                edgecolors='r',
     
-#edgecolors='jet',
-                linewidth=2,
-                alpha=.5,
-                contours=5,
-                xlabel = ts.full_specunit,
-                ylabel = ts.full_varunit,
-                zlabel = ts.full_iunit) 
-    # Done automatically by spec.plot
+##edgecolors='jet',
+                #linewidth=2,
+                #alpha=.5,
+                #contours=5,
+                #xlabel = ts.full_specunit,
+                #ylabel = ts.full_varunit,
+                #zlabel = ts.full_iunit) 
+    ## Done automatically by spec.plot
 #    if ts.index[0] > ts.index[-1]:
 #       ax2.set_xlim(ax2.get_xlim()[::-1]) 
     
+
 
 #    add_projection(ts, ax=ax2, cmap='cool')
 
