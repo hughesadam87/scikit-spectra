@@ -228,6 +228,13 @@ def _gen2d3d(*args, **pltkwargs):
     
     cbar = pltkwargs.pop('cbar', False)
     
+    outline = pltkwargs.pop('outline', None)
+    #if outline:
+        #if kind != 'surf' and kind != 'waterfall':
+            #raise PlotError('"outline" is only valid for "surf" and "waterfall"'
+                        #' plots.  Please use color/cmap for all other color'
+                        #' designations.')
+    
     fig = pltkwargs.pop('fig', None)
     ax = pltkwargs.pop('ax', None)  
     fill = pltkwargs.pop('fill', False)  
@@ -383,18 +390,31 @@ def _gen2d3d(*args, **pltkwargs):
  
     elif kind == 'surf': 
         mappable = ax.plot_surface(xx, yy, ts, **pltkwargs)
-#       if pltkwargs.pop('edgecolors', None):
-           
+
+        if outline:
+            try:
+                pltkwargs['cmap'] = pu.cmget(outline)
+            except Exception: #Don't change; attribute error fails when outline=None
+                pltkwargs['color'] = outline     
+                pltkwargs.pop('cmap') 
+
         custom_wireframe(ax, xx, yy, ts, **pltkwargs)
-        # Wires are thrown out, since mappable is the surface
+        # Wires are thrown out, since mappable is the surface, and only mappable returned
 
     elif kind == 'wire':
-        pltkwargs.setdefault('color', 'black')
+        pltkwargs.setdefault('color', 'black')        
         mappable = custom_wireframe(ax, xx, yy, ts, **pltkwargs)
 
     elif kind == 'waterfall':
         
-        edgecolors = pltkwargs.setdefault('edgecolors', None)
+        # Parse outline color (if colormap, error!)
+        try:
+            pu.cmget(outline) 
+        except Exception:
+            pltkwargs['edgecolors'] = outline
+        else:
+            raise PlotError('Waterfall "outline" must be a solid color, not colormap.')
+        
         pltkwargs.setdefault('closed', False)
         alpha = pltkwargs.setdefault('alpha', None)
 
@@ -778,30 +798,34 @@ if __name__ == '__main__':
                # Is this the best logic for 2d/3d fig?
                
      
-    ts = ts.iloc[0:100, :].as_varunit('m')
+    ts = ts.iloc[0:100, :]#.as_varunit('m')
 
     ts.plot(kind='spec3d', fill=False)    
         
         
         
-    #ax = ts.plot(
-                #kind='waterfall',
-                #edgecolor='r',
-                
-##                cmap='jet',
-                #cbar=False,
-                #color='g',
-##                c_iso=5,
-                #r_iso=5,
-##                edgecolors='r',
+    ax = ts.plot(
+                kind='surf',
+                cmap = 'hot',
+                outline='cool',
     
-##edgecolors='jet',
-                #linewidth=2,
-                #alpha=.5,
-                #contours=5,
-                #xlabel = ts.full_specunit,
-                #ylabel = ts.full_varunit,
-                #zlabel = ts.full_iunit) 
+#                outline='je',
+#                outline = 'r',
+                
+#                cmap='jet',
+                cbar=False,
+#                c_iso=5,
+                r_iso=5,
+#                edgecolors='r',
+    
+#edgecolors='jet',
+                linewidth=2,
+                alpha=.5,
+                contours=5,
+                xlabel = ts.full_specunit,
+                ylabel = ts.full_varunit,
+                zlabel = ts.full_iunit) 
+    
     ## Done automatically by spec.plot
 #    if ts.index[0] > ts.index[-1]:
 #       ax2.set_xlim(ax2.get_xlim()[::-1]) 

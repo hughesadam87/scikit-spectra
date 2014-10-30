@@ -60,7 +60,7 @@ def _genplot(ts, *args, **pltkwargs):
         
    
     # Grid (add support for minor grids later)
-    grid = pltkwargs.pop('grid', True)
+    grid = pltkwargs.pop('grid', 'black')
     
     labelsize = pltkwargs.pop('labelsize', 'medium') #Can also be ints
     titlesize = pltkwargs.pop('titlesize', 'large')
