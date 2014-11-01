@@ -20,7 +20,10 @@ from pyuvvis.core.abcindex import ConversionIndex #for typechecking; shoould be 
 from pyuvvis.core.specstack import SpecStack
 from pyuvvis.core.abcspectra import ABCSpectra, spectra_to_html, spectra_repr, \
      SpecError
+
 import pyuvvis.core.utilities as pvutils
+import pyuvvis.config as cnfg
+
 
 # Merge
 from pyuvvis.pandas_utils.metadframe import MetaDataFrame, MetaSeries
@@ -118,6 +121,16 @@ def specplot(ts, *args, **pltkwargs):
    
    kind = pltkwargs.pop('kind', 'spec')   
    iunit = pltkwargs.pop('iunit', None)
+
+   # FORCE DEFAULT COLOR/COLORMAPS
+   if 'cmap' not in pltkwargs and 'color' not in pltkwargs and 'colors' not in pltkwargs:
+      if kind == 'spec':
+         pltkwargs['cmap'] = cnfg.CMAP_1DSPECPLOT
+      elif kind == 'contour':
+         pltkwargs['cmap'] = cnfg.CMAP_CONTOUR
+      elif PLOTPARSER.is_3d(kind):        
+         pltkwargs['color'] = cnfg.COLOR_3DPLOT
+      
    
    if iunit:
       if ts.iunit != iunit:  #Better/general way to do this? (Idic.keys())
@@ -977,31 +990,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
       various plot types.  Will append correct x and y labels.
       """
       return specplot(self, *args, **pltkwargs)
-      
-   
-   # Is this work keeping?  Not actually used by plot function due to
-   # corner cases, 
-   #def meshgrid(self):
-      #"""Return 2d meshgrid (xx, yy) for use with matplotlib 3d plots.
-      
-      #Notes
-      #-----
-      #Matplotlib 3d surfaces require data in a meshgrid, generally of
-      #call signature mpl3d(xx, yy, zz, *args, **kwargs), where zz is the
-      #data (i.e. Spectra) itself.  When datetimes, this will fail.  Pyuvvis
-      #plotting functions all handle this case independently.
-      
-      #>>>xx, yy = ts.meshgrid()
-      #>>>plot3d(xx, yy, ts)
-      #"""      
-      ## For correct view, mesh is done yy, xx and returned as xx, yy
-      #try:
-         #yy,xx = np.meshgrid(self.columns, self.index)
-      #except Exception:
-         #raise SpecError("Failed to create meshgrid.  Can happen when data labels"
-                         #" are non numerical (e.g. TimeStamps).")
-      #return xx, yy
-      
+            
 
    @property
    def baseline(self):

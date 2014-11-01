@@ -328,7 +328,7 @@ def _gen2d3d(*args, **pltkwargs):
     
     # PLT.CONTOUR() doesn't take 'color'; rather, takes 'colors' for now
     if 'color' in pltkwargs:       
-        if kind == 'contour':
+        if kind == 'contour' or kind == 'contour3d':
             pltkwargs['colors'] = pltkwargs.pop('color')
         
     # Convienence method to pass in string colors

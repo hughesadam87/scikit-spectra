@@ -2,7 +2,6 @@ import plot_utils as put
 import logging
 import numpy as np
 import matplotlib.pyplot as plt
-import pyuvvis.config as puc
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +40,6 @@ def _genplot(ts, *args, **pltkwargs):
     # Adhere to cananoical "cmap" 
     if 'cmap' in pltkwargs:
         pltkwargs['colormap'] = pltkwargs.pop('cmap')    
-    pcmap = pltkwargs.setdefault('colormap', 'jet')
     
     fig = pltkwargs.pop('fig', None)
     ax = pltkwargs.pop('ax', None)
