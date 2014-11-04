@@ -36,16 +36,6 @@ from matplotlib.dates import date2num as _d2num
 
 logger = logging.getLogger(__name__) 
 
-# Map plot keywords to plot functions for Spectra.plot()
-# ------------------------------------------------------
-
-#PLOTKINDS = { None: 'Spectra vs. Variation', 
-             #'spec3d':'3D Spectra vs. Variation',
-             #'scatter3d':'3D Scatter Plot',
-             #'contour3d':'3D Contour Plot',
-             #'wire':'Fishnet/Wireframe Plot',
-             #'surf':'3D Surface Plot',
-             #'ploy':'3D Polygon Plot'}
 
 ### Idic, from_T, to_T and spec_slice all used to be in speclabeltool.py###
 Idic={None:'Counts', #Don't change without updating normplot; relies on these keys 

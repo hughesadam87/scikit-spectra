@@ -805,7 +805,7 @@ if __name__ == '__main__':
         
         
     ax = ts.plot(
-                kind='surf',
+                kind='spec3d',
                 cmap = 'hot',
                 outline='cool',
     
@@ -815,7 +815,7 @@ if __name__ == '__main__':
 #                cmap='jet',
                 cbar=False,
 #                c_iso=5,
-                r_iso=5,
+#                r_iso=5,
 #                edgecolors='r',
     
 #edgecolors='jet',
