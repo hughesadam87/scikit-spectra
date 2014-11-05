@@ -1581,11 +1581,11 @@ if __name__ == '__main__':
 
    s = Spectra(aunps_glass().data)
 #   s = Spectra(np.random.rand(50,50))
-   print s.data
+#   print s.data
    s.varunit = Unit(short='lol', full='hax')
-   print s.data
-   print s.index
-   print s.columns
+#   print s.data
+#   print s.index
+   print s.columns[0:5]
 
 #   s.plot()
    areaplot(s)

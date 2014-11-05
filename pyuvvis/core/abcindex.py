@@ -38,6 +38,15 @@ class CustomIndex(Float64Index):
 #   def is_datetime_array(self):
 #      return True
 
+   def __array_finalize__(self, obj):
+      """ Used in slicing and other places, not sure exactly.  Obj is parent
+      object, transferring attributes."""
+      if obj is None:
+         return 
+      
+      self._unit = getattr(obj, '_unit', None) 
+      self._id = getattr(obj, '_id', None) #Used by pandas object in copying I think
+      
    def __new__(cls, input_array, unit=None):
       """ Unit is valid key of unitdict """
       
@@ -46,13 +55,13 @@ class CustomIndex(Float64Index):
       obj._unit = _parse_unit(unit)
       return obj
    
-   def __getattr__(self, attr):
-      """ Defer attribute call to self._unit"""
-      try:
-         return getattr(self._unit, attr)
-      except AttributeError:
-         raise AttributeError('%s has no attribute "%s".' % 
-                              (self.__class__.__name__, attr) )
+   #def __getattr__(self, attr):
+      #""" Defer attribute call to self._unit"""
+      #try:
+         #return getattr(self._unit, attr)
+      #except AttributeError:
+         #raise AttributeError('%s has no attribute "%s".' % 
+                              #(self.__class__.__name__, attr) )
 
    def __unicode__(self):
       """ Returned on printout call.  Not sure why repr not called... """
@@ -67,6 +76,10 @@ class CustomIndex(Float64Index):
             raise UnitError('%s needs units.Unit type, got %s' \
                         % (self.__class__.__name__, type(outunit)))
       self._unit = outunit   
+
+   @property
+   def unit(self):
+      return self._unit
 
 
 class ConversionIndex(Index):
@@ -160,13 +173,13 @@ class ConversionIndex(Index):
                          (self.__class__.__name__, self._unit.short))
 
    # PROMOTED UNIT METHODS
-   def __getattr__(self, attr):
-      """ Defer attribute call to self._unit"""
-      try:
-         return getattr(self._unit, attr)
-      except AttributeError:
-         raise AttributeError('%s has no attribute "%s".' % 
-                              (self.__class__.__name__, attr) )
+   #def __getattr__(self, attr):
+      #""" Defer attribute call to self._unit"""
+      #try:
+         #return getattr(self._unit, attr)
+      #except AttributeError:
+         #raise AttributeError('%s has no attribute "%s".' % 
+                              #(self.__class__.__name__, attr) )
 
    @property
    def unit(self):
