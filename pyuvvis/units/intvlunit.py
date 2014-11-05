@@ -1,4 +1,4 @@
-from pyuvvis.units.abcunits import Unit, UnitError
+from pyuvvis.units.abcunits import ConversionUnit, UnitError
 from datetime import timedelta
 from pandas import DatetimeIndex, date_range, Index
 import datetime
@@ -8,7 +8,7 @@ class DatetimeCanonicalError(UnitError):
    """ Very specific error USED FOR CATCHING EXCEPTIONS IN TIME INDEX 
    DO NOT CHANGE THE NAME."""
 
-class DateTime(Unit):
+class DateTime(ConversionUnit):
    """ Stores start and stop metadata.  Made for compaitiblity with interval
    unit systems. """
 
@@ -30,7 +30,7 @@ class DateTime(Unit):
                       ' TimeIndex because state info is required.')      
 
 
-class IntvlUnit(Unit):
+class IntvlUnit(ConversionUnit):
    """ Interval of time (s, min, hr), to be used in conjunction with
    DatetimeIndex in TimeSpectra.  Timespectra handles the logic of converting
    between Datetime representation and Interval representation."""

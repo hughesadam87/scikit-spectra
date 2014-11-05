@@ -2,7 +2,7 @@ from copy import deepcopy, copy
 import numpy as np
 from pandas import DatetimeIndex, Timestamp
 
-from pyuvvis.core.abcindex import ConversionIndex, _parse_unit
+from pyuvvis.core.abcindex import ConversionIndex, _parse_conversion_unit
 from pyuvvis.units.abcunits import UnitError
 from pyuvvis.units.intvlunit import INTVLUNITS, TimeDelta, DateTime, \
     DatetimeCanonicalError
@@ -67,7 +67,7 @@ class TimeIndex(ConversionIndex):
             obj._stored_dti = datetimeindex
 
         # Ensure valid unit
-        obj._unit = _parse_unit(unit, cls.unitdict)
+        obj._unit = _parse_conversion_unit(unit, cls.unitdict)
         if cls.cumsum:
             obj.cumsum = True
         return obj   

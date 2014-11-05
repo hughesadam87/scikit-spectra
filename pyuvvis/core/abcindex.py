@@ -1,8 +1,19 @@
 from pandas import Float64Index, Index
 import numpy as np
-from pyuvvis.units.abcunits import UnitError, Unit
+from pyuvvis.units.abcunits import UnitError, Unit, ConversionUnit
 
-def _parse_unit(unit, unitdict):
+
+# Parsing Functions (because need access before self exists)
+# ----------------------------------------------------------
+def _parse_unit(unit):
+   if unit is not None:
+      if not isinstance(unit, Unit):
+         raise UnitError('%s needs units.Unit type, got %s' \
+                     % (self.__class__.__name__, type(unit)))
+   return unit      
+
+
+def _parse_conversion_unit(unit, unitdict):
    """ Given a string unit (ie nm), returns the corresponding unit
    class."""
    if unit not in unitdict:
@@ -11,6 +22,46 @@ def _parse_unit(unit, unitdict):
    return unitdict[unit]  
 
 
+# Custom Index Classes
+# --------------------
+class CustomIndex(Index):
+   """ Custom index used in pyuvvis to interface to Unit."""
+   
+   _unit = None #leave as _unit to keep api of Spectra
+
+   def __new__(cls, input_array, unit=None):
+      """ Unit is valid key of unitdict """
+      
+      # All that's needed, yes?
+      obj = np.asarray(input_array).view(cls)                 
+      obj._unit = _parse_unit(unit)
+      return obj
+   
+   def __getattr__(self, attr):
+      """ Defer attribute call to self._unit"""
+      try:
+         return getattr(self._unit, attr)
+      except AttributeError:
+         raise AttributeError('%s has no attribute "%s".' % 
+                              (self.__class__.__name__, attr) )
+
+   def __unicode__(self):
+      """ Returned on printout call.  Not sure why repr not called... """
+      out = super(ConversionIndex, self).__unicode__()        
+      return out.replace(self.__class__.__name__, '%s[%s]' % 
+                         (self.__class__.__name__, self._unit))
+   
+   def convert(self, outunit):
+      """ """
+      if outunit is not None:
+         if not isinstance(outunit, Unit):
+            raise UnitError('%s needs units.Unit type, got %s' \
+                        % (self.__class__.__name__, type(outunit)))
+      self._unit = outunit   
+
+
+# DONT SUBLCASS FROM CUSTOMINDEX UNTIL IT IS COMPLETE AND SATISFACTORY
+# OR THIS CAN GET INTRACTBLE
 class ConversionIndex(Index):
    """ Base class for pyuvvis.  To overwrite, requires:
         - replace unitdict with a dictionary from units.py, eg SPECUNITS
@@ -37,7 +88,7 @@ class ConversionIndex(Index):
          obj = np.asarray(input_array, dtype=cls._forcetype).view(cls)
       else:
          obj = np.asarray(input_array).view(cls)         
-      obj._unit = _parse_unit(unit, cls.unitdict)
+      obj._unit = _parse_conversion_unit(unit, cls.unitdict)
       return obj
 
    # I am not really worred about other constructors yet...
@@ -59,7 +110,7 @@ class ConversionIndex(Index):
       
       # Necessary for certain instantiations DONT CHANGE
       if isinstance(unit, str) or unit is None:
-         self._unit = _parse_unit(unit, self.unitdict)
+         self._unit = _parse_conversion_unit(unit, self.unitdict)
       else:
          self._unit = unit
 
@@ -70,7 +121,7 @@ class ConversionIndex(Index):
       methods, .to_canonical() and .from_canonical() where in the case of
       spectral units, canonical refers to meters.
       """
-      outunit = _parse_unit(outunit, self.unitdict)
+      outunit = _parse_conversion_unit(outunit, self.unitdict)
       inunit = self._unit
 
       # Unit not changed, or set to None
@@ -86,16 +137,7 @@ class ConversionIndex(Index):
          canonical = inunit.to_canonical(np.array(self))
          arrayout = outunit.from_canonical(canonical)
          return self.__class__(arrayout, unit=outunit.short)      
-         
-
-   def _parse_unit(self, unit):
-      """ Given a string unit (ie nm), returns the corresponding unit
-      class."""
-      if unit not in self.unitdict:
-         raise UnitError('Invalid unit "%s".  Choose from %s' % 
-                         (unit, sorted(self.unitdict.keys()) ) )
-      return self.unitdict[unit]      
-
+      
 
    #Email list about this distinction
    #def __repr__(self):

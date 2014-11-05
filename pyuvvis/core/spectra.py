@@ -1554,8 +1554,9 @@ if __name__ == '__main__':
    
    print PLOTPARSER.__shortrepr__()
    print ts.plot_kinds
-   raise Exception
    ts = ts.as_iunit('a')
+   ts.as_varunit('m')
+   
    plt.show()
 #   ts.plot(kind='waterfall')
 #   plt.show()
