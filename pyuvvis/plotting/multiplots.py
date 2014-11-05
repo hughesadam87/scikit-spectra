@@ -167,9 +167,10 @@ def six_plot(ts, *plotargs, **plotkwds):
             title='Normalized (r)',
             **plotkwds)
 
-    areaplot(ts, *plotargs,
+    range_timeplot(ts.as_iunit('r').wavelength_slices(8), *plotargs,
              ax=axes[3], 
-             title='Area', 
+             legend=False,
+             title='Slices (r)',
              fig=f,
              **plotkwds)
 
@@ -180,10 +181,9 @@ def six_plot(ts, *plotargs, **plotkwds):
             title='Normalized (a)',
             **plotkwds)
 
-    range_timeplot(ts.as_iunit('r').wavelength_slices(8), *plotargs,
+    areaplot(ts, *plotargs,
              ax=axes[5], 
-             legend=False,
-             title='Slices (r)',
+             title='Area', 
              fig=f,
              **plotkwds)
 
