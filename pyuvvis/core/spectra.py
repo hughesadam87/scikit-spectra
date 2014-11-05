@@ -16,13 +16,14 @@ from pandas.core.indexing import _is_list_like, _is_nested_tuple
 
 # pyuvvis imports 
 from pyuvvis.core.specindex import SpecIndex
-from pyuvvis.core.abcindex import ConversionIndex #for typechecking; shoould be done at index level
+from pyuvvis.core.abcindex import ConversionIndex, CustomIndex
 from pyuvvis.core.specstack import SpecStack
 from pyuvvis.core.abcspectra import ABCSpectra, spectra_to_html, spectra_repr, \
      SpecError
 
 import pyuvvis.core.utilities as pvutils
 import pyuvvis.config as cnfg
+from pyuvvis.units import Unit
 
 
 # Merge
@@ -755,8 +756,16 @@ class Spectra(ABCSpectra, MetaDataFrame):
 
    @specunit.setter
    def specunit(self, unit):
-      _valid_indextype(self._frame.index)        
-      self._frame.index = self._frame.index.convert(unit) 
+#      _valid_indextype(self._frame.index)        
+#      self._frame.index = self._frame.index.convert(unit) 
+ 
+      if isinstance(unit, Unit):
+         self.index = CustomIndex(self.index, unit=unit)
+      
+      else:
+         self._frame.index = self._frame.index.convert(unit) 
+         
+         
 
 
    @property
@@ -769,8 +778,16 @@ class Spectra(ABCSpectra, MetaDataFrame):
 
    @varunit.setter
    def varunit(self, unit):
-      _valid_indextype(self._frame.columns) #To raise error
-      self._frame.columns = self._frame.columns.convert(unit) 
+#      _valid_indextype(self._frame.columns) #To raise error
+#      self._frame.columns = self._frame.columns.convert(unit) 
+
+      if isinstance(unit, Unit):
+         self.columns = CustomIndex(self.columns, unit=unit) #self.columns.setter will validate
+      
+      else:
+         self._frame.columns = self._frame.columns.convert(unit) 
+               
+      
 
    def as_specunit(self, unit):
       """ Returns new dataframe with different spectral unit on the index."""
@@ -1124,9 +1141,9 @@ class Spectra(ABCSpectra, MetaDataFrame):
          if not isinstance(index, self._strict_index):
 
             # Cornercase User passes PressureIndex where SpecIndex required
-            if issubclass(index.__class__, ConversionIndex):
-               raise SpecError('User passed index of type %s but %s required.' % 
-                               (type(index), self._strict_index))                    
+            if isinstance(index, ConversionIndex) or isinstance(index, CustomIndex):
+               raise SpecError('Invalid index type: %s; require %s.' % 
+                               (type(index), self._strict_index))                
             try:
                index = self._strict_index(index)
             except Exception:
@@ -1149,11 +1166,13 @@ class Spectra(ABCSpectra, MetaDataFrame):
       if self._strict_columns:        
          if not isinstance(columns, self._strict_columns):
 
-            # Cornercase eg User passes PressureIndex where SpecIndex required                
-            if issubclass(columns.__class__, ConversionIndex):
-               raise SpecError('User passed columns of type %s but %s required.' % 
-                               (type(columns), self._strict_index))
+            # User passes a valid pyuvvis index type    
+            if isinstance(columns, ConversionIndex) or isinstance(columns, CustomIndex):
+               raise SpecError('Invalid column type: %s; require %s.' % 
+                               (type(columns), self._strict_columns))
 
+
+            # Attempts to force type conversion into self._strict_column
             try:
                columns = self._strict_columns(columns)
             except Exception:
@@ -1554,9 +1573,25 @@ if __name__ == '__main__':
    
    print PLOTPARSER.__shortrepr__()
    print ts.plot_kinds
-   raise Exception
    ts = ts.as_iunit('a')
+   ts.as_varunit('m')
+ 
+   from pyuvvis.data import aunps_glass
+   from pyuvvis import Spectra
+
+   s = Spectra(aunps_glass().data)
+#   s = Spectra(np.random.rand(50,50))
+#   print s.data
+   s.varunit = Unit(short='lol', full='hax')
+#   print s.data
+#   print s.index
+   print s.columns[0:5]
+
+#   s.plot()
+   areaplot(s)
    plt.show()
+   
+#   plt.show()
 #   ts.plot(kind='waterfall')
 #   plt.show()
 

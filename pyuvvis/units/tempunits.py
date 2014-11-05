@@ -1,10 +1,10 @@
-from abcunits import Unit
+from abcunits import ConversionUnit
 
 
 KFACTOR = 273.15 #Difference Kelvin, C (how precise is this known?)
 
    
-class TempUnit(Unit):
+class TempUnit(ConversionUnit):
    """ Temperature units.  ALl conversions go through Kelvin. """
 
 #http://www.metric-conversions.org/temperature/fahrenheit-to-kelvin.htm
@@ -53,6 +53,6 @@ class Farenheiht(TempUnit):
 _tempunits = (Kelvin(),
               Celsius(),
               Farenheiht(),
-              Unit() #For null case
+              ConversionUnit() #For null case
               )
 TEMPUNITS = dict((obj.short, obj) for obj in _tempunits)

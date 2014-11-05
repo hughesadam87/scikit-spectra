@@ -1,4 +1,4 @@
-from abcunits import Unit
+from abcunits import ConversionUnit
 from math import pi
 
 
@@ -9,7 +9,7 @@ C = 299792458.0               #speed of light m/s
 
 
 # SPECTRAL UNITS   
-class SpecUnit(Unit):
+class SpecUnit(ConversionUnit):
    """  Spectroscopy units (nm, m, ev etc...)
    Allow for recpricol units such as cm-1; used by converters.  All 
    conversions go through unit, considered the core unit.  Adds category
