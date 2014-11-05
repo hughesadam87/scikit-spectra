@@ -8,8 +8,8 @@ from pyuvvis.units.abcunits import UnitError, Unit, ConversionUnit
 def _parse_unit(unit):
    if unit is not None:
       if not isinstance(unit, Unit):
-         raise UnitError('%s needs units.Unit type, got %s' \
-                     % (self.__class__.__name__, type(unit)))
+         raise UnitError('Requires units.Unit type, got %s' \
+                     % (type(unit)))
    return unit      
 
 
@@ -24,10 +24,19 @@ def _parse_conversion_unit(unit, unitdict):
 
 # Custom Index Classes
 # --------------------
-class CustomIndex(Index):
+
+# NOT SURE WHY BUT SUBCLASSING INDEX CALLS THINGS LIKE ALL_DATES THAT SCREW THIS UP
+# IN CERTAIN CASES BUT THIS ACTUALLY WORKS, EVEN WHEN DTYPE IS TIMESTAMPS!?
+class CustomIndex(Float64Index):
    """ Custom index used in pyuvvis to interface to Unit."""
    
    _unit = None #leave as _unit to keep api of Spectra
+
+ #  def is_all_dates(self):
+ #     return True
+   
+#   def is_datetime_array(self):
+#      return True
 
    def __new__(cls, input_array, unit=None):
       """ Unit is valid key of unitdict """
@@ -47,9 +56,9 @@ class CustomIndex(Index):
 
    def __unicode__(self):
       """ Returned on printout call.  Not sure why repr not called... """
-      out = super(ConversionIndex, self).__unicode__()        
+      out = super(CustomIndex, self).__unicode__()        
       return out.replace(self.__class__.__name__, '%s[%s]' % 
-                         (self.__class__.__name__, self._unit))
+                         (self.__class__.__name__, self._unit.short))
    
    def convert(self, outunit):
       """ """
@@ -60,8 +69,6 @@ class CustomIndex(Index):
       self._unit = outunit   
 
 
-# DONT SUBLCASS FROM CUSTOMINDEX UNTIL IT IS COMPLETE AND SATISFACTORY
-# OR THIS CAN GET INTRACTBLE
 class ConversionIndex(Index):
    """ Base class for pyuvvis.  To overwrite, requires:
         - replace unitdict with a dictionary from units.py, eg SPECUNITS

@@ -11,6 +11,11 @@ class Unit(object):
    short = None
    full = 'no unit'
    symbol = ''
+   
+   def __init__(self, **kwargs):
+      for key in kwargs:
+         setattr(self, key, kwargs[key])
+      
 
 # Consider adding a better __repr__ to these for when objects are called?
 class ConversionUnit(Unit):
@@ -26,3 +31,10 @@ class ConversionUnit(Unit):
    @staticmethod
    def from_canonical(self):
       NotImplemented
+      
+if __name__ == '__main__':
+   unit = Unit(short='bar')
+   print unit.__dict__
+   print unit.short
+   unit.short = 'foo'
+   print unit.short
