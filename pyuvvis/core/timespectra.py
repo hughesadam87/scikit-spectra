@@ -35,7 +35,7 @@ class TimeSpectra(Spectra):
     def __init__(self, *dfargs, **dfkwargs):
         dfkwargs.setdefault('strict_columns', TimeIndex)            
         super(TimeSpectra, self).__init__(*dfargs, **dfkwargs)
-
+        
 
 
 ## TESTING ###
@@ -45,6 +45,8 @@ if __name__ == '__main__':
     import numpy as np
     from pyuvvis.data import solvent_evap, aunps_glass, aunps_water
     
+    x = AnyFrame(np.random.randn(50,50))
+    print x
 
     def sumdiff(array, absolute=False, cumsum=False):
         """ Sum of the differences of an array (usually array of areas).  If absolute, absolute difference is used.

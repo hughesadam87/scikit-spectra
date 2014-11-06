@@ -5,6 +5,7 @@ __docformat__ = 'restructuredtext' #What's this actually do
 ### Core classes
 from pyuvvis.core.spectra import Spectra
 from pyuvvis.core.timespectra import TimeSpectra
+from pyuvvis.core.anyspectra import AnyFrame
 from pyuvvis.core.specstack import SpecStack
 
 ### Correlation analysis
