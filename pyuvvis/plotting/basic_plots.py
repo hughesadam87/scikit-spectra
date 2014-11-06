@@ -99,9 +99,12 @@ def _genplot(ts, *args, **pltkwargs):
                 label_indices[-1] = len(ts.columns)-1 #Rounds over max
             
             labels = [ts.columns[x] for x in label_indices]
-            if getattr(ts, '_intervalunit', None):
-                if ts._interval and ts._intervalunit != 'intvl':
-                    labels = [round(float(x),puc.float_display_units) for x in label_indices]
+
+            # IF LABELS ARE FLOATS (NEED A BETTER CONDITION THAN THIS)
+            try:
+                labels = [round(float(x),put.float_display_units) for x in label_indices]
+            except Exception:
+                pass
         
         # Don't add custom labels if aren't at least 5 columns if DF        
         else:
