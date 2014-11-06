@@ -26,11 +26,15 @@ The current documentation (and in-a-pinch test suite) is a series of example not
    - `TimeSpectra tutorial (part 1)`_
    - `TimeSpectra tutorial (part 2)`_
    - `Sampling and Selecting Data`_
-   - `IO: Importing and Exporting`_
+
+- **PLOTTING**:
    - `Intro to Plotting`_
    - `Intro to 2D and 3D Plots`_
    - `Interactive Plots with Plotly`_
-   - `Pre-packaged Datasets`_
+
+- **IO AND DATASETS**
+   - `Bundled Datasets`_
+   - `IO: Importing and Exporting`_
    - `Intro to Multiple Datasets (StackSpec)`_
 
    .. _`Sampling and Selecting Data` : http://nbviewer.ipython.org/github/hugadams/pyuvvis/blob/master/examples/Notebooks/slicing.ipynb?create=1
@@ -38,7 +42,7 @@ The current documentation (and in-a-pinch test suite) is a series of example not
    .. _`Intro to Plotting` :   http://nbviewer.ipython.org/github/hugadams/pyuvvis/blob/master/examples/Notebooks/Plotting.ipynb?create=1
    .. _`Intro to 2D and 3D Plots` :   http://nbviewer.ipython.org/github/hugadams/pyuvvis/blob/master/examples/Notebooks/plotting_2d3d.ipynb?create=1
    .. _`Interactive Plots with Plotly` :   http://nbviewer.ipython.org/github/hugadams/pyuvvis/blob/master/examples/Notebooks/plotly.ipynb?create=1
-   .. _`Pre-packaged Datasets` :   http://nbviewer.ipython.org/github/hugadams/pyuvvis/blob/master/examples/Notebooks/testdata.ipynb?create=1
+   .. _`Bundled Datasets` :   http://nbviewer.ipython.org/github/hugadams/pyuvvis/blob/master/examples/Notebooks/testdata.ipynb?create=1
    .. _`Intro to Multiple Datasets (StackSpec)` :   http://nbviewer.ipython.org/github/hugadams/pyuvvis/blob/master/examples/Notebooks/specstack.ipynb?create=1
    .. _`TimeSpectra tutorial (part 1)` :   http://nbviewer.ipython.org/github/hugadams/pyuvvis/blob/master/examples/Notebooks/tutorial_1.ipynb?create=1
    .. _`TimeSpectra tutorial (part 2)` :   http://nbviewer.ipython.org/github/hugadams/pyuvvis/blob/master/examples/Notebooks/tutorial_2.ipynb?create=1
