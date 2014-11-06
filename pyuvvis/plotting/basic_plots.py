@@ -78,6 +78,13 @@ def _genplot(ts, *args, **pltkwargs):
         if not fig:
             raise PlotError("Color bar requries access to Figure.  Either pass fig"
                             " keyword or do not pass custom AxesSubplot.")
+
+        # Need a colormap if you have a colorbar!
+        try:
+            pcmap = pltkwargs['colormap']
+        except KeyError:
+            raise PlotError('Cannot plot a colorbar without a colormap!')
+
         mappable, vmin, vmax = put._annotate_mappable(ts, pcmap, axis=0)
         cbar = fig.colorbar(mappable, ticks=np.linspace(vmin, vmax, _barlabels))
         

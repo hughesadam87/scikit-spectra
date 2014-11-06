@@ -350,7 +350,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
       self._intrinsic.remove('name') #Not a private attr
 
       # Which attributes/methods are manipulated along with the dataframe
-      self._cnsvdattr=['_reference', '_baseline']#, '_strict_index', '_strict_columns']
+      self._cnsvdattr=['_reference', '_baseline']#, 'strict_index', 'strict_columns']
       self._cnsvdmeth=['_slice', 'pvutils.boxcar'] #_slice is ix
 
 
@@ -1543,6 +1543,8 @@ class Spectra(ABCSpectra, MetaDataFrame):
                  columns=pandas_object.columns,
                  **dfkwargs)
 
+      
+#      self._strict_index = dfkwargs.pop('strict_index', SpecIndex)   
 
 ## TESTING ###
 if __name__ == '__main__':  
@@ -1585,7 +1587,6 @@ if __name__ == '__main__':
    s.varunit = Unit(short='lol', full='hax')
 #   print s.data
 #   print s.index
-   print s.columns[0:5]
 
 #   s.plot()
    areaplot(s)

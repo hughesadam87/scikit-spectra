@@ -8,7 +8,7 @@ from pyuvvis.units.abcunits import UnitError, Unit, ConversionUnit
 def _parse_unit(unit):
    if unit is not None:
       if not isinstance(unit, Unit):
-         raise UnitError('Requires units.Unit type, got %s' \
+         raise UnitError('Expected units.Unit type, got %s' \
                      % (type(unit)))
    return unit      
 
@@ -73,8 +73,10 @@ class CustomIndex(Float64Index):
       """ """
       if outunit is not None:
          if not isinstance(outunit, Unit):
-            raise UnitError('%s needs units.Unit type, got %s' \
+            raise UnitError("%s expects pyuvvis.unit.Unit, got %s.  Were you" \
+                        " expecting a ConversionIndex?" \
                         % (self.__class__.__name__, type(outunit)))
+                        
       self._unit = outunit   
 
    @property

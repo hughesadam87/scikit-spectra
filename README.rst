@@ -50,6 +50,14 @@ The current documentation (and in-a-pinch test suite) is a series of example not
    - Correlation spectral data with electron microscopy
    -
 
+- **CUSTOMIZATION**:
+   - `Custom units`_
+   - `Custom units with convertable representations (inch --> foot --> meter)`_
+
+   .. _`Custom units` : http://nbviewer.ipython.org/github/hugadams/pyuvvis/blob/master/examples/Notebooks/units.ipynb
+   .. _`Custom units with convertable representations (inch --> foot --> meter)` : http://nbviewer.ipython.org/github/hugadams/pyuvvis/blob/master/examples/Notebooks/basic_units.ipynb
+
+
 - **SPECIAL TOPICS**:
    - Two Dimensional Correlation Spectroscopy (see `Noda/Ozaki`_)
    - Sizing Gold Nanoparticles through UVVis Spectra 
