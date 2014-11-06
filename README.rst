@@ -32,7 +32,7 @@ The current documentation (and in-a-pinch test suite) is a series of example not
    - `Intro to 2D and 3D Plots`_
    - `Interactive Plots with Plotly`_
 
-   `Don't forget that pandas itself has a rich plotting api`_.  Use **spectra.data** to retrieve the DataFrame or Series from the pyuvvis object.
+   Don't forget that `pandas itself has a rich plotting api`_.  Use **spectra.data** to retrieve the DataFrame or Series from the pyuvvis object.
 
 
    .. _`pandas itself has a rich plotting api` : http://pandas.pydata.org/pandas-docs/version/0.15.0/visualization.html#visualization-scatter
