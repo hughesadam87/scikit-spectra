@@ -28,6 +28,7 @@ The current documentation (and in-a-pinch test suite) is a series of example not
    - `Sampling and Selecting Data`_
 
 - **PLOTTING**:
+   Don't forget that [pandas itself has a rich plotting api](http://pandas.pydata.org/pandas-docs/version/0.15.0/visualization.html#visualization-scatter).  Use spectra.data to retrieve the DataFrame or Series from the pyuvvis object.
    - `Intro to Plotting`_
    - `Intro to 2D and 3D Plots`_
    - `Interactive Plots with Plotly`_
