@@ -36,7 +36,7 @@ def _genplot(ts, *args, **pltkwargs):
     pltkwargs.setdefault('legend', False)
     pltkwargs.setdefault('linewidth', 1)
     legstyle = pltkwargs.pop('legstyle', None)   
-    
+        
     # Adhere to cananoical "cmap" 
     if 'cmap' in pltkwargs:
         pltkwargs['colormap'] = pltkwargs.pop('cmap')    
