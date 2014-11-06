@@ -162,6 +162,11 @@ Open a Python shell and run the following::
 
 This should result in no errors.  
 
+Have a feature request, or want to report a bug?  Please fill out a github
+issue_ with the appropriate label.	
+
+.. _issue : https://github.com/hugadams/pyuvvis/issues
+
 
 History and Background
 ========================
@@ -198,17 +203,8 @@ Interested in the Python ecosystem?   Check out some of these related libraries:
    .. _SciPy: http://scipy.org/
    .. _matplotlib : http://matplotlib.org/
    .. _plotly : https://plot.ly/
-   
-Coming Soon
-===========
-   - Correlation Analysis Tutorial
-   - Stacked Spectra Tutorial
-   
-   
-Have a feature request, or want to report a bug?  Please fill out a github
-issue_ with the appropriate label.	
+     
 
-.. _issue : https://github.com/hugadams/pyuvvis/issues
 
 About the Author
 ================
