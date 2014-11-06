@@ -61,9 +61,7 @@ The current documentation (and in-a-pinch test suite) is a series of example not
 - **SPECIAL TOPICS**:
    - Two Dimensional Correlation Spectroscopy (see `Noda/Ozaki`_)
    - Sizing Gold Nanoparticles through UVVis Spectra 
-   - `Creating custom unit systems`_
 
-   .. _`Creating custom unit systems` : http://nbviewer.ipython.org/github/hugadams/pyuvvis/blob/master/examples/Notebooks/units.ipynb
 
 - **MISCELLANEOUS**:
    - `Matplotlib Color Maps`_
