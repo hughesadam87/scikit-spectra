@@ -8,6 +8,7 @@ import numpy as np
 def spectra_to_html(spectra, *args, **kwargs):
    """ HTML representation used for Spectra and Spectrum for ipython notebooks"""
 
+   HEADERSTYLE = kwargs.pop('headerstyle', 1)
    delim = '&nbsp;' * 8
 
    if spectra.ndim > 1:
@@ -15,11 +16,16 @@ def spectra_to_html(spectra, *args, **kwargs):
    else:
       colorshape = '<font color="#0000CD"> (%s)</font>' % (spectra.shape)
 
-   #Color iunit if referenced or not
-   if not spectra.iunit:
-      countstring = 'Iunit:&nbsp<font color="#197519">%s</font>' % spectra.full_iunit
-   else: #orange
-      countstring = 'Iunit:&nbsp<font color="#FF3300">%s</font>' % spectra.full_iunit
+   if HEADERSTYLE == 1:
+      #Color iunit if referenced or not
+      if not spectra.iunit:
+         countstring = 'Iunit:&nbsp<font color="#197519">%s</font>' % spectra.full_iunit
+      else: #orange
+         countstring = 'Iunit:&nbsp<font color="#FF3300">%s</font>' % spectra.full_iunit
+
+   # Corr2D.Corr2DFrame; hide IUnit
+   elif HEADERSTYLE == 2:
+      countstring = ''
 
    ftunit = getattr(spectra, 'full_varunit', 'None')
    spunit = getattr(spectra, 'full_specunit', 'None')
@@ -50,14 +56,28 @@ def spectra_repr(spectra, *args, **kwargs):
       Just ads a bit of extra data to the dataframe on printout.  This is called by __repr__, which 
       can either return unicode or bytes.  This is better than overwriting __repr__()
       """
+   
+   # Shared ABCSPECTRA SUBCLASSES often need to change header of repr
+   # want another function for every case!
+   HEADERSTYLE = kwargs.pop('headerstyle', 1)
+   delim = '\t'
 
    # Certain methods aren't copying this correctly.  Delete later if fix
    full_specunit = pvutils.hasgetattr(spectra, 'full_specunit', 'invalid')
    full_varunit = pvutils.hasgetattr(spectra, 'full_varunit', 'invalid')
+   specunit = pvutils.hasgetattr(spectra, 'specunit', 'invalid')
+   varunit = pvutils.hasgetattr(spectra, 'varunit', 'invalid')
 
-   delim = '\t'
-   header = "*%s*%sSpectral unit:%s%sPerturbation unit:%s\n" % \
-      (spectra.name, delim, full_specunit, delim, full_varunit)
+
+   if HEADERSTYLE == 1:
+      header = "*%s*%sSpectral unit:%s%sPerturbation unit:%s\n" % \
+         (spectra.name, delim, full_specunit, delim, full_varunit)
+
+   elif HEADERSTYLE == 2:
+      header = "*%s*%s(%s X %s)\n" % \
+         (spectra.name, delim, specunit, varunit)
+   else:
+      raise AttributeError('headerstyle must be 1 or 2.')
 
    return ''.join(header)+'\n'+spectra._frame.__repr__()+'   ID: %s' % id(spectra)    
 
@@ -75,7 +95,9 @@ class SpecIndexError(SpecError):
 # --------------
 
 class ABCSpectra(object):
-   """ Generic methods shared by all pyuvvis spectra objects. """
+   """ Generic methods shared by all pyuvvis spectra objects.  For example,
+   printing out html orientation, and defining the "nearby" slicer.
+   """
 
    def __repr__(self, *args, **kwargs):
       return spectra_repr(self)

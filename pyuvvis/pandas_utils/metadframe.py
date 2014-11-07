@@ -235,6 +235,9 @@ class MetaPandasObject(object):
     
     def __pow__(self, exp):
         return self._transfer(self._frame.__pow__(exp))
+    
+    def __abs__(self):
+        return self._transfer(self._frame.__abs__())     
 
     @property
     def data(self):

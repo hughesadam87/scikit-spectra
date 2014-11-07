@@ -1577,6 +1577,7 @@ if __name__ == '__main__':
    print ts.plot_kinds
    ts = ts.as_iunit('a')
    ts.as_varunit('m')
+   abs(ts)
  
    from pyuvvis.data import aunps_glass
    from pyuvvis import Spectra
