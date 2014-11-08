@@ -108,7 +108,7 @@ class Spec2d(AnyFrame):
 
             # Interval or otherwise unkown
             else:
-              span = '%s - %s' % (cols.min(), cols.max())
+                span = '%s - %s' % (cols.min(), cols.max())
 
         span_string = '%s %s'  % (span, self._corr2d.varunit) #full varunit?        
         return span_string
@@ -593,5 +593,5 @@ if __name__ == '__main__':
 #    s = s.nearby[3250.0:750, 3250:750]
 #    s.plot(grid=True, fill=True, cbar=True)
 #    s.plot(kind='corr3d')
-    s.plot(kind='wire', mesh=50)
+    s.plot(kind='wire')
     plt.show()

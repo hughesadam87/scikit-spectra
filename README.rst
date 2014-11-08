@@ -5,24 +5,19 @@
    :alt: alternate text
    :align: left
 
-==========
-What's New
-==========
-   - Just released 0.2
-
 ===========================================
 pyuvvis: Tools for explorative spectroscopy
 ===========================================
 
-Getting Started
-===============
+Tutorials
+=========
 
 The current documentation (and in-a-pinch test suite) is a series of example notebooks 
 (`iPython Notebook`_), which cover most of the basics. These have been linked below:
 
    .. _`iPython Notebook`: http://ipython.org/notebook.html?utm_content=buffer83c2c&utm_source=buffer&utm_medium=twitter&utm_campaign=Buffer
 
-- **TUTORIALS**:
+- **Getting Started**:
    - `TimeSpectra tutorial (part 1)`_
    - `TimeSpectra tutorial (part 2)`_
    - `Sampling and Selecting Data`_
