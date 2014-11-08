@@ -97,10 +97,11 @@ class MetaPandasObject(object):
         ### Return basic attribute
         
         try:
-            refout=getattr(self._frame, attr)
+            refout = getattr(self._frame, attr)
         except AttributeError:
-            raise AttributeError('Could not find attribute "%s" in %s or '
-             'its underlying pandas object'%(attr, self.__class__.__name__))           
+            raise AttributeError('Either failed to find attribute "%s" in %s or '
+             'its underlying pandas object, or it is found, but throwing an error'
+             ' when accessed.'%(attr, self.__class__.__name__))           
            
         if not isinstance(refout, MethodType):
             return refout
@@ -235,6 +236,9 @@ class MetaPandasObject(object):
     
     def __pow__(self, exp):
         return self._transfer(self._frame.__pow__(exp))
+    
+    def __abs__(self):
+        return self._transfer(self._frame.__abs__())     
 
     @property
     def data(self):

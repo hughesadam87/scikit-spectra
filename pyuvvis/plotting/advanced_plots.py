@@ -14,13 +14,13 @@ import matplotlib.dates as dates
 from mpl_toolkits.mplot3d import Axes3D, axes3d, art3d #Need Axes3d for 3d projection!
 
 import numpy as np
-import matplotlib.colorbar as mplcbar
 import matplotlib.cm as cm
 from matplotlib.collections import PolyCollection
 from basic_plots import PlotError
 from pyuvvis.core.abcspectra import SpecError
 
 import plot_utils as pu
+import pyuvvis.config as pvconfig
 
 from pyuvvis.exceptions import badvalue_error
 
@@ -164,10 +164,10 @@ def _gen2d3d(*args, **pltkwargs):
     background: Integers 1,2 will add gray or autumn colormap under contour plot.  Use plt.imgshow() to generate
                 custom background, or pass a PIL-opened image (note, proper image scaling not yet implemented).
 
-    c_iso, r_iso: These control how man column and row iso lines will be projected onto the 3d plot.
-                    For example, if c_iso=10, then 10 isolines will be plotted as columns, despite the actual length of the
+    c_mesh, r_mesh: These control how man column and row iso lines will be projected onto the 3d plot.
+                    For example, if c_mesh=10, then 10 isolines will be plotted as columns, despite the actual length of the
                     columns.  Alternatively, one can pass in c_stride directly, which is a column step size rather than
-                    an absolute number, and c_iso will be disregarded.
+                    an absolute number, and c_mesh will be disregarded.
                     
                 
     fill: bool (False)
@@ -219,6 +219,9 @@ def _gen2d3d(*args, **pltkwargs):
     zlabel = pltkwargs.pop('zlabel', '')    
     title = pltkwargs.pop('title', '')
 
+    labelsize = pltkwargs.pop('labelsize', pvconfig.LABELSIZE) #Can also be ints
+    titlesize = pltkwargs.pop('titlesize', pvconfig.TITLESIZE)
+
     # Choose plot kind
     kind = pltkwargs.pop('kind', 'contour')
     grid = pltkwargs.pop('grid', True)
@@ -229,15 +232,15 @@ def _gen2d3d(*args, **pltkwargs):
     cbar = pltkwargs.pop('cbar', False)
     
     outline = pltkwargs.pop('outline', None)
-    #if outline:
-        #if kind != 'surf' and kind != 'waterfall':
-            #raise PlotError('"outline" is only valid for "surf" and "waterfall"'
-                        #' plots.  Please use color/cmap for all other color'
-                        #' designations.')
+    if outline:
+        if kind != 'surf' and kind != 'waterfall':
+            raise PlotError('"outline" is only valid for "surf" and "waterfall"'
+                        ' plots.  Please use color/cmap for all other color'
+                        ' designations.')
     
     fig = pltkwargs.pop('fig', None)
     ax = pltkwargs.pop('ax', None)  
-    fill = pltkwargs.pop('fill', False)  
+    fill = pltkwargs.pop('fill', pvconfig.FILL_CONTOUR)  
     
     xlim = pltkwargs.pop('xlim', None)
     ylim = pltkwargs.pop('ylim', None)
@@ -245,7 +248,7 @@ def _gen2d3d(*args, **pltkwargs):
     
     #Private attributes
     _modifyax = pltkwargs.pop('_modifyax', True)
-    contours = pltkwargs.pop('contours', 6)
+    contours = pltkwargs.pop('contours', pvconfig.NUM_CONTOURS)
     label = pltkwargs.pop('label', None)
     
     projection = None
@@ -279,27 +282,41 @@ def _gen2d3d(*args, **pltkwargs):
         if azim < 0:
             _zlabel_rotation = 90.0
 
-        c_iso = pltkwargs.pop('c_iso', 10)
-        r_iso = pltkwargs.pop('r_iso', 10)
-        
-        if c_iso > ts.shape[1] or c_iso < 0:
-            raise PlotError('"c_iso" must be between 0 and %s, got "%s"' %
-                            (ts.shape[1], c_iso))
+        if 'mesh' in pltkwargs:
+            pltkwargs['c_mesh'] = pltkwargs['r_mesh'] = pltkwargs.pop('mesh')
 
-        if r_iso > ts.shape[0] or r_iso < 0:
-            raise PlotError('"r_iso" must be between 0 and %s, got "%s"' % 
-                            (ts.shape[0], r_iso))
+
+        # Defaults will be ignored if mesh or ciso in kwargs
+        ciso_default = len(ts.columns)
+        if len(ts.columns) > ciso_default:
+            ciso_default = pvconfig.C_MESH
+            
+        riso_default = len(ts.index)
+        if len(ts.index) > ciso_default:
+            riso_default = pvconfig.R_MESH        
+        
+        
+        c_mesh = pltkwargs.pop('c_mesh', ciso_default)
+        r_mesh = pltkwargs.pop('r_mesh', riso_default)
+        
+        if c_mesh > ts.shape[1] or c_mesh < 0:
+            raise PlotError('"c_mesh/column mesh" must be between 0 and %s, got "%s"' %
+                            (ts.shape[1], c_mesh))
+
+        if r_mesh > ts.shape[0] or r_mesh < 0:
+            raise PlotError('"r_mesh/row mesh" must be between 0 and %s, got "%s"' % 
+                            (ts.shape[0], r_mesh))
         
 
-        if c_iso == 0:
+        if c_mesh == 0:
             cstride = 0
         else:
-            cstride = _ir(ts.shape[1]/float(c_iso) ) 
+            cstride = _ir(ts.shape[1]/float(c_mesh) ) 
             
-        if r_iso == 0:
+        if r_mesh == 0:
             rstride = 0
         else:
-            rstride = _ir(ts.shape[0]/float(r_iso) )   
+            rstride = _ir(ts.shape[0]/float(r_mesh) )   
     
                         
         pltkwargs.setdefault('cstride', cstride)
@@ -320,10 +337,6 @@ def _gen2d3d(*args, **pltkwargs):
         if not fig:
             fig = f
         
-
-    labelsize = pltkwargs.pop('labelsize', 'medium') #Can also be ints
-    titlesize = pltkwargs.pop('titlesize', 'large')
-    ticksize = pltkwargs.pop('ticksize', '') #Put in default and remove bool gate
     
     
     # PLT.CONTOUR() doesn't take 'color'; rather, takes 'colors' for now
@@ -478,7 +491,10 @@ def _gen2d3d(*args, **pltkwargs):
     if cbar:
         # Do I want colorbar outside of fig?  Wouldn't be better on axes?
         try:
-            fig.colorbar(mappable, ax=ax)
+            cb = fig.colorbar(mappable, ax=ax)
+            # Label colorbar on contour since no 3d-zlabel
+            if kind == 'contour':
+                cb.set_label(zlabel)
         except Exception:
             raise PlotError("Colorbar failed; did you pass a colormap?")
                
@@ -628,19 +644,19 @@ def spec3d(ts, projection=True, fill=True, samples=5, **pltkwargs):
     add_projeciton.
     """
 
-    for invalid in ['c_iso', 'r_iso', 'cstride', 'rstride']:
+    for invalid in ['c_mesh', 'r_mesh', 'cstride', 'rstride']:
         if invalid in pltkwargs:
             raise PlotError('Unsupported Keyword %s.'
                             'Please use the samples argument' % invalid)
         
     pltkwargs['kind'] = 'wire'
-    pltkwargs['r_iso'] = 0
-    pltkwargs['c_iso'] = samples
+    pltkwargs['r_mesh'] = 0
+    pltkwargs['c_mesh'] = samples
     ax, mappable = _gen2d3d(ts, **pltkwargs)
     
     if projection:
         if projection == True:
-            projection = 'jet' 
+            projection = pvconfig.PROJECTION_CMAP
 
         contourkwds = {}
 
@@ -657,102 +673,6 @@ def spec3d(ts, projection=True, fill=True, samples=5, **pltkwargs):
     return ax, mappable
     
    
-def _gencorr2d(xx, yy, zz, a1_label=r'$\bar{A}(\nu_1)$', 
-               a2_label=r'$\bar{A}(\nu_2)$', **contourkwds): 
-    """ Abstract layout for 2d correlation analysis plot.  
-    
-    **contourkwds
-        Passed directly to _gencontour; includes keywords like xlabel, ylabel
-        and so forth.
-    """
-
-    # Maybe this should take X, Y, Z not ts
-
-    #fig, ax #how to handle these in general 2d
-    # Maybe it's helpful to have args for top plots (ie ax1,2,3)
-    
-    title = contourkwds.pop('title', '')
-    cbar = contourkwds.pop('cbar', False)
-    grid = contourkwds.pop('grid', True) #Adds grid to plot and side plots
-    cbar_nticks = contourkwds.pop('cbar_nticks', 5) #Number ticks in colorbar
-  
-    contourkwds.setdefault('contours', 20)        
-    contourkwds.setdefault('fill', True)        
-    
-    
-    # This will create a fig
-    ax1 = plt.subplot2grid((5,5), (0,0), colspan=1) # top left
-    plt.subplots_adjust(hspace = 0, wspace=0)    # Remove whitespace
-    
-    ax1.plot([0,-1], color='black')
-    ax1.text(.18, -.78, a1_label, size=12) 
-    ax1.text(.55, -.35, a2_label, size=12)    
-
-    ax2 = plt.subplot2grid((5,5), (0,1), colspan=4) # top
-    ax3 = plt.subplot2grid((5,5), (1,0), colspan=1, rowspan=4) #left
-    ax4 = plt.subplot2grid((5,5), (1, 1), colspan=4, rowspan=4) #main contour
-    ax3.invert_xaxis()
-    ax4.yaxis.tick_right()
-    ax4.xaxis.tick_bottom() #remove top xticks
-    ax4.yaxis.set_label_position('right')
-    
-    ax4, contours = _gen2d3d(xx, yy, zz, ax=ax4, **contourkwds)
-    
- #   plt.colorbar(ax4)  #oesn't work http://matplotlib.org/examples/pylab_examples/contourf_demo.html
-    
-    # Bisecting line
-    ax4.plot(ax4.get_xlim(), 
-             ax4.get_ylim(), 
-             ls = '--', 
-             color='black', 
-             linewidth=1)  
-    
-    # Fig is created by _gen2d in ax4 _gen2d3d
-    fig = plt.gcf()
-
-    if grid:
-        if grid == True:
-            ax2.grid()
-            ax3.grid()
-            ax4.grid() 
-
-        else:
-            ax2.grid(color=grid)
-            ax3.grid(color=grid)
-            ax4.grid(color=grid) 
-        
-    # Hide axis labels 
-    for ax in [ax2, ax3]:
-        if grid:
-            pu.hide_axis(ax, axis='both', axislabel=True, ticklabels=True)
-        else:
-            pu.hide_axis(ax, axis='both', hide_everything = True)
-            
-    pu.hide_axis(ax1, axis='both', hide_everything=True)
-  
-    # Handles its own colorbar (See links below; important)
-   # http://stackoverflow.com/questions/13784201/matplotlib-2-subplots-1-colorbar
-   # http://matplotlib.org/api/colorbar_api.html#matplotlib.colorbar.make_axes
-    if cbar:
-        if cbar in ['left', 'right', 'top', 'bottom']:
-        # if bottom or right, should repad this
-            location = cbar
-        else:
-            location = 'top'
-        cax,kw = mplcbar.make_axes([ax1, ax2, ax3, ax4], 
-                                   location=location,
-                                   pad = 0.05,
-                                   aspect = 30, #make skinnier
-                                   shrink=0.75) 
-        
-        cb = fig.colorbar(contours, cax=cax,**kw)# ticks=[0,zz.max().max()], **kw)
-        cb.locator = mplticker.MaxNLocator(nbins=cbar_nticks+1) #Cuts off one usually
-        cb.update_ticks()
-
-
-    fig.suptitle(title, fontsize='large') # Still overpads
-    return (ax1, ax2, ax3, ax4)
-
 # SET REGISTER HERE!  HAS TO BE HERE BECAUSE GEN2D USES IT, SO GET CIRCULAR IMPORT ISSUES
 # IF PUT THIS IN A SEPARATE MODULE.  STRICTLY SPEAKING, GEND2D IS MANY PLOTS SO IT HAS
 # TO INSPECT ITS OWN KIND ARGUMENT.  THIS IS ONE HEADACHE OF SUCH A DESIGN PATTERN!
@@ -814,8 +734,8 @@ if __name__ == '__main__':
                 
 #                cmap='jet',
                 cbar=False,
-#                c_iso=5,
-#                r_iso=5,
+#                c_mesh=5,
+#                r_mesh=5,
 #                edgecolors='r',
     
 #edgecolors='jet',

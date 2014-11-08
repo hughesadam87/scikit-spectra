@@ -1,5 +1,7 @@
 from pyuvvis.plotting.plot_utils import splot
 
+# Advanced plots has to create plotparser because its plot methods depend on it
+# Surely just bad design
 from pyuvvis.plotting.advanced_plots import _gen2d3d, spec3d, PLOTPARSER, \
          add_projection
 

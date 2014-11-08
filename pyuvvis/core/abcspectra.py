@@ -2,64 +2,9 @@
 
 from pandas import Series, DataFrame
 import pyuvvis.core.utilities as pvutils
+import pyuvvis.config as pvconfig
 from pyuvvis.pandas_utils.metadframe import _MetaLocIndexer
 import numpy as np
-
-def spectra_to_html(spectra, *args, **kwargs):
-   """ HTML representation used for Spectra and Spectrum for ipython notebooks"""
-
-   delim = '&nbsp;' * 8
-
-   if spectra.ndim > 1:
-      colorshape = '<font color="#0000CD">(%s X %s)</font>' % (spectra.shape)
-   else:
-      colorshape = '<font color="#0000CD"> (%s)</font>' % (spectra.shape)
-
-   #Color iunit if referenced or not
-   if not spectra.iunit:
-      countstring = 'Iunit:&nbsp<font color="#197519">%s</font>' % spectra.full_iunit
-   else: #orange
-      countstring = 'Iunit:&nbsp<font color="#FF3300">%s</font>' % spectra.full_iunit
-
-   ftunit = getattr(spectra, 'full_varunit', 'None')
-   spunit = getattr(spectra, 'full_specunit', 'None')
-
-   outline = "%s&nbsp%s%s [%s X %s] %s %s\n" % \
-      (spectra.name, 
-       colorshape,
-       delim,
-       ftunit,
-       spunit,
-       delim,
-       countstring)        
-
-   # Change output based on Spectra vs. Spectrum
-   obj = spectra._frame
-   if isinstance(obj, Series):
-      obj = DataFrame(obj, columns=[spectra.specifier])
-
-   # Call DataFrame _repr_html
-   #outline += '<font color="#0000CD">This is some text!</font>'
-   dfhtml = obj._repr_html_(*args, **kwargs)
-   return ('<h4>%s</h4>' % ''.join(outline)) +'<br>'+ dfhtml
-
-
-def spectra_repr(spectra, *args, **kwargs):
-   """ __repr__ for Spectra/Spectrum.
-      Add some header and spectral data information to the standard output of the dataframe.
-      Just ads a bit of extra data to the dataframe on printout.  This is called by __repr__, which 
-      can either return unicode or bytes.  This is better than overwriting __repr__()
-      """
-
-   # Certain methods aren't copying this correctly.  Delete later if fix
-   full_specunit = pvutils.hasgetattr(spectra, 'full_specunit', 'invalid')
-   full_varunit = pvutils.hasgetattr(spectra, 'full_varunit', 'invalid')
-
-   delim = '\t'
-   header = "*%s*%sSpectral unit:%s%sPerturbation unit:%s\n" % \
-      (spectra.name, delim, full_specunit, delim, full_varunit)
-
-   return ''.join(header)+'\n'+spectra._frame.__repr__()+'   ID: %s' % id(spectra)    
 
 # Exceptions
 # ----------
@@ -75,17 +20,81 @@ class SpecIndexError(SpecError):
 # --------------
 
 class ABCSpectra(object):
-   """ Generic methods shared by all pyuvvis spectra objects. """
+   """ Generic methods shared by all pyuvvis spectra objects.  For example,
+   printing out html orientation, and defining the "nearby" slicer.  The goal
+   is to separate out methods that are intended to be customized, but might
+   be buried on the already heavy Spectra object.
+   """
 
    def __repr__(self, *args, **kwargs):
-      return spectra_repr(self)
+      
+      header = self._header
+      return ''.join(header)+'\n'+self._frame.__repr__()+'   ID: %s' % id(self)    
 
    def _repr_html_(self, *args, **kwargs):
       """ Ipython Notebook HTML appearance basically.  This only generates
       the colored header; under the hood, self._frame._repr_html_ calculates
       the table, including the proper size for optimal viewing and so on.
       """
-      return spectra_to_html(self, *args, **kwargs)
+      # Change output based on Spectra vs. Spectrum
+      obj = self._frame
+      if isinstance(obj, Series):
+         obj = DataFrame(obj, columns=[self.specifier])
+   
+      # Call DataFrame _repr_html
+      dfhtml = obj._repr_html_(*args, **kwargs)
+      return ('<h4>%s</h4>' % ''.join(self._header_html)) +'<br>'+ dfhtml
+   
+
+   @property
+   def _header(self):
+      """ Header for string printout """
+      delim = pvconfig.HEADERDELIM
+      
+      # Certain methods aren't copying this correctly.  Delete later if fix
+      full_specunit = pvutils.hasgetattr(self, 'full_specunit', 'invalid')
+      full_varunit = pvutils.hasgetattr(self, 'full_varunit', 'invalid')
+      specunit = pvutils.hasgetattr(self, 'specunit', 'invalid')
+      varunit = pvutils.hasgetattr(self, 'varunit', 'invalid')
+   
+   
+      header = "*%s*%sSpectral unit:%s%sPerturbation unit:%s\n" % \
+            (self.name, delim, full_specunit, delim, full_varunit)
+      
+      return header
+      
+      
+   @property
+   def _header_html(self):
+      """ Header for html printout """
+      
+      delim = pvconfig.HEADERHTMLDELIM
+   
+      if self.ndim > 1:
+         colorshape = '<font color="#0000CD">(%s X %s)</font>' % (self.shape)
+      else:
+         colorshape = '<font color="#0000CD"> (%s)</font>' % (self.shape)
+   
+      #Color iunit if referenced or not
+      if not self.iunit:
+         countstring = 'Iunit:&nbsp<font color="#197519">%s</font>' % self.full_iunit
+      else: #orange
+         countstring = 'Iunit:&nbsp<font color="#FF3300">%s</font>' % self.full_iunit
+   
+      ftunit = getattr(self, 'full_varunit', 'None')
+      spunit = getattr(self, 'full_specunit', 'None')
+   
+      header = "%s&nbsp%s%s [%s X %s] %s %s\n" % \
+         (self.name, 
+          colorshape,
+          delim,
+          ftunit,
+          spunit,
+          delim,
+          countstring)   
+      
+      return header
+        
 
    
    @property  #Make log work with this eventually?

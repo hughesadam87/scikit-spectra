@@ -18,11 +18,10 @@ from pandas.core.indexing import _is_list_like, _is_nested_tuple
 from pyuvvis.core.specindex import SpecIndex
 from pyuvvis.core.abcindex import ConversionIndex, CustomIndex
 from pyuvvis.core.specstack import SpecStack
-from pyuvvis.core.abcspectra import ABCSpectra, spectra_to_html, spectra_repr, \
-     SpecError
+from pyuvvis.core.abcspectra import ABCSpectra, SpecError
 
 import pyuvvis.core.utilities as pvutils
-import pyuvvis.config as cnfg
+import pyuvvis.config as pvconfig
 from pyuvvis.units import Unit
 
 
@@ -116,11 +115,11 @@ def specplot(ts, *args, **pltkwargs):
    # FORCE DEFAULT COLOR/COLORMAPS
    if 'cmap' not in pltkwargs and 'color' not in pltkwargs and 'colors' not in pltkwargs:
       if kind == 'spec':
-         pltkwargs['cmap'] = cnfg.CMAP_1DSPECPLOT
+         pltkwargs['cmap'] = pvconfig.CMAP_1DSPECPLOT
       elif kind == 'contour':
-         pltkwargs['cmap'] = cnfg.CMAP_CONTOUR
+         pltkwargs['cmap'] = pvconfig.CMAP_CONTOUR
       elif PLOTPARSER.is_3d(kind):        
-         pltkwargs['color'] = cnfg.COLOR_3DPLOT
+         pltkwargs['color'] = pvconfig.COLOR_3DPLOT
       
    
    if iunit:
@@ -396,6 +395,14 @@ class Spectra(ABCSpectra, MetaDataFrame):
    def plot_kinds(self):
       """ List available plot kinds"""
       print PLOTPARSER.__shortrepr__()
+
+   # Properties, private, etc...?
+   def _summary(self):
+      """"""
+      
+      
+   def _summary_html(self):
+      """"""""
 
    # Self necessary here or additional df stuff gets printed   
    def specunits(self, delim='\t', pprint = False):
@@ -1580,6 +1587,7 @@ if __name__ == '__main__':
  
    from pyuvvis.data import aunps_glass
    from pyuvvis import Spectra
+   print ts
 
    s = Spectra(aunps_glass().data)
 #   s = Spectra(np.random.rand(50,50))

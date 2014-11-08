@@ -7,10 +7,30 @@ PAD = 4 * ' ' #padding
 
 #I'd like a config do diplay full or short name of time unit/spec unit/iunit on plots...
 
-# DEFAULT PLOT COLORS
-# -------------------
+# DEFAULT PLOT Options
+# --------------------
 
+# Fonts/Labels
+LABELSIZE = 'medium'
+TITLESIZE = 'large'
+
+
+# 1D
 CMAP_1DSPECPLOT = 'cool'
+
+# Conotur
 CMAP_CONTOUR = 'cool'
+NUM_CONTOURS = 20
+FILL_CONTOUR = False
+
+
+# 3D
 COLOR_3DPLOT = 'gray'
-# Let specplot control these, rather than assiging on plots themselves.
+PROJECTION_CMAP = 'jet' #Default color of PRoJECTION in add_projection
+MESH = 10 #Strides in surf/wire plots.  If data is under this number
+C_MESH = MESH
+R_MESH = MESH  #If want default mesh to be non-square
+
+# Spectra output spacing
+HEADERDELIM = '\t'
+HEADERHTMLDELIM = '&nbsp;' * 8
