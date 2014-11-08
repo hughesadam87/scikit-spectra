@@ -21,7 +21,7 @@ from pyuvvis.core.specstack import SpecStack
 from pyuvvis.core.abcspectra import ABCSpectra, SpecError
 
 import pyuvvis.core.utilities as pvutils
-import pyuvvis.config as cnfg
+import pyuvvis.config as pvconfig
 from pyuvvis.units import Unit
 
 
@@ -115,11 +115,11 @@ def specplot(ts, *args, **pltkwargs):
    # FORCE DEFAULT COLOR/COLORMAPS
    if 'cmap' not in pltkwargs and 'color' not in pltkwargs and 'colors' not in pltkwargs:
       if kind == 'spec':
-         pltkwargs['cmap'] = cnfg.CMAP_1DSPECPLOT
+         pltkwargs['cmap'] = pvconfig.CMAP_1DSPECPLOT
       elif kind == 'contour':
-         pltkwargs['cmap'] = cnfg.CMAP_CONTOUR
+         pltkwargs['cmap'] = pvconfig.CMAP_CONTOUR
       elif PLOTPARSER.is_3d(kind):        
-         pltkwargs['color'] = cnfg.COLOR_3DPLOT
+         pltkwargs['color'] = pvconfig.COLOR_3DPLOT
       
    
    if iunit:

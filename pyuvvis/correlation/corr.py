@@ -36,9 +36,8 @@ from math import pi
 import numpy as np
 
 from pyuvvis.core.anyspectra import AnyFrame 
-from pyuvvis.plotting.advanced_plots import _gencorr2d, _gen2d3d
+from pyuvvis.plotting.correlation_plot import corr2d, corr3d
 import pyuvvis.config as pvconfig
-import pyuvvis.plotting.plot_utils as pvutil
 import pyuvvis.core.utilities as pvutils
 from pyuvvis.pandas_utils.metadframe import MetaDataFrame
 from pca_lite import PCA
@@ -94,20 +93,22 @@ class Spec2d(AnyFrame):
 
     @property
     def _span_string(self):
-        """ String used in header"""
+        """ Format span of the original data columns (used in header)"""
         cols = self._corr2d.data.columns
         
         try:
             span = '%.2f - %.2f' % (cols.min(), cols.max())
             
         except TypeError:
-            if cols.varunit.lower() == 'timestamp': #hack
+            if cols.unit == 'dti': #hack
                 span = '%s - %s' % (
-                                     str(cols.min()).split()[1], #Cut out year
-                                     str(cols.max()).split()[1]
-                                     )
-        else:
-            span = '%s - %s' % (cols.min(), cols.max())
+                    str(cols.min()).split()[1], #Cut out year
+                    str(cols.max()).split()[1]
+                   )
+
+            # Interval or otherwise unkown
+            else:
+              span = '%s - %s' % (cols.min(), cols.max())
 
         span_string = '%s %s'  % (span, self._corr2d.varunit) #full varunit?        
         return span_string
@@ -188,135 +189,32 @@ class Spec2d(AnyFrame):
         return header
     
     
-    def plot(self, attr='synchronous', sideplots='mean', **plotkwargs):
-        """ Visualize synchronous, asynchronous or phase angle spectra.
-    
-        Parameters
-        ----------
-    
-        attr: str attribute or CorrFrame2D
-            Select which correlation spectra to plot.  Choose from 'sync', 
-            'async' or 'phase' for synchronous, asynchronous and phase
-            matricies.  In addition, can pass a custom matrix.  This is
-            mainly for use case of plotting arithmetic operaitons on sync, 
-            asynch and other CorrFrame2D objects.  For example, if one wants to plot
-            the squared synchronous spectrum, they can square the matrix,
-            pass it back into this plotting funciton, and the index, titles
-            and so forth will all be preserved.  See examples/documention.
-    
-        sideplots: str or bool ('mean')
-            If True, sideplots will be put on side axis of cross plots.  Use
-            'empty' to return blank sideplots.  mean', 'min', 'max', will 
-            plot these respective spectra on the sideplots.
-    
-    
-        fill : bool (True)
-            Contours are lines, or filled regions.
-    
-        **plotkwargs: dict
-            Any valid matplotlib contour plot keyword, or pyuvvis general
-            plotting keyword (grid, title etc...)
-    
-        Returns
-        -------
-    
-        tuple (matplotlib.Axes)
-            If side plots, returns (ax1, ax2, ax3, ax4)
-            If not side plots, returns ax4 only
-    
-        """
-     
-        SIDEPAD = 1.10
-     
-        #Side plot line kwds (passed to Spectrum())
-        linekwds = dict(linewidth=1, 
-                        linestyle='-', 
-                        color='k',  #black
-                        custompadding=0,
-                        )
+    def plot(self, kind='corr2d', **pltkwargs):
+        """ """
 
-        plotkwargs.setdefault('xlabel', self.specunit)
-        plotkwargs.setdefault('ylabel', self.specunit)         
-        plotkwargs.setdefault('title', '%s (%s)' % (self.name, self._span_string))
-           
-        if sideplots:
-            if sideplots == True:
-                sideplots = 'mean'
-    
-            # Should be identical!
-            symbol1 = self.index._unit.symbol
-            symbol2 = self.columns._unit.symbol
+        pltkwargs.setdefault('title', '%s (%s)' % (self.name, self._span_string))        
+
+        # Default to specplot
+        if kind not in ['corr2d', 'corr3d']:
+            return super(Spec2d, self).plot(kind=kind, **pltkwargs)
+                
+        pltkwargs.setdefault('xlabel', self.specunit)
+        pltkwargs.setdefault('ylabel', self.specunit)         
+        
+        if kind == 'corr2d':
+            # If user sets color/cmap, will overwrite
+            if 'cmap' not in pltkwargs and 'color' not in pltkwargs and 'colors' not in pltkwargs:
+                pltkwargs['cmap'] = pvconfig.CMAP_CONTOUR
             
-            if self._corr2d._centered:
-                label1 = r'$\bar{A}(%s_1)$' % symbol1
-                label2 = r'$\bar{A}(%s_2)$' % symbol2
-    
-            else:
-                label1, label2 = r'$A(%s_1)$' % symbol1, r'$A(%s_2)$' % symbol2
-    
-            # BASED ON SELF, NOT BASED ON THE OBJECT ITSELF!
-            yy, xx = np.meshgrid(self.columns, self.index)
-            ax1, ax2, ax3, ax4 = _gencorr2d(xx, yy, self, label1, label2, **plotkwargs )
+            if ts.index[0] > ts.index[-1]:
+                pltkwargs['_reverse_axis'] = True
 
-            # Side plots    
-            data_orig_top = self._corr2d.data.loc[self.index[0]:self.index[-1], :]
-            data_orig_side = self._corr2d.data.loc[self.columns[0]:self.columns[-1], :]
 
-            top =  None
+            return corr2d(self, **pltkwargs)
 
-            if sideplots == 'mean':
-                top = data_orig_top.mean(axis=1)
-                side = data_orig_side.mean(axis=1)
-    
-            elif sideplots == 'max':
-                top = data_orig_top.max(axis=1)
-                side = data_orig_side.max(axis=1)
-                
-            elif sideplots == 'min':
-                top = data_orig_top.min(axis=1)
-                side = data_orig_side.min(axis=1)
-                
-            elif sideplots == 'all':
-                top = data_orig_top
-                side = data_orig_side
-    
-            elif sideplots == 'empty':
-                pass
-    
-            else:
-                raise Corr2d('sideplots keyword must be "mean", "max", "min",'
-                             ' "all", or "empty".')
-    
-            if top is not None:
-                top.plot(ax=ax2, **linekwds)
-                side.plot(ax=ax3, **linekwds) 
-                for ax in (ax2, ax3):
-                    pvutil.hide_axis(ax, axis='both')
-                    ax.set_title('')
-    
-            # Reorient ax3
-            pvutil.invert_ax(ax3)
-
-            #Set sideplot labels    
-            if sideplots != 'empty':
-                ax2.set_ylabel(sideplots)
-                ax2.yaxis.set_label_position('right')
-                
-            #Scale x/y padding just a hair 
-            y1, y2 = ax2.get_ylim()
-            ax2.set_ylim(y1, SIDEPAD*y2)
-
-            x1, x2 = ax3.get_xlim()
-            ax3.set_xlim(SIDEPAD*x1, x2)
-           
-    
-            return (ax1, ax2, ax3, ax4)
-    
-    
-        else:
-            # If no sideplots, can allow for 3d plots
-            plotkwargs.setdefault('kind', 'contour')
-            return _gen2d3d(self, **plotkwargs)[0] #return axes, not contours
+        elif kind == 'corr3d':
+            return corr3d(self, **pltkwargs)
+     
     
 
 
@@ -531,164 +429,6 @@ class Corr2d(object):
                       iunit='disr. coefficient')   
 
 
-    def plot(self, attr='synchronous', sideplots='mean', annotate=True,
-             **plotkwargs):
-        """ Visualize synchronous, asynchronous or phase angle spectra.
-
-        Parameters
-        ----------
-
-        attr: str attribute or CorrFrame2D
-            Select which correlation spectra to plot.  Choose from 'sync', 
-            'async' or 'phase' for synchronous, asynchronous and phase
-            matricies.  In addition, can pass a custom matrix.  This is
-            mainly for use case of plotting arithmetic operaitons on sync, 
-            asynch and other CorrFrame2D objects.  For example, if one wants to plot
-            the squared synchronous spectrum, they can square the matrix,
-            pass it back into this plotting funciton, and the index, titles
-            and so forth will all be preserved.  See examples/documention.
-
-        sideplots: str or bool ('mean')
-            If True, sideplots will be put on side axis of cross plots.  Use
-            'empty' to return blank sideplots.  mean', 'min', 'max', will 
-            plot these respective spectra on the sideplots.
-
-
-        fill : bool (True)
-            Contours are lines, or filled regions.
-
-        **plotkwargs: dict
-            Any valid matplotlib contour plot keyword, or pyuvvis general
-            plotting keyword (grid, title etc...)
-
-        Returns
-        -------
-
-        tuple (matplotlib.Axes)
-            If side plots, returns (ax1, ax2, ax3, ax4)
-            If not side plots, returns ax4 only
-
-        """
-
-        # if user passes matrix instead of a string
-        if not isinstance(attr, str):
-            attr_title = 'Custom' 
-            spec = attr #is a matrix
-
-        elif attr in ['sync', 'synchronous']:
-            attr_title = 'Synchronous' #
-            spec = self.synchronous
-
-        elif attr in ['async', 'asynchronous']:
-            attr_title = 'Asynchronous' 
-            spec = self.asynchronous
-
-        elif attr in ['phase', 'phase angle']:
-            attr_title = 'Phase Angle' 
-            spec = self.phase
-
-        else:
-            # Make better
-            raise CorrError('Valid plots include "sync", "async", "phase".'
-                            ' Alternatively, pass a custom matrix.')
-
-        linekwds = dict(linewidth=1, 
-                        linestyle='-', 
-                        color='black')
-
-        # Only set defaults for labels/title if annotate        
-        if annotate:
-            # NOTICE SPECUNIT IS NOT CALLED FROM DATA!
-            plotkwargs.setdefault('xlabel', self.specunit)
-            plotkwargs.setdefault('ylabel', self.specunit)       
-
-
-            # Title
-            cols = self.columns        
-            try:
-                plotkwargs.setdefault('title', '%s (%.2f - %.2f %s)' % 
-                                      ( attr_title, 
-                                        cols.min(), 
-                                        cols.max(), 
-                                        self.varunit.lower())
-                                      )
-
-            # Working with timestamps (leave in year?)
-            except TypeError:
-                if self.varunit.lower() == 'timestamp': #Bit of a hack
-                    plotkwargs.setdefault('title', '%s (%s - %s)' % 
-                                          ( attr_title, 
-                                            #str(cols.min()).split()[1],  #Cut out year
-                                            #str(cols.max()).split()[1])
-                                            cols.min(),
-                                            cols.max())
-                                          )           
-
-                # Full string format, not alteration of timestamp values
-                else:
-                    plotkwargs.setdefault('title', '%s (%s - %s %s)' % 
-                                          ( attr_title, 
-                                            cols.min(), 
-                                            cols.max(),
-                                            self.varunit.lower())
-                                          )   
-
-        if sideplots:
-
-            if sideplots == True:
-                sideplots = 'mean'
-
-            symbol = self.index._unit.symbol
-            if self._centered:
-                label1 = r'$\bar{A}(%s_1)$' % symbol
-                label2 = r'$\bar{A}(%s_2)$' % symbol
-
-            else:
-                label1, label2 = r'$A(%s_1)$' % symbol, r'$A(%s_2)$' % symbol
-
-            # BASED ON SELF, NOT BASED ON THE OBJECT ITSELF!
-            # NEED TO GENERALIZE IF THIS EXTENDS BEYOND THESE FEW OBJECTS
-            # LIKE PLOTS THAT DO INVOLVE TIME DATA!
-            xx, yy = np.meshgrid(self.index, self.index)
-            ax1, ax2, ax3, ax4 = _gencorr2d(xx, yy, spec, label1, label2, **plotkwargs )
-
-            # Problem here: this is calling plot method of
-            if sideplots == 'mean':
-                ax2.plot(self.index, self.data.mean(axis=1), **linekwds)
-                ax3.plot(self.index, self.data.mean(axis=1),  **linekwds)     
-
-            elif sideplots == 'max':
-                ax2.plot(self.index, self.data.max(axis=1), **linekwds)
-                ax3.plot(self.index, self.data.max(axis=1),  **linekwds)    
-
-            elif sideplots == 'min':
-                ax2.plot(self.index, self.data.min(axis=1), **linekwds)
-                ax3.plot(self.index, self.data.min(axis=1),  **linekwds)    
-
-
-            elif sideplots == 'empty':
-                pass
-
-            else:
-                raise Corr2d('sideplots keyword must be "mean", "max", "min",'
-                             ' or "empty".')
-
-            # Reorient ax3
-            pvutil.invert_ax(ax3)
-
-            if sideplots != 'empty':
-                ax2.set_ylabel(sideplots)
-                ax2.yaxis.set_label_position('right')
-
-            return (ax1, ax2, ax3, ax4)
-
-
-        else:
-            # If no sideplots, can allow for 3d plots
-            plotkwargs.setdefault('kind', 'contour')
-            return _gen2d3d(spec, **plotkwargs)[0] #return axes, not contours
-
-
     @property
     def shape(self):
         return self.data.shape          
@@ -830,74 +570,28 @@ def noda_matrix(length):
     return Njk
 
 
-def corr_3d(df, **pltkwds):
-    ''' 3d plot suited for correlation analysis.  If special "speclabel" keyword is passed, it will
-        add the "spectral label" to both the x and y-axis.  Otherwise, x,y,z labels can be set through 
-        their own keywords.'''
-
-    if 'speclabel' in pltkwds:
-        pltkwds['xlabel']=pltkwds['speclabel']
-        pltkwds['ylabel']=pltkwds['speclabel']
-
-    pltkwds['elev']=pltkwds.pop('elev', 31)
-    pltkwds['azim']=pltkwds.pop('azim', -52)    
-    return spec_surface3d(df, **pltkwds)    
-
-
 if __name__ == '__main__':
     from pyuvvis.data import aunps_glass, solvent_evap
     import numpy as np
     import matplotlib.pyplot as plt 
 
 #    ts = solvent_evap()#.as_varunit('s').as_iunit('r')
-    ts = aunps_glass().as_varunit('s')
+#    ts.plot(kind='contour')
+    ts = aunps_glass().as_varunit('s')#.as_varunit('intvl')
+#    print ts.varunits()
 
     cd = Corr2d(ts)
-#    cd.scale()
+   # cd.scale()
     
 #    print cd.coeff_corr
 #    print cd.asynchronous
-#    cd.center()
+   # cd.center()
 #    cd.plot()
 #    cd.plot('async')
-#    plt.show()
 
     s = cd.synchronous
-                #x (rows)       , Y (columns)
-#    s = s.nearby[:, 2500:1600]
- #   s = s.nearby[2500:1600, :]
-    print s
-    s.plot(sideplots='max', cmap='bone')
-#    cd.plot('sync')
+#    s = s.nearby[3250.0:750, 3250:750]
+#    s.plot(grid=True, fill=True, cbar=True)
+#    s.plot(kind='corr3d')
+    s.plot(kind='wire', mesh=50)
     plt.show()
-#    cd.plot(fill=False, sideplots=False, title="Blank sideplots", grid=False)
-#    plt.show()
-
-#    cd.scale()
-#    cd.scale(False)
-    #   cd.scale(alpha=0.5)
-#    ax1,ax2,ax3, ax4 = cd.plot(cmap='bone', 
-    #                              fill=True, cbar=True, contours=20, grid=True)
-    #   ts.plot(ax=ax2, padding=0.01, title='', xlabel='', ylabel='Full', 
-    #           colormap='gray')
-    #   ts.plot(ax=ax3, colormap='jet', padding=0.01, title='', xlabel='', ylabel='Full')
-
-#    ts.plot(ax=ax3, padding=0)
-
-#    import plotly.plotly as py
-#    fig = plt.gcf()
-#    py.iplot_mpl(fig)
-
-    #ax1, ax2, ax3, ax4 = cd.plot(sideplots='empty', grid=True, annotate=False)
-    #ts.plot(ax=ax2, padding=0.01, xlabel='', ylabel='', title='')
-    #ts.plot(ax=ax3, padding=0.01, xlabel='', ylabel='', title='')
-    #pvutil.invert_ax(ax3)
-
-    #plt.show()
-
-    #   print cd.coeff_corr**2 + cd.coeff_disr**2
-    #   print cd.synchronous
-    #   print cd.mean()
-    cd.scale()
-    print cd
-    cd.pca_fit()
