@@ -18,8 +18,7 @@ from pandas.core.indexing import _is_list_like, _is_nested_tuple
 from pyuvvis.core.specindex import SpecIndex
 from pyuvvis.core.abcindex import ConversionIndex, CustomIndex
 from pyuvvis.core.specstack import SpecStack
-from pyuvvis.core.abcspectra import ABCSpectra, spectra_to_html, spectra_repr, \
-     SpecError
+from pyuvvis.core.abcspectra import ABCSpectra, SpecError
 
 import pyuvvis.core.utilities as pvutils
 import pyuvvis.config as cnfg
@@ -396,6 +395,14 @@ class Spectra(ABCSpectra, MetaDataFrame):
    def plot_kinds(self):
       """ List available plot kinds"""
       print PLOTPARSER.__shortrepr__()
+
+   # Properties, private, etc...?
+   def _summary(self):
+      """"""
+      
+      
+   def _summary_html(self):
+      """"""""
 
    # Self necessary here or additional df stuff gets printed   
    def specunits(self, delim='\t', pprint = False):
@@ -1577,10 +1584,10 @@ if __name__ == '__main__':
    print ts.plot_kinds
    ts = ts.as_iunit('a')
    ts.as_varunit('m')
-   abs(ts)
  
    from pyuvvis.data import aunps_glass
    from pyuvvis import Spectra
+   print ts
 
    s = Spectra(aunps_glass().data)
 #   s = Spectra(np.random.rand(50,50))

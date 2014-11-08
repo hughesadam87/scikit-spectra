@@ -14,3 +14,7 @@ CMAP_1DSPECPLOT = 'cool'
 CMAP_CONTOUR = 'cool'
 COLOR_3DPLOT = 'gray'
 # Let specplot control these, rather than assiging on plots themselves.
+
+# Spectra Output
+HEADERDELIM = '\t'
+HEADERHTMLDELIM = '&nbsp;' * 8

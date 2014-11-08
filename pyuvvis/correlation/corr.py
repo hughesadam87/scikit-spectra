@@ -36,54 +36,288 @@ from math import pi
 import numpy as np
 
 from pyuvvis.core.anyspectra import AnyFrame 
-from pyuvvis.core.abcspectra import spectra_repr, spectra_to_html
 from pyuvvis.plotting.advanced_plots import _gencorr2d, _gen2d3d
 import pyuvvis.config as pvconfig
 import pyuvvis.plotting.plot_utils as pvutil
+import pyuvvis.core.utilities as pvutils
+from pyuvvis.pandas_utils.metadframe import MetaDataFrame
 from pca_lite import PCA
 #from pcakernel import PCA
 
 
 class CorrError(Exception):
     """ """
+class Spec2dError(Exception):
+    """ """
 
-class CorrFrame2d(AnyFrame):
+class Spec2d(AnyFrame):
     """ Frame to hold synchronous, asynchronous and other 2D spectra objects.
-    Has all functionality of spectra, but not necessarily used.
-    """
+    Mostly just want to customize headers, and subclasses correspond to various
+    corr2D object.  For example, synchronous spectra has spectral data on 
+    index and columns.  Therefore, it is represented by Spec2D class.
     
+    Also overwrites Spectra.iunit for 3dPlotting purposes.
+    
+    Will update active/spectral unit based on index/columns, but original
+    datarange (like how much time synchronous corresponds to) is stored
+    permanently in self._span_string
+    """
+
     def __init__(self, *args, **kwargs):
-        """ Hack over iunits for plotting API sake """
+        """ Hack over iunits for plotting API sake.  Stores metadata like
+        scaling, spectral and variance range of spectra.  *args, **kwargs
+        passed to AnyFrame constructor.
         
-        iunit = kwargs.pop('iunit', '')
-        _scale_string = kwargs.pop('scale_string', '')
-        super(CorrFrame2d, self).__init__(*args, **kwargs)
+        kwargs
+        ------
+
+       _corr2d: Corr2D object
+       
+       _iunit: ''
+           iunit to appear in 3dplots and on contour colorbar
+        """
+
+
+        # Mandatory, access to corr2d and hence original dataset 
+        # (passed by reference)!
+        self._corr2d = kwargs.pop('corr2d')
+
+        # INDEX/COLUMNS are SET TO INDEX OF ORIGINAL DATA
+        kwargs['index'] = self._corr2d.index
+        kwargs['columns'] = self._corr2d.index
+        
+              
+        iunit = kwargs.pop('iunit', '')        
+        super(Spec2d, self).__init__(*args, **kwargs)
         self._itype = iunit
+        
+
+    @property
+    def _span_string(self):
+        """ String used in header"""
+        cols = self._corr2d.data.columns
+        
+        try:
+            span = '%.2f - %.2f' % (cols.min(), cols.max())
+            
+        except TypeError:
+            if cols.varunit.lower() == 'timestamp': #hack
+                span = '%s - %s' % (
+                                     str(cols.min()).split()[1], #Cut out year
+                                     str(cols.max()).split()[1]
+                                     )
+        else:
+            span = '%s - %s' % (cols.min(), cols.max())
+
+        span_string = '%s %s'  % (span, self._corr2d.varunit) #full varunit?        
+        return span_string
+
+    # Overwrite Spectra.iunit API 
+    # ---------------------------
+    @property
+    def iunit(self):
+        return self._itype  
 
     # No distinction full_iunit and iunit
     @property
     def full_iunit(self):
         return self._itype
-    
-    @property
-    def iunit(self):
-        return self._itype    
-   
+  
     @iunit.setter
     def iunit(self, unit):     
         self._itype = unit 
+        
+        
+    # Header/output
+    # -------------
+    @property
+    def _header(self):
+        """ Header for string printout """
+        delim = pvconfig.HEADERDELIM
 
-    # spectra_repr function headerstyle is customized to CorrFrame2d
-    def __repr__(self, *args, **kwargs):
-        return spectra_repr(self, headerstyle=2)
+        # Certain methods aren't copying this correctly.  Delete later if fix
+        name = pvutils.hasgetattr(self, 'name', '??')
+        full_varunit = pvutils.hasgetattr(self, 'full_varunit', '??')
+        specunit = pvutils.hasgetattr(self, 'specunit', '??')
+        varunit = pvutils.hasgetattr(self, 'varunit', '??')
 
-    def _repr_html_(self, *args, **kwargs):
-        """ Ipython Notebook HTML appearance basically.  This only generates
-        the colored header; under the hood, self._frame._repr_html_ calculates
-        the table, including the proper size for optimal viewing and so on.
+
+        header = "*%s*%sScaling:%s\n" % \
+            (name, delim, self._corr2d._scale_string)
+
+        return header
+
+
+    @property
+    def _header_html(self):
+        """ Header for html printout """
+        delim = pvconfig.HEADERHTMLDELIM
+
+        # Should be same by virtue of index units being same, but don't
+        # enforece it; up to user not to change it!
+        ftunit = getattr(self, 'varunit', '??')  
+        spunit = getattr(self, 'specunit', '??')
+
+        if self.ndim > 1:
+            s1, s2 = self.shape            
+            colorshape = '<font color="#0000CD">(%s%s X %s%s)</font>' % (
+                                                              s1,
+                                                              spunit,
+                                                              s2,
+                                                              ftunit)
+
+        #If user turns 2D Corr into a 1D spectrum (which they shouldn't...)
+        else:
+            colorshape = '<font color="#0000CD"> (%s)</font>' % (self.shape)
+
+        # Green        
+        scale_string = 'Scaling: <font color="#197519">%s</font>' % self._corr2d._scale_string
+        
+        # Black 
+        span_string = 'Span:  <font color="#000000">%s</font>' % self._span_string
+
+        header = "%s:&nbsp%s%s%s%s%s\n" % \
+            (self.name, 
+             colorshape,
+             delim,
+             scale_string,
+             delim,
+             span_string         
+             )   
+
+        return header
+    
+    
+    def plot(self, attr='synchronous', sideplots='mean', **plotkwargs):
+        """ Visualize synchronous, asynchronous or phase angle spectra.
+    
+        Parameters
+        ----------
+    
+        attr: str attribute or CorrFrame2D
+            Select which correlation spectra to plot.  Choose from 'sync', 
+            'async' or 'phase' for synchronous, asynchronous and phase
+            matricies.  In addition, can pass a custom matrix.  This is
+            mainly for use case of plotting arithmetic operaitons on sync, 
+            asynch and other CorrFrame2D objects.  For example, if one wants to plot
+            the squared synchronous spectrum, they can square the matrix,
+            pass it back into this plotting funciton, and the index, titles
+            and so forth will all be preserved.  See examples/documention.
+    
+        sideplots: str or bool ('mean')
+            If True, sideplots will be put on side axis of cross plots.  Use
+            'empty' to return blank sideplots.  mean', 'min', 'max', will 
+            plot these respective spectra on the sideplots.
+    
+    
+        fill : bool (True)
+            Contours are lines, or filled regions.
+    
+        **plotkwargs: dict
+            Any valid matplotlib contour plot keyword, or pyuvvis general
+            plotting keyword (grid, title etc...)
+    
+        Returns
+        -------
+    
+        tuple (matplotlib.Axes)
+            If side plots, returns (ax1, ax2, ax3, ax4)
+            If not side plots, returns ax4 only
+    
         """
-        kwargs['headerstyle'] = 2
-        return spectra_to_html(self, *args, **kwargs)        
+     
+        SIDEPAD = 1.10
+     
+        #Side plot line kwds (passed to Spectrum())
+        linekwds = dict(linewidth=1, 
+                        linestyle='-', 
+                        color='k',  #black
+                        custompadding=0,
+                        )
+
+        plotkwargs.setdefault('xlabel', self.specunit)
+        plotkwargs.setdefault('ylabel', self.specunit)         
+        plotkwargs.setdefault('title', '%s (%s)' % (self.name, self._span_string))
+           
+        if sideplots:
+            if sideplots == True:
+                sideplots = 'mean'
+    
+            # Should be identical!
+            symbol1 = self.index._unit.symbol
+            symbol2 = self.columns._unit.symbol
+            
+            if self._corr2d._centered:
+                label1 = r'$\bar{A}(%s_1)$' % symbol1
+                label2 = r'$\bar{A}(%s_2)$' % symbol2
+    
+            else:
+                label1, label2 = r'$A(%s_1)$' % symbol1, r'$A(%s_2)$' % symbol2
+    
+            # BASED ON SELF, NOT BASED ON THE OBJECT ITSELF!
+            yy, xx = np.meshgrid(self.columns, self.index)
+            ax1, ax2, ax3, ax4 = _gencorr2d(xx, yy, self, label1, label2, **plotkwargs )
+
+            # Side plots    
+            data_orig_top = self._corr2d.data.loc[self.index[0]:self.index[-1], :]
+            data_orig_side = self._corr2d.data.loc[self.columns[0]:self.columns[-1], :]
+
+            top =  None
+
+            if sideplots == 'mean':
+                top = data_orig_top.mean(axis=1)
+                side = data_orig_side.mean(axis=1)
+    
+            elif sideplots == 'max':
+                top = data_orig_top.max(axis=1)
+                side = data_orig_side.max(axis=1)
+                
+            elif sideplots == 'min':
+                top = data_orig_top.min(axis=1)
+                side = data_orig_side.min(axis=1)
+                
+            elif sideplots == 'all':
+                top = data_orig_top
+                side = data_orig_side
+    
+            elif sideplots == 'empty':
+                pass
+    
+            else:
+                raise Corr2d('sideplots keyword must be "mean", "max", "min",'
+                             ' "all", or "empty".')
+    
+            if top is not None:
+                top.plot(ax=ax2, **linekwds)
+                side.plot(ax=ax3, **linekwds) 
+                for ax in (ax2, ax3):
+                    pvutil.hide_axis(ax, axis='both')
+                    ax.set_title('')
+    
+            # Reorient ax3
+            pvutil.invert_ax(ax3)
+
+            #Set sideplot labels    
+            if sideplots != 'empty':
+                ax2.set_ylabel(sideplots)
+                ax2.yaxis.set_label_position('right')
+                
+            #Scale x/y padding just a hair 
+            y1, y2 = ax2.get_ylim()
+            ax2.set_ylim(y1, SIDEPAD*y2)
+
+            x1, x2 = ax3.get_xlim()
+            ax3.set_xlim(SIDEPAD*x1, x2)
+           
+    
+            return (ax1, ax2, ax3, ax4)
+    
+    
+        else:
+            # If no sideplots, can allow for 3d plots
+            plotkwargs.setdefault('kind', 'contour')
+            return _gen2d3d(self, **plotkwargs)[0] #return axes, not contours
+    
 
 
 # Keep this independt of TS; just numpy then more flexible
@@ -99,8 +333,15 @@ class Corr2d(object):
         if data.ndim != 2:
             raise CorrError('Data must be 2d!')
 
+        if not isinstance(data, MetaDataFrame):
+            raise CorrError('Corr2d requires pyuvvis data structures (Metadataframe,'
+                            'Spectra, etc... got %s') % type(data)
 
-        self.data = data
+
+        # MAKE AN ACTUAL COPY OF DATA, NOT PASSING BY REFERENCE
+        self.data = data.deepcopy()
+
+
         self.index = data.index   #Relax these maybe and just hide some sideplots...
         self.columns = data.columns
         self.specunit = data.specunit
@@ -125,9 +366,9 @@ class Corr2d(object):
         """ Current state of scalling, used in __repr__ and plot """
         if self._scaled:
             return '(a=%s, b=%s)' % (self.alpha, self.beta)
-        return ''
-        
-        
+        return 'False'
+
+
 
     def scale(self, *args, **kwargs):
         """Scale the synchronous and asynchronous spectra via REF 2
@@ -178,11 +419,11 @@ class Corr2d(object):
             else:
                 raise NotImplementedError('mean centering only supported')
 
-     
+
 
     # Numpy Arrays
     # ------------
-    
+
     @property
     def synchronous_noscale(self):
         """ Return unscaled, synchronous spectrum as a numpy array. """
@@ -196,28 +437,30 @@ class Corr2d(object):
         m = self.data.shape[1]  # columns                
         return np.dot(self.data, np.dot(self._noda, self._dynconjtranspose) ) / (m-1.0)
 
-    
+
     @property
     def coeff_corr(self):
         """ Correlation coefficient (pg 78) """   
         return np.divide(self.synchronous_noscale, self.std) 
-       
+
 
     @property
     def coeff_disr(self):
         """ Disrelation coefficient (pg 79) """
         # Not the same as np.sqrt( 1 - coef_corr**2), only same in magnitude!
         return np.divide(self.asynchronous_noscale, self.std)
-                 
+
+    #If std/var aren't arrays, will get issues in computations like async/sync
     @property
     def std(self):
         """ Standard devation along axis=1 as numpy array"""
         return self.data.std(axis=1).values
-    
+
     @property
     def var(self):
+        """ Variance along axis=1 as numpy array"""
         return self.data.var(axis=1).values
-                 
+
 
     @property
     def _noda(self):
@@ -243,11 +486,10 @@ class Corr2d(object):
         else:
             matrixout = self.synchronous_noscale
 
-        return CorrFrame2d(matrixout,
-                            index=self.index, 
-                            columns=self.index,  #Columns is index!
-                            name='Synchronous Spectrum %s' % self._scale_string,
-                            iunit='synchronicity')   
+        return Spec2d(matrixout, 
+                      corr2d = self,
+                      name='Synchronous Spectrum',
+                      iunit='synchronicity')   
 
     @property
     def asynchronous(self):
@@ -257,39 +499,36 @@ class Corr2d(object):
                 abs(self.coeff_disr)**(self.beta)
         else:
             matrixout = self.asynchronous_noscale
-            
-        return CorrFrame2d(matrixout,
-                            index=self.index, 
-                            columns=self.index,  #Columns is index!
-                            name='Asynchronous Spectrum %s' % self._scale_string,
-                            iunit='asynchronicity')   
+
+        return Spec2d(matrixout, 
+                      corr2d = self,
+                      name='Asynchronous Spectrum',
+                      iunit='asynchronicity')   
 
     @property
     def phase(self):
         """ Global phase angle (pg 79).  This will use scaled data."""
         phase = np.arctan(self.asynchronous/self.synchronous)
-        phase.name = 'Phase Map %s' % self._scale_string
+        phase.name = 'Phase Map' 
         phase.iunit = 'phase angle'
         return phase    
-   
+
 
     @property
     def correlation(self):
         """ 2D Correlation Spectrum"""
-        return CorrFrame2d(self.coeff_corr,
-                            index=self.index, 
-                            columns=self.index,  
-                            name = 'Correlation Spectrum',
-                            iunit='corr. coefficient')                
-       
+        return Spec2d(self.coeff_corr, 
+                      corr2d = self,
+                      name = 'Correlation Spectrum',
+                      iunit='corr. coefficient')                
+
     @property
     def disrelation(self):
         """ 2D Disrelation Spectrum"""
-        return CorrFrame2d(self.coeff_disr,
-                            index=self.index, 
-                            columns=self.index,  
-                            name = 'Disrelation Spectrum',
-                            iunit='disr. coefficient')   
+        return Spec2d(self.coeff_disr,
+                      corr2d = self,
+                      name = 'Disrelation Spectrum',
+                      iunit='disr. coefficient')   
 
 
     def plot(self, attr='synchronous', sideplots='mean', annotate=True,
@@ -351,7 +590,7 @@ class Corr2d(object):
         else:
             # Make better
             raise CorrError('Valid plots include "sync", "async", "phase".'
-                         ' Alternatively, pass a custom matrix.')
+                            ' Alternatively, pass a custom matrix.')
 
         linekwds = dict(linewidth=1, 
                         linestyle='-', 
@@ -415,16 +654,16 @@ class Corr2d(object):
 
             # Problem here: this is calling plot method of
             if sideplots == 'mean':
-                ax2.plot(self.index, spec.mean(axis=1), **linekwds)
-                ax3.plot(self.index, spec.mean(axis=1),  **linekwds)     
+                ax2.plot(self.index, self.data.mean(axis=1), **linekwds)
+                ax3.plot(self.index, self.data.mean(axis=1),  **linekwds)     
 
             elif sideplots == 'max':
-                ax2.plot(self.index, spec.max(axis=1), **linekwds)
-                ax3.plot(self.index, spec.max(axis=1),  **linekwds)    
+                ax2.plot(self.index, self.data.max(axis=1), **linekwds)
+                ax3.plot(self.index, self.data.max(axis=1),  **linekwds)    
 
             elif sideplots == 'min':
-                ax2.plot(self.index, spec.min(axis=1), **linekwds)
-                ax3.plot(self.index, spec.min(axis=1),  **linekwds)    
+                ax2.plot(self.index, self.data.min(axis=1), **linekwds)
+                ax3.plot(self.index, self.data.min(axis=1),  **linekwds)    
 
 
             elif sideplots == 'empty':
@@ -564,12 +803,13 @@ class Corr2d(object):
 
         #Scaling
         if self._scaled:
-            outstring += '%sScaled    -->  %s (a=%s, b=%s)\n' % \
-                (pad, self._scaled, self.alpha, self.beta)
+            outstring += '%sScaled    -->  %s\n' % (pad, self._scale_string)
         else:
             outstring += '%sScaled    -->  %s\n' % (pad, self._scaled)        
 
-        outstring += '%sUnits     -->  [%s X %s]' % (pad, self.specunit.lower(), self.varunit.lower())
+        outstring += '%sUnits     -->  [%s X %s]' % (pad, 
+                                                     self.specunit.lower(), 
+                                                     self.varunit.lower())
 
 
         return outstring
@@ -609,17 +849,27 @@ if __name__ == '__main__':
     import numpy as np
     import matplotlib.pyplot as plt 
 
-    ts = solvent_evap()#.as_interval('s').as_iunit('r')
-#    ts = aunps_glass()
+#    ts = solvent_evap()#.as_varunit('s').as_iunit('r')
+    ts = aunps_glass().as_varunit('s')
 
     cd = Corr2d(ts)
-    print cd.coeff_corr
-    print cd.asynchronous
+#    cd.scale()
+    
+#    print cd.coeff_corr
+#    print cd.asynchronous
 #    cd.center()
-    cd.plot()
-    cd.plot('async')
-    plt.show()
+#    cd.plot()
+#    cd.plot('async')
+#    plt.show()
 
+    s = cd.synchronous
+                #x (rows)       , Y (columns)
+#    s = s.nearby[:, 2500:1600]
+ #   s = s.nearby[2500:1600, :]
+    print s
+    s.plot(sideplots='max', cmap='bone')
+#    cd.plot('sync')
+    plt.show()
 #    cd.plot(fill=False, sideplots=False, title="Blank sideplots", grid=False)
 #    plt.show()
 
