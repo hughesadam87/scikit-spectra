@@ -239,6 +239,31 @@ class MetaPandasObject(object):
     
     def __abs__(self):
         return self._transfer(self._frame.__abs__())     
+    
+    # Reflected operands (http://www.rafekettler.com/magicmethods.html)
+    def __radd__(self, x):
+        return self._transfer(self._frame.__radd__(x))
+
+    def __rsub__(self, x):
+        return self._transfer(self._frame.__rsub__(x))
+    
+    def __rmul__(self, x):
+        return self._transfer(self._frame.__rmul__(x))    
+
+    def __rdiv__(self, x):
+        return self._transfer(self._frame.__rdiv__(x))
+    
+    def __rtruediv__(self, x):
+        return self._transfer(self._frame.__rtruediv__(x))    
+    
+    def __rmod__(self, x):
+        return self._transfer(self._frame.__rmod__(x))
+    
+    def __rdivmod__(self, x):
+        return self._transfer(self._frame.__rdivmod__(x))    
+    
+    def subtract(self, *args, **kwargs):
+        return self._transfer(self._frame.subtract(*args, **kwargs))
 
     @property
     def data(self):

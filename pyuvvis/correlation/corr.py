@@ -1,6 +1,6 @@
 #CITE BOOK, REWRITE
 
-''' Suite for 2-dimensional correlation analysis based on pandas dataframes.  Decided to put it in, despite already
+""" Suite for 2-dimensional correlation analysis.  Decided to put it in, despite already
 seeing a numpy-based version in paper "2D-correlation analysis applied to in situ and operando Mossbauer spectroscopy".
 This would not be pandas friendly, so it wouldn't intgerate into pyuvvis and I also want to build some tools from 
 scratch to refamiliarize myself with the topic.
@@ -18,15 +18,22 @@ correlation of all spectral variables.  The asynchronous spectrum is the instant
 are moving together at one instant, weight goes into the sync.  If not, weight goes into the async  Makes me think of an easy filter!  Can
 just throw out regions where not much is happening right?  Maybe call it a 2dcs filter.
 
+
+2d Codistriubtion Spectroscopy[2] is a more recent development and is also included.
+
 References
 ----------
 
 [1] Scaling techniques to enhance two-dimensional correlation spectra, Isao Noda,
-[2] Journal of Molecular Structure.  2008. Volume: 883-884, Issue: 1-3, Pages: 216-227 
+    Journal of Molecular Structure.  2008. Volume: 883-884, Issue: 1-3, (216-227) 
+[2] Isao Nodal. Journal of Molectul Structure. 2014.  Two-dimensional codistriubtion spectroscopy to
+    determine the sequential order of distributed presence of species.  1069. 2014 (50-59)
 
-'''
+"""
 
 #Copy these to notebooks?
+
+from __future__ import division
 
 import logging
 import pandas
@@ -257,6 +264,21 @@ class Corr2d(object):
                 self._centered = True
             else:
                 self._centered = str(centered)  #User can say "max centered"
+                
+
+    def noda_matrix(length):
+        ''' Length is the number of timepoints/columns in the dataframe. 
+           Returns the hilbert noda Transformation matrix.'''
+    
+        # XXX: how to vectorize?
+        Njk = np.empty( (length,length))
+        for j in range(length):
+            for k in range(length):
+                if j==k:
+                    Njk[j,k]=0
+                else:
+                    Njk[j, k]=1.0 /  ( pi * (k-j)  )  #DOUBLE CHECK j-i with old verison.    
+        return Njk
 
 
     @property
@@ -297,6 +319,12 @@ class Corr2d(object):
 
         self.alpha = kwargs.pop('alpha', self.alpha)
         self.beta = kwargs.pop('beta', self.beta)
+        
+    @property
+    def mean_spectrum(self):
+        """ What is subtracted from data to make dynamic spectrum."""
+        # Used again in codist so have as an attribute
+        return self.data.mean(axis=1)
 
 
     def center(self, style='mean'):  #Just call mean centered?
@@ -309,15 +337,18 @@ class Corr2d(object):
                     #In case user sets centered ot 'max' or something in __init__
         else:
             if style == 'mean':
-                # Alternate way, pandas dependent
-                # self.data = self.data.subtract(self.data.mean(axis=1), axis=0)
+                # Pandas way but broken in pyuvvis!
+#                self.data = self.data.subtract(self.data.mean(axis=1), axis=0)
                 data_trans = self.data.transpose()
-                self.data = (data_trans - data_trans.mean()).transpose()
+                self.data = (data_trans - self.mean_spectrum).transpose()
                 self._centered = True
             else:
                 raise NotImplementedError('mean centering only supported')
 
 
+    @property
+    def shape(self):
+        return self.data.shape     
 
     # Numpy Arrays
     # ------------
@@ -373,7 +404,8 @@ class Corr2d(object):
         return np.conj(self.data).transpose()
 
 
-    # Correlation Spectra Objects
+    # 2D Correlation Spectra
+    # ----------------------
     @property
     def synchronous(self):
         """ """
@@ -386,7 +418,7 @@ class Corr2d(object):
 
         return Spec2d(matrixout, 
                       corr2d = self,
-                      name='Synchronous Spectrum',
+                      name='Synchronous Correlation',
                       iunit='synchronicity')   
 
     @property
@@ -400,7 +432,7 @@ class Corr2d(object):
 
         return Spec2d(matrixout, 
                       corr2d = self,
-                      name='Asynchronous Spectrum',
+                      name='Asynchronous Correlation',
                       iunit='asynchronicity')   
 
     @property
@@ -417,7 +449,7 @@ class Corr2d(object):
         """ 2D Correlation Spectrum"""
         return Spec2d(self.coeff_corr, 
                       corr2d = self,
-                      name = 'Correlation Spectrum',
+                      name = 'Correlation Coefficient',
                       iunit='corr. coefficient')                
 
     @property
@@ -425,13 +457,32 @@ class Corr2d(object):
         """ 2D Disrelation Spectrum"""
         return Spec2d(self.coeff_disr,
                       corr2d = self,
-                      name = 'Disrelation Spectrum',
+                      name = 'Disrelation Coefficient',
                       iunit='disr. coefficient')   
 
 
+    # 2DCodistribution Spectroscopy
+    # -----------------------------
     @property
-    def shape(self):
-        return self.data.shape          
+    def index_char(self):
+        """ Characteristic index.  In Ref. [2], this is the 
+        characteristic time, and is equation 6.
+        
+        Returns: Spectrum of length equivalent to spectral index.
+        """
+        m = self.data.shape[1]
+        coeff = 1.0 / (m * self.mean_spectrum)
+        
+        summation = 0 
+        k_matrix = np.empty(self.shape[1])
+        for k in range(1, m+1): #m+1 to include m in sum
+            k_matrix.fill(k) # in place
+            # same as k_matrix dot data.transpose()
+            summation += np.dot(self.data, k_matrix) + ((m+1) / 2)
+        print A_bar, 'ABAR COEFF'
+        return coeff * summation
+            
+        
 
 
     def _pcagate(self, attr):
@@ -553,33 +604,20 @@ class Corr2d(object):
         return outstring
 
 
-def noda_matrix(length):
-    ''' Length is the number of timepoints/columns in the dataframe. 
-       Returns the hilbert noda Transformation matrix.'''
-
-    # XXX: how to vectorize?
-    Njk = np.empty( (length,length))
-    for j in range(length):
-        for k in range(length):
-            if j==k:
-                Njk[j,k]=0
-            else:
-                Njk[j, k]=1.0 /  ( pi * (k-j)  )  #DOUBLE CHECK j-i with old verison.    
-    return Njk
-
-
 if __name__ == '__main__':
     from pyuvvis.data import aunps_glass, solvent_evap
     import numpy as np
     import matplotlib.pyplot as plt 
 
-#    ts = solvent_evap()#.as_varunit('s').as_iunit('r')
+    ts = solvent_evap()#.as_varunit('s').as_iunit('r')
 #    ts.plot(kind='contour')
-    ts = aunps_glass().as_varunit('s')#.as_varunit('intvl')
+#    ts = aunps_glass().as_varunit('s')#.as_varunit('intvl')
     ts.plot(linewidth=5)
 #    print ts.varunits()
 
     cd = Corr2d(ts)
+    cd.center()
+    cd.index_char
    # cd.scale()
     
 #    print cd.coeff_corr
@@ -592,5 +630,5 @@ if __name__ == '__main__':
 #    s = s.nearby[3250.0:750, 3250:750]
 #    s.plot(grid=True, fill=True, cbar=True)
 #    s.plot(kind='corr3d')
-    s.plot(kind='wire')
-    plt.show()
+#    s.plot(kind='wire')
+#    plt.show()
