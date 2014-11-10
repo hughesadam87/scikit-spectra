@@ -287,13 +287,13 @@ def _gen2d3d(*args, **pltkwargs):
 
 
         # Defaults will be ignored if mesh or ciso in kwargs
-        ciso_default = len(ts.columns)
-        if len(ts.columns) > ciso_default:
-            ciso_default = pvconfig.C_MESH
+        ciso_default = pvconfig.C_MESH
+        if len(ts.columns) < ciso_default:
+            ciso_default = len(ts.columns)
             
-        riso_default = len(ts.index)
-        if len(ts.index) > ciso_default:
-            riso_default = pvconfig.R_MESH        
+        riso_default = pvconfig.R_MESH  
+        if len(ts.index) < riso_default:
+            riso_default = len(ts.index)       
         
         
         c_mesh = pltkwargs.pop('c_mesh', ciso_default)

@@ -1597,7 +1597,7 @@ if __name__ == '__main__':
 #   print s.index
 
 #   s.plot()
-   areaplot(s)
+   s.plot(kind='surf')
    plt.show()
    
 #   plt.show()

@@ -206,7 +206,7 @@ class Spec2d(AnyFrame):
             if 'cmap' not in pltkwargs and 'color' not in pltkwargs and 'colors' not in pltkwargs:
                 pltkwargs['cmap'] = pvconfig.CMAP_CONTOUR
             
-            if ts.index[0] > ts.index[-1]:
+            if self.index[0] > self.index[-1]:
                 pltkwargs['_reverse_axis'] = True
 
 
@@ -550,8 +550,6 @@ class Corr2d(object):
         outstring += '%sUnits     -->  [%s X %s]' % (pad, 
                                                      self.specunit.lower(), 
                                                      self.varunit.lower())
-
-
         return outstring
 
 
@@ -578,6 +576,7 @@ if __name__ == '__main__':
 #    ts = solvent_evap()#.as_varunit('s').as_iunit('r')
 #    ts.plot(kind='contour')
     ts = aunps_glass().as_varunit('s')#.as_varunit('intvl')
+    ts.plot(linewidth=5)
 #    print ts.varunits()
 
     cd = Corr2d(ts)
