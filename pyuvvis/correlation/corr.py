@@ -51,6 +51,21 @@ from pca_lite import PCA
 #from pcakernel import PCA
 
 
+def noda_matrix(length):
+    ''' Length is the number of timepoints/columns in the dataframe. 
+       Returns the hilbert noda Transformation matrix.'''
+
+    # XXX: how to vectorize?
+    Njk = np.empty( (length,length))
+    for j in range(length):
+        for k in range(length):
+            if j==k:
+                Njk[j,k]=0
+            else:
+                Njk[j, k]=1.0 /  ( pi * (k-j)  )  #DOUBLE CHECK j-i with old verison.    
+    return Njk
+
+
 class CorrError(Exception):
     """ """
 class Spec2dError(Exception):
@@ -61,9 +76,9 @@ class Spec2d(AnyFrame):
     Mostly just want to customize headers, and subclasses correspond to various
     corr2D object.  For example, synchronous spectra has spectral data on 
     index and columns.  Therefore, it is represented by Spec2D class.
-    
+
     Also overwrites Spectra.iunit for 3dPlotting purposes.
-    
+
     Will update active/spectral unit based on index/columns, but original
     datarange (like how much time synchronous corresponds to) is stored
     permanently in self._span_string
@@ -73,13 +88,13 @@ class Spec2d(AnyFrame):
         """ Hack over iunits for plotting API sake.  Stores metadata like
         scaling, spectral and variance range of spectra.  *args, **kwargs
         passed to AnyFrame constructor.
-        
+
         kwargs
         ------
 
-       _corr2d: Corr2D object
-       
-       _iunit: ''
+        _corr2d: Corr2D object
+
+        _iunit: ''
            iunit to appear in 3dplots and on contour colorbar
         """
 
@@ -91,27 +106,27 @@ class Spec2d(AnyFrame):
         # INDEX/COLUMNS are SET TO INDEX OF ORIGINAL DATA
         kwargs['index'] = self._corr2d.index
         kwargs['columns'] = self._corr2d.index
-        
-              
+
+
         iunit = kwargs.pop('iunit', '')        
         super(Spec2d, self).__init__(*args, **kwargs)
         self._itype = iunit
-        
+
 
     @property
     def _span_string(self):
         """ Format span of the original data columns (used in header)"""
-        cols = self._corr2d.data.columns
-        
+        cols = self._corr2d.columns
+
         try:
             span = '%.2f - %.2f' % (cols.min(), cols.max())
-            
+
         except TypeError:
             if cols.unit == 'dti': #hack
                 span = '%s - %s' % (
                     str(cols.min()).split()[1], #Cut out year
                     str(cols.max()).split()[1]
-                   )
+                )
 
             # Interval or otherwise unkown
             else:
@@ -130,12 +145,12 @@ class Spec2d(AnyFrame):
     @property
     def full_iunit(self):
         return self._itype
-  
+
     @iunit.setter
     def iunit(self, unit):     
         self._itype = unit 
-        
-        
+
+
     # Header/output
     # -------------
     @property
@@ -169,10 +184,10 @@ class Spec2d(AnyFrame):
         if self.ndim > 1:
             s1, s2 = self.shape            
             colorshape = '<font color="#0000CD">(%s%s X %s%s)</font>' % (
-                                                              s1,
-                                                              spunit,
-                                                              s2,
-                                                              ftunit)
+                s1,
+                spunit,
+                s2,
+                ftunit)
 
         #If user turns 2D Corr into a 1D spectrum (which they shouldn't...)
         else:
@@ -180,7 +195,7 @@ class Spec2d(AnyFrame):
 
         # Green        
         scale_string = 'Scaling: <font color="#197519">%s</font>' % self._corr2d._scale_string
-        
+
         # Black 
         span_string = 'Span:  <font color="#000000">%s</font>' % self._span_string
 
@@ -194,8 +209,8 @@ class Spec2d(AnyFrame):
              )   
 
         return header
-    
-    
+
+
     def plot(self, kind='corr2d', **pltkwargs):
         """ """
 
@@ -204,15 +219,15 @@ class Spec2d(AnyFrame):
         # Default to specplot
         if kind not in ['corr2d', 'corr3d']:
             return super(Spec2d, self).plot(kind=kind, **pltkwargs)
-                
+
         pltkwargs.setdefault('xlabel', self.specunit)
         pltkwargs.setdefault('ylabel', self.specunit)         
-        
+
         if kind == 'corr2d':
             # If user sets color/cmap, will overwrite
             if 'cmap' not in pltkwargs and 'color' not in pltkwargs and 'colors' not in pltkwargs:
                 pltkwargs['cmap'] = pvconfig.CMAP_CONTOUR
-            
+
             if self.index[0] > self.index[-1]:
                 pltkwargs['_reverse_axis'] = True
 
@@ -221,8 +236,8 @@ class Spec2d(AnyFrame):
 
         elif kind == 'corr3d':
             return corr3d(self, **pltkwargs)
-     
-    
+
+
 
 
 # Keep this independt of TS; just numpy then more flexible
@@ -233,24 +248,24 @@ class Corr2d(object):
     a mandatory requirement."""
 
     # Columns aren't used; should I eliminate
-    def __init__(self, data, centered=False, numpyreturn=False):
+    def __init__(self, spec):
         """  """
-        if data.ndim != 2:
+        if spec.ndim != 2:
             raise CorrError('Data must be 2d!')
 
-        if not isinstance(data, MetaDataFrame):
+        if not isinstance(spec, MetaDataFrame):
             raise CorrError('Corr2d requires pyuvvis data structures (Metadataframe,'
                             'Spectra, etc... got %s') % type(data)
 
 
         # MAKE AN ACTUAL COPY OF DATA, NOT PASSING BY REFERENCE
-        self.data = data.deepcopy()
+        self.spec = spec.deepcopy()
 
 
-        self.index = data.index   #Relax these maybe and just hide some sideplots...
-        self.columns = data.columns
-        self.specunit = data.specunit
-        self.varunit = data.varunit
+        self.index = spec.index   #Relax these maybe and just hide some sideplots...
+        self.columns = spec.columns
+        self.specunit = spec.specunit
+        self.varunit = spec.varunit
 
         # Defaults
         self._scaled = False
@@ -258,28 +273,14 @@ class Corr2d(object):
         self.beta = 0.0
         self._PCA = None
 
-        self._centered = False
-        if centered:
-            if centered == True:
-                self._centered = True
-            else:
-                self._centered = str(centered)  #User can say "max centered"
-                
+        # Sets ref spectrum/dynamic spectrum so forth
+        self.set_center('mean')
 
-    def noda_matrix(length):
-        ''' Length is the number of timepoints/columns in the dataframe. 
-           Returns the hilbert noda Transformation matrix.'''
-    
-        # XXX: how to vectorize?
-        Njk = np.empty( (length,length))
-        for j in range(length):
-            for k in range(length):
-                if j==k:
-                    Njk[j,k]=0
-                else:
-                    Njk[j, k]=1.0 /  ( pi * (k-j)  )  #DOUBLE CHECK j-i with old verison.    
-        return Njk
+        # Better to store than compute as a property over and over
+        self._noda = noda_matrix(self.M)
 
+    # Scaling and Centering
+    # ---------------------
 
     @property
     def _scale_string(self):
@@ -287,7 +288,6 @@ class Corr2d(object):
         if self._scaled:
             return '(a=%s, b=%s)' % (self.alpha, self.beta)
         return 'False'
-
 
 
     def scale(self, *args, **kwargs):
@@ -319,36 +319,56 @@ class Corr2d(object):
 
         self.alpha = kwargs.pop('alpha', self.alpha)
         self.beta = kwargs.pop('beta', self.beta)
-        
+        if self.alpha > 1 or self.beta > 1:
+            logger.warn('Alpha/Beta lose meaning off of range 0-1.')
+
+
     @property
-    def mean_spectrum(self):
-        """ What is subtracted from data to make dynamic spectrum."""
-        # Used again in codist so have as an attribute
-        return self.data.mean(axis=1)
+    def center(self):
+        return self._center
+
+    def set_center(self, style, *args, **kwargs):
+        """ User sets centering, this updates the  """
+
+        try:
+
+            if not style:
+                self._center = None
+                # Instead of np.zeros, I will just multiply 0 times my ref spec
+                # To get spectrum of 0's
+                self.ref_spectrum = self.spec.mean(axis=1) * 0.0  
+
+            elif style == 'mean':
+                self._center = 'mean'
+                self.ref_spectrum = self.spec.mean(axis=1)
+
+            # style is understood as a function, but not inspected
+            else:            
+                self._center = 'custom fcn.'           
+                self.ref_spectrum = style(self.spec, *args, **kwargs)
+
+        except Exception:
+
+            raise CorrError('Center requires style of "mean", None or a '
+                            ' a function, got "%s".' % style)
 
 
-    def center(self, style='mean'):  #Just call mean centered?
-        """ Mean centers data.  Mean centering is defined columnwise, and while
-        this can be down by a call to dataframe.subtract(x.mean(axis=1), axis=0),
-        that requries a pandas dataframe method.  Instead, we transpose the data,
-        subtract the mean, then transpose again. (confirmed equivalent)"""
-        if self._centered:
-            logger.warn('Data is already centered.') #Better than a warning I think
-                    #In case user sets centered ot 'max' or something in __init__
-        else:
-            if style == 'mean':
-                # Pandas way but broken in pyuvvis!
-#                self.data = self.data.subtract(self.data.mean(axis=1), axis=0)
-                data_trans = self.data.transpose()
-                self.data = (data_trans - self.mean_spectrum).transpose()
-                self._centered = True
-            else:
-                raise NotImplementedError('mean centering only supported')
+        if len(self.ref_spectrum) != self.shape[0]:
+            raise CorrError('ref. spectrum should be of spectral length (%s)'
+                            ' got "%s".' % (self.shape[0], len(self.ref_spectrum)))
 
+        # Set dynamic spectrum.  Should just be able to subtract but numpy messing up
+        data_trans = self.spec.transpose()
+        self.dyn_spec = (data_trans - self.ref_spectrum).transpose()
+    
 
     @property
     def shape(self):
-        return self.data.shape     
+        return self.spec.shape     
+
+    @property
+    def M(self):
+        return self.shape[1]
 
     # Numpy Arrays
     # ------------
@@ -356,52 +376,50 @@ class Corr2d(object):
     @property
     def synchronous_noscale(self):
         """ Return unscaled, synchronous spectrum as a numpy array. """
-        m = self.data.shape[1]  # columns        
-        return np.dot(self.data, self._dynconjtranspose) / (m - 1.0)  #ORDER OF OPERATIONS DEPENDENT (aka np.dot(t_dyn, dyn) doesn't work)
+        return np.dot(self.dyn_spec, self._dynconjtranspose) / (self.M - 1.0)  #ORDER OF OPERATIONS DEPENDENT (aka np.dot(t_dyn, dyn) doesn't work)
 
 
     @property
     def asynchronous_noscale(self):
         """ """
-        m = self.data.shape[1]  # columns                
-        return np.dot(self.data, np.dot(self._noda, self._dynconjtranspose) ) / (m-1.0)
+        return np.dot(self.dyn_spec, np.dot(self._noda, self._dynconjtranspose) ) / (self.M-1.0)
 
 
     @property
     def coeff_corr(self):
         """ Correlation coefficient (pg 78) """   
-        return np.divide(self.synchronous_noscale, self.std) 
+        return np.divide(self.synchronous_noscale, self.joint_var) 
 
 
     @property
     def coeff_disr(self):
         """ Disrelation coefficient (pg 79) """
         # Not the same as np.sqrt( 1 - coef_corr**2), only same in magnitude!
-        return np.divide(self.asynchronous_noscale, self.std)
-
-    #If std/var aren't arrays, will get issues in computations like async/sync
-    @property
-    def std(self):
-        """ Standard devation along axis=1 as numpy array"""
-        return self.data.std(axis=1).values
+        return np.divide(self.asynchronous_noscale, self.joint_var)
 
     @property
-    def var(self):
-        """ Variance along axis=1 as numpy array"""
-        return self.data.var(axis=1).values
-
-
-    @property
-    def _noda(self):
-        """ Store noda matrix of data; depends of number of columns in 
-        data.
+    def joint_var(self):
+        """ Product of standard devations of dynamic spectrum. 
+        s1 * s2 or sqrt(siag(sync*sync)).
         """
-        return noda_matrix(self.shape[1])
+        std = self.dyn_spec.std(axis=1) #sigma(lambda)
+        return np.outer(std, std)
+        #return Spec2d(np.outer(std, std),
+                      #corr2d = self,
+                      #name='Joint Variance',
+                      #iunit='variance')
+
+
+    # 11/10/14
+    # I confirmed that these are equivalent to book definitions from 
+    # diagonals of synchronous spectrum!  IE std = sqrt(diag(sync*sync))
+    # and var = diag(sync * sync)
+    # std is actually > var cuz var <1 so sqrt makes larger
 
     @property
     def _dynconjtranspose(self):
         """ Dynamic spectrum conjugate transpose; helpful to be cached"""
-        return np.conj(self.data).transpose()
+        return np.conj(self.dyn_spec).transpose()
 
 
     # 2D Correlation Spectra
@@ -410,7 +428,7 @@ class Corr2d(object):
     def synchronous(self):
         """ """
         if self._scaled:
-            matrixout = self.synchronous_noscale * self.var**(-1.0 * self.alpha) * \
+            matrixout = self.synchronous_noscale * self.joint_var**(-1.0 * self.alpha) * \
                 abs(self.coeff_corr)**(self.beta)
                     # ** faster than np.power but abs and np.abs same        
         else:
@@ -425,7 +443,7 @@ class Corr2d(object):
     def asynchronous(self):
         """ """     
         if self._scaled:
-            matrixout = self.asynchronous_noscale * self.var**(-1.0 * self.alpha) * \
+            matrixout = self.asynchronous_noscale * self.joint_var**(-1.0 * self.alpha) * \
                 abs(self.coeff_disr)**(self.beta)
         else:
             matrixout = self.asynchronous_noscale
@@ -464,25 +482,86 @@ class Corr2d(object):
     # 2DCodistribution Spectroscopy
     # -----------------------------
     @property
-    def index_char(self):
+    def char_index(self):
         """ Characteristic index.  In Ref. [2], this is the 
         characteristic time, and is equation 6.
-        
+
         Returns: Spectrum of length equivalent to spectral index.
         """
-        m = self.data.shape[1]
-        coeff = 1.0 / (m * self.mean_spectrum)
-        
+        m = self.M
+        if self._center is None:
+            raise CorrError('CoDistribution requires divions ref spectrum.  If'
+                            ' not centring, the ref spec is 0 and you get infinities!')
+        coeff = 1.0 / (m * self.ref_spectrum)
+
         summation = 0 
-        k_matrix = np.empty(self.shape[1])
+        k_matrix = np.empty(m)
         for k in range(1, m+1): #m+1 to include m in sum
             k_matrix.fill(k) # in place
-            # same as k_matrix dot data.transpose()
-            summation += np.dot(self.data, k_matrix) + ((m+1) / 2)
-        print A_bar, 'ABAR COEFF'
+            # df.mul is same as dotting:
+                #http://stackoverflow.com/questions/15753916/dot-products-in-pandas
+            summation += self.dyn_spec.dot(k_matrix) + ((m+1) / 2)
         return coeff * summation
-            
+
+    @property
+    def char_perturb(self):
+        """ Characteristic index.  In Ref. [2], this is the 
+        characteristic time, and is equation 6.
+
+        Returns: Spectrum of length equivalent to spectral index.
+        """
+        tm, t1 = self.columns[-1], self.columns[0]
+        Kj = self.char_index
         
+        return ((tm-t1) * ((Kj-1) / (self.M -1))) + t1
+
+
+    # TO	VECTORIZE:
+    
+    @property
+    def async_codist(self):
+        """ Asynchronous codistribution """
+        
+        # Empty asyn matrix
+        numrows = self.shape[0]        
+        async = np.empty((numrows,numrows))
+
+        tm, t1 = self.columns[-1], self.columns[0]
+        
+        # Numpy arrays to speed up loop/indexer?
+        tbar = self.char_perturb.values
+        var = self.joint_var
+        
+        # broadcast this?
+        for i in range(numrows):
+            for j in range(numrows):
+                coeff = (tbar[j] - tbar[i]) / (tm -t1)
+                # I believe std[i] std[j] is correct way
+                async[i][j] = coeff * var[i,j]
+
+        return Spec2d(async, 
+                      corr2d=self, 
+                      name='Asynchronous Codistribution', 
+                      iunit='asynchronicity')
+    
+    @property
+    def sync_codist(self):
+        """ Syncrhonous codistribution.  Computed from asyn_codist"""
+        numrows = self.shape[0]                    
+
+        # Numpy arrays to speed up calculation
+        var = self.joint_var
+        async_cod = self.async_codist.values
+        
+        sync = np.empty((numrows,numrows))
+        for i in range(numrows):
+            for j in range(numrows):
+                sync[i][j] = np.sqrt(var[i,j]**2 - async_cod[i,j]**2 )
+                 
+        return Spec2d(sync, 
+                      corr2d=self, 
+                      name='Synchronous Codistribution', 
+                      iunit='synchronicity')
 
 
     def _pcagate(self, attr):
@@ -528,14 +607,16 @@ class Corr2d(object):
         Changes to timespectra do not retrigger PCA refresh.  This 
         method should be called each time changes are made to the data.
         """
-        if self._centered != True:
+        
+        # NOW USES DYNSPEC BUT DID NOT TEST BEFORE CHANGING
+        if self.center:
             logger.warn('Builtin PCA will perform mean-centering on'
                         ' data.  Data is not mean centered yet.')
         self._PCA = PCA(n_components=n_components)                
         if fit_transform:
-            return self._PCA.fit_transform(self.data)#.transpose())
+            return self._PCA.fit_transform(self.dyn_spec)#.transpose())
         else:    
-            self._PCA.fit(self.data)#.transpose())
+            self._PCA.fit(self.dyn_spec)#.transpose())
 
 
     @property
@@ -590,7 +671,7 @@ class Corr2d(object):
     #     outstring += '%sUnits -->  %s X %s\n' % (pad, self.specunit.lower(), self.varunit.lower())
 
         #Centering
-        outstring += '%sCentering -->  %s\n' % (pad, self._centered)
+        outstring += '%sCentering -->  %s\n' % (pad, self.center)
 
         #Scaling
         if self._scaled:
@@ -605,30 +686,32 @@ class Corr2d(object):
 
 
 if __name__ == '__main__':
-    from pyuvvis.data import aunps_glass, solvent_evap
+    from pyuvvis.data import aunps_glass, solvent_evap, aunps_water
     import numpy as np
     import matplotlib.pyplot as plt 
 
+#    ts=aunps_water().as_varunit('s')
     ts = solvent_evap()#.as_varunit('s').as_iunit('r')
-#    ts.plot(kind='contour')
-#    ts = aunps_glass().as_varunit('s')#.as_varunit('intvl')
-    ts.plot(linewidth=5)
-#    print ts.varunits()
 
     cd = Corr2d(ts)
-    cd.center()
-    cd.index_char
-   # cd.scale()
+    cd.scale(a=.5, b=.5)
     
-#    print cd.coeff_corr
-#    print cd.asynchronous
-   # cd.center()
-#    cd.plot()
-#    cd.plot('async')
+    cd.synchronous
+    cd.asynchronous_noscale
+    cd.async_codist.plot()
 
-    s = cd.synchronous
-#    s = s.nearby[3250.0:750, 3250:750]
-#    s.plot(grid=True, fill=True, cbar=True)
-#    s.plot(kind='corr3d')
-#    s.plot(kind='wire')
-#    plt.show()
+    plt.show()
+
+
+    # WHY THE FUCK ARE THESE NANS!!!!
+#    print (cd.async_codist.values**2 + cd.sync_codist.values**2) - cd.joint_std.values**2
+
+    # Individually these aren't nans but hwhen I add themm they are
+#    print cd.async_codist.values**2 + cd.sync_codist.values**2
+
+    # this is fine
+#    print cd.joint_std.values**2 - cd.joint_std.values**2
+
+    # Adding is fine for async BUT NOT IN SYNC PROBLEM IS IN SYNC!!!
+    # PROLLY CUZ SQRT BEING CALLED ON NEGATIVE NUBERS?
+#    print cd.sync_codist.values**2 + cd.sync_codist.values**2
