@@ -45,8 +45,10 @@ def quad_plot(ts, *plotargs, **plotkwds):
 
     title = plotkwds.pop('title', '')
     tight_layout = plotkwds.pop('tight_layout', False)
+    figsize = pltkwargs.pop('figsize', (8,8))
 
-    f, axes = put.splot(2,2, fig=True, figsize=(8,8))
+
+    f, axes = put.splot(2,2, fig=True, figsize=figsize)
     f.suptitle(title, fontsize=20)
     if tight_layout:
         f.tight_layout()
@@ -134,8 +136,9 @@ def six_plot(ts, *plotargs, **plotkwds):
 
     title = plotkwds.pop('title', '')
     tight_layout = plotkwds.pop('tight_layout', False)
-
-    f, axes = put.splot(3,2, fig=True, figsize=(10,8))
+    figsize = pltkwargs.pop('figsize', (10,8))
+    
+    f, axes = put.splot(3,2, fig=True, figsize=figsize)
     f.suptitle(title, fontsize=20)
     if tight_layout:
         f.tight_layout()

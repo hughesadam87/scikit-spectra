@@ -1,1 +1,1 @@
-from pyuvvis.correlation.corr import Corr2d
+from pyuvvis.correlation.corr import Corr2d, Spec2d

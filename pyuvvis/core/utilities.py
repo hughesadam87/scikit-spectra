@@ -119,8 +119,9 @@ def divby(df, divisor=0, axis=0, sameshape=True):
             
 
 def boxcar(df, binwidth, axis=0):
-    ''' Only works on boxcar for now.  Also, want binwidth and/or binnumber to be inputs but not both. '''
-    if axis==0:
+    ''' Only works on boxcar for now.  Also, want binwidth and/or binnumber
+    to be inputs but not both. '''
+    if axis==1:
         binnumber=len(df.columns)/binwidth    
         counts, binarray=np.histogram(df.columns, bins=binnumber)
         digiarray=np.digitize(np.asarray(df.columns, dtype=float), binarray)          
@@ -128,7 +129,7 @@ def boxcar(df, binwidth, axis=0):
         dfout=df.groupby(mapped_series, axis=1).mean()
         dfout.columns=binarray
     
-    elif axis==1:
+    elif axis==0:
         binnumber=len(df.index)/binwidth  #Converted to int when np.histogram called
         counts, binarray=np.histogram(df.index, bins=binnumber)
         digiarray=np.digitize(np.asarray(df.index, dtype=float), binarray)    

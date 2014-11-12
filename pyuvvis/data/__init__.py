@@ -3,11 +3,13 @@
     # https://github.com/scikit-image/scikit-image
 
 import os.path as op
-from pyuvvis import data_dir, TimeSpectra
+from pyuvvis import data_dir, TimeSpectra, Spectra
+from pyuvvis.core.specindex import SpecIndex
+from pyuvvis.units import Unit
 from pyuvvis.pandas_utils.dataframeserial import df_load
 from pandas import read_csv
 
-__all__ = ['aunps_glass', 'aunps_water', 'solvent_evap']
+__all__ = ['aunps_glass', 'aunps_water', 'solvent_evap', 'triple_peaks']
 
 class DataError(Exception):
     """ """
@@ -58,6 +60,30 @@ def _load_gwuspec(filepath, *args, **kwargs):
     # Baselines removed apriori with dynamic_baseline
     return ts
 
+
+def trip_peaks(*args, **kwargs):
+    """ Sample data packaged from 2d Shiege:
+        (http://sci-tech.ksc.kwansei.ac.jp/~ozaki/2D-shige.htm)
+    Data depicts three changing peaks.  Perturbation units is genera
+    """
+    
+    filepath = op.join(data_dir, 'triple_peaks.csv')
+    trips = Spectra.from_csv(filepath,
+                             header=None, #Just use intindex, overwrite anyway
+                             name='Three Peaks',
+                             index_col=0,
+                             skiprows=1)   
+    trips.reference = 0
+   
+    # Hack because can't do floating point on SpecIndex (should change csv file)
+    trips.index = SpecIndex(trips.index+50, unit='ev')
+    # Generalized perturbation Unit, making it up
+    trips.varunit = Unit(short='pz', full='Polarization', symbol=r'\phi')
+    
+    return trips
+    
+
+
 def solvent_evap(*args, **kwargs):
     """ Model solvent evaporation dataset graciously shared by Dr. Isao Noda;
     used in his 2004 book Two-Dimensional Correlation Spectroscopy.  From 
@@ -98,12 +124,7 @@ def solvent_evap(*args, **kwargs):
 
 #    kwargs.setdefault('dtype', 'float64') #For parser (data not labels)
 
-    ts = load_ts('pskdt.csv', *args, **kwargs)
-
-    # THIS IS HOW YOU FORCE AN INTERVAL
-    # THIS SHOULD BE EASIER!!!
-    ts._interval=True
-    ts._intervalunit = 'm'    
+    ts = load_ts('pskdt.csv', *args, **kwargs)    
     return ts
 
 

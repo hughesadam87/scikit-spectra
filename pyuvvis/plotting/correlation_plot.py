@@ -5,9 +5,13 @@ import matplotlib.pyplot as plt
 import pyuvvis.plotting.plot_utils as pvutil
 import matplotlib.colorbar as mplcbar
 import matplotlib.ticker as mplticker
+from mpl_toolkits.mplot3d import Axes3D, axes3d, art3d #Need Axes3d for 3d projection!
 
 
 import numpy as np
+
+class CorrPlotError(Exception):
+    """ """
 
 def _corr2d4fig(spec, a1_label=r'$\bar{A}(\nu_1)$', 
                a2_label=r'$\bar{A}(\nu_2)$', **contourkwds): 
@@ -152,8 +156,7 @@ def corr2d(spec, sideplots='mean', **pltkwargs):
         # Should be identical!
         symbol1 = spec.index._unit.symbol
         symbol2 = spec.columns._unit.symbol
-        
-        
+                
         if spec._corr2d.center is not None:
             label1 = r'$\bar{A}(%s_1)$' % symbol1
             label2 = r'$\bar{A}(%s_2)$' % symbol2
@@ -190,7 +193,7 @@ def corr2d(spec, sideplots='mean', **pltkwargs):
             pass
 
         else:
-            raise Corr2d('sideplots keyword must be "mean", "max", "min",'
+            raise CorrPlotError('sideplots keyword must be "mean", "max", "min",'
                          ' "all", or "empty".')
 
         if top is not None:
@@ -228,7 +231,7 @@ def corr2d(spec, sideplots='mean', **pltkwargs):
     else:
         # If no sideplots, can allow for 3d plots
         pltkwargs.setdefault('kind', 'contour')
-        ax = _gen2d3d(spec, **pltkwargs)[0] #return axes, not contours
+        ax = pltkwargs.pop('ax', _gen2d3d(spec, **pltkwargs)[0]) #return axes, not contours
         if _reverse_axis:
             ax.set_ylim(ax.get_ylim()[::-1]) 
             ax.set_xlim(ax.get_xlim()[::-1]) 
@@ -236,7 +239,11 @@ def corr2d(spec, sideplots='mean', **pltkwargs):
 
     
 def corr3d(spec, projection='xy', **pltkwargs):
-    """ pltkwargs are passed to wire plot, not contour plot! """
+    """ pltkwargs are passed to wire plot.  Special keyword 'contourkwargs'
+    can pass arguments directly to contour plot.
+    """
+
+    contourkwargs = pltkwargs.pop('contourkwargs', {})
 
     # Like this view better
     pltkwargs.setdefault('elev', 45)
@@ -246,6 +253,57 @@ def corr3d(spec, projection='xy', **pltkwargs):
 
     # if fill, will will draw over 3d (bug)
     if projection:
-        ax = add_projection(spec, ax=ax, plane=projection) #DO NOT PASS PLTKWARGS
+        # Pass contourkwargs, not plotkwards
+        ax = add_projection(spec, ax=ax, plane=projection, **contourkwargs) 
     
     return ax
+
+
+# How to mix multiplot:
+#http://matplotlib.org/examples/mplot3d/mixed_subplots_demo.html
+def corr_multi(corr2d, **pltkwargs):
+    """ """
+    
+    # Boilerplate multiplot
+    title = pltkwargs.pop('title', '')
+    grid = pltkwargs.pop('grid', True)
+    tight_layout = pltkwargs.pop('tight_layout', False)
+    figsize = pltkwargs.pop('figsize', (8,8))
+
+    f, (ax1, ax2, ax3, ax4) = pvutil.splot(2,2, fig=True, figsize=figsize)
+    f.suptitle(title, fontsize=20)
+    if tight_layout:
+        f.tight_layout()
+        
+    if 'cbar' in pltkwargs:
+        raise NotImplementedError('Colorbar not supported.')
+        
+    #Set some contour kwds and call update from pltkwargs!    
+ 
+    pltkwargs['sideplots'] = None #Necessary
+    pltkwargs['kind'] = 'corr2d'
+
+    ax1 = corr2d.sync.plot(ax=ax1, 
+                           title=r'Sync Correlation ($\Phi$)',
+                           **pltkwargs)    
+
+    ax2 = corr2d.async.plot(ax=ax2,
+                            title='Async Correlation. ($\Psi$)',
+                            **pltkwargs)
+
+    ax3 = corr2d.sync_codist.plot(ax=ax3, 
+                                  title='Sync Codistribution ($??$)',
+                                  **pltkwargs)
+
+    ax4 = corr2d.async_codist.plot(ax=ax4,
+                                   title='Async Codistribution. ($??$)', 
+                                   **pltkwargs)
+
+    # Doesn't hide gr
+    for ax in (ax1, ax2, ax3, ax4):
+        if grid:
+            pvutil.hide_axis(ax, axis='both', axislabel=True, ticklabels=True)
+        else:
+            pvutil.hide_axis(ax, axis='both', hide_everything = True)    
+    return (ax1, ax2, ax3, ax4)
+    

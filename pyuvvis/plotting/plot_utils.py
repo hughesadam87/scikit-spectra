@@ -61,6 +61,7 @@ def multi_axes(count, **kwargs):
     return fig, fig.axes, kwargs
 
 
+
 def _parse_names(names, default_names):
     """ Boilerplate: user enters *names to overwrite X default names.  
     For example, if user enters 2 names but 5 unique labels in an image 

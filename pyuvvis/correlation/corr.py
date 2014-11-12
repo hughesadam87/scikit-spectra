@@ -43,7 +43,7 @@ from math import pi
 import numpy as np
 
 from pyuvvis.core.anyspectra import AnyFrame 
-from pyuvvis.plotting.correlation_plot import corr2d, corr3d
+from pyuvvis.plotting.correlation_plot import corr2d, corr3d, corr_multi
 import pyuvvis.config as pvconfig
 import pyuvvis.core.utilities as pvutils
 from pyuvvis.pandas_utils.metadframe import MetaDataFrame
@@ -68,6 +68,7 @@ def noda_matrix(length):
 
 class CorrError(Exception):
     """ """
+    
 class Spec2dError(Exception):
     """ """
 
@@ -103,6 +104,9 @@ class Spec2d(AnyFrame):
         # (passed by reference)!
         self._corr2d = kwargs.pop('corr2d')
 
+        #self._scalestring = kwargs.pop('scalestring', '??')
+        #self._originadataindex
+
         # INDEX/COLUMNS are SET TO INDEX OF ORIGINAL DATA
         kwargs['index'] = self._corr2d.index
         kwargs['columns'] = self._corr2d.index
@@ -112,6 +116,12 @@ class Spec2d(AnyFrame):
         super(Spec2d, self).__init__(*args, **kwargs)
         self._itype = iunit
 
+
+    @classmethod
+    def from_corr2d(cls, corr2d):
+        return cls(scale_string=corr2d.scalestring, 
+                   originaldatindex=corr2d.index)
+        
 
     @property
     def _span_string(self):
@@ -248,8 +258,8 @@ class Corr2d(object):
     a mandatory requirement."""
 
     # Columns aren't used; should I eliminate
-    def __init__(self, spec):
-        """  """
+    def __init__(self, spec, refspec=None):
+        """ refspec is if you want custom centering.  """
         if spec.ndim != 2:
             raise CorrError('Data must be 2d!')
 
@@ -267,17 +277,36 @@ class Corr2d(object):
         self.specunit = spec.specunit
         self.varunit = spec.varunit
 
+        # Better to store than compute as a property over and over
+        self._noda = noda_matrix(self.M)
+
         # Defaults
         self._scaled = False
         self.alpha = 0.8
         self.beta = 0.0
         self._PCA = None
 
-        # Sets ref spectrum/dynamic spectrum so forth
-        self.set_center('mean')
+        # Ref spectrum/dynamic spectrum/centering
+        if refspec is not None:
+            # QUICKEST VAILDATION OF REF_SPEC (WHY CLASS NOT WORKING WIT NP.NDARRAY)
+            
+            #INSTEAD OF TYPE CHECK, JUST FORCE CONVERT BY DOING array(REFSPEC)
+            refspec = np.array(refspec)
+            if refspec.shape != self.index.shape:
+                raise CorrError('Shape mismatch: spectral data index %s and'
+                                ' reference spec shape %.' % \
+                                (self.index.shape, refspec.shape))
 
-        # Better to store than compute as a property over and over
-        self._noda = noda_matrix(self.M)
+            self.ref_spectrum = refspec           
+            self._center = 'Pre-centered'
+            
+            # MAKE SUBTRACTING A METHOD SO CAN JUST CALL HERE LIKE SUBTRACT()
+#            self.dyn_spec = self.spec -
+            
+
+        else:
+            self.set_center('mean')
+
 
     # Scaling and Centering
     # ---------------------
@@ -334,9 +363,9 @@ class Corr2d(object):
 
             if not style:
                 self._center = None
-                # Instead of np.zeros, I will just multiply 0 times my ref spec
+                # Instead of np.zeros, I will just multiply 0 times a column
                 # To get spectrum of 0's
-                self.ref_spectrum = self.spec.mean(axis=1) * 0.0  
+                self.ref_spectrum = self.spec[0] * 0.0  
 
             elif style == 'mean':
                 self._center = 'mean'
@@ -374,13 +403,13 @@ class Corr2d(object):
     # ------------
 
     @property
-    def synchronous_noscale(self):
+    def sync_noscale(self):
         """ Return unscaled, synchronous spectrum as a numpy array. """
         return np.dot(self.dyn_spec, self._dynconjtranspose) / (self.M - 1.0)  #ORDER OF OPERATIONS DEPENDENT (aka np.dot(t_dyn, dyn) doesn't work)
 
 
     @property
-    def asynchronous_noscale(self):
+    def async_noscale(self):
         """ """
         return np.dot(self.dyn_spec, np.dot(self._noda, self._dynconjtranspose) ) / (self.M-1.0)
 
@@ -388,14 +417,14 @@ class Corr2d(object):
     @property
     def coeff_corr(self):
         """ Correlation coefficient (pg 78) """   
-        return np.divide(self.synchronous_noscale, self.joint_var) 
+        return np.divide(self.sync_noscale, self.joint_var) 
 
 
     @property
     def coeff_disr(self):
         """ Disrelation coefficient (pg 79) """
         # Not the same as np.sqrt( 1 - coef_corr**2), only same in magnitude!
-        return np.divide(self.asynchronous_noscale, self.joint_var)
+        return np.divide(self.async_noscale, self.joint_var)
 
     @property
     def joint_var(self):
@@ -425,14 +454,14 @@ class Corr2d(object):
     # 2D Correlation Spectra
     # ----------------------
     @property
-    def synchronous(self):
+    def sync(self):
         """ """
         if self._scaled:
-            matrixout = self.synchronous_noscale * self.joint_var**(-1.0 * self.alpha) * \
+            matrixout = self.sync_noscale * self.joint_var**(-1.0 * self.alpha) * \
                 abs(self.coeff_corr)**(self.beta)
                     # ** faster than np.power but abs and np.abs same        
         else:
-            matrixout = self.synchronous_noscale
+            matrixout = self.sync_noscale
 
         return Spec2d(matrixout, 
                       corr2d = self,
@@ -440,13 +469,13 @@ class Corr2d(object):
                       iunit='synchronicity')   
 
     @property
-    def asynchronous(self):
+    def async(self):
         """ """     
         if self._scaled:
-            matrixout = self.asynchronous_noscale * self.joint_var**(-1.0 * self.alpha) * \
+            matrixout = self.async_noscale * self.joint_var**(-1.0 * self.alpha) * \
                 abs(self.coeff_disr)**(self.beta)
         else:
-            matrixout = self.asynchronous_noscale
+            matrixout = self.async_noscale
 
         return Spec2d(matrixout, 
                       corr2d = self,
@@ -456,11 +485,20 @@ class Corr2d(object):
     @property
     def phase(self):
         """ Global phase angle (pg 79).  This will use scaled data."""
-        phase = np.arctan(self.asynchronous/self.synchronous)
+        phase = np.arctan(self.async/self.sync)
         phase.name = 'Phase Map' 
         phase.iunit = 'phase angle'
         return phase    
-
+    
+    
+    @property
+    def modulous(self):
+        """ Effective lengh the vector with components Sync/Async"""
+        modulous = np.sqrt(self.sync**2 + self.async**2)
+        modulous.name = 'Modulous'
+        modulous.iunit = 'mod'
+        return modulous
+        
 
     @property
     def correlation(self):
@@ -489,8 +527,10 @@ class Corr2d(object):
         Returns: Spectrum of length equivalent to spectral index.
         """
         m = self.M
-        if self._center is None:
-            raise CorrError('CoDistribution requires divions ref spectrum.  If'
+
+#        if self._center is None: #pre-center also has this case
+        if np.count_nonzero(self.ref_spectrum) == 0:
+            raise CorrError('CoDistribution divides by ref spectrum.  If'
                             ' not centring, the ref spec is 0 and you get infinities!')
         coeff = 1.0 / (m * self.ref_spectrum)
 
@@ -562,7 +602,12 @@ class Corr2d(object):
                       corr2d=self, 
                       name='Synchronous Codistribution', 
                       iunit='synchronicity')
+    
 
+    def plot(self, **pltkwargs):
+        """ Quad plot shows several kinds of correlation plots."""
+        return corr_multi(self, **pltkwargs)
+        
 
     def _pcagate(self, attr):
         """ Raise an error if use calls inaccessible PCA method."""
@@ -693,25 +738,10 @@ if __name__ == '__main__':
 #    ts=aunps_water().as_varunit('s')
     ts = solvent_evap()#.as_varunit('s').as_iunit('r')
 
-    cd = Corr2d(ts)
-    cd.scale(a=.5, b=.5)
-    
-    cd.synchronous
-    cd.asynchronous_noscale
-    cd.async_codist.plot()
-
+    cd = Corr2d(ts)#, refspec=ts.mean(axis=1) )
+    cd.plot(cmap='jet', contours=10)
     plt.show()
-
-
-    # WHY THE FUCK ARE THESE NANS!!!!
-#    print (cd.async_codist.values**2 + cd.sync_codist.values**2) - cd.joint_std.values**2
-
-    # Individually these aren't nans but hwhen I add themm they are
-#    print cd.async_codist.values**2 + cd.sync_codist.values**2
-
-    # this is fine
-#    print cd.joint_std.values**2 - cd.joint_std.values**2
-
-    # Adding is fine for async BUT NOT IN SYNC PROBLEM IS IN SYNC!!!
-    # PROLLY CUZ SQRT BEING CALLED ON NEGATIVE NUBERS?
-#    print cd.sync_codist.values**2 + cd.sync_codist.values**2
+#    cd.scale(a=.5, b=.5)
+    
+#    cd.sync
+#    cd.async_noscale
