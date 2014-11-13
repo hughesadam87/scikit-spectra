@@ -129,12 +129,18 @@ def specplot(ts, *args, **pltkwargs):
    if not ts._base_sub:
       logger.warn('Spectrum does not have subtracted baseline; could affect '
                            'result in specious absorbance data.')          
-   
-   pltkwargs.setdefault('xlabel', ts.full_specunit)
+
+   # Area plot gets special axis label   
+   if kind == 'area':
+      pltkwargs.setdefault('xlabel', ts.full_varunit)
+   else:
+      pltkwargs.setdefault('xlabel', ts.full_specunit)
+
    if iunit:
          pltkwargs.setdefault('title', 'Normalized: '+ ts.name )    
    else:
-         pltkwargs.setdefault('title', ts.name)      
+         pltkwargs.setdefault('title', ts.name)   
+         
 
    pltfcn, is_2d_3d = PLOTPARSER[kind].function, PLOTPARSER.is_2d_3d(kind)
    
@@ -1007,13 +1013,6 @@ class Spectra(ABCSpectra, MetaDataFrame):
       various plot types.  Will append correct x and y labels.
       """
 
-      # Use case: user calls kind=area, we actually want to defer to
-      # this.  Otherwise, specplot() will set the xunit to nanometers
-      # before calling _genplot
-      kind = pltkwargs.get('kind', None)
-      if kind == 'area':
-         return areaplot(self, *args, **pltkwargs)
-    
       return specplot(self, *args, **pltkwargs)
             
 

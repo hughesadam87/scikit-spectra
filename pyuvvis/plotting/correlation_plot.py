@@ -1,14 +1,12 @@
 """ Plots for correlation analysis. Designed for SPEC2D OBJECTS """
 
+import numpy as np
 from pyuvvis.plotting.advanced_plots import _gen2d3d, add_projection
 import matplotlib.pyplot as plt
 import pyuvvis.plotting.plot_utils as pvutil
 import matplotlib.colorbar as mplcbar
 import matplotlib.ticker as mplticker
 from mpl_toolkits.mplot3d import Axes3D, axes3d, art3d #Need Axes3d for 3d projection!
-
-
-import numpy as np
 
 class CorrPlotError(Exception):
     """ """
@@ -55,11 +53,7 @@ def _corr2d4fig(spec, a1_label=r'$\bar{A}(\nu_1)$',
     ax4, contours = _gen2d3d(spec, ax=ax4, **contourkwds)
         
     # Bisecting line
-    ax4.plot(ax4.get_xlim(), 
-             ax4.get_ylim(), 
-             ls = '--', 
-             color='black', 
-             linewidth=1)  
+    pvutil.diag_line(ax4)  
     
     # Fig is created by _gen2d in ax4 _gen2d3d
     fig = plt.gcf()
@@ -264,8 +258,14 @@ def corr3d(spec, projection='xy', **pltkwargs):
 def corr_multi(corr2d, **pltkwargs):
     """ """
     
+    sync = corr2d.sync #Used to look up some span attributes for now
+    
     # Boilerplate multiplot
-    title = pltkwargs.pop('title', '')
+
+    _title_default = '%s (%s)  scale: %s' \
+        % (corr2d.spec.name, sync._span_string, corr2d._scale_string)
+    
+    title = pltkwargs.pop('title', _title_default)
     grid = pltkwargs.pop('grid', True)
     tight_layout = pltkwargs.pop('tight_layout', False)
     figsize = pltkwargs.pop('figsize', (8,8))
@@ -292,7 +292,7 @@ def corr_multi(corr2d, **pltkwargs):
                                    title='Async. Codistribution ($\Delta$)', 
                                    **pltkwargs)
 
-    ax3 = corr2d.sync.plot(ax=ax3, 
+    ax3 = sync.plot(ax=ax3, 
                            title='Sync. Correlation ($\Phi$)',
                             **pltkwargs)
 
@@ -307,5 +307,10 @@ def corr_multi(corr2d, **pltkwargs):
             pvutil.hide_axis(ax, axis='both', axislabel=True, ticklabels=True)
         else:
             pvutil.hide_axis(ax, axis='both', hide_everything = True)    
+
+    # Soft diagonal line
+    for ax in (ax2, ax3, ax4):
+        pvutil.diag_line(ax)     
+
     return (ax1, ax2, ax3, ax4)
     

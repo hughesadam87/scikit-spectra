@@ -35,6 +35,18 @@ def cmget(color):
     return cmap
 
 
+def diag_line(ax, **linekwds):
+    """ Draw a diagonal line x=y"""
+    linekwds.setdefault('ls', ':')   #Dotted ... 
+    linekwds.setdefault('color', 'k') #black
+    linekwds.setdefault('linewidth', 1)
+
+    # Bisecting line
+    ax.plot(ax.get_xlim(), 
+            ax.get_ylim(), 
+            **linekwds)    
+    return ax
+
 def multi_axes(count, **kwargs):
     """ """
     figsize = kwargs.pop('figsize', None)#, rcParams['figure.figsize'])

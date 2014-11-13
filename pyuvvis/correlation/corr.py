@@ -744,7 +744,8 @@ if __name__ == '__main__':
 
     cd = Corr2d(ts)#, refspec=ts.mean(axis=1) )
     cd.set_center('mean')
-    cd.plot(cmap='jet', contours=10)
+    cd.scale(alpha=0, beta=0)
+    cd.sync.plot(contours=20)
     plt.show()
 #    cd.scale(a=.5, b=.5)
     

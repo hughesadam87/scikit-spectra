@@ -19,7 +19,7 @@ TITLESIZE = 'large'
 CMAP_1DSPECPLOT = 'cool'
 
 # Conotur
-CMAP_CONTOUR = 'cool'
+CMAP_CONTOUR = 'seismic'
 NUM_CONTOURS = 20
 FILL_CONTOUR = False
 
