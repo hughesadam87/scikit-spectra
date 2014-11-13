@@ -51,6 +51,10 @@ from pca_lite import PCA
 #from pcakernel import PCA
 
 
+# Original way to subtract ref spec:
+#     data_trans = matrix.transpose()
+#    return (data_trans - vector).transpose()
+
 def noda_matrix(length):
     ''' Length is the number of timepoints/columns in the dataframe. 
        Returns the hilbert noda Transformation matrix.'''
@@ -297,12 +301,11 @@ class Corr2d(object):
                                 ' reference spec shape %.' % \
                                 (self.index.shape, refspec.shape))
 
-            self.ref_spectrum = refspec           
+            # Ref spectrum must be stored as an array for subtraction to work 
+            # as defined here!
+            self.ref_spectrum = np.array(refspec)           
             self._center = 'Pre-centered'
-            
-            # MAKE SUBTRACTING A METHOD SO CAN JUST CALL HERE LIKE SUBTRACT()
-#            self.dyn_spec = self.spec -
-            
+            self.dyn_spec = self.spec.subtract(self.ref_spectrum, axis=0)
 
         else:
             self.set_center('mean')
@@ -355,6 +358,7 @@ class Corr2d(object):
     @property
     def center(self):
         return self._center
+    
 
     def set_center(self, style, *args, **kwargs):
         """ User sets centering, this updates the  """
@@ -365,31 +369,31 @@ class Corr2d(object):
                 self._center = None
                 # Instead of np.zeros, I will just multiply 0 times a column
                 # To get spectrum of 0's
-                self.ref_spectrum = self.spec[0] * 0.0  
+                ref_spectrum = self.spec[0] * 0.0  
 
             elif style == 'mean':
                 self._center = 'mean'
-                self.ref_spectrum = self.spec.mean(axis=1)
+                ref_spectrum = self.spec.mean(axis=1)
 
             # style is understood as a function, but not inspected
             else:            
                 self._center = 'custom fcn.'           
-                self.ref_spectrum = style(self.spec, *args, **kwargs)
+                ref_spectrum = style(self.spec, *args, **kwargs)
 
         except Exception:
 
             raise CorrError('Center requires style of "mean", None or a '
                             ' a function, got "%s".' % style)
 
+        self.ref_spectrum = np.array(ref_spectrum)
 
         if len(self.ref_spectrum) != self.shape[0]:
             raise CorrError('ref. spectrum should be of spectral length (%s)'
                             ' got "%s".' % (self.shape[0], len(self.ref_spectrum)))
 
-        # Set dynamic spectrum.  Should just be able to subtract but numpy messing up
-        data_trans = self.spec.transpose()
-        self.dyn_spec = (data_trans - self.ref_spectrum).transpose()
-    
+        # Set dynamic spectrum.  Should just be able to subtract but numpy messing up        
+        self.dyn_spec = self.spec.subtract(self.ref_spectrum, axis=0)
+
 
     @property
     def shape(self):
@@ -739,6 +743,7 @@ if __name__ == '__main__':
     ts = solvent_evap()#.as_varunit('s').as_iunit('r')
 
     cd = Corr2d(ts)#, refspec=ts.mean(axis=1) )
+    cd.set_center('mean')
     cd.plot(cmap='jet', contours=10)
     plt.show()
 #    cd.scale(a=.5, b=.5)

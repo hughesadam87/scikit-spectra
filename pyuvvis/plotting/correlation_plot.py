@@ -278,28 +278,30 @@ def corr_multi(corr2d, **pltkwargs):
     if 'cbar' in pltkwargs:
         raise NotImplementedError('Colorbar not supported.')
         
-    #Set some contour kwds and call update from pltkwargs!    
  
+    ax1 = corr2d.dyn_spec.plot(ax=ax1,
+                           title='Dynamic Spectra',
+                           color='k')    
+
+
     pltkwargs['sideplots'] = None #Necessary
     pltkwargs['kind'] = 'corr2d'
 
-    ax1 = corr2d.sync.plot(ax=ax1, 
-                           title=r'Sync Correlation ($\Phi$)',
-                           **pltkwargs)    
 
-    ax2 = corr2d.async.plot(ax=ax2,
-                            title='Async Correlation. ($\Psi$)',
-                            **pltkwargs)
-
-    ax3 = corr2d.sync_codist.plot(ax=ax3, 
-                                  title='Sync Codistribution ($??$)',
-                                  **pltkwargs)
-
-    ax4 = corr2d.async_codist.plot(ax=ax4,
-                                   title='Async Codistribution. ($??$)', 
+    ax2 = corr2d.async_codist.plot(ax=ax2,
+                                   title='Async. Codistribution ($\Delta$)', 
                                    **pltkwargs)
 
-    # Doesn't hide gr
+    ax3 = corr2d.sync.plot(ax=ax3, 
+                           title='Sync. Correlation ($\Phi$)',
+                            **pltkwargs)
+
+    ax4 = corr2d.async.plot(ax=ax4,
+                            title='Async. Correlation ($\Psi$)',
+                            **pltkwargs)
+
+
+    # Hide axis labels
     for ax in (ax1, ax2, ax3, ax4):
         if grid:
             pvutil.hide_axis(ax, axis='both', axislabel=True, ticklabels=True)

@@ -618,7 +618,7 @@ def add_projection(ts, plane='xz', flip=False, fill=False, **contourkwds):
     return ax 
    
    
-def spec3d(ts, projection=True, fill=True, samples=5, **pltkwargs):
+def spec3d(ts, projection=True, fill=True, samples=5, contourkwds={}, **pltkwargs):
     """ Wireframe plot with no connected clines.  By default, adds an xz 
     projection. 
     
@@ -630,6 +630,9 @@ def spec3d(ts, projection=True, fill=True, samples=5, **pltkwargs):
     samples : int
         Number of samples to take from dataset.  Defaults to 5.  Must
         be within 0 and the number of columns in Spectra.
+        
+    contourkwds: {}
+        Dictionary that holds arguments specific to the projection.
     
     Returns
     -------
@@ -644,30 +647,25 @@ def spec3d(ts, projection=True, fill=True, samples=5, **pltkwargs):
     add_projeciton.
     """
 
+
     for invalid in ['c_mesh', 'r_mesh', 'cstride', 'rstride']:
         if invalid in pltkwargs:
             raise PlotError('Unsupported Keyword %s.'
                             'Please use the samples argument' % invalid)
-        
+    #3d Plot
     pltkwargs['kind'] = 'wire'
     pltkwargs['r_mesh'] = 0
     pltkwargs['c_mesh'] = samples
     ax, mappable = _gen2d3d(ts, **pltkwargs)
     
+    # Projection
+    if 'alpha' not in contourkwds:
+        contourkwds['alpha'] = 0.3
+        
     if projection:
         if projection == True:
             projection = pvconfig.PROJECTION_CMAP
 
-        contourkwds = {}
-
-        # Parse colormap vs. color for projection
-        try: 
-            contourkwds['cmap'] = pu.cmget(projection)
-            contourkwds['alpha'] = 0.3 #     
-            
-        except AttributeError:
-            contourkwds['colors'] = projection
-            
         ax = add_projection(ts, ax=ax, fill=fill, **contourkwds)
    
     return ax, mappable
