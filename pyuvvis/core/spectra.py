@@ -28,7 +28,7 @@ from pyuvvis.units import Unit
 # Merge
 from pyuvvis.pandas_utils.metadframe import MetaDataFrame, MetaSeries
 from pyuvvis.logger import decode_lvl, logclass
-from pyuvvis.plotting import PLOTPARSER, _genplot, _gen2d3d
+from pyuvvis.plotting import PLOTPARSER, _genplot, _gen2d3d, areaplot
 from pyuvvis.exceptions import badkey_check, badcount_error, RefError, BaselineError
 
 from matplotlib.dates import date2num as _d2num
@@ -1006,6 +1006,14 @@ class Spectra(ABCSpectra, MetaDataFrame):
       """ Plotting interface.  Use kind='surf, wire etc...' to go through 
       various plot types.  Will append correct x and y labels.
       """
+
+      # Use case: user calls kind=area, we actually want to defer to
+      # this.  Otherwise, specplot() will set the xunit to nanometers
+      # before calling _genplot
+      kind = pltkwargs.get('kind', None)
+      if kind == 'area':
+         return areaplot(self, *args, **pltkwargs)
+    
       return specplot(self, *args, **pltkwargs)
             
 
@@ -1558,47 +1566,15 @@ class Spectra(ABCSpectra, MetaDataFrame):
 ## TESTING ###
 if __name__ == '__main__':  
 
-   ## For testing 
-   #import matplotlib.pyplot as plt
-
-
-   #from pyuvvis.data import aunps_water, aunps_glass
-   #from pyuvvis.plotting import splot, range_timeplot
-   #ts_water = aunps_glass()
-##    ax1, ax2 = splot(1,2)
-
-##    ts_water.plot(ax=ax1)
-   #range_timeplot(ts_water.wavelength_slices(8))
-##    bline = ts_water.baseline
-##    bline.plot(ax=ax1, lw=5, color='r')
-   #plt.show()
-
-   from pandas import date_range
-
-
    from pyuvvis.data import solvent_evap, aunps_glass, trip_peaks
    import matplotlib.pyplot as plt
-   from pyuvvis.plotting import areaplot
-#   ts = aunps_glass().as_varunit('s')
-   ts=trip_peaks()
+   ts = aunps_glass().as_varunit('s')
+#   ts=trip_peaks()
    ts.reference = 0
-   
-   print PLOTPARSER.__shortrepr__()
-   print ts.plot_kinds
+
    ts = ts.as_iunit('a')
-   ts.as_varunit('m')
- 
-   from pyuvvis.data import aunps_glass
-   from pyuvvis import Spectra
-   print ts
-
-   s = Spectra(aunps_glass().data)
-#   s = Spectra(np.random.rand(50,50))
-#   print s.data
-   s.varunit = Unit(short='lol', full='hax')
-#   print s.data
-#   print s.index
-
-#   s.plot()
-   s.plot(kind='surf')
+#   ts.as_varunit('m')
+   ts.plot(kind='area')
    plt.show()
+ 
+ 
