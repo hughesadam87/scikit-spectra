@@ -742,7 +742,7 @@ if __name__ == '__main__':
                 contours=5,
                 xlabel = ts.full_specunit,
                 ylabel = ts.full_varunit,
-                zlabel = ts.full_iunit) 
+                zlabel = ts.full_norm) 
     
     ## Done automatically by spec.plot
 #    if ts.index[0] > ts.index[-1]:

@@ -37,8 +37,8 @@ from matplotlib.dates import date2num as _d2num
 logger = logging.getLogger(__name__) 
 
 
-### Idic, from_T, to_T and spec_slice all used to be in speclabeltool.py###
-Idic={None:'Counts', #Don't change without updating normplot; relies on these keys 
+### _normdic, from_T, to_T and spec_slice all used to be in speclabeltool.py###
+_normdic={None:'Counts', #Don't change without updating normplot; relies on these keys 
       't':'Transmittance', 
       '%t':'(%)Transmittance', 
       'r':'Inverse Transmittance (1/T)',
@@ -78,9 +78,9 @@ def _valid_xunit(value, dic):
       return value.lower()    
 
 
-def _valid_iunit(sout):
+def _valid_norm(sout):
    """When user is switching spectral intensity units, make sure they do it write."""
-   return _valid_xunit(sout, Idic)
+   return _valid_xunit(sout, _normdic)
 
 def _valid_indextype(index):
    """ Checks index object to make sure it subclasses from ConversionIndex.
@@ -103,14 +103,14 @@ def specplot(ts, *args, **pltkwargs):
    Parameters
    ----------
    
-   iunit : None or str
+   norm : None or str
        Shortcut to return timespectra in normalized ref system (ie Absorbance)
        without changing the Spectra.
        
    """
    
    kind = pltkwargs.pop('kind', 'spec')   
-   iunit = pltkwargs.pop('iunit', None)
+   norm = pltkwargs.pop('norm', None)
 
    # FORCE DEFAULT COLOR/COLORMAPS
    if 'cmap' not in pltkwargs and 'color' not in pltkwargs and 'colors' not in pltkwargs:
@@ -122,9 +122,9 @@ def specplot(ts, *args, **pltkwargs):
          pltkwargs['color'] = pvconfig.COLOR_3DPLOT
       
    
-   if iunit:
-      if ts.iunit != iunit:  #Better/general way to do this? (Idic.keys())
-         ts = ts.as_iunit(iunit)      
+   if norm:
+      if ts.norm != norm:  #Better/general way to do this? (_normdic.keys())
+         ts = ts.as_norm(norm)      
 
    if not ts._base_sub:
       logger.warn('Spectrum does not have subtracted baseline; could affect '
@@ -136,7 +136,7 @@ def specplot(ts, *args, **pltkwargs):
    else:
       pltkwargs.setdefault('xlabel', ts.full_specunit)
 
-   if iunit:
+   if norm:
          pltkwargs.setdefault('title', 'Normalized: '+ ts.name )    
    else:
          pltkwargs.setdefault('title', ts.name)   
@@ -146,10 +146,10 @@ def specplot(ts, *args, **pltkwargs):
    
    if is_2d_3d:
       pltkwargs.setdefault('ylabel', ts.full_varunit)      
-      pltkwargs.setdefault('zlabel', ts.full_iunit) 
+      pltkwargs.setdefault('zlabel', ts.full_norm) 
    
    else:
-      pltkwargs.setdefault('ylabel', ts.full_iunit)
+      pltkwargs.setdefault('ylabel', ts.full_norm)
                
    # Hack 
    if pltfcn == _gen2d3d:
@@ -245,7 +245,7 @@ class Spectrum(ABCSpectra, MetaSeries):
 
       # No ylabel, because most often, user will have custom value here as
       # result form apply
-      # pltkwds.setdefault('ylabel', self.full_iunit)    
+      # pltkwds.setdefault('ylabel', self.full_norm)    
       
       return _genplot(self, *args, **pltkwds)
    
@@ -272,7 +272,7 @@ class Spectrum(ABCSpectra, MetaSeries):
             value = pvutils.hasgetattr(spectra, attr, 'invalid')
          setattr(out, attr, value)
       
-      for attr in ['baseline', 'varunit', 'full_varunit', 'name', 'iunit', 'full_iunit']:
+      for attr in ['baseline', 'varunit', 'full_varunit', 'name', 'norm', 'full_norm']:
          _transfer(attr)
       
       return out
@@ -311,7 +311,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
       varunit = dfkwargs.pop('varunit', None)
 
       # Intensity data-related stuff
-      iunit = dfkwargs.pop('iunit', None)
+      norm = dfkwargs.pop('norm', None)
 
       # Time index-related keywords  (note, the are only used if a 
       # DatetimeIndex is not passed in)
@@ -337,8 +337,8 @@ class Spectra(ABCSpectra, MetaDataFrame):
 
       # Assign spectral intensity related stuff but 
       # DONT CALL _set_itype function
-      iunit =_valid_iunit(iunit)
-      self._itype = iunit
+      norm =_valid_norm(norm)
+      self._itype = norm
 
       # This has to be done AFTER self._frame has been set
       self._reference = self._reference_valid(reference)#SHOULD DEFAULT TO NONE SO USER CAN PASS NORMALIZED DATA WITHOUT REF        
@@ -391,11 +391,11 @@ class Spectra(ABCSpectra, MetaDataFrame):
          return out
       return self._list_out(out, delim=delim)        
 
-   def iunits(self, delim='\t', pprint = False):
+   def norms(self, delim='\t', pprint = False):
       """ Intensity units of dateframe.  Eg %Transmittance vs. Absorbance"""
       if not pprint:
-         return Idic
-      return self._list_out(Idic, delim=delim)
+         return _normdic
+      return self._list_out(_normdic, delim=delim)
 
    @property
    def plot_kinds(self):
@@ -1046,16 +1046,16 @@ class Spectra(ABCSpectra, MetaDataFrame):
 
    # Spectral Intensity related attributes/conversions
    @property
-   def full_iunit(self):
-      return Idic[self._itype]
+   def full_norm(self):
+      return _normdic[self._itype]
 
    @property
-   def iunit(self):
+   def norm(self):
       return self._itype
 
-   @iunit.setter
-   def iunit(self, unit):     
-      """ Change iunit in place."""
+   @norm.setter
+   def norm(self, unit):     
+      """ Change norm in place."""
       if isinstance(unit, basestring):
          if unit.lower() in ['none', 'full']:
             unit=None
@@ -1063,8 +1063,8 @@ class Spectra(ABCSpectra, MetaDataFrame):
       self._set_itype(unit)        
 
 
-   def as_iunit(self, unit, reference=None):
-      """ Returns new Spectra of modified iunit.  Useful if in-place operation not desirable.  
+   def as_norm(self, unit, reference=None):
+      """ Returns new Spectra of modified norm.  Useful if in-place operation not desirable.  
       Also has the option of manually passing a new reference for on-the-fly rereferencing."""
       if isinstance(unit, basestring):
          if unit.lower() in ['none', 'full']:
@@ -1078,9 +1078,9 @@ class Spectra(ABCSpectra, MetaDataFrame):
 
    def _set_itype(self, sout, ref=None):
       """Function used to change spectral intensity representation in a convertible manner. Not called on
-      initilization of Spectra(); rather, only called by as_iunit() method."""
+      initilization of Spectra(); rather, only called by as_norm() method."""
 
-      sout = _valid_iunit(sout)
+      sout = _valid_norm(sout)
       sin = self._itype
       df = self._frame #Could also work just by calling self...
 
@@ -1101,7 +1101,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
          # If ref not passed, use current reference.  Want to make sure it is 
          # not none, but have to roundabout truthtest
          if isinstance(rout, NoneType):
-            raise TypeError('Cannot convert spectrum to iunit %s without a reference'%sout)                
+            raise TypeError('Cannot convert spectrum to norm %s without a reference'%sout)                
          else:
             df=pvutils.divby(df, divisor=rout)
             df=df.apply(from_T[sout])                    
@@ -1571,7 +1571,7 @@ if __name__ == '__main__':
 #   ts=trip_peaks()
    ts.reference = 0
 
-   ts = ts.as_iunit('a')
+   ts = ts.as_norm('a')
 #   ts.as_varunit('m')
    ts.plot(kind='area')
    plt.show()

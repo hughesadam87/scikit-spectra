@@ -75,7 +75,7 @@ def quad_plot(ts, *plotargs, **plotkwds):
     
     
     ts.plot(*plotargs,
-             iunit='r',
+             norm='r',
             ax=axes[2], 
             colormap=cmap, 
             title='Normalized',
@@ -166,11 +166,11 @@ def six_plot(ts, *plotargs, **plotkwds):
     ts.plot(*plotargs,
             ax=axes[2], 
             colormap=cmap, 
-            iunit = 'r',
+            norm = 'r',
             title='Normalized (r)',
             **plotkwds)
 
-    range_timeplot(ts.as_iunit('r').wavelength_slices(8), *plotargs,
+    range_timeplot(ts.as_norm('r').wavelength_slices(8), *plotargs,
              ax=axes[3], 
              legend=False,
              title='Slices (r)',
@@ -179,7 +179,7 @@ def six_plot(ts, *plotargs, **plotkwds):
 
     ts.plot(*plotargs,
             ax=axes[4], 
-            iunit='a',
+            norm='a',
             colormap=cmap, 
             title='Normalized (a)',
             **plotkwds)

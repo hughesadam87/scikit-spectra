@@ -85,7 +85,7 @@ def _corr2d4fig(spec, a1_label=r'$\bar{A}(\nu_1)$',
         
         cb = fig.colorbar(contours, cax=cax,**kw)# ticks=[0,zz.max().max()], **kw)
         cb.locator = mplticker.MaxNLocator(nbins=cbar_nticks+1) #Cuts off one usually
-        cb.set_label(spec.iunit)        
+        cb.set_label(spec.norm)        
         cb.update_ticks()
 
 

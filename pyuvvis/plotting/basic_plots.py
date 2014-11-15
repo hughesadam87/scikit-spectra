@@ -195,7 +195,7 @@ def range_timeplot(ranged_ts, **pltkwds):
     tunit = getattr(ranged_ts, 'full_varunit', 'Perturbation')    
           
     pltkwds.setdefault('xlabel', tunit)     
-    pltkwds.setdefault('ylabel', '$\int$ %s (sliced)' % ranged_ts.full_iunit)    
+    pltkwds.setdefault('ylabel', '$\int$ %s (sliced)' % ranged_ts.full_norm)    
     pltkwds.setdefault('title', 'Area Ranges: '+ ranged_ts.name )       
                 
     # Needs to be more robust and check specunit is index etc...
@@ -243,7 +243,7 @@ def areaplot(ranged_ts, **pltkwds):
     tunit = getattr(ranged_ts, 'full_varunit', 'Perturbation')
 
     pltkwds.setdefault('xlabel', tunit)  
-    pltkwds.setdefault('ylabel', '$\int$ %s d$\lambda$'%ranged_ts.full_iunit)    
+    pltkwds.setdefault('ylabel', '$\int$ %s d$\lambda$'%ranged_ts.full_norm)    
     pltkwds.setdefault('title', 'Area: '+ ranged_ts.name )      
 
 
