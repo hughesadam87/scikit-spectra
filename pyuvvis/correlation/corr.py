@@ -115,10 +115,7 @@ class Spec2d(AnyFrame):
         kwargs['index'] = self._corr2d.index
         kwargs['columns'] = self._corr2d.index
 
-
-        norm = kwargs.pop('norm', '')        
         super(Spec2d, self).__init__(*args, **kwargs)
-        self._itype = norm
 
 
     @classmethod
@@ -148,21 +145,6 @@ class Spec2d(AnyFrame):
 
         span_string = '%s %s'  % (span, self._corr2d.varunit) #full varunit?        
         return span_string
-
-    # Overwrite Spectra.norm API 
-    # ---------------------------
-    @property
-    def norm(self):
-        return self._itype  
-
-    # No distinction full_norm and norm
-    @property
-    def full_norm(self):
-        return self._itype
-
-    @norm.setter
-    def norm(self, unit):     
-        self._itype = unit 
 
 
     # Header/output
@@ -440,7 +422,7 @@ class Corr2d(object):
         #return Spec2d(np.outer(std, std),
                       #corr2d = self,
                       #name='Joint Variance',
-                      #norm='variance')
+                      #iunit='variance')
 
 
     # 11/10/14
@@ -470,7 +452,7 @@ class Corr2d(object):
         return Spec2d(matrixout, 
                       corr2d = self,
                       name='Synchronous Correlation',
-                      norm='synchronicity')   
+                      iunit='synchronicity')   
 
     @property
     def async(self):
@@ -484,14 +466,14 @@ class Corr2d(object):
         return Spec2d(matrixout, 
                       corr2d = self,
                       name='Asynchronous Correlation',
-                      norm='asynchronicity')   
+                      iunit='asynchronicity')   
 
     @property
     def phase(self):
         """ Global phase angle (pg 79).  This will use scaled data."""
         phase = np.arctan(self.async/self.sync)
         phase.name = 'Phase Map' 
-        phase.norm = 'phase angle'
+        phase.iunit = 'phase angle'
         return phase    
     
     
@@ -500,7 +482,7 @@ class Corr2d(object):
         """ Effective lengh the vector with components Sync/Async"""
         modulous = np.sqrt(self.sync**2 + self.async**2)
         modulous.name = 'Modulous'
-        modulous.norm = 'mod'
+        modulous.iunit = 'mod'
         return modulous
         
 
@@ -510,7 +492,7 @@ class Corr2d(object):
         return Spec2d(self.coeff_corr, 
                       corr2d = self,
                       name = 'Correlation Coefficient',
-                      norm='corr. coefficient')                
+                      iunit='corr. coefficient')                
 
     @property
     def disrelation(self):
@@ -518,7 +500,7 @@ class Corr2d(object):
         return Spec2d(self.coeff_disr,
                       corr2d = self,
                       name = 'Disrelation Coefficient',
-                      norm='disr. coefficient')   
+                      iunit='disr. coefficient')   
 
 
     # 2DCodistribution Spectroscopy
@@ -586,7 +568,7 @@ class Corr2d(object):
         return Spec2d(async, 
                       corr2d=self, 
                       name='Asynchronous Codistribution', 
-                      norm='asynchronicity')
+                      iunit='asynchronicity')
     
     @property
     def sync_codist(self):
@@ -605,7 +587,7 @@ class Corr2d(object):
         return Spec2d(sync, 
                       corr2d=self, 
                       name='Synchronous Codistribution', 
-                      norm='synchronicity')
+                      iunit='synchronicity')
     
 
     def plot(self, **pltkwargs):

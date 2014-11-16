@@ -31,7 +31,7 @@ from pyuvvis.plotting.plot_utils import _df_colormapper, cmget
 from pyuvvis.IO.gwu_interfaces import from_timefile_datafile, from_spec_files
 from pyuvvis.core.file_utils import get_files_in_dir, get_shortname
 #from pyuvvis.core.corr import ca2d, make_ref, sync_3d, async_3d
-from pyuvvis.core.spectra import Idic
+from pyuvvis.core.spectra import _normdic
 from pyuvvis.pandas_utils.metadframe import mload, mloads
 from pyuvvis.exceptions import badkey_check, ParserError, GeneralError, \
      ParameterError, LogExit
@@ -640,9 +640,9 @@ class Controller(object):
         self.plt_clrsave(op.join(rundir, '%s_area_thirds.png' % self.infolder))
         
         
-        #Iterate over various iunits
-        for iu in self.params.iunits:
-            od = op.join(rundir , Idic[iu])
+        #Iterate over various norms
+        for iu in self.params.norms:
+            od = op.join(rundir , _normdic[iu])
             # Rename a few output units for clear directory names
             if iu =='r':
                 od = op.join(rundir, 'Linear_ratio') 
@@ -652,8 +652,8 @@ class Controller(object):
                 od = op.join(rundir, 'Abs_base10')
             logmkdir(od)
              
-            ts = ts.as_iunit(iu)
-            out_tag = ts.full_iunit.split()[0] #Raw, abs etc.. added to outfile
+            ts = ts.as_norm(iu)
+            out_tag = ts.full_norm.split()[0] #Raw, abs etc.. added to outfile
             
             
             # 1d Plots
@@ -839,7 +839,7 @@ class Controller(object):
             return mload(picklefile)     
  
     def plots_1d(self, ts, outpath, prefix=''):
-        """ Plots several 1D plots.  User passes in ts w/ proper iunit.
+        """ Plots several 1D plots.  User passes in ts w/ proper norm.
             outpath: filepath (str)
             prefix: str
                Put in front of file name (eg outpath/prefix_area.png) for area plot

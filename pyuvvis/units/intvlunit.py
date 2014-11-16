@@ -36,7 +36,8 @@ class IntvlUnit(ConversionUnit):
    between Datetime representation and Interval representation."""
 
    symbol = r'$\delta t$'
-   category = 'time delta'
+   category = 'time' #Should still be time I think
+   
 
 class TimeDelta(IntvlUnit):
    """ TimeDelta; does not transform to seconds etc... because that requires

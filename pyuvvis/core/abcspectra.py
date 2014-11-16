@@ -4,6 +4,7 @@ from pandas import Series, DataFrame
 import pyuvvis.core.utilities as pvutils
 import pyuvvis.config as pvconfig
 from pyuvvis.pandas_utils.metadframe import _MetaLocIndexer
+from pyuvvis.units.abcunits import IUnit, Unit, UnitError
 import numpy as np
 
 # Exceptions
@@ -14,13 +15,15 @@ class SpecError(Exception):
    
 class SpecIndexError(SpecError):
    """ For indexing operations in particular."""   
-
+   
 
 # Primary Object
 # --------------
 
 class ABCSpectra(object):
-   """ Generic methods shared by all pyuvvis spectra objects.  For example,
+   """ Generic methods shared by all pyuvvis spectra objects.  INCLUDING
+   SPECTRUM. 
+   For example,
    printing out html orientation, and defining the "nearby" slicer.  The goal
    is to separate out methods that are intended to be customized, but might
    be buried on the already heavy Spectra object.
@@ -52,10 +55,10 @@ class ABCSpectra(object):
       delim = pvconfig.HEADERDELIM
       
       # Certain methods aren't copying this correctly.  Delete later if fix
-      full_specunit = pvutils.hasgetattr(self, 'full_specunit', 'invalid')
-      full_varunit = pvutils.hasgetattr(self, 'full_varunit', 'invalid')
-      specunit = pvutils.hasgetattr(self, 'specunit', 'invalid')
-      varunit = pvutils.hasgetattr(self, 'varunit', 'invalid')
+      full_specunit = pvutils.hasgetattr(self, 'full_specunit', '??')
+      full_varunit = pvutils.hasgetattr(self, 'full_varunit', '??')
+      specunit = pvutils.hasgetattr(self, 'specunit', '??')
+      varunit = pvutils.hasgetattr(self, 'varunit', '??')
    
    
       header = "*%s*%sSpectral unit:%s%sPerturbation unit:%s\n" % \
@@ -75,23 +78,22 @@ class ABCSpectra(object):
       else:
          colorshape = '<font color="#0000CD"> (%s)</font>' % (self.shape)
    
-      #Color iunit if referenced or not
-      if not self.iunit:
-         countstring = 'Iunit:&nbsp<font color="#197519">%s</font>' % self.full_iunit
-      else: #orange
-         countstring = 'Iunit:&nbsp<font color="#FF3300">%s</font>' % self.full_iunit
+      #Color norm if referenced or not
+      normstring = '<font color="#197519">%s</font>' % self.full_norm
+
+      ftunit = getattr(self, 'full_varunit', '??')
+      spunit = getattr(self, 'full_specunit', '??')
+      iunit = getattr(self, 'full_iunit', '??')
    
-      ftunit = getattr(self, 'full_varunit', 'None')
-      spunit = getattr(self, 'full_specunit', 'None')
-   
-      header = "%s&nbsp%s%s [%s X %s] %s %s\n" % \
+      header = "%s&nbsp%s%s [%s X %s] %s %s<br><br>Iunit:&nbsp%s" % \
          (self.name, 
           colorshape,
           delim,
           ftunit,
           spunit,
           delim,
-          countstring)   
+          normstring,
+          iunit)   
       
       return header
         
@@ -119,6 +121,34 @@ class ABCSpectra(object):
          except TypeError as TE:
             self._nearby=_NearbyIndexer(self, 'nearby')
       return self._nearby    
+
+   @property
+   def full_iunit(self):
+      return self._iunit.full
+
+   @property
+   def iunit(self):
+      return self._iunit.short
+   
+   @iunit.setter
+   def iunit(self, unit):
+      """ Set iunit from string or Unit object.  If from string, short
+      and full are same, symbol='I'
+      """
+      if isinstance(unit, basestring):
+         self._iunit = IUnit(short=unit, 
+                            full=unit, #Short and full, same thing
+                            )
+
+      elif isinstance(unit, Unit): #Don't force IUnit type; users may not care
+         self._iunit = unit 
+
+      # Better than just iunit = None for plotting api?
+      elif not unit:
+         self._iunit = IUnit() #Default/null     
+
+      else:
+         raise UnitError('Unit must be a string, IUnit type or None!')
 
 
 # Nearby Indexer 

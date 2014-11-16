@@ -22,7 +22,7 @@ from pyuvvis.core.abcspectra import ABCSpectra, SpecError
 
 import pyuvvis.core.utilities as pvutils
 import pyuvvis.config as pvconfig
-from pyuvvis.units import Unit
+from pyuvvis.units.abcunits import IUnit
 
 
 # Merge
@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 
 
 ### _normdic, from_T, to_T and spec_slice all used to be in speclabeltool.py###
-_normdic={None:'Counts', #Don't change without updating normplot; relies on these keys 
+_normdic={None:'No Normalization', #Don't change without updating normplot; relies on these keys 
       't':'Transmittance', 
       '%t':'(%)Transmittance', 
       'r':'Inverse Transmittance (1/T)',
@@ -136,20 +136,16 @@ def specplot(ts, *args, **pltkwargs):
    else:
       pltkwargs.setdefault('xlabel', ts.full_specunit)
 
-   if norm:
-         pltkwargs.setdefault('title', 'Normalized: '+ ts.name )    
-   else:
-         pltkwargs.setdefault('title', ts.name)   
-         
+   pltkwargs.setdefault('title', ts.name)            
 
    pltfcn, is_2d_3d = PLOTPARSER[kind].function, PLOTPARSER.is_2d_3d(kind)
    
    if is_2d_3d:
       pltkwargs.setdefault('ylabel', ts.full_varunit)      
-      pltkwargs.setdefault('zlabel', ts.full_norm) 
+      pltkwargs.setdefault('zlabel', ts.full_iunit) 
    
    else:
-      pltkwargs.setdefault('ylabel', ts.full_norm)
+      pltkwargs.setdefault('ylabel', ts.full_iunit)
                
    # Hack 
    if pltfcn == _gen2d3d:
@@ -272,7 +268,15 @@ class Spectrum(ABCSpectra, MetaSeries):
             value = pvutils.hasgetattr(spectra, attr, 'invalid')
          setattr(out, attr, value)
       
-      for attr in ['baseline', 'varunit', 'full_varunit', 'name', 'norm', 'full_norm']:
+      for attr in ['baseline', 
+                   'varunit', 
+                   'full_varunit',
+                   'name', 
+                   'norm', 
+                   'full_norm', 
+                   '_iunit'    #Pass private variable, because iunit defined in ABC spec
+                               #Otherwise, properties like specunit become just attributes
+                   ]:
          _transfer(attr)
       
       return out
@@ -309,7 +313,11 @@ class Spectra(ABCSpectra, MetaDataFrame):
       # Spectral index-related keywords
       specunit = dfkwargs.pop('specunit', None)
       varunit = dfkwargs.pop('varunit', None)
-
+      iunit = dfkwargs.pop('iunit', IUnit(short='cts', 
+                                         full='Counts (photons)',
+                                         symbol=r'$\gamma$') # ever used? 
+                                         )
+      
       # Intensity data-related stuff
       norm = dfkwargs.pop('norm', None)
 
@@ -325,6 +333,9 @@ class Spectra(ABCSpectra, MetaDataFrame):
 
       super(Spectra, self).__init__(*dfargs, **dfkwargs)        
 
+      # Iunit
+      self.iunit = iunit
+
       # Convert to the passed unit        
       self._frame.index = self._valid_index(self.index)
       if specunit:
@@ -336,9 +347,9 @@ class Spectra(ABCSpectra, MetaDataFrame):
          self._frame.columns = self._frame.columns.convert(varunit)     
 
       # Assign spectral intensity related stuff but 
-      # DONT CALL _set_itype function
+      # DONT CALL _set_normtype function
       norm =_valid_norm(norm)
-      self._itype = norm
+      self._normtype = norm
 
       # This has to be done AFTER self._frame has been set
       self._reference = self._reference_valid(reference)#SHOULD DEFAULT TO NONE SO USER CAN PASS NORMALIZED DATA WITHOUT REF        
@@ -506,15 +517,15 @@ class Spectra(ABCSpectra, MetaDataFrame):
       # Adding or changing reference
       if reference is not NoneType:
 
-         # If data is in raw/full mode (itype=None)
-         if self._itype == None:
+         # If data is in raw/full mode (normtype=None)
+         if self._normtype == None:
             reference=self._reference_valid(reference, force_series=force_series)                  
 
             self._reference=reference
 
-         # Let _set_itype() do lifting.  Basically convert to full and back to current itype. 
+         # Let _set_normtype() do lifting.  Basically convert to full and back to current normtype. 
          else:
-            self._set_itype(self._itype, ref=reference)
+            self._set_normtype(self._normtype, ref=reference)
             if int_or_column:            
                logger.warn('Reference changed based on column data while'
                            'Spectra was normalized.')            
@@ -523,7 +534,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
       else:
          # If current reference is not None, convert
          if not isinstance(self._reference, NoneType):  #Can't do if array==None
-            self._set_itype(None, ref=self._reference)
+            self._set_normtype(None, ref=self._reference)
             self._reference=None
 
 
@@ -782,8 +793,6 @@ class Spectra(ABCSpectra, MetaDataFrame):
          self._frame.index = self._frame.index.convert(unit) 
          
          
-
-
    @property
    def varunit(self):
       return self._frame.columns._unit.short    #Short name key
@@ -1047,11 +1056,11 @@ class Spectra(ABCSpectra, MetaDataFrame):
    # Spectral Intensity related attributes/conversions
    @property
    def full_norm(self):
-      return _normdic[self._itype]
+      return _normdic[self._normtype]
 
    @property
    def norm(self):
-      return self._itype
+      return self._normtype
 
    @norm.setter
    def norm(self, unit):     
@@ -1060,7 +1069,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
          if unit.lower() in ['none', 'full']:
             unit=None
 
-      self._set_itype(unit)        
+      self._set_normtype(unit)        
 
 
    def as_norm(self, unit, reference=None):
@@ -1072,16 +1081,16 @@ class Spectra(ABCSpectra, MetaDataFrame):
 
 
       tsout = self.deepcopy()        
-      tsout._set_itype(unit, reference)
+      tsout._set_normtype(unit, reference)
       return tsout
 
 
-   def _set_itype(self, sout, ref=None):
+   def _set_normtype(self, sout, ref=None):
       """Function used to change spectral intensity representation in a convertible manner. Not called on
       initilization of Spectra(); rather, only called by as_norm() method."""
 
       sout = _valid_norm(sout)
-      sin = self._itype
+      sin = self._normtype
       df = self._frame #Could also work just by calling self...
 
       # Corner case, for compatibility with reference.setter
@@ -1144,7 +1153,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
          df=df.mul(rout, axis=0)  #Multiply up!
 
       self._reference=rout       
-      self._itype=sout        
+      self._normtype=sout        
       self._frame=df    
 
    ############################################ 
@@ -1567,13 +1576,16 @@ if __name__ == '__main__':
 
    from pyuvvis.data import solvent_evap, aunps_glass, trip_peaks
    import matplotlib.pyplot as plt
-   ts = aunps_glass().as_varunit('s')
+   ts = aunps_glass(iunit=None)#.as_varunit('s')
+   ts = Spectra(np.random.rand(50,50))
+   print ts.area()
+#   print ts._header_html
 #   ts=trip_peaks()
    ts.reference = 0
 
-   ts = ts.as_norm('a')
 #   ts.as_varunit('m')
-   ts.plot(kind='area')
+#   ts.plot(kind='area')
+   ts.plot()
    plt.show()
  
  
