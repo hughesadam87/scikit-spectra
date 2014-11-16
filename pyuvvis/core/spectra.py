@@ -22,8 +22,7 @@ from pyuvvis.core.abcspectra import ABCSpectra, SpecError
 
 import pyuvvis.core.utilities as pvutils
 import pyuvvis.config as pvconfig
-from pyuvvis.units.abcunits import IUnit
-
+from pyuvvis.units.abcunits import IUnit, Unit
 
 # Merge
 from pyuvvis.pandas_utils.metadframe import MetaDataFrame, MetaSeries
@@ -275,8 +274,8 @@ class Spectrum(ABCSpectra, MetaSeries):
                    'norm', 
                    'full_norm', 
                    '_iunit'    #Pass private variable, because iunit defined in ABC spec
-                               #Otherwise, properties like specunit become just attributes
-                   ]:
+                   ]:            #Otherwise, properties like specunit become just attributes
+                           
          _transfer(attr)
       
       return out
@@ -1578,14 +1577,8 @@ if __name__ == '__main__':
    import matplotlib.pyplot as plt
    ts = aunps_glass(iunit=None)#.as_varunit('s')
    ts = Spectra(np.random.rand(50,50))
-   print ts.area()
-#   print ts._header_html
-#   ts=trip_peaks()
-   ts.reference = 0
+   ts.specunit='nm'
+   ts.iloc[0:5, 0:5]
 
-#   ts.as_varunit('m')
-#   ts.plot(kind='area')
-   ts.plot()
-   plt.show()
  
  
