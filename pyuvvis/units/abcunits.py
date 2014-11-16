@@ -9,13 +9,31 @@ class UnitError(Exception):
 class Unit(object):
    """ Basic unit used by pyuvvis Index objects.""" 
    short = None
-   full = 'no unit'
+   full = 'no unit' #None works, but literaly prints None 
    symbol = ''
+   category = None
    
    def __init__(self, **kwargs):
       for key in kwargs:
          setattr(self, key, kwargs[key])
-      
+        
+   # Alternative representations for plotting/headres (not sure if useful)_
+   @property
+   def cat_short(self):
+      """ Category(short) eg wavelength(nm)"""
+      return '%s (%s)' % (self.category, self.short)
+
+   @property         
+   def cat_full(self):
+      """ Category(long) eg wavelength(nanometers) """
+      return '%s (%s)' % (self.category, self.full)
+            
+            
+class IUnit(Unit):
+   """ Intensity unit """
+   category = 'Intensity' #Better one?
+   symbol = 'I'
+
 
 # Consider adding a better __repr__ to these for when objects are called?
 class ConversionUnit(Unit):

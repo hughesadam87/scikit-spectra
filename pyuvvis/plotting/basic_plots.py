@@ -269,6 +269,7 @@ def areaplot(ranged_ts, **pltkwds):
 if __name__ == '__main__':
     from pyuvvis.data import aunps_glass
     ts = aunps_glass()
-#    specplot(ts)
-    areaplot(ts)
+    print ts.full_iunit
+    ts.plot(kind='area')
+#    areaplot(ts)
     plt.show()

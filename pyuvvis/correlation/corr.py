@@ -82,7 +82,7 @@ class Spec2d(AnyFrame):
     corr2D object.  For example, synchronous spectra has spectral data on 
     index and columns.  Therefore, it is represented by Spec2D class.
 
-    Also overwrites Spectra.iunit for 3dPlotting purposes.
+    Also overwrites Spectra.norm for 3dPlotting purposes.
 
     Will update active/spectral unit based on index/columns, but original
     datarange (like how much time synchronous corresponds to) is stored
@@ -90,7 +90,7 @@ class Spec2d(AnyFrame):
     """
 
     def __init__(self, *args, **kwargs):
-        """ Hack over iunits for plotting API sake.  Stores metadata like
+        """ Hack over norms for plotting API sake.  Stores metadata like
         scaling, spectral and variance range of spectra.  *args, **kwargs
         passed to AnyFrame constructor.
 
@@ -99,8 +99,8 @@ class Spec2d(AnyFrame):
 
         _corr2d: Corr2D object
 
-        _iunit: ''
-           iunit to appear in 3dplots and on contour colorbar
+        _norm: ''
+           norm to appear in 3dplots and on contour colorbar
         """
 
 
@@ -115,10 +115,7 @@ class Spec2d(AnyFrame):
         kwargs['index'] = self._corr2d.index
         kwargs['columns'] = self._corr2d.index
 
-
-        iunit = kwargs.pop('iunit', '')        
         super(Spec2d, self).__init__(*args, **kwargs)
-        self._itype = iunit
 
 
     @classmethod
@@ -148,21 +145,6 @@ class Spec2d(AnyFrame):
 
         span_string = '%s %s'  % (span, self._corr2d.varunit) #full varunit?        
         return span_string
-
-    # Overwrite Spectra.iunit API 
-    # ---------------------------
-    @property
-    def iunit(self):
-        return self._itype  
-
-    # No distinction full_iunit and iunit
-    @property
-    def full_iunit(self):
-        return self._itype
-
-    @iunit.setter
-    def iunit(self, unit):     
-        self._itype = unit 
 
 
     # Header/output
@@ -740,12 +722,12 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt 
 
 #    ts=aunps_water().as_varunit('s')
-    ts = solvent_evap()#.as_varunit('s').as_iunit('r')
+    ts = solvent_evap()#.as_varunit('s').as_norm('r')
 
     cd = Corr2d(ts)#, refspec=ts.mean(axis=1) )
     cd.set_center('mean')
     cd.scale(alpha=0, beta=0)
-    cd.sync.plot(contours=20)
+    cd.sync.plot(contours=20, kind='corr3d')
     plt.show()
 #    cd.scale(a=.5, b=.5)
     

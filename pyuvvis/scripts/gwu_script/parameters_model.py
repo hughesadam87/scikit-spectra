@@ -1,7 +1,7 @@
 ''' Model for building correct parameters that will be assigned to timespectra
     in gwu_spec script.'''
 from pyuvvis.exceptions import ParameterError, badkey_check
-from pyuvvis.core.spectra import Idic
+from pyuvvis.core.spectra import _normdic
 import os.path as op
 
 import logging
@@ -9,8 +9,8 @@ logger = logging.getLogger(__name__)
 
 def _to_bool(attr, value):
     ''' Convert a value to bool.  If str is "true/false/none", converts.
-        Useful since users may want to set iunit=None from cmdline, and argparse
-        will yiled iunit="None" for example.'''
+        Useful since users may want to set norm=None from cmdline, and argparse
+        will yiled norm="None" for example.'''
 
     if isinstance(value, basestring):
         if value.lower() == 'none':
@@ -41,7 +41,7 @@ class Parameters(object):
     xmin_default = None
     xmax_default = None
 
-    iunit_default = [None, 'r', 'a']
+    norm_default = [None, 'r', 'a']
     sub_base_default = False
     
     valid_minmax_default = None #nm
@@ -100,7 +100,7 @@ class Parameters(object):
         self.bline_fit = self.loud_apply('bline_fit', self.bline_fit_default, boolean=True)
 
         # Properties (don't use loud_apply)
-        self.iunits = self._params.pop('iunits', self.iunit_default)
+        self.norms = self._params.pop('norms', self.norm_default)
         self.fit_regions = self._params.pop('fit_regions', self.fit_regions_default)
         self.valid_minmax = self._params.pop('valid_minmax',
                                     self.valid_minmax_default)
@@ -112,32 +112,32 @@ class Parameters(object):
                         (name, self._params.keys()))
             
     @property
-    def iunits(self):
-        return self._iunits
+    def norms(self):
+        return self._norms
         
-    @iunits.setter
-    def iunits(self, iunits):
+    @norms.setter
+    def norms(self, norms):
         ''' Returns list of valid units (None, 'a', 'r') '''
-        if not iunits:
-            logger.warn('"iunits" parameter not found.  Setting to [None].  Only'
+        if not norms:
+            logger.warn('"norms" parameter not found.  Setting to [None].  Only'
                         ' rawdata will be analyzed.')
-            logger.debug("Converting 'iunits' from str to list")            
-            self._iunits = [None]         
+            logger.debug("Converting 'norms' from str to list")            
+            self._norms = [None]         
             return
         
-        if not hasattr(iunits, '__iter__'):
-            logger.debug("Converting 'iunits' list")
-            iunits = iunits.split()
+        if not hasattr(norms, '__iter__'):
+            logger.debug("Converting 'norms' list")
+            norms = norms.split()
                 
         # Make sure all outtypes (a, r, None) are valid; convert "None" to none
-        for idx, otype in enumerate(iunits):
+        for idx, otype in enumerate(norms):
             if isinstance(otype, basestring):
                 if otype.lower() == 'none':
                     logger.debug('Changing inuit="None" (str) to Nonetype')
-                    iunits[idx] = None                    
-            badkey_check(iunits[idx], Idic.keys())
+                    norms[idx] = None                    
+            badkey_check(norms[idx], _normdic.keys())
  
-        self._iunits = iunits         
+        self._norms = norms         
 
         
     @property
