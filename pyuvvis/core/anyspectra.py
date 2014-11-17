@@ -7,7 +7,12 @@ class AnyFrame(Spectra):
 
     def __init__(self, *dfargs, **dfkwargs):
         dfkwargs.setdefault('strict_columns', None)   
-        dfkwargs.setdefault('strict_index', None)            
+        dfkwargs.setdefault('strict_index', None)    
+        
+        
+        dfkwargs.setdefault('specunit', Unit())    
+        dfkwargs.setdefault('varunit', Unit())    
+        
         
         super(AnyFrame, self).__init__(*dfargs, **dfkwargs)  
         
@@ -16,6 +21,4 @@ if __name__ == '__main__':
     import numpy as np
     af=AnyFrame(np.random.rand(50,50))
     af.specunit = Unit(short='foo', full='bar')
-    print af.specunit
-    x = af.iloc[0]
-    print 'hi'
+    print af

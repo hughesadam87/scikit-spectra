@@ -9,11 +9,16 @@ class UnitError(Exception):
 class Unit(object):
    """ Basic unit used by pyuvvis Index objects.""" 
    short = None
-   full = 'no unit' #None works, but literaly prints None 
+   full = 'No unit' #None works, but literaly prints None 
    symbol = ''
    category = None
    
    def __init__(self, **kwargs):
+      
+      if 'short' in kwargs and 'full' not in kwargs or \
+         'full' in kwargs and 'short' not in kwargs:
+         raise UnitError('Please enter both a short and full Unit name.')
+      
       for key in kwargs:
          setattr(self, key, kwargs[key])
         

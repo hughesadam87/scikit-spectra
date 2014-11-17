@@ -124,6 +124,8 @@ class TimeIndex(ConversionIndex):
                     seconds = seconds.cumsum()
                 out = self.__class__(seconds, unit=outunit)  #THIS MAKES NP ARRAY SO ADD DATETIMEINDEX
                 out = self.unitdict[outunit].from_canonical(out)           
+                out = self.__class__(out, unit='intvl')
+
             # Should never happen
             else:
                 raise IndexError("SOME LOGIC APPARENTLY NOT ACCOUNTED FOR")

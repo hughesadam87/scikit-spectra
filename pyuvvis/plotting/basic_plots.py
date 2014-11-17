@@ -1,4 +1,5 @@
 import plot_utils as put
+import pyuvvis.core.utilities as pvutils
 import pyuvvis.config as pvcnfg
 import logging
 import numpy as np
@@ -89,7 +90,7 @@ def _genplot(ts, *args, **pltkwargs):
         mappable, vmin, vmax = put._annotate_mappable(ts, pcmap, axis=0)
         cbar = fig.colorbar(mappable, ticks=np.linspace(vmin, vmax, _barlabels))
         
-        tunit = getattr(ts, 'full_varunit', 'Perturbation')
+        tunit = pvutils.hasgetattr(ts, 'full_varunit', '??')
         
         cbar.set_label(r'%s$\rightarrow$' % tunit, rotation=c_rotation)
         

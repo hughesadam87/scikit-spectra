@@ -67,6 +67,7 @@ class ABCSpectra(object):
       delim = pvconfig.HEADERDELIM
       
       # Certain methods aren't copying this correctly.  Delete later if fix
+
       full_specunit = pvutils.hasgetattr(self, 'full_specunit', '??')
       full_varunit = pvutils.hasgetattr(self, 'full_varunit', '??')
       specunit = pvutils.hasgetattr(self, 'specunit', '??')
@@ -89,13 +90,10 @@ class ABCSpectra(object):
          colorshape = '<font color="#0000CD">(%s X %s)</font>' % (self.shape)
       else:
          colorshape = '<font color="#0000CD"> (%s)</font>' % (self.shape)
-   
-      #Color norm if referenced or not
-      normstring = '<font color="#197519">%s</font>' % self.full_norm
 
-      ftunit = getattr(self, 'full_varunit', '??')
-      spunit = getattr(self, 'full_specunit', '??')
-      iunit = getattr(self, 'full_iunit', '??')
+      ftunit = pvutils.hasgetattr(self, 'full_varunit', '??')
+      spunit = pvutils.hasgetattr(self, 'full_specunit', '??')
+      iunit = pvutils.hasgetattr(self, 'full_iunit', '??')
    
       header = "%s&nbsp%s%s [%s X %s]%sIunit:&nbsp%s" % \
          (self.name, 

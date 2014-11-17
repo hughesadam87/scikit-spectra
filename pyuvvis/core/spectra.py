@@ -221,15 +221,40 @@ class Spectrum(ABCSpectra, MetaSeries):
       # CUSTOMIZE!?
       super(Spectrum, self).__init__(*args, **kwargs)        
       self.specifier = specifier
-      
+        
       
    @property
-   def specunit(self):
-      return self._frame.index._unit.short    #Short name key
+   def unit(self):
+      return self.index._unit.short   
    
    @property
-   def full_specunit(self):
-      return self._frame.index._unit.full
+   def full_unit(self):
+      return self.index._unit.full
+
+
+   @property
+   def _header_html(self):
+      """ Header for html printout """
+      
+      delim = pvconfig.HEADERHTMLDELIM
+   
+      if self.ndim > 1:
+         colorshape = '<font color="#0000CD">(%s X %s)</font>' % (self.shape)
+      else:
+         colorshape = '<font color="#0000CD"> (%s)</font>' % (self.shape)
+
+      unit = pvutils.hasgetattr(self, 'full_unit', '??')
+      iunit = pvutils.hasgetattr(self, 'full_iunit', '??')      
+
+      header = "%s&nbsp%s%s Index Unit:&nbsp%s%sIunit:&nbsp%s" % \
+         (self.name, 
+          colorshape,
+          delim,
+          unit,
+          delim,
+          iunit)   
+      
+      return header   
    
    def plot(self, *args, **pltkwds):
 
@@ -257,7 +282,8 @@ class Spectrum(ABCSpectra, MetaSeries):
          raise SpecError('Spectrum.from_series() requires series input,'
                          'got %s' % type(series))
      
-      out = cls(series.values, index=spectra.index)
+      # Series.index is correct?
+      out = cls(series.values, index=series.index)
 
       def _transfer(attr):
          '''If attr not in kwargs, trasnfer from spectra object'''
@@ -266,12 +292,12 @@ class Spectrum(ABCSpectra, MetaSeries):
          if attr in kwargs:
             value = kwargs[attr]
          else:
-            value = pvutils.hasgetattr(spectra, attr, 'invalid')
+            value = pvutils.hasgetattr(spectra, attr, 'invalid transfer')
          setattr(out, attr, value)
       
       for attr in ['baseline', 
-                   'varunit', 
-                   'full_varunit',
+#                   'varunit', 
+#                   'full_varunit',
                    'name', 
                    'norm', 
                    'full_norm', 
@@ -313,7 +339,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
 
       # Spectral index-related keywords
       specunit = dfkwargs.pop('specunit', None)
-      varunit = dfkwargs.pop('varunit', None)
+      varunit = dfkwargs.pop('varunit', Unit())
       iunit = dfkwargs.pop('iunit', IUnit(short='cts', 
                                          full='Counts (photons)',
                                          symbol=r'$\gamma$') # ever used? 
@@ -340,12 +366,14 @@ class Spectra(ABCSpectra, MetaDataFrame):
       # Convert to the passed unit        
       self._frame.index = self._valid_index(self.index)
       if specunit:
-         self._frame.index = self._frame.index.convert(specunit)          
+         self.specunit = specunit
+#         self._frame.index = self._frame.index.convert(specunit)          
 
       # Convert to the passed unit
       self._frame.columns = self._valid_columns(self.columns)            
       if varunit:
-         self._frame.columns = self._frame.columns.convert(varunit)     
+         self.varunit = varunit
+#         self._frame.columns = self._frame.columns.convert(varunit)     
 
       # Assign spectral intensity related stuff but 
       # DONT CALL _set_normtype function
@@ -789,6 +817,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
          self.index = CustomIndex(self.index, unit=unit)
       
       else:
+         _valid_indextype(self.index) #Raises error in corner cases (leave)               
          self.index = self._frame.index.convert(unit) 
          
          
@@ -806,7 +835,9 @@ class Spectra(ABCSpectra, MetaDataFrame):
       if isinstance(unit, Unit):
          self.columns = CustomIndex(self.columns, unit=unit) #self.columns.setter will validate
       
+      # If string
       else:
+         _valid_indextype(self.columns) #Raises error in corner cases (leave)      
          self.columns = self._frame.columns.convert(unit) 
                
       
@@ -1612,11 +1643,10 @@ if __name__ == '__main__':
 
    from pyuvvis.data import solvent_evap, aunps_glass, trip_peaks
    import matplotlib.pyplot as plt
-   ts = aunps_glass(iunit=None)#.as_varunit('s')
-   ts = Spectra(np.random.rand(50,50))
-   print ts._header_html
-   ts.specunit='nm'
-   ts.iloc[0:5, 0:5]
+   ts = aunps_glass().as_varunit('intvl')
+   print 'hi'
+
+#   print ts.iloc[0, 0:5]
 
  
  
