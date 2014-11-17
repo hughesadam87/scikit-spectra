@@ -48,6 +48,18 @@ class ABCSpectra(object):
       dfhtml = obj._repr_html_(*args, **kwargs)
       return ('<h4>%s</h4>' % ''.join(self._header_html)) +'<br>'+ dfhtml
    
+   @property
+   def _spec_span(self):
+      return pvutils._compute_span(self.index, with_unit=False)
+   
+   @property
+   def _var_span(self):
+      return pvutils._compute_span(self.columns, with_unit=False)
+   
+   @property
+   def _intensity_span(self):
+      return '%s - %s' % (self.min().min(), self.max().max())
+      
 
    @property
    def _header(self):

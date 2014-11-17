@@ -123,30 +123,11 @@ class Spec2d(AnyFrame):
         return cls(scale_string=corr2d.scalestring, 
                    originaldatindex=corr2d.index)
         
-
     @property
-    def _span_string(self):
-        """ Format span of the original data columns (used in header)"""
+    def _var_span(self):
         cols = self._corr2d.columns
-
-        try:
-            span = '%.2f - %.2f' % (cols.min(), cols.max())
-
-        except TypeError:
-            if cols.unit == 'dti': #hack
-                span = '%s - %s' % (
-                    str(cols.min()).split()[1], #Cut out year
-                    str(cols.max()).split()[1]
-                )
-
-            # Interval or otherwise unkown
-            else:
-                span = '%s - %s' % (cols.min(), cols.max())
-
-        span_string = '%s %s'  % (span, self._corr2d.varunit) #full varunit?        
-        return span_string
-
-
+        return pvutils._compute_span(cols, with_unit=True)
+    
     # Header/output
     # -------------
     @property
@@ -193,7 +174,7 @@ class Spec2d(AnyFrame):
         scale_string = 'Scaling: <font color="#197519">%s</font>' % self._corr2d._scale_string
 
         # Black 
-        span_string = 'Span:  <font color="#000000">%s</font>' % self._span_string
+        span_string = 'Span:  <font color="#000000">%s</font>' % self._var_span
 
         header = "%s:&nbsp%s%s%s%s%s\n" % \
             (self.name, 
@@ -210,7 +191,7 @@ class Spec2d(AnyFrame):
     def plot(self, kind='corr2d', **pltkwargs):
         """ """
 
-        pltkwargs.setdefault('title', '%s (%s)' % (self.name, self._span_string))        
+        pltkwargs.setdefault('title', '%s (%s)' % (self.name, self._var_span))        
 
         # Default to specplot
         if kind not in ['corr2d', 'corr3d']:

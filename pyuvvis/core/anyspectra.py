@@ -8,4 +8,10 @@ class AnyFrame(Spectra):
         dfkwargs.setdefault('strict_columns', None)   
         dfkwargs.setdefault('strict_index', None)            
         
-        super(AnyFrame, self).__init__(*dfargs, **dfkwargs)        
+        super(AnyFrame, self).__init__(*dfargs, **dfkwargs)  
+        
+        
+if __name__ == '__main__':
+    af=AnyFrame()
+    #af.specunit
+    print af.iloc[0]
