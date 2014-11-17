@@ -97,14 +97,13 @@ class ABCSpectra(object):
       spunit = getattr(self, 'full_specunit', '??')
       iunit = getattr(self, 'full_iunit', '??')
    
-      header = "%s&nbsp%s%s [%s X %s] %s %s<br><br>Iunit:&nbsp%s" % \
+      header = "%s&nbsp%s%s [%s X %s]%sIunit:&nbsp%s" % \
          (self.name, 
           colorshape,
           delim,
           ftunit,
           spunit,
           delim,
-          normstring,
           iunit)   
       
       return header

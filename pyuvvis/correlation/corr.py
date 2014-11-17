@@ -706,6 +706,7 @@ if __name__ == '__main__':
     ts = solvent_evap()#.as_varunit('s').as_norm('r')
 
     cd = Corr2d(ts)#, refspec=ts.mean(axis=1) )
+    cd.center()
     cd.set_center('mean')
     cd.scale(alpha=0, beta=0)
     cd.sync.plot(contours=20, kind='corr3d')

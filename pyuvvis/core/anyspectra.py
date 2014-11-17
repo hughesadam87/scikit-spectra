@@ -1,4 +1,5 @@
 from pyuvvis.core.spectra import Spectra
+from pyuvvis.units.abcunits import Unit
 
 class AnyFrame(Spectra):
     """ Spectra with default non-strict columns or index
@@ -12,6 +13,9 @@ class AnyFrame(Spectra):
         
         
 if __name__ == '__main__':
-    af=AnyFrame()
-    #af.specunit
-    print af.iloc[0]
+    import numpy as np
+    af=AnyFrame(np.random.rand(50,50))
+    af.specunit = Unit(short='foo', full='bar')
+    print af.specunit
+    x = af.iloc[0]
+    print 'hi'

@@ -271,7 +271,7 @@ def corr_multi(corr2d, **pltkwargs):
     figsize = pltkwargs.pop('figsize', (8,8))
 
     f, (ax1, ax2, ax3, ax4) = pvutil.splot(2,2, fig=True, figsize=figsize)
-    f.suptitle(title, fontsize=20)
+    f.suptitle(title) #, fontsize=20)
     if tight_layout:
         f.tight_layout()
         

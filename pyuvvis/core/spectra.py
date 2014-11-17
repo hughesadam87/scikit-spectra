@@ -81,6 +81,8 @@ def _valid_norm(sout):
    """When user is switching spectral intensity units, make sure they do it write."""
    return _valid_xunit(sout, _normdic)
 
+# Used by varunits, specunits, etc... if user doesn't realize their api
+# doesn't support UNITS.  Don't delete
 def _valid_indextype(index):
    """ Checks index object to make sure it subclasses from ConversionIndex.
    Used for methods like as_specunit(), where only a valid operation if
@@ -255,7 +257,7 @@ class Spectrum(ABCSpectra, MetaSeries):
          raise SpecError('Spectrum.from_series() requires series input,'
                          'got %s' % type(series))
      
-      out = cls(series.values, index=series.index)
+      out = cls(series.values, index=spectra.index)
 
       def _transfer(attr):
          '''If attr not in kwargs, trasnfer from spectra object'''
@@ -782,14 +784,12 @@ class Spectra(ABCSpectra, MetaDataFrame):
 
    @specunit.setter
    def specunit(self, unit):
-#      _valid_indextype(self._frame.index)        
-#      self._frame.index = self._frame.index.convert(unit) 
- 
+      # Calling self.index will type-check      
       if isinstance(unit, Unit):
          self.index = CustomIndex(self.index, unit=unit)
       
       else:
-         self._frame.index = self._frame.index.convert(unit) 
+         self.index = self._frame.index.convert(unit) 
          
          
    @property
@@ -802,14 +802,12 @@ class Spectra(ABCSpectra, MetaDataFrame):
 
    @varunit.setter
    def varunit(self, unit):
-#      _valid_indextype(self._frame.columns) #To raise error
-#      self._frame.columns = self._frame.columns.convert(unit) 
-
+      # Calling self.columns will type-check
       if isinstance(unit, Unit):
          self.columns = CustomIndex(self.columns, unit=unit) #self.columns.setter will validate
       
       else:
-         self._frame.columns = self._frame.columns.convert(unit) 
+         self.columns = self._frame.columns.convert(unit) 
                
       
 
@@ -825,39 +823,39 @@ class Spectra(ABCSpectra, MetaDataFrame):
       tsout.varunit = unit
       return tsout   
 
-
+   # Still want this?
    def set_specindex(self, start=None, stop=None, spacing=None, unit=None):
       """
-         Helper method to generate a spectral index.  Works similarly to
+      Helper method to generate a spectral index.  Works similarly to
       pandas.daterange().  Takes in start, stop and spacing.  Users can use
       either start and stop, start and spacing or stop and spacing (but not 
       start, stop and spacing) to generate specindex.
 
       Parameters
       ----------
-       start: Wavelength start value.
-       stop: Wavelength stop value.
-       spacing: Wavelength spacing.
-       unit: Valid specunit type.  Note, if None is passed, current specunit of
-             object is used.  To force a null unit, use special keyword 'null'.
+      start: Wavelength start value.
+      stop: Wavelength stop value.
+      spacing: Wavelength spacing.
+      unit: Valid specunit type.  Note, if None is passed, current specunit of
+            object is used.  To force a null unit, use special keyword 'null'.
 
       Notes
       -----
-       User must pass 2 of the 3 keywords start, stop or spacing.  Function
-       will compute the other using the length of the current dfindex.  
-       For example, if df.index is 100 entries and user enters start=0, stop=1000,
-       then spacing is set to ten to retain 100 entries.  
-       If user enters start and spacing, then stop is determined to retain 100
-       entries.
-       User can also enter stop and spacing, and start is inferred by counting
-       backwards from stop at steps equal to spacing size.
+      User must pass 2 of the 3 keywords start, stop or spacing.  Function
+      will compute the other using the length of the current dfindex.  
+      For example, if df.index is 100 entries and user enters start=0, stop=1000,
+      then spacing is set to ten to retain 100 entries.  
+      If user enters start and spacing, then stop is determined to retain 100
+      entries.
+      User can also enter stop and spacing, and start is inferred by counting
+      backwards from stop at steps equal to spacing size.
 
-       To generate less restricted SpecIndex from start, stop AND spacing, try
-       set_sindex() function in specindex.py module.
+      To generate less restricted SpecIndex from start, stop AND spacing, try
+      set_sindex() function in specindex.py module.
 
-       Under the hood this calls set_sindex() which is a wrapper to
-       np.linspace(). 
-       """        
+      Under the hood this calls set_sindex() which is a wrapper to
+      np.linspace(). 
+      """        
 
       numpts=float(len(self.index))
 
@@ -1348,6 +1346,45 @@ class Spectra(ABCSpectra, MetaDataFrame):
          
       else:
          return out
+      
+   @property
+   def _header_html(self):
+      """ Add normalization, baseline, reference. """
+      delim = pvconfig.HEADERHTMLDELIM
+      
+      #http://www.w3schools.com/html/html_colors.asp
+      def _red(string):
+         return '<font color="#CC0033">%s</font>' % (string) 
+      
+      def _green(string):
+         return '<font color="#009900">%s</font>' % (string) 
+         
+      
+      old = super(Spectra, self)._header_html
+      
+      if self.norm is None:
+         norm = _red('None')
+      else:
+         norm = _green(self.full_norm) #Actually use the value
+         
+      if self.baseline is None:
+         base = _red('None')
+      else:
+         base = _green('True')
+         
+      if self.reference is None:
+         ref = _red('None')
+      else:
+         ref = _green('True')
+         
+
+      old += '<br><br>Baseline: %s%sReference: %s%sNormalization: %s' %(base, 
+                                                              delim, 
+                                                              ref,
+                                                              delim, 
+                                                              norm)
+      return old
+   
 
    def __getitem__(self, keyslice):
       ''' Item lookup.  If output is an interable, _transfer is called.  
@@ -1577,6 +1614,7 @@ if __name__ == '__main__':
    import matplotlib.pyplot as plt
    ts = aunps_glass(iunit=None)#.as_varunit('s')
    ts = Spectra(np.random.rand(50,50))
+   print ts._header_html
    ts.specunit='nm'
    ts.iloc[0:5, 0:5]
 

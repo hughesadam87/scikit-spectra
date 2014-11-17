@@ -8,6 +8,8 @@ from pyuvvis.core.timespectra import TimeSpectra
 from pyuvvis.core.anyspectra import AnyFrame
 from pyuvvis.core.specstack import SpecStack
 
+from pyuvvis.units.abcunits import Unit
+
 #  Borrowing API from skimage
 pkg_dir = op.abspath(op.dirname(__file__))
 data_dir = op.join(pkg_dir, 'data')
