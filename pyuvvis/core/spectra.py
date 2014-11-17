@@ -213,15 +213,7 @@ def spec_from_dir(directory, csvargs, sortnames=False, concat_axis=1, shortname=
 class Spectrum(ABCSpectra, MetaSeries):
    """ Compliment to pandas Series: single array of spectral values with
    spectral Index.
-   """
-   
-   def __init__(self, *args, **kwargs):
-      
-      specifier = kwargs.pop('specifier', '')
-      # CUSTOMIZE!?
-      super(Spectrum, self).__init__(*args, **kwargs)        
-      self.specifier = specifier
-        
+   """       
       
    @property
    def unit(self):
@@ -653,20 +645,6 @@ class Spectra(ABCSpectra, MetaDataFrame):
                          'because "zero_warn" = True in _reference valid()')
 
       return rout  #MAKES MORE SENSE TO MAKE THIS A 1D DATAFRAME
-
-
-   def apply(self, *args, **kwargs):
-      """ Raw=True seems to produce correct results more often from some
-      #deep issue that is not fully tracked. """
-      kwargs.setdefault('raw', True)
-      specifier = kwargs.pop('specifier', args[0].__name__)
-      # Call _dataframe attribute and transfer attributes
-      out = self._framegetattr('apply', *args, **kwargs)
-      
-      # If Spectrum, use function name as specifier!
-      if isinstance(out, Spectrum):
-         out.specifier = specifier
-      return out
    
    def wavelength_slices(self, ranges, apply_fcn='mean', **applyfcn_kwds):
       """Returns sliced averages/sums of wavelength regions. Composite dataframe will nicely
@@ -795,7 +773,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
                                      self.index[-1]),#max(self.index)), 
                                     apply_fcn=apply_fcn)
 
-      out.specifier = 'Area (%s)' % apply_fcn
+      out.name = 'Area (%s)' % apply_fcn
       return out
 
 
@@ -1644,6 +1622,11 @@ if __name__ == '__main__':
    from pyuvvis.data import solvent_evap, aunps_glass, trip_peaks
    import matplotlib.pyplot as plt
    ts = aunps_glass().as_varunit('intvl')
+   def foo(x): return x**3
+   t2 = ts.apply(foo)
+   print t2.specunit, t2.varunit
+   t2.plot()
+   plt.show()
    print 'hi'
 
 #   print ts.iloc[0, 0:5]
