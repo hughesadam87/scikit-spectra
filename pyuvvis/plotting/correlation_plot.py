@@ -263,7 +263,7 @@ def corr_multi(corr2d, **pltkwargs):
     # Boilerplate multiplot
 
     _title_default = '%s (%s)  scale: %s' \
-        % (corr2d.spec.name, sync._span_string, corr2d._scale_string)
+        % (corr2d.spec.name, sync._var_span, corr2d._scale_string)
     
     title = pltkwargs.pop('title', _title_default)
     grid = pltkwargs.pop('grid', True)

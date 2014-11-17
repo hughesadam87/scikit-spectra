@@ -9,3 +9,13 @@ class AnyFrame(Spectra):
         dfkwargs.setdefault('strict_index', None)            
         
         super(AnyFrame, self).__init__(*dfargs, **dfkwargs)        
+
+    # Should I overwrite specunit/vaurunit for case that user is
+    # not going to have these?  IE:
+    
+    # def specunit(self):
+    # try:
+#        return super(self).specunit
+#    except AttributeError:
+#        return None
+    

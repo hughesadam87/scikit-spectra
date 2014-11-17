@@ -19,6 +19,28 @@ logger = logging.getLogger(__name__)
 class UtilsError(Exception):
     """ """
 
+def _compute_span(index, with_unit=False):
+   """ Format the first, last entries in an index for string output
+   like (start - final).  Doesn't include the unit
+   """
+   imin, imax = index.min(), index.max()
+   try:
+      span = '%.2f - %.2f' % (imin, imax)
+
+   except TypeError:
+      try: #hack for datetimeindex
+         span = '%s - %s' % (
+               str(imin).split()[1], #Cut out year
+               str(imax).split()[1]
+           )
+         # Just string format if all else fails
+      except Exception:
+         span = '%s - %s' % (imin, imax)
+
+   if with_unit:
+      span = '%s %s' % (span, index._unit.short)
+   return span
+
 def hasgetattr(obj, attr, default=None):
     """ Combines hasattr/getattr to return a default if hasattr fail."""
     if not hasattr(obj, attr):
