@@ -94,8 +94,7 @@ class MetaPandasObject(object):
         instance methods (like df.corr() ) are handled specially using a
         special private parsing method, _framegetattr().'''
 
-        ### Return basic attribute
-        
+        # Return basic attribute        
         try:
             refout = getattr(self._frame, attr)
         except AttributeError:
@@ -106,11 +105,11 @@ class MetaPandasObject(object):
         if not isinstance(refout, MethodType):
             return refout
 
-        ### Handle instance methods using _framegetattr().
-        ### see http://stackoverflow.com/questions/3434938/python-allowing-methods-not-specifically-defined-to-be-called-ala-getattr
+        # Handle instance methods using _framegetattr().
+        # see http://stackoverflow.com/questions/3434938/python-allowing-methods-not-specifically-defined-to-be-called-ala-getattr
         else:         
             return functools.partial(self._framegetattr, attr, *fcnargs, **fcnkwargs)
-            ### This is a reference to the fuction (aka a wrapper) not the function itself
+            # This is a reference to the fuction (aka a wrapper) not the function itself
             
     def __setattr__(self, name, value):
         ''' When user sets an attribute, this tries to intercept any name conflicts.  For example, if user attempts to set
@@ -181,6 +180,10 @@ class MetaPandasObject(object):
 
     def __repr__(self):
         return self._frame.__repr__()
+    
+    def _fast_xs(self, *args, **kwargs):
+        print 'in fastxs'
+        return self._frame._fast_xs(*args, **kwargs)  
 
     ### Operator overloading ####
     ### In place operations need to overwrite self._frame
@@ -297,10 +300,10 @@ class MetaPandasObject(object):
         subclass.'''
         if self._ix is None:
             try:
-                self._ix=_MetaIXIndexer(self)
-            ### New versions of _IXIndexer require "name" attribute.
+                self._ix=_IXIndexer(self)
+            #New versions of _IXIndexer require "name" attribute.
             except TypeError as TE:
-                self._ix=_MetaIXIndexer(self, 'ix')
+                self._ix=_IXIndexer(self, 'ix')
         return self._ix   
 
     @property	  	
@@ -308,10 +311,10 @@ class MetaPandasObject(object):
         """ See pandas.Index.iloc; preserves metadata"""
         if self._iloc is None:
             try:
-                self._iloc =_MetaiLocIndexer(self)
-            ### New versions of _IXIndexer require "name" attribute.
+                self._iloc =_iLocIndexer(self)
+            #New versions of _IXIndexer require "name" attribute.
             except TypeError as TE:
-                self._iloc=_MetaiLocIndexer(self, 'iloc')
+                self._iloc=_iLocIndexer(self, 'iloc')
         return self._iloc   
     
 
@@ -320,53 +323,13 @@ class MetaPandasObject(object):
         """See pandas.Index.loc; preserves metadata"""
         if self._loc is None:
             try:
-                self._loc = _MetaLocIndexer(self)
-            ### New versions of _IXIndexer require "name" attribute.
+                self._loc = _LocIndexer(self)
+            #New versions of _IXIndexer require "name" attribute.
             except TypeError as TE:
-                self._loc= _MetaLocIndexer(self, 'loc')
+                self._loc= _LocIndexer(self, 'loc')
         return self._loc         
     
             
-class _MetaIXIndexer(_IXIndexer):
-    ''' Intercepts the slicing of ix so Series returns can be handled. 
-    
-    The self.obj attribute is how the indexer refers to its calling object.
-    '''
-    
-    def __getitem__(self, key):
-                                  
-        out = super(_MetaIXIndexer, self).__getitem__(key)               
-        if isinstance(out, DataFrame): #If Series or Series subclass
-            out = self.obj._transfer(out) 
-        return out  
-
-
-class _MetaLocIndexer(_LocIndexer):
-    ''' Intercepts the slicing of ix so Series returns can be handled. 
-    
-    The self.obj attribute is how the indexer refers to its calling object.
-    '''
-    
-    def __getitem__(self, key):
-                 
-        out = super(_MetaLocIndexer, self).__getitem__(key)               
-        if isinstance(out, DataFrame): #If Series or Series subclass
-            out = self.obj._transfer(out) 
-        return out  
-
-
-class _MetaiLocIndexer(_iLocIndexer):
-    ''' Intercepts the slicing of ix so Series returns can be handled. 
-    
-    The self.obj attribute is how the indexer refers to its calling object.
-    '''
-    
-    def __getitem__(self, key):
-                 
-        out = super(_MetaiLocIndexer, self).__getitem__(key)               
-        if isinstance(out, DataFrame): #If Series or Series subclass
-            out = self.obj._transfer(out) 
-        return out              
 
 
 #@logclass(public_lvl='debug', log_name=__name__, skip=['_transfer'])
@@ -388,6 +351,7 @@ class MetaDataFrame(MetaPandasObject):
 class MetaSeries(MetaPandasObject):
     
     cousin = Series
+        
 	            
     
 

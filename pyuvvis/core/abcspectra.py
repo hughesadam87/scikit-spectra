@@ -3,7 +3,7 @@
 from pandas import Series, DataFrame
 import pyuvvis.core.utilities as pvutils
 import pyuvvis.config as pvconfig
-from pyuvvis.pandas_utils.metadframe import _MetaLocIndexer
+from pandas.core.indexing import _LocIndexer
 from pyuvvis.units.abcunits import IUnit, Unit, UnitError
 import numpy as np
 
@@ -168,7 +168,7 @@ class ABCSpectra(object):
 
 # Nearby Indexer 
 # --------------
-class _NearbyIndexer(_MetaLocIndexer):
+class _NearbyIndexer(_LocIndexer):
    """ Index by location, but looks for nearest values.  Warning: not all
    use cases may be handled properly; this is predominantly for range slices
    eg (df.nearby[50.0:62.4]), ie looking at a range of wavelengths.

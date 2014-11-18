@@ -225,10 +225,15 @@ class TimeIndex(ConversionIndex):
         objects.  Otherwise, get ValueError:
              Buffer dtype mismatch, expected 'Python object' but got 'double'
         """
-        if self.dtype != 'object':
-            return False
-        else:
-            return super(ConversionIndex, self).is_all_dates    
+        # Don't ever want this True, or things will convert ot DateTimeIndex
+        return False
+
+        # How I used to do it, but resulted in bug #146
+        # https://github.com/hugadams/pyuvvis/issues/146
+        #if self.dtype != 'object':
+            #return False
+        #else:
+            #return super(ConversionIndex, self).is_all_dates    
 
 
     # Hack to return _engine type correctly for mixed index objects like TimeIndex

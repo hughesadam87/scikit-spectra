@@ -223,7 +223,7 @@ class Spectrum(ABCSpectra, MetaSeries):
       super(Spectrum, self).__init__(*args, **kwargs)        
       self.specifier = specifier
         
-      
+
    @property
    def unit(self):
       return self.index._unit.short   
@@ -231,6 +231,26 @@ class Spectrum(ABCSpectra, MetaSeries):
    @property
    def full_unit(self):
       return self.index._unit.full
+
+   @property
+   def _header(self):
+      """ Header for string printout """
+      delim = pvconfig.HEADERDELIM
+      
+      # Certain methods aren't copying this correctly.  Delete later if fix
+
+      unit = pvutils.safe_lookup(self, 'full_unit')
+      iunit = pvutils.safe_lookup(self, 'full_iunit')
+      
+   
+      header = "*%s*%s [%s]%sIunit: %s\n" % \
+            (self.name, 
+             delim, 
+             unit,
+             delim, 
+             iunit)
+      
+      return header
 
 
    @property
@@ -281,7 +301,6 @@ class Spectrum(ABCSpectra, MetaSeries):
          raise SpecError('Spectrum.from_series() requires series input,'
                          'got %s' % type(series))
      
-      # Series.index is correct?
       out = cls(series.values, index=series.index)
 
       def _transfer(attr):
@@ -1386,7 +1405,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
          if self._base_sub:
             base = 'Subtracted'
          else:
-            base = 'Found (no sub.)'
+            base = 'Found (no sub)'
             
       if self.reference is None:
          ref = 'None'
@@ -1399,7 +1418,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
                                                                 delim, 
                                                                 ref,
                                                                 delim, 
-                                                                self.norm)
+                                                                str(self.norm))
       return header
    
       
@@ -1429,7 +1448,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
          if self._base_sub:
             base = _green('Subtracted')
          else:
-            base = 'Found (no sub.)'
+            base = _green('Found')+' (no sub)'
          
       if self.reference is None:
          ref = _red('None')
@@ -1663,27 +1682,17 @@ class Spectra(ABCSpectra, MetaDataFrame):
                  columns=pandas_object.columns,
                  **dfkwargs)
 
-      
-#      self._strict_index = dfkwargs.pop('strict_index', SpecIndex)   
+    
 
 ## TESTING ###
 if __name__ == '__main__':  
 
    from pyuvvis.data import solvent_evap, aunps_glass, trip_peaks
    import matplotlib.pyplot as plt
-   ts = aunps_glass().as_varunit('intvl')
-   ts.baseline=0
-   print ts
-   print ts.iloc[0]._header
-   print ts.specunit
-   print 'hi', ts.specunit
-   #def foo(x): return x**3
-   #t2 = ts.apply(foo)
-   #t2.plot()
-   #plt.show()
-   #print 'hi'
+   ts = aunps_glass()
+   ts.baseline=5
+   x = ts.iloc[0, 0:5].index
+   print x
+   print ts.mean().index
 
-#   print ts.iloc[0, 0:5]
-
- 
  
