@@ -147,9 +147,12 @@ def corr2d(spec, sideplots='mean', **pltkwargs):
         if sideplots == True:
             sideplots = 'mean'
 
-        # Should be identical!
-        symbol1 = spec.index._unit.symbol
-        symbol2 = spec.columns._unit.symbol
+        # Should be identical, but maybe not when do heterspectral corr...
+        try:
+            symbol1 = spec.index._unit.symbol
+            symbol2 = spec.columns._unit.symbol
+        except Exception:
+            symbol1 = symbol2 = r'\lambda'
                 
         if spec._corr2d.center is not None:
             label1 = r'$\bar{A}(%s_1)$' % symbol1

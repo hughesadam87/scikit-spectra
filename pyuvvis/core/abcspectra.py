@@ -41,6 +41,8 @@ class ABCSpectra(object):
       """
       # Change output based on Spectra vs. Spectrum
       obj = self._frame
+      
+      # Series doesn't have _repr_html or something
       if isinstance(obj, Series):
          obj = DataFrame(obj, columns=[self.specifier])
    
@@ -68,10 +70,10 @@ class ABCSpectra(object):
       
       # Certain methods aren't copying this correctly.  Delete later if fix
 
-      full_specunit = pvutils.hasgetattr(self, 'full_specunit', '??')
-      full_varunit = pvutils.hasgetattr(self, 'full_varunit', '??')
-      specunit = pvutils.hasgetattr(self, 'specunit', '??')
-      varunit = pvutils.hasgetattr(self, 'varunit', '??')
+      full_specunit = pvutils.safe_lookup(self, 'full_specunit')
+      full_varunit = pvutils.safe_lookup(self, 'full_varunit')
+      specunit = pvutils.safe_lookup(self, 'specunit')
+      varunit = pvutils.safe_lookup(self, 'varunit')
    
    
       header = "*%s*%sSpectral unit:%s%sPerturbation unit:%s\n" % \
@@ -91,9 +93,9 @@ class ABCSpectra(object):
       else:
          colorshape = '<font color="#0000CD"> (%s)</font>' % (self.shape)
 
-      ftunit = pvutils.hasgetattr(self, 'full_varunit', '??')
-      spunit = pvutils.hasgetattr(self, 'full_specunit', '??')
-      iunit = pvutils.hasgetattr(self, 'full_iunit', '??')
+      ftunit = pvutils.safe_lookup(self, 'full_varunit')
+      spunit = pvutils.safe_lookup(self, 'full_specunit')
+      iunit = pvutils.safe_lookup(self, 'full_iunit')
    
       header = "%s&nbsp%s%s [%s X %s]%sIunit:&nbsp%s" % \
          (self.name, 

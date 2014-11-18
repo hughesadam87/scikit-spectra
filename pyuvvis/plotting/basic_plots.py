@@ -90,7 +90,7 @@ def _genplot(ts, *args, **pltkwargs):
         mappable, vmin, vmax = put._annotate_mappable(ts, pcmap, axis=0)
         cbar = fig.colorbar(mappable, ticks=np.linspace(vmin, vmax, _barlabels))
         
-        tunit = pvutils.hasgetattr(ts, 'full_varunit', '??')
+        tunit = pvutils.safe_lookup(ts, 'full_varunit')
         
         cbar.set_label(r'%s$\rightarrow$' % tunit, rotation=c_rotation)
         
@@ -193,7 +193,7 @@ def range_timeplot(ranged_ts, **pltkwds):
     pltkwds['legend'] = pltkwds.pop('legend', True)
     pltkwds['linewidth'] = pltkwds.pop('linewidth', 2.0 )  
           
-    tunit = getattr(ranged_ts, 'full_varunit', 'Perturbation')    
+    tunit = pvutils.safe_lookup(ranged_ts, 'full_varunit')    
           
     pltkwds.setdefault('xlabel', tunit)     
     pltkwds.setdefault('ylabel', '$\int$ %s (sliced)' % ranged_ts.full_iunit)    
@@ -241,7 +241,7 @@ def areaplot(ranged_ts, **pltkwds):
     pltkwds.setdefault('color', 'black') # If removing, colormap default in _genplot
                                          # Will cause bug
 
-    tunit = getattr(ranged_ts, 'full_varunit', 'Perturbation')
+    tunit = pvutils.safe_lookup(ranged_ts, 'full_varunit')
 
     pltkwds.setdefault('xlabel', tunit)  
     pltkwds.setdefault('ylabel', '$\int$ %s d$\lambda$'%ranged_ts.full_iunit)    

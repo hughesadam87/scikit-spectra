@@ -11,6 +11,7 @@ from types import GeneratorType
 
 from pyuvvis.pandas_utils.dataframeserial import _get_metadict
 from pyuvvis.exceptions import badvalue_error
+import pyuvvis.config as pvconfig
 
 import logging
 logger = logging.getLogger(__name__) 
@@ -41,11 +42,20 @@ def _compute_span(index, with_unit=False):
       span = '%s %s' % (span, index._unit.short)
    return span
 
+
 def hasgetattr(obj, attr, default=None):
     """ Combines hasattr/getattr to return a default if hasattr fail."""
     if not hasattr(obj, attr):
         return default
     return getattr(obj, attr)
+
+
+def safe_lookup(obj, attr, missing=pvconfig.MISSING):
+    """ Look up attribute on object.  If not found, or set to None,
+    will return a missing value defaulting to pvconfig.MISSING.
+    """
+    return hasgetattr(obj, attr, missing)
+
 
 def countNaN(obj):
     ''' Returns counts of nans in an object'''

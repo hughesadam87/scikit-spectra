@@ -135,11 +135,13 @@ class Spec2d(AnyFrame):
         """ Header for string printout """
         delim = pvconfig.HEADERDELIM
 
+        # Since correlation REQUIRES index units, this will probably just work
+        
         # Certain methods aren't copying this correctly.  Delete later if fix
-        name = pvutils.hasgetattr(self, 'name', '??')
-        full_varunit = pvutils.hasgetattr(self, 'full_varunit', '??')
-        specunit = pvutils.hasgetattr(self, 'specunit', '??')
-        varunit = pvutils.hasgetattr(self, 'varunit', '??')
+        name = pvutils.safe_lookup(self, 'name')
+        full_varunit = pvutils.safe_lookup(self, 'full_varunit')
+        specunit = pvutils.safe_lookup(self, 'specunit')
+        varunit = pvutils.safe_lookup(self, 'varunit')
 
 
         header = "*%s*%sScaling:%s\n" % \
@@ -155,8 +157,8 @@ class Spec2d(AnyFrame):
 
         # Should be same by virtue of index units being same, but don't
         # enforece it; up to user not to change it!
-        ftunit = getattr(self, 'varunit', '??')  
-        spunit = getattr(self, 'specunit', '??')
+        ftunit = safe_lookup(self, 'varunit')  
+        spunit = safe_lookup(self, 'specunit')
 
         if self.ndim > 1:
             s1, s2 = self.shape            

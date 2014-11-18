@@ -213,7 +213,15 @@ def spec_from_dir(directory, csvargs, sortnames=False, concat_axis=1, shortname=
 class Spectrum(ABCSpectra, MetaSeries):
    """ Compliment to pandas Series: single array of spectral values with
    spectral Index.
-   """       
+   """
+   
+   def __init__(self, *args, **kwargs):
+      
+      specifier = kwargs.pop('specifier', pvconfig.SPECIFIERDEF)
+      # CUSTOMIZE!?
+      super(Spectrum, self).__init__(*args, **kwargs)        
+      self.specifier = specifier
+        
       
    @property
    def unit(self):
@@ -235,8 +243,8 @@ class Spectrum(ABCSpectra, MetaSeries):
       else:
          colorshape = '<font color="#0000CD"> (%s)</font>' % (self.shape)
 
-      unit = pvutils.hasgetattr(self, 'full_unit', '??')
-      iunit = pvutils.hasgetattr(self, 'full_iunit', '??')      
+      unit = pvutils.safe_lookup(self, 'full_unit')
+      iunit = pvutils.safe_lookup(self, 'full_iunit')
 
       header = "%s&nbsp%s%s Index Unit:&nbsp%s%sIunit:&nbsp%s" % \
          (self.name, 
@@ -255,11 +263,9 @@ class Spectrum(ABCSpectra, MetaSeries):
       pltkwds.setdefault('color', 'black') # If removing, colormap default in _genplot
                                            # Will cause bug
       
-      pltkwds.setdefault('xlabel', self.full_varunit)  
-
-      # No ylabel, because most often, user will have custom value here as
-      # result form apply
-      # pltkwds.setdefault('ylabel', self.full_norm)    
+      pltkwds.setdefault('xlabel', self.unit)
+      pltkwds.setdefault('ylabel', self.specifier)
+      pltkwds.setdefault('title', '%s' % self.name)
       
       return _genplot(self, *args, **pltkwds)
    
@@ -645,6 +651,20 @@ class Spectra(ABCSpectra, MetaDataFrame):
                          'because "zero_warn" = True in _reference valid()')
 
       return rout  #MAKES MORE SENSE TO MAKE THIS A 1D DATAFRAME
+
+
+   def apply(self, *args, **kwargs):
+      """ Raw=True seems to produce correct results more often from some
+      #deep issue that is not fully tracked. """
+      kwargs.setdefault('raw', True)
+      specifier = kwargs.pop('specifier', args[0].__name__)
+      # Call _dataframe attribute and transfer attributes
+      out = self._framegetattr('apply', *args, **kwargs)
+      
+      ## If Spectrum, use function name as specifier!
+      if isinstance(out, Spectrum):
+         out.specifier = specifier
+      return out
    
    def wavelength_slices(self, ranges, apply_fcn='mean', **applyfcn_kwds):
       """Returns sliced averages/sums of wavelength regions. Composite dataframe will nicely
@@ -773,7 +793,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
                                      self.index[-1]),#max(self.index)), 
                                     apply_fcn=apply_fcn)
 
-      out.name = 'Area (%s)' % apply_fcn
+      out.specifier = 'Area (%s)' % apply_fcn
       return out
 
 
@@ -782,7 +802,10 @@ class Spectra(ABCSpectra, MetaDataFrame):
    ### RETURN A NEW INDEX, AND ALSO UPDATE SPECUNIT IN SAID INDEX!
    @property
    def specunit(self):
-      return self._frame.index._unit.short    #Short name key
+      try:
+         return self._frame.index._unit.short    #Short name key
+      except AttributeError:
+         return pvconfig.MISSING
 
    @property
    def full_specunit(self):
@@ -1026,8 +1049,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
    def plot(self, *args, **pltkwargs):   
       """ Plotting interface.  Use kind='surf, wire etc...' to go through 
       various plot types.  Will append correct x and y labels.
-      """
-
+      """      
       return specplot(self, *args, **pltkwargs)
             
 
@@ -1624,7 +1646,6 @@ if __name__ == '__main__':
    ts = aunps_glass().as_varunit('intvl')
    def foo(x): return x**3
    t2 = ts.apply(foo)
-   print t2.specunit, t2.varunit
    t2.plot()
    plt.show()
    print 'hi'

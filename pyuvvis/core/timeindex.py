@@ -122,9 +122,10 @@ class TimeIndex(ConversionIndex):
                 seconds = np.insert(seconds, 0, seconds[0]-seconds[0])
                 if self.cumsum:
                     seconds = seconds.cumsum()
+                # Seconds to datetime to new unit (hacky/three steps)
                 out = self.__class__(seconds, unit=outunit)  #THIS MAKES NP ARRAY SO ADD DATETIMEINDEX
                 out = self.unitdict[outunit].from_canonical(out)           
-                out = self.__class__(out, unit='intvl')
+                out = self.__class__(out, unit=outunit)
 
             # Should never happen
             else:

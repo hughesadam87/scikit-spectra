@@ -18,7 +18,7 @@ TITLESIZE = 'large'
 # 1D
 CMAP_1DSPECPLOT = 'cool'
 
-# Conotur
+# Contour
 CMAP_CONTOUR = 'seismic'
 NUM_CONTOURS = 20
 FILL_CONTOUR = False
@@ -34,3 +34,7 @@ R_MESH = MESH  #If want default mesh to be non-square
 # Spectra output spacing
 HEADERDELIM = '\t'
 HEADERHTMLDELIM = '&nbsp;' * 8
+
+# Default specifier to Spectrum
+SPECIFIERDEF = 'values' 
+MISSING = '??' #When unit info is missing, header/plotting will refer to this
