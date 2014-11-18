@@ -139,9 +139,8 @@ class Spec2d(AnyFrame):
         
         # Certain methods aren't copying this correctly.  Delete later if fix
         name = pvutils.safe_lookup(self, 'name')
-        full_varunit = pvutils.safe_lookup(self, 'full_varunit')
-        specunit = pvutils.safe_lookup(self, 'specunit')
-        varunit = pvutils.safe_lookup(self, 'varunit')
+        ftunit = pvutils.safe_lookup(self, 'varunit')  
+        spunit = pvutils.safe_lookup(self, 'specunit')
 
 
         header = "*%s*%sScaling:%s\n" % \
@@ -157,8 +156,8 @@ class Spec2d(AnyFrame):
 
         # Should be same by virtue of index units being same, but don't
         # enforece it; up to user not to change it!
-        ftunit = safe_lookup(self, 'varunit')  
-        spunit = safe_lookup(self, 'specunit')
+        ftunit = pvutils.safe_lookup(self, 'varunit')  
+        spunit = pvutils.safe_lookup(self, 'specunit')
 
         if self.ndim > 1:
             s1, s2 = self.shape            
@@ -708,8 +707,8 @@ if __name__ == '__main__':
     ts = solvent_evap()#.as_varunit('s').as_norm('r')
 
     cd = Corr2d(ts)#, refspec=ts.mean(axis=1) )
-    cd.center()
     cd.set_center('mean')
+    print cd.sync
     cd.scale(alpha=0, beta=0)
     cd.sync.plot(contours=20, kind='corr3d')
     plt.show()

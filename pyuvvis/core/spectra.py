@@ -59,6 +59,7 @@ to_T={'t':lambda x: 1.0/x,
       'a':lambda x: np.power(10, -x), 
       'a(ln)':lambda x: np.exp(-x)} 
 
+
 def spec_slice(spectral_array, bins):
    """ Simple method that will divide a spectral index into n evenly sliced
    bins and return as nested tuples. Useful for generating wavelength slices 
@@ -307,10 +308,7 @@ class Spectrum(ABCSpectra, MetaSeries):
       return out
    
    
-
-# Ignore all class methods!
-#@logclass(log_name=__name__, skip = ['wraps','_framegetattr', 'from_csv', 
- #                                    '_comment', '_transfer'])
+   
 class Spectra(ABCSpectra, MetaDataFrame):
    """ Provides core Spectra composite pandas DataFrame to represent a set 
    of spectral data.  Enforces spectral data along the index and temporal 
@@ -802,10 +800,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
    ### RETURN A NEW INDEX, AND ALSO UPDATE SPECUNIT IN SAID INDEX!
    @property
    def specunit(self):
-      try:
-         return self._frame.index._unit.short    #Short name key
-      except AttributeError:
-         return pvconfig.MISSING
+      return self._frame.index._unit.short    #Short name key
 
    @property
    def full_specunit(self):
@@ -1379,6 +1374,36 @@ class Spectra(ABCSpectra, MetaDataFrame):
          return out
       
    @property
+   def _header(self):
+      
+      delim = pvconfig.HEADERDELIM
+      
+      header = super(Spectra, self)._header
+      
+      if self.baseline is None:
+         base = 'None'
+      else:
+         if self._base_sub:
+            base = 'Subtracted'
+         else:
+            base = 'Found (no sub.)'
+            
+      if self.reference is None:
+         ref = 'None'
+      else:
+         ref = 'Found'
+         
+
+      header += '\nBaseline: %s%sReference: %s%sNormalization: %s\n' %\
+                                                               (base, 
+                                                                delim, 
+                                                                ref,
+                                                                delim, 
+                                                                self.norm)
+      return header
+   
+      
+   @property
    def _header_html(self):
       """ Add normalization, baseline, reference. """
       delim = pvconfig.HEADERHTMLDELIM
@@ -1391,7 +1416,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
          return '<font color="#009900">%s</font>' % (string) 
          
       
-      old = super(Spectra, self)._header_html
+      header = super(Spectra, self)._header_html
       
       if self.norm is None:
          norm = _red('None')
@@ -1401,20 +1426,23 @@ class Spectra(ABCSpectra, MetaDataFrame):
       if self.baseline is None:
          base = _red('None')
       else:
-         base = _green('True')
+         if self._base_sub:
+            base = _green('Subtracted')
+         else:
+            base = 'Found (no sub.)'
          
       if self.reference is None:
          ref = _red('None')
       else:
-         ref = _green('True')
+         ref = _green('Found')
          
 
-      old += '<br><br>Baseline: %s%sReference: %s%sNormalization: %s' %(base, 
+      header += '<br><br>Baseline: %s%sReference: %s%sNormalization: %s' %(base, 
                                                               delim, 
                                                               ref,
                                                               delim, 
                                                               norm)
-      return old
+      return header
    
 
    def __getitem__(self, keyslice):
@@ -1644,11 +1672,16 @@ if __name__ == '__main__':
    from pyuvvis.data import solvent_evap, aunps_glass, trip_peaks
    import matplotlib.pyplot as plt
    ts = aunps_glass().as_varunit('intvl')
-   def foo(x): return x**3
-   t2 = ts.apply(foo)
-   t2.plot()
-   plt.show()
-   print 'hi'
+   ts.baseline=0
+   print ts
+   print ts.iloc[0]._header
+   print ts.specunit
+   print 'hi', ts.specunit
+   #def foo(x): return x**3
+   #t2 = ts.apply(foo)
+   #t2.plot()
+   #plt.show()
+   #print 'hi'
 
 #   print ts.iloc[0, 0:5]
 

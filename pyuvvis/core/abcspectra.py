@@ -42,7 +42,7 @@ class ABCSpectra(object):
       # Change output based on Spectra vs. Spectrum
       obj = self._frame
       
-      # Series doesn't have _repr_html or something
+      # Series doesn't have _repr_html, so actually call DF's
       if isinstance(obj, Series):
          obj = DataFrame(obj, columns=[self.specifier])
    
@@ -70,14 +70,18 @@ class ABCSpectra(object):
       
       # Certain methods aren't copying this correctly.  Delete later if fix
 
-      full_specunit = pvutils.safe_lookup(self, 'full_specunit')
-      full_varunit = pvutils.safe_lookup(self, 'full_varunit')
-      specunit = pvutils.safe_lookup(self, 'specunit')
-      varunit = pvutils.safe_lookup(self, 'varunit')
+      ftunit = pvutils.safe_lookup(self, 'full_varunit')
+      spunit = pvutils.safe_lookup(self, 'full_specunit')
+      iunit = pvutils.safe_lookup(self, 'full_iunit')
+       
    
-   
-      header = "*%s*%sSpectral unit:%s%sPerturbation unit:%s\n" % \
-            (self.name, delim, full_specunit, delim, full_varunit)
+      header = "*%s*%s[%s X %s]%sIunit: %s\n" % \
+            (self.name, 
+             delim, 
+             ftunit,
+             spunit,
+             delim, 
+             iunit)
       
       return header
       
@@ -269,4 +273,3 @@ class _NearbyIndexer(_MetaLocIndexer):
       elif issubclass(out.__class__, Series):
          out.nearby = self.obj.nearby
       return out
-   
