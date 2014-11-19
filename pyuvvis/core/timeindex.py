@@ -225,7 +225,7 @@ class TimeIndex(ConversionIndex):
         objects.  Otherwise, get ValueError:
              Buffer dtype mismatch, expected 'Python object' but got 'double'
         """
-        # Don't ever want this True, or things will convert ot DateTimeIndex
+        # Don't ever want this True, or Series will convert ot DateTimeIndex
         return False
 
         # How I used to do it, but resulted in bug #146
