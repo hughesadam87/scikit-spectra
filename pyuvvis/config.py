@@ -16,10 +16,10 @@ TITLESIZE = 'large'
 
 
 # 1D
-CMAP_1DSPECPLOT = 'cool'
+CMAP_1DSPECPLOT = 'coolwarm' #Divergent red/blue/gray middle
 
 # Contour
-CMAP_CONTOUR = 'seismic'
+CMAP_CONTOUR = 'seismic'  #Divergent red/blue white middle
 NUM_CONTOURS = 20
 FILL_CONTOUR = False
 

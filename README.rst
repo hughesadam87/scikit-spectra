@@ -213,7 +213,7 @@ Interested in the Python ecosystem?   Check out some of these related libraries:
 About the Author
 ================
 
-I'm a PhD student at GWU (check me out on researchgate_, Linkedin_ or twitter_(@hughesadam87))
+I'm a PhD student at GWU (check me out on researchgate_, Linkedin_ or twitter_ (@hughesadam87))
 and former Enthought intern. I work in biomolecule sensing and nanophotonics.  
 Like any PhD student, my time is stretched across many projects.  As such,
 the ``pyuvvis`` source code may is messy in places, and a test suite has

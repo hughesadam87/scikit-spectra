@@ -70,7 +70,7 @@ def _genplot(ts, *args, **pltkwargs):
     ax = ts._frame.plot(**pltkwargs)
     
     if cbar:
-        if 'color' in pltkwargs:
+        if pltkwargs.get('color', None):
             raise PlotError('Colorbar requires cmap; solid color \
             "%s" found.' % pltkwargs['color'])
 
