@@ -6,7 +6,34 @@ from IPython.html.widgets import (
     IntSlider, Button, Text, FloatSlider, IntText, ContainerWidget
 )
 
-from IPython.utils.traitlets import link
+from IPython.utils.traitlets import link, Unicode, Bool
+
+from jinja2 import Template
+
+
+class PopOvers(HTML):
+    template = Template("""
+        <p id="x"
+        class="{{classname}}"
+        title="{{ title|escape }}"
+        data-toggle="popover"
+        data-content="{{ content|escape }}">{{description}}</p>
+        <script>
+        $('#x').popover();
+        </script>
+        """)
+    description = Unicode(sync=True)
+    classname = Unicode(sync=True)
+    title = Unicode(sync=True)
+    content = Unicode(sync=True)
+
+    
+    def __init__(self, *args, **kwargs):
+        super(PopOvers, self).__init__(*args, **kwargs)
+
+    def _title_changed(self, old, new):
+        self.value = self.template.render(**self._trait_values)
+
 
 class PanelTitle(HTML):
     def __init__(self, *args, **kwargs):
@@ -30,6 +57,12 @@ class ControlPanel(Box):
                 PanelTitle(value=title),
                 PanelBody(children=self.children)
             ]
+
+class Alert(HTML):
+   """HTML widget that is used to store alerts.  For now,
+   just a pure HTML class but put in in separate class to
+   allow potential customaization in future."""
+   
 
 
 class SpectralGUI(Box):
@@ -82,7 +115,10 @@ class SpectralGUI(Box):
         filebox = VBox([filename,loadbutton])
         link((self.model, "load_file"), (filebox, "visible"))
         
-        return ControlPanel(title="Load Dataset", children=[HBox(children=[loaddata,loadfile]),specbox,filebox])
+        reset = Button(color='white',background_color='violet',description='Reset Defaults')
+        #reset.on_click(lambda x: self.model.)
+        
+        return ControlPanel(title="Load Dataset", children=[HBox(children=[loaddata,loadfile]),specbox,filebox,reset])
 
     def plot_panel(self):
         # create draw mode controls.  NOTE: should only be called once.
@@ -146,35 +182,53 @@ class SpectralGUI(Box):
         model = self.model #For readability
         
         # ALL WIDGETS ARE CAPITALIZED. 
-        AXIS = RadioButtons(values=[0,1],description="Axis")
-        link((model, "slice_axis"), (AXIS, "value"))
+        #AXIS = RadioButtons(values=[0,1],description="Axis")
+        #link((model, "slice_axis"), (AXIS, "value"))
         
-        START = FloatSlider(description="Slice Start",
-                            min=model.slice_position_start) #Will not try to update
+        SPECSTART = FloatSlider(description="Spec Slice Start",
+                            min=model.specslice_position_start) #Will not try to update
        
-        link((model,"slice_position_start"),(START,"value"))
-        link((model,"step_spec"),(START,"step"))
-        link((model,"slider_start"),(START,"min")) # Start end values (IE slider_min / slider_max)
-        link((model,"slider_end"),(START,"max"))
+        link((model,"specslice_position_start"),(SPECSTART,"value"))
+        link((model,"specstep"),(SPECSTART,"step"))
+        link((model,"specslider_start"),(SPECSTART,"min")) # Start end values (IE slider_min / slider_max)
+        link((model,"specslider_end"),(SPECSTART,"max"))
         
-        END = FloatSlider(description="Slice End",
-                          max=model.slice_position_end) # Will not try to update
+        SPECEND = FloatSlider(description="Spec Slice End",
+                          max=model.specslice_position_end) # Will not try to update
         
-        link((model,"slice_position_end"),(END,"value"))
-        link((model,"step_spec"),(END,"step"))
-        link((model,"slider_start"),(END,"min"))
-        link((model,"slider_end"),(END,"max"))
+        link((model,"specslice_position_end"),(SPECEND,"value"))
+        link((model,"specstep"),(SPECEND,"step"))
+        link((model,"specslider_start"),(SPECEND,"min"))
+        link((model,"specslider_end"),(SPECEND,"max"))
         
         # SPACING WIDGET
-        SPACING = IntText(description="Sample by",value=1)
-        link((model,"spacing"),(SPACING,"value"))
+        SPECSPACING = IntText(description="Spec Sample by",value=1)
+        link((model,"specspacing"),(SPECSPACING,"value"))
+        
+        TIMESTART = FloatSlider(description="Time Slice Start",
+                            min=model.timeslice_position_start)
+                            
+        link((model,"timeslice_position_start"),(TIMESTART,"value"))
+        link((model,"timestep"),(TIMESTART,"step"))
+        link((model,"timeslider_start"),(TIMESTART,"min"))
+        link((model,"timeslider_end"),(TIMESTART,"max"))
+        
+        TIMEEND = FloatSlider(description="Time Slice End",
+                                max=model.timeslice_position_end)
+        link((model,"timeslice_position_end"),(TIMEEND,"value"))
+        link((model,"timestep"),(TIMEEND,"step"))
+        link((model,"timeslider_start"),(TIMEEND,"min"))
+        link((model,"timeslider_end"),(TIMEEND,"max"))
+        
+        TIMESPACING = IntText(description="Time Sample by",value=1)
+        link((model,"timespacing"),(TIMESPACING,"value"))
 
-        RANGED = VBox([START,END,SPACING])
+        RANGED = VBox([SPECSTART,SPECEND,SPECSPACING, TIMESTART, TIMEEND, TIMESPACING])
         
         
         return ControlPanel(title="Slicing/Sampling",
               children=[
-                  AXIS,
+                  #AXIS,
                   RANGED
                   ]
               )
@@ -187,8 +241,12 @@ class SpectralGUI(Box):
         #link((self.model,"save_spec"),(savets,'value'))
         savets.on_click(lambda x: self.model.save_to_ns())
         savetsas = Text(description='Save as:')
-        link((self.model,"save_spec_as"),(savetsas,'value'))
+        link((self.model,"save_spec_as"),(savetsas,"value"))
+        po= PopOvers(description='Click for Popover')
+        link((self.model,"CONTENT"),(po,"content"))
+        link((self.model,"classname"),(po,"classname"))
+        link((self.model,"title"),(po,"title"))
         #redraw = Button(description="Redraw")
         #redraw.on_click(lambda x: self.model.draw())
-        return ControlPanel(title='Save Dataset (combine w/ load)',children=[saveplot,savets,savetsas])
+        return ControlPanel(title='Save Dataset (combine w/ load)',children=[saveplot,savets,savetsas,po])
         #return ToolBar(redraw)      
