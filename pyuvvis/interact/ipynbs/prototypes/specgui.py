@@ -77,10 +77,14 @@ class SpectralGUI(Box):
     
     def __init__(self, model=None, model_config=None, *args, **kwargs):
         self.model = model or Spectrogram(**(model_config or {}))  #Need to access spectrogram if defaulting...
+	# Create alert widget (refactor into its own function?)
+        alert = Alert(description = "Alert or something")
+        link((self.model, "message"), (alert, "value"))
+
         # Create a GUI
         kwargs["orientation"] = 'horizontal'
         kwargs["children"] = [
-            HBox([self.model,
+            HBox([VBox([alert, self.model]),
                   VBox([self.save_load_panel(), self.load_panel(), self.unit_panel()]),
                 ]),
             self._controls()
