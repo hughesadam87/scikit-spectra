@@ -70,7 +70,7 @@ class PluginManager(object):
       """ Returns figure with plugins attached."""
       mpld3.plugins.clear(self._fig)
       for p in self._plugins.values():
-         if p in LINEPLUGINS:
+         if p in LABELPLUGINS:
             for idx, line in enumerate(self.lines):
                mpld3.plugins.connect(self._fig, p(*self.lines))            
 
@@ -145,11 +145,13 @@ if __name__ == '__main__':
 
 #   points = ax.scatter(range(40), range(40))
    pman = PluginManager(fig=f)
+   
+   
    pman.add('mousepos')
    print pman._plugins
    pman.remove('boxzoom')
    pman.remove('zoom')
-   pman.add('linelabel')
+#   pman.add('linelabel')
    print pman._plugins
    
    
