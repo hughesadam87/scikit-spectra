@@ -2,7 +2,7 @@ from pyuvvis.plotting.advanced_plots import PLOTPARSER
 
 from IPython.html.widgets import (
     FlexBox, VBox, HBox, HTML, Box, RadioButtons,
-    Text, Dropdown, Checkbox, Image, 
+    Text, Dropdown, Checkbox, Image, Popup,
     IntSlider, Button, Text, FloatSlider, IntText, ContainerWidget
 )
 
@@ -58,6 +58,7 @@ class ControlPanel(Box):
                 PanelBody(children=self.children)
             ]
 
+
 class Alert(HTML):
    """HTML widget that is used to store alerts.  For now,
    just a pure HTML class but put in in separate class to
@@ -73,7 +74,8 @@ class SpectralGUI(Box):
     class handles creating all of the GUI controls and links. This ensures
     that the model itself remains embeddable and rem
     """
-    
+    more = Checkbox(description="More Options")
+
     
     def __init__(self, model=None, model_config=None, *args, **kwargs):
         self.model = model or Spectrogram(**(model_config or {}))  #Need to access spectrogram if defaulting...
@@ -87,16 +89,15 @@ class SpectralGUI(Box):
             HBox([VBox([alert, self.model]),
                   VBox([self.save_load_panel(), self.load_panel(), self.unit_panel()]),
                 ]),
-            self._controls()
+            self._controls(),
         ]
         super(SpectralGUI, self).__init__(*args, **kwargs)
         self._dom_classes += ("spectroscopy row",)
     
     def _controls(self):
-        panels = HBox([
-            self.plot_panel(),
-            self.slicing_panel()
-  	         ],
+        panels = VBox([
+                 HBox([self.plot_panel(),self.slicing_panel()]),
+  	         HBox([self.plot_plugin_panel(),self.user_function_panel()])],
         _dom_classes=["col-xs-3"])
         
         return panels
@@ -115,6 +116,7 @@ class SpectralGUI(Box):
         loadfile = Checkbox(description="Test Data")
         link((self.model, "load_file"), (loadfile, "value"))
         filename = Text(description = "Name")
+        
         link((self.model, "file_name"), (filename, "value"))
         filebox = VBox([filename,loadbutton])
         link((self.model, "load_file"), (filebox, "visible"))
@@ -132,13 +134,20 @@ class SpectralGUI(Box):
         interact = Checkbox(description="Interactive")
         link((self.model, "interactive"), (interact, "value"))
 
-	select = Checkbox(description="Line Selection")
-	link((self.model, 'selectlines'), (select, 'value'))
-        
+        select = Checkbox(description="Line Selection")
+        link((self.model, "selectlines"), (select, "value"))
+
         autoupdate = Checkbox(description="Auto Update")
         link((self.model, "autoupdate"), (autoupdate, "value"))
         
-        
+        plugin1= Checkbox(description='plugin1')
+        plugin2= Checkbox(description='plugin2')
+        plugin3= Checkbox(description='plugin3')
+        #plugins = HBox([plugin1,plugin2,plugin3])
+        #more = Checkbox(description="More Options")### LINK IT
+        #link((self, "moreopt"), (more, "value"))
+        popmore = Popup(children=[plugin1,plugin2,plugin3], description='More Options', button_text='More Options')
+
         cmap = Dropdown(description="Colormap",values=self.model.COLORMAPS)
         link((self.model,"colormap"),(cmap,"value"))
              
@@ -151,7 +160,7 @@ class SpectralGUI(Box):
              
         return ControlPanel(title="Plot Settings", 
                 children=[
-                    HBox([autoupdate, interact, select]),
+                    HBox([autoupdate, interact, select, self.more, popmore]),
                     HBox([cmap,cbar]),
 	            HBox([color, kind])
                         ]
@@ -253,4 +262,20 @@ class SpectralGUI(Box):
         #redraw = Button(description="Redraw")
         #redraw.on_click(lambda x: self.model.draw())
         return ControlPanel(title='Save Dataset (combine w/ load)',children=[saveplot,savets,savetsas,po])
-        #return ToolBar(redraw)      
+        #return ToolBar(redraw)
+
+        
+    def plot_plugin_panel(self):
+        plugin1= Checkbox(description='plugin1')
+        plugin2= Checkbox(description='plugin2')
+        plugin3= Checkbox(description='plugin3')
+        cp = ControlPanel(title='Choose Plot Plugins',children=[plugin1,plugin2,plugin3])
+        link((self.more,"value"),(cp,"visible"))
+        return cp
+        
+    def user_function_panel(self):
+        f = Text(description="Function, Args:")
+        app = Button(description = "Apply")
+        cp2 = ControlPanel(title='User Defined Function',children=[f,app])
+        link((self.more,"value"),(cp2,"visible"))
+        return cp2
