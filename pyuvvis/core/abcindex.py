@@ -131,7 +131,7 @@ class ConversionIndex(Index):
       self._id = getattr(obj, '_id', None)
       
       # Necessary for certain instantiations DONT CHANGE
-      if isinstance(unit, str) or unit is None:
+      if isinstance(unit, basestring) or unit is None:
          self._unit = _parse_conversion_unit(unit, self.unitdict)
       else:
          self._unit = unit

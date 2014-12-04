@@ -206,7 +206,7 @@ def to_normrgb(color):
             return (r, g, b)
 
 
-    if isinstance(color, str):
+    if isinstance(color, basestring):
         if color == 'random':
             raise NotImplementedError("random color generation not supported")
 #            color = rand_color(style='hex')            
