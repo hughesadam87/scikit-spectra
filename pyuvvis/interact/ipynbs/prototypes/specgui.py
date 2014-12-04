@@ -143,10 +143,15 @@ class SpectralGUI(Box):
         plugin1= Checkbox(description='plugin1')
         plugin2= Checkbox(description='plugin2')
         plugin3= Checkbox(description='plugin3')
+        f = Text(description="Function, Args:")
+        link((self.model,"user_f"),(f,"value"))
+        fapp = Button(description = "Apply")
+        fapp.on_click(lambda x: self.model.apply_userf())
+        
         #plugins = HBox([plugin1,plugin2,plugin3])
         #more = Checkbox(description="More Options")### LINK IT
         #link((self, "moreopt"), (more, "value"))
-        popmore = Popup(children=[plugin1,plugin2,plugin3], description='More Options', button_text='More Options')
+        popmore = Popup(children=[HBox([VBox([plugin1,plugin2,plugin3]),VBox([f,fapp])])], description='More Options', button_text='More Options')
 
         cmap = Dropdown(description="Colormap",values=self.model.COLORMAPS)
         link((self.model,"colormap"),(cmap,"value"))
@@ -160,9 +165,10 @@ class SpectralGUI(Box):
              
         return ControlPanel(title="Plot Settings", 
                 children=[
-                    HBox([autoupdate, interact, select, self.more, popmore]),
+                    HBox([autoupdate, interact, select, self.more]),
                     HBox([cmap,cbar]),
-	            HBox([color, kind])
+	            HBox([color, kind]),
+                popmore
                         ]
                 )
 
@@ -275,7 +281,9 @@ class SpectralGUI(Box):
         
     def user_function_panel(self):
         f = Text(description="Function, Args:")
-        app = Button(description = "Apply")
-        cp2 = ControlPanel(title='User Defined Function',children=[f,app])
+        link((self.model,"user_f"),(f,"value"))
+        fapp = Button(description = "Apply")
+        fapp.on_click(lambda x: self.model.apply_userf())
+        cp2 = ControlPanel(title='User Defined Function',children=[f,fapp])
         link((self.more,"value"),(cp2,"visible"))
         return cp2
