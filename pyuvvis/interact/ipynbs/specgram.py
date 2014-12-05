@@ -9,12 +9,12 @@ from pyuvvis import Spectra
 
 
 from IPython.html.widgets import (
-                                  FlexBox, VBox, HBox, HTML, Box, RadioButtons,
-                                  FloatText, Dropdown, Checkbox, Image,
-                                  IntSlider, Button, Text, FloatSlider, IntText, ContainerWidget
+            FlexBox, VBox, HBox, HTML, Box, RadioButtons,
+            FloatText, Dropdown, Checkbox, Image,
+            IntSlider, Button, Text, FloatSlider, IntText, ContainerWidget
                                   )
 from IPython.utils.traitlets import (
-                                     link, Unicode, Float, Int, Enum, Bool, Instance, Any
+            link, Unicode, Float, Int, Enum, Bool, Instance, Any
                                      )
 
 
@@ -26,10 +26,11 @@ import pyuvvis.config as pvconf
 from pyuvvis.data import aunps_glass
 from pyuvvis.plotting.advanced_plots import PLOTPARSER
 
-class Spectrogram(HTML, Box):
+class SpectraModel(HTML, Box):
     """
-        A notional "complex widget" that knows how to redraw itself when key properties change.
-        """
+    A notional "complex widget" that knows how to redraw itself when key
+    properties change.
+    """
     
     # CONSTANTS (These are not traits)
     classname = Unicode("btn btn-success",sync=True)
@@ -47,25 +48,24 @@ class Spectrogram(HTML, Box):
     # IO traitlets
     load_spec = Bool(False,sync=True)
     load_file = Bool(True,sync=True) #
-    file_name = Unicode("", sync=True)
+    file_name = Unicode("<Notebook Variable>", sync=True)
     save_spec = Bool(False,sync=True)
     save_spec_as = Unicode('Test',sync=True)
     
     # Spectra traits
     spec = Instance(Spectra)
-    specname = Unicode('???', sync=True) # What should this be?
+    testdataset = Unicode('<Dataset (e.g. aunps_glass)>', sync=True) 
     spec_modified = Instance(Spectra)
     
     # Plotting Traits
-    figwidth = Float(8)
-    figheight = Float(8)
+    figwidth = Float(6.5)
+    figheight = Float(6.5)
     interactive = Bool(False, sync=True)
     colorbar = Bool(False, sync=True)
     autoupdate = Bool(True, sync=True)
     colormap = Enum(COLORMAPS ,sync=True)
     color = Enum(COLORS, default_value = 'k', sync=True)
     kind = Enum(PLOTPARSER.keys(), default_value = 'spec', sync=True)
-    
     
     # Units
     spec_unit = Unicode
@@ -75,7 +75,6 @@ class Spectrogram(HTML, Box):
     
     # Message/warnings
     message = Unicode
-    
     
     # Sampling/slicing
     #specslice_axis = Enum([0,1], default_value=0, sync=True)
@@ -102,7 +101,7 @@ class Spectrogram(HTML, Box):
     def __init__(self, *args, **kwargs):
         
         # Initialize traits (_spec_changed calls initial draw)
-        super(Spectrogram, self).__init__(*args, **kwargs)
+        super(SpectraModel, self).__init__(*args, **kwargs)
         self._dom_classes += ("col-xs-9",)
     
     
@@ -133,10 +132,8 @@ class Spectrogram(HTML, Box):
         
         
         # Spec slicing
-        print self.spec.index[0], 'specindex 0'
         self.specslice_position_start = self.spec.index[0]
         self.specslice_position_end = self.spec.index[-1]
-        print 'changing slice start to', self.spec.index[0]
         self.specslider_start = self.spec.index[0]
         self.specslider_end = self.spec.index[-1]
         self.specstep = (self.spec.index.max() - self.spec.index.min())/self.SLIDER_STEPS
@@ -146,7 +143,7 @@ class Spectrogram(HTML, Box):
         self.timeslice_position_end = self.spec.columns[-1]
         self.timeslider_start = self.spec.columns[0]
         self.timeslider_end = self.spec.columns[-1]
-        self.timestep = (self.spec.columns.max() - self.spec.columns.min())/self.SLIDER_STEPS
+        self.timestep = 10#(self.spec.columns.max() - self.spec.columns.min())/self.SLIDER_STEPS
         self.timespacing = 1
         
         # Plot defaults to color map
@@ -161,10 +158,15 @@ class Spectrogram(HTML, Box):
     
     def _iunit_changed(self, name, old, new):
         self.spec_modified.iunit = new
-    # redraw?
+        self.draw(name, old, new)
     
     # Plotting events
-    # ---------------
+    # ---------------    
+    def _figwidth_changed(self, name, old, new):
+        self.draw(name, old, new)
+
+    def _figheight_changed(self, name, old, new):
+        self.draw(name, old, new)
     
     def _colormap_changed(self, name, old, new):
         self._color_state = False
@@ -185,7 +187,6 @@ class Spectrogram(HTML, Box):
         self.draw(name, old, new)
     
     def _interactive_changed(self, name, old, new):
-        self.var_unit =  '<div class="alert alert-warning"> has been overwritten !</div>'
         self.draw(name, old, new)
     
     # This should be phased out; plots should support colormap, area should handle accordingly
@@ -204,17 +205,18 @@ class Spectrogram(HTML, Box):
             self.spec = getattr(pyuvvis.data, self.file_name)()
         except AttributeError:
             pass
-    
+
+    @log_message    
     def save_to_ns(self):
         get_ipython().user_ns[self.save_spec_as]=self.spec_modified
-        print "SAVED TO: %s" % self.save_spec_as
     
-    
+    @log_message
+    def load_from_ns(self, var):
+        self.spec = get_ipython().user_ns[var]            
+        
     # Slicing events
     # --------------
-    def _specslice_position_start_changed(self, name, old, new):
-        self.message = '<div class="alert alert-warning"> BLAH BLAH BLAHY !</div>'
-        
+    def _specslice_position_start_changed(self, name, old, new):       
         if not self._FREEZE:
             self.slice_spectrum(name)
             self.draw(name, old, new)
@@ -258,11 +260,7 @@ class Spectrogram(HTML, Box):
         
         self.slice_spectrum(name)
         self.draw(name, old, new)
-    
-    def _user_f_changed(self, name, old, new):
-        self.apply_userf(name)
-        self.draw(name, old, new)
-    
+        
     # Draw/Slice updates
     # ------------------
     @log_message
@@ -271,10 +269,11 @@ class Spectrogram(HTML, Box):
         self.spec_modified = self.spec.nearby[self.specslice_position_start:self.specslice_position_end:self.specspacing,
                                               self.timeslice_position_start:self.timeslice_position_end:self.timespacing]
     
-    
     @log_message
     def apply_userf(self,name=None):
+        import numpy as np
         self.spec_modified = self.spec_modified.apply(eval(self.user_f))
+        self.draw(name)
     
     
     
