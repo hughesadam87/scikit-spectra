@@ -48,13 +48,13 @@ class SpectraModel(HTML, Box):
     # IO traitlets
     load_spec = Bool(False,sync=True)
     load_file = Bool(True,sync=True) #
-    file_name = Unicode("<Notebook Variable>", sync=True)
+    file_name = Unicode("<Variable>", sync=True)
     save_spec = Bool(False,sync=True)
     save_spec_as = Unicode('Test',sync=True)
     
     # Spectra traits
     spec = Instance(Spectra)
-    testdataset = Unicode('<Dataset (e.g. aunps_glass)>', sync=True) 
+    testdataset = Unicode('<Dataset>', sync=True) 
     spec_modified = Instance(Spectra)
     
     # Plotting Traits

@@ -7,6 +7,8 @@ from IPython.html.widgets import (
     ContainerWidget, FloatText
     )
 
+import IPython.display as ipdisplay
+
 from IPython.utils.traitlets import link, Unicode
 from jinja2 import Template
 
@@ -75,6 +77,7 @@ class SpectraGui(Box):
     more = Checkbox(description="Advanced")
 
     def __init__(self, model=None, model_config=None, *args, **kwargs):
+	# RUN HTML
         self.model = model or Spectrogram(**(model_config or {}))  #Need to access spectrogram if defaulting...
         # Create alert widget (refactor into its own function?)
         alert = Alert(description = "Alert or something")
@@ -101,11 +104,14 @@ class SpectraGui(Box):
 
         return panels
 
+    def set_style(self):
+	return ipdisplay.HTML('specstyle.html')
+
     def load_panel(self):
         # create correlation controls. NOTE: should only be called once.
         loadbutton = Button(description = 'Load')
 
-        loaddata = Checkbox(description="Pyuvvis Testdata")
+        loaddata = Checkbox(description="Testdata")
         link((self.model, "load_spec"), (loaddata, "value"))
         testdataset = Text(description = "") 
         link((self.model, "testdataset"), (testdataset, "value"))
