@@ -547,7 +547,8 @@ class Spectra(ABCSpectra, MetaDataFrame):
    @property
    def reference(self):
       """ This is stored as a Series unless user has set it otherwise."""
-      return self._reference
+      if self._reference is not None:
+         return Spectrum(self._reference.values, self._reference.index)
 
    @reference.setter
    def reference(self, reference, force_series=True):  
@@ -1069,7 +1070,9 @@ class Spectra(ABCSpectra, MetaDataFrame):
 
    @property
    def baseline(self):
-      return self._baseline
+      # Should these be stored as specrum?  Cause right now, just converting on return
+      if self._baseline is not None:
+         return Spectrum(self._baseline.values, index=self._baseline.index)
 
 
    @baseline.setter
@@ -1399,7 +1402,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
       
       header = super(Spectra, self)._header
       
-      if self.baseline is None:
+      if self._baseline is None:
          base = 'None'
       else:
          if self._base_sub:
@@ -1442,7 +1445,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
       else:
          norm = _green(self.full_norm) #Actually use the value
          
-      if self.baseline is None:
+      if self._baseline is None:
          base = _red('None')
       else:
          if self._base_sub:
@@ -1691,6 +1694,8 @@ if __name__ == '__main__':
    import matplotlib.pyplot as plt
    ts = aunps_glass()
    ts.baseline=5
+   print 'hi'
+   print ts.baseline
    x = ts.iloc[0, 0:5].index
    print x
    print ts.mean().index

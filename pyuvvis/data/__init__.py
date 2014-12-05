@@ -9,7 +9,7 @@ from pyuvvis.units import Unit
 from pyuvvis.pandas_utils.dataframeserial import df_load
 from pandas import read_csv
 
-__all__ = ['aunps_glass', 'aunps_water', 'solvent_evap', 'triple_peaks']
+__all__ = ['aunps_glass', 'aunps_water', 'solvent_evap', 'trip_peaks']
 
 class DataError(Exception):
     """ """
