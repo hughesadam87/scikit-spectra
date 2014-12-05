@@ -84,8 +84,10 @@ class SpectraGui(Box):
         kwargs["orientation"] = 'horizontal'
         kwargs["children"] = [
             HBox([VBox([alert, self.model]),
-                  VBox([self.save_load_panel(), self.load_panel(), self.unit_panel()]),
-                  ]),
+                  VBox([self.save_load_panel(), 
+                        self.load_panel(),
+                        self.unit_panel()]),
+                       ]),
             self._controls(),
         ]
         super(SpectraGui, self).__init__(*args, **kwargs)
