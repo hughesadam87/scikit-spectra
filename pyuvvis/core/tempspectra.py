@@ -1,11 +1,11 @@
 """Provides core "TempSpectra" class and associated utilities."""
 
 import logging
-from pyuvvis.logger import decode_lvl, logclass
-from pyuvvis.core.spectra import Spectra
-from pyuvvis.units import TEMPUNITS
-from pyuvvis.core.specindex import SpecIndex
-from pyuvvis.core.abcindex import ConversionIndex
+from skspec.logger import decode_lvl, logclass
+from skspec.core.spectra import Spectra
+from skspec.units import TEMPUNITS
+from skspec.core.specindex import SpecIndex
+from skspec.core.abcindex import ConversionIndex
 
 logger = logging.getLogger(__name__) 
 

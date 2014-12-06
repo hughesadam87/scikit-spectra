@@ -14,21 +14,21 @@ from pandas import DataFrame, DatetimeIndex, Index, Series, read_csv, MultiIndex
 from pandas.core.common import _is_bool_indexer
 from pandas.core.indexing import _is_list_like, _is_nested_tuple
 
-# pyuvvis imports 
-from pyuvvis.core.specindex import SpecIndex
-from pyuvvis.core.abcindex import ConversionIndex, CustomIndex
-from pyuvvis.core.specstack import SpecStack
-from pyuvvis.core.abcspectra import ABCSpectra, SpecError
+# skspec imports 
+from skspec.core.specindex import SpecIndex
+from skspec.core.abcindex import ConversionIndex, CustomIndex
+from skspec.core.specstack import SpecStack
+from skspec.core.abcspectra import ABCSpectra, SpecError
 
-import pyuvvis.core.utilities as pvutils
-import pyuvvis.config as pvconfig
-from pyuvvis.units.abcunits import IUnit, Unit
+import skspec.core.utilities as pvutils
+import skspec.config as pvconfig
+from skspec.units.abcunits import IUnit, Unit
 
 # Merge
-from pyuvvis.pandas_utils.metadframe import MetaDataFrame, MetaSeries
-from pyuvvis.logger import decode_lvl, logclass
-from pyuvvis.plotting import PLOTPARSER, _genplot, _gen2d3d, areaplot
-from pyuvvis.exceptions import badkey_check, badcount_error, RefError, BaselineError
+from skspec.pandas_utils.metadframe import MetaDataFrame, MetaSeries
+from skspec.logger import decode_lvl, logclass
+from skspec.plotting import PLOTPARSER, _genplot, _gen2d3d, areaplot
+from skspec.exceptions import badkey_check, badcount_error, RefError, BaselineError
 
 from matplotlib.dates import date2num as _d2num
 
@@ -89,12 +89,12 @@ def _valid_indextype(index):
    Used for methods like as_specunit(), where only a valid operation if
    underlying Index is a SpecIndex.  Custom Spectra that use, say a Float64Index
    would not support such unit system operations.  Probably a cornercase;
-   most pyuvvis Spectra subclasses will strictly type Index.
+   most skspec Spectra subclasses will strictly type Index.
    """
    try:
       index.unitshortdict
    except AttributeError:
-      raise SpecError('Unit API only supported by pyuvvis ConversionIndex'
+      raise SpecError('Unit API only supported by skspec ConversionIndex'
                       ' got type %s' % type(index))    
 
 
@@ -1237,7 +1237,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
       if self._strict_columns:        
          if not isinstance(columns, self._strict_columns):
 
-            # User passes a valid pyuvvis index type    
+            # User passes a valid skspec index type    
             if isinstance(columns, ConversionIndex) or isinstance(columns, CustomIndex):
                raise SpecError('Invalid column type: %s; require %s.' % 
                                (type(columns), self._strict_columns))
@@ -1676,7 +1676,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
    @classmethod
    def from_series(cls, pandas_object, **dfkwargs):
       """ Return a Spectra from a similiar object, either a pandas DataFrame
-      or a pyuvvis Spectra subclass.  Useful for type-casting, for example
+      or a skspec Spectra subclass.  Useful for type-casting, for example
       have a DataFrame and want it as a TimeSpectra, which will do its
       own index conversions.
       """
@@ -1690,7 +1690,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
 ## TESTING ###
 if __name__ == '__main__':  
 
-   from pyuvvis.data import solvent_evap, aunps_glass, trip_peaks
+   from skspec.data import solvent_evap, aunps_glass, trip_peaks
    import matplotlib.pyplot as plt
    ts = aunps_glass()
    ts.baseline=5

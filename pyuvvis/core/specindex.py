@@ -1,5 +1,5 @@
 from abcindex import ConversionFloat64Index
-from pyuvvis.units import SPECUNITS
+from skspec.units import SPECUNITS
 
 class SpecIndex(ConversionFloat64Index):
     """ """

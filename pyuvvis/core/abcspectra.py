@@ -1,10 +1,10 @@
 #Want C(abcspectra, metaframe)
 
 from pandas import Series, DataFrame
-import pyuvvis.core.utilities as pvutils
-import pyuvvis.config as pvconfig
+import skspec.core.utilities as pvutils
+import skspec.config as pvconfig
 from pandas.core.indexing import _LocIndexer
-from pyuvvis.units.abcunits import IUnit, Unit, UnitError
+from skspec.units.abcunits import IUnit, Unit, UnitError
 import numpy as np
 
 # Exceptions
@@ -21,7 +21,7 @@ class SpecIndexError(SpecError):
 # --------------
 
 class ABCSpectra(object):
-   """ Generic methods shared by all pyuvvis spectra objects.  INCLUDING
+   """ Generic methods shared by all skspec spectra objects.  INCLUDING
    SPECTRUM. 
    For example,
    printing out html orientation, and defining the "nearby" slicer.  The goal

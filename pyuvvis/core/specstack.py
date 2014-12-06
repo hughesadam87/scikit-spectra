@@ -6,9 +6,9 @@ from collections import OrderedDict, Iterable
 from copy import deepcopy
 
 import logging
-from pyuvvis.logger import logclass
-from pyuvvis.plotting.multiplots import slice_plot
-import pyuvvis.core.utilities as put
+from skspec.logger import logclass
+from skspec.plotting.multiplots import slice_plot
+import skspec.core.utilities as put
 
 logger = logging.getLogger(__name__) 
 
@@ -348,7 +348,7 @@ class SpecStack(Stack):
         
         Notes
         -----
-        Wraps pyuvvis.plotting.multiplots.slice_plot()
+        Wraps skspec.plotting.multiplots.slice_plot()
         """
         
         plotkwargs.setdefault('title', self.name)        
@@ -401,13 +401,13 @@ class SpecStack(Stack):
 
 if __name__=='__main__':
     ### For testing.
-    from pyuvvis.core.specindex import SpecIndex
-    from pyuvvis.core.timespectra import TimeSpectra
+    from skspec.core.specindex import SpecIndex
+    from skspec.core.timespectra import TimeSpectra
     from pandas import date_range, DataFrame, Index
 
     import numpy as np       
     import matplotlib.pyplot as plt
-    from pyuvvis.data import aunps_glass
+    from skspec.data import aunps_glass
 
     spec = SpecIndex(np.arange(400, 700,10), unit='nm' )
     spec2 = SpecIndex(np.arange(400, 700,10), unit='m' )

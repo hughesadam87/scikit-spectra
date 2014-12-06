@@ -9,9 +9,9 @@ import numpy as np
 from scipy import integrate
 from types import GeneratorType
 
-from pyuvvis.pandas_utils.dataframeserial import _get_metadict
-from pyuvvis.exceptions import badvalue_error
-import pyuvvis.config as pvconfig
+from skspec.pandas_utils.dataframeserial import _get_metadict
+from skspec.exceptions import badvalue_error
+import skspec.config as pvconfig
 
 import logging
 logger = logging.getLogger(__name__) 

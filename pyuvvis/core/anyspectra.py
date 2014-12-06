@@ -1,5 +1,5 @@
-from pyuvvis.core.spectra import Spectra
-from pyuvvis.units.abcunits import Unit
+from skspec.core.spectra import Spectra
+from skspec.units.abcunits import Unit
 
 class AnyFrame(Spectra):
     """ Spectra with default non-strict columns or index

@@ -2,9 +2,9 @@ from copy import deepcopy, copy
 import numpy as np
 from pandas import DatetimeIndex, Timestamp
 
-from pyuvvis.core.abcindex import ConversionIndex, _parse_conversion_unit
-from pyuvvis.units.abcunits import UnitError
-from pyuvvis.units.intvlunit import INTVLUNITS, TimeDelta, DateTime, \
+from skspec.core.abcindex import ConversionIndex, _parse_conversion_unit
+from skspec.units.abcunits import UnitError
+from skspec.units.intvlunit import INTVLUNITS, TimeDelta, DateTime, \
     DatetimeCanonicalError
 
 class TimeIndex(ConversionIndex):
@@ -229,7 +229,7 @@ class TimeIndex(ConversionIndex):
         return False
 
         # How I used to do it, but resulted in bug #146
-        # https://github.com/hugadams/pyuvvis/issues/146
+        # https://github.com/hugadams/skspec/issues/146
         #if self.dtype != 'object':
             #return False
         #else:

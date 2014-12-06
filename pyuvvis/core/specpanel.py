@@ -2,7 +2,7 @@
     axis aliases like "spectral" and "temporal" slicers.'''
 
 from pandas.core.panel import Panel
-from pyuvvis.core.timespectra import TimeSpectra
+from skspec.core.timespectra import TimeSpectra
 
 class SpecPanel(Panel):
     

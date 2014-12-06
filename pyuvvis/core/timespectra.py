@@ -1,11 +1,11 @@
 """Provides core "TimeSpectra" class and associated utilities."""
 
 import logging
-from pyuvvis.logger import decode_lvl, logclass
+from skspec.logger import decode_lvl, logclass
 from pandas import DatetimeIndex, Index
-from pyuvvis.core.spectra import _valid_xunit
-from pyuvvis.units.intvlunit import INTVLUNITS, DatetimeCanonicalError
-from pyuvvis.core.timeindex import TimeIndex
+from skspec.core.spectra import _valid_xunit
+from skspec.units.intvlunit import INTVLUNITS, DatetimeCanonicalError
+from skspec.core.timeindex import TimeIndex
 from spectra import Spectra
 
 logger = logging.getLogger(__name__) 
@@ -43,7 +43,7 @@ if __name__ == '__main__':
     from specindex import SpecIndex
     from pandas import date_range
     import numpy as np
-    from pyuvvis.data import solvent_evap, aunps_glass, aunps_water
+    from skspec.data import solvent_evap, aunps_glass, aunps_water
     
     x = AnyFrame(np.random.randn(50,50))
     print x
@@ -87,8 +87,8 @@ if __name__ == '__main__':
     #import matplotlib.pyplot as plt
 
 
-    #from pyuvvis.data import aunps_water, aunps_glass
-    #from pyuvvis.plotting import splot, range_timeplot
+    #from skspec.data import aunps_water, aunps_glass
+    #from skspec.plotting import splot, range_timeplot
     #ts_water = aunps_glass()
 ##    ax1, ax2 = splot(1,2)
 
@@ -119,7 +119,7 @@ if __name__ == '__main__':
                     ###name='ts2') 
 
     import matplotlib.pyplot as plt
-    from pyuvvis.plotting import areaplot
+    from skspec.plotting import areaplot
     ts = solvent_evap()
     ts = ts.as_varunit('m')
 
@@ -165,7 +165,7 @@ if __name__ == '__main__':
     ###sys.exit()
 
 ####    stack.plot(title='Big bad plots')
-    ##from pyuvvis.plotting import six_plot
+    ##from skspec.plotting import six_plot
     ##import matplotlib.pyplot as plt
     ##six_plot(ts, striplegend=True)
     ##plt.show()
@@ -186,12 +186,12 @@ if __name__ == '__main__':
 ####    a=ts.area()
 ####    print 'hi', a.specunit
 ####    ts.specunit = 'ev'
-    ####from pyuvvis.plotting import specplot, areaplot
+    ####from skspec.plotting import specplot, areaplot
     ####areaplot(ts)
     ####plt.show()
 
-    ####from pyuvvis.IO.gwu_interfaces import from_spec_files, get_files_in_dir
-    ####from pyuvvis.exampledata import get_exampledata
+    ####from skspec.IO.gwu_interfaces import from_spec_files, get_files_in_dir
+    ####from skspec.exampledata import get_exampledata
     ####ts=from_spec_files(get_files_in_dir(get_exampledata('NPSAM'), sort=True), name='foofromfile')
 
     ###ts.to_interval('s')
@@ -233,8 +233,8 @@ if __name__ == '__main__':
 
     ####ts.cnsvdmeth='name'
 
-    ###from pyuvvis.pandas_utils.metadframe import mload
-    ####from pyuvvis import areaplot, absplot
+    ###from skspec.pandas_utils.metadframe import mload
+    ####from skspec import areaplot, absplot
     ###ts=mload('rundata.pickle')    
     ###ts=ts.as_interval('m')
     ###x=ts.area()    
@@ -255,7 +255,7 @@ if __name__ == '__main__':
 
     ####tssliced=ts.wavelength_slices(uv_ranges, apply_fcn='mean')
 
-    ####from pyuvvis.core.utilities import find_nearest
+    ####from skspec.core.utilities import find_nearest
     ####x=ts.ix[500.:510, 0]
     ####b=pvutils.maxmin_xy(x)
     ####a=find_nearest(x, .15)

@@ -1,6 +1,6 @@
 from pandas import Float64Index, Index
 import numpy as np
-from pyuvvis.units.abcunits import UnitError, Unit, ConversionUnit
+from skspec.units.abcunits import UnitError, Unit, ConversionUnit
 
 
 # Parsing Functions (because need access before self exists)
@@ -28,7 +28,7 @@ def _parse_conversion_unit(unit, unitdict):
 # NOT SURE WHY BUT SUBCLASSING INDEX CALLS THINGS LIKE ALL_DATES THAT SCREW THIS UP
 # IN CERTAIN CASES BUT THIS ACTUALLY WORKS, EVEN WHEN DTYPE IS TIMESTAMPS!?
 class CustomIndex(Float64Index):
-   """ Custom index used in pyuvvis to interface to Unit."""
+   """ Custom index used in skspec to interface to Unit."""
    
    _unit = None #leave as _unit to keep api of Spectra
 
@@ -73,7 +73,7 @@ class CustomIndex(Float64Index):
       """ """
       if outunit is not None:
          if not isinstance(outunit, Unit):
-            raise UnitError("%s expects pyuvvis.unit.Unit, got %s.  Were you" \
+            raise UnitError("%s expects skspec.unit.Unit, got %s.  Were you" \
                         " expecting a ConversionIndex?" \
                         % (self.__class__.__name__, type(outunit)))
                         
@@ -85,7 +85,7 @@ class CustomIndex(Float64Index):
 
 
 class ConversionIndex(Index):
-   """ Base class for pyuvvis.  To overwrite, requires:
+   """ Base class for skspec.  To overwrite, requires:
         - replace unitdict with a dictionary from units.py, eg SPECUNITS
         - overwrite convert(), which defines conversions on the unit types.
    Since we are subclassing a numpy array and not a basic python object, 
