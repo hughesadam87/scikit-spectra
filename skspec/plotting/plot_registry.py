@@ -40,7 +40,7 @@ class PlotInfo(object):
 
 
 class PlotRegister(object):
-    """ Basic storage class to track all various plot types in pyuvvis;
+    """ Basic storage class to track all various plot types in skspec;
     simple relational mapper for operations like "return all 3D plots.
     
     Notes:

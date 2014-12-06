@@ -21,7 +21,7 @@ import numpy as np
 from collections import OrderedDict
 from time import gmtime, strftime
 
-# PYUVVIS IMPORTS
+# skspec IMPORTS
 #from skspec.bundled import run_nb_offline
 from skspec.plotting import areaplot, range_timeplot, six_plot
 #from skspec.plotting.advanced_plots import spec_surface3d, surf3d, spec_poly3d, plot2d, plot3d
@@ -194,7 +194,7 @@ class Controller(object):
             f.write(r'\fboxsep5mm')
             f.write(r'\fcolorbox{black}{yellow}{\vbox{\hsize=10cm \noindent \scriptsize ')
   
-            f.write(latex_multicols(self.params, title='PyUvVis Parameters'))
+            f.write(latex_multicols(self.params, title='skspec Parameters'))
             f.write(latex_multicols(kwargs, 'Analysis Parameters'))
             f.write('}}')
 
@@ -1013,7 +1013,7 @@ class Controller(object):
             sys.argv = args               
         
         
-        parser = argparse.ArgumentParser(SCRIPTNAME, description='GWU PyUvVis fiber data '
+        parser = argparse.ArgumentParser(SCRIPTNAME, description='GWU skspec fiber data '
         'analysis.', epilog='Additional help not found', 
         usage='%s <indir> <outdir> --globals' % SCRIPTNAME)
 

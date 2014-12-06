@@ -2,7 +2,7 @@
 active notebook.  Same IO API as pyparty.data"""
 
 import os.path as op
-from pyuvvis import bundled_dir
+from skspec import bundled_dir
 from IPython.display import display, HTML
 
 def load(path):
@@ -73,7 +73,7 @@ def load_style(s, figsize=None, loghide=False):
     display(HTML(out))
     
     if loghide:
-        import warnings #supress non-pyuvvis log msgs
+        import warnings #supress non-skspec log msgs
         warnings.filterwarnings('ignore')             
     
 def load_ipython_extension(ip):

@@ -20,7 +20,7 @@ import os
 from pandas import DataFrame, Series, datetime, read_csv, concat
 import numpy as np
 
-# PyUvVis imports
+# skspec imports
 from skspec.core.timespectra import TimeSpectra
 from skspec.core.specindex import SpecIndex
 from skspec.core.file_utils import get_files_in_dir, get_shortname

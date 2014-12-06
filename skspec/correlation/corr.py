@@ -587,7 +587,7 @@ class Corr2d(object):
         """         
         Adaptation of Alexis Mignon's pca.py script
 
-        Adapted to fit PyUvVis 5/6/2013.  
+        Adapted to fit skspec 5/6/2013.  
         Original credit to Alexis Mignon:
         Module for Principal Component Analysis.
 

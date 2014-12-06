@@ -14,10 +14,10 @@ from chaco.tools.api import RangeSelection, RangeSelectionOverlay
 import numpy as np
 from time import sleep
 
-### For pyuvvis imports
-#from pyuvvis import get_csvdf
-#from pyuvvis import wavelength_slices
-#from pyuvvis import datetime_convert
+### For skspec imports
+#from skspec import get_csvdf
+#from skspec import wavelength_slices
+#from skspec import datetime_convert
 from pandas.stats.moments import rolling_mean
 
 ### Local import 

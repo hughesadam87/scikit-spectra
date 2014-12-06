@@ -3,7 +3,7 @@ import os.path as op
 #from distutils.core import setup
 from setuptools import setup, find_packages
 
-NAME = 'pyuvvis'
+NAME = 'skspec'
 
 # Python >= 2.7 ?
 user_py = sys.version_info
@@ -31,23 +31,23 @@ setup(
 
     # include .tex and .ipynb files
     package_data={
-      'pyuvvis.scripts.gwu_script.tex_templates': ['*.tex'],
-      'pyuvvis.scripts.gwu_script.mlab_templates': ['*.m'],   
+      'skspec.scripts.gwu_script.tex_templates': ['*.tex'],
+      'skspec.scripts.gwu_script.mlab_templates': ['*.m'],   
 #      'pyparty.bundled':['*.css'],   
-      'pyuvvis.examples.Notebooks':['*.ipynb'],
-      'pyuvvis.scripts.gwu_script':['*.png', '*.ipynb'],
-      'pyuvvis.data':['*'],
-      'pyuvvis.bundled':['*.css']
+      'skspec.examples.Notebooks':['*.ipynb'],
+      'skspec.scripts.gwu_script':['*.png', '*.ipynb'],
+      'skspec.data':['*'],
+      'skspec.bundled':['*.css']
    },
        
     entry_points = {'console_scripts': 
                     [
-                       'gwuspec = pyuvvis.scripts.gwu_script.gwuspec:main',
-                       'gwureport = pyuvvis.scripts.gwu_script.gwureport:main'
+                       'gwuspec = skspec.scripts.gwu_script.gwuspec:main',
+                       'gwureport = skspec.scripts.gwu_script.gwureport:main'
                     ]
                     },
     
-    url = 'http://pypi.python.org/pypi/PyUvVis/',
+    url = 'http://pypi.python.org/pypi/pyuvvis/',
     download_url = 'https://github.com/hugadams/pyuvvis',
     license = 'LICENSE.txt',
     description = 'Pandas-based toolkit for spectral data analysis, primarily '

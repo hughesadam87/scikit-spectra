@@ -1,5 +1,5 @@
 """
-Adapted to fit PyUvVis 5/6/2013.  Original credit to Alexis Mignon:
+Adapted to fit skspec 5/6/2013.  Original credit to Alexis Mignon:
 
 Module for Principal Component Analysis.
 

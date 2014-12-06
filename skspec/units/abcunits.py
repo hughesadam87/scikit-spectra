@@ -7,7 +7,7 @@ class UnitError(Exception):
    """ """
 
 class Unit(object):
-   """ Basic unit used by pyuvvis Index objects.""" 
+   """ Basic unit used by skspec Index objects.""" 
    short = None
    full = 'No unit' #None works, but literaly prints None 
    symbol = ''

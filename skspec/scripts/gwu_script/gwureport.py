@@ -22,7 +22,7 @@ def main(args=None):
         sys.argv = args               
     
     
-    parser = argparse.ArgumentParser(SCRIPTNAME, description='GWU PyUvVis composite' 
+    parser = argparse.ArgumentParser(SCRIPTNAME, description='GWU skspec composite' 
             ' latex report assembly script', epilog='Additional help not found', 
             usage='%s --globals <command> --cmdopts' % SCRIPTNAME)    
         
