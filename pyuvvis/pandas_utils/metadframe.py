@@ -18,7 +18,7 @@ from pandas import DataFrame, Series
 from numpy.random import randn
 
 # Logging functions
-from pyuvvis.logger import logclass
+from skspec.logger import logclass
 import logging
 logger = logging.getLogger(__name__) 
 

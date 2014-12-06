@@ -22,28 +22,28 @@ from collections import OrderedDict
 from time import gmtime, strftime
 
 # PYUVVIS IMPORTS
-#from pyuvvis.bundled import run_nb_offline
-from pyuvvis.plotting import areaplot, range_timeplot, six_plot
-#from pyuvvis.plotting.advanced_plots import spec_surface3d, surf3d, spec_poly3d, plot2d, plot3d
-from pyuvvis.core.utilities import boxcar, countNaN
-from pyuvvis.core.baseline import dynamic_baseline
-from pyuvvis.plotting.plot_utils import _df_colormapper, cmget
-from pyuvvis.IO.gwu_interfaces import from_timefile_datafile, from_spec_files
-from pyuvvis.core.file_utils import get_files_in_dir, get_shortname
-#from pyuvvis.core.corr import ca2d, make_ref, sync_3d, async_3d
-from pyuvvis.core.spectra import _normdic
-from pyuvvis.pandas_utils.metadframe import mload, mloads
-from pyuvvis.exceptions import badkey_check, ParserError, GeneralError, \
+#from skspec.bundled import run_nb_offline
+from skspec.plotting import areaplot, range_timeplot, six_plot
+#from skspec.plotting.advanced_plots import spec_surface3d, surf3d, spec_poly3d, plot2d, plot3d
+from skspec.core.utilities import boxcar, countNaN
+from skspec.core.baseline import dynamic_baseline
+from skspec.plotting.plot_utils import _df_colormapper, cmget
+from skspec.IO.gwu_interfaces import from_timefile_datafile, from_spec_files
+from skspec.core.file_utils import get_files_in_dir, get_shortname
+#from skspec.core.corr import ca2d, make_ref, sync_3d, async_3d
+from skspec.core.spectra import _normdic
+from skspec.pandas_utils.metadframe import mload, mloads
+from skspec.exceptions import badkey_check, ParserError, GeneralError, \
      ParameterError, LogExit
 
-from pyuvvis.scripts.gwu_script.tex_templates import SECTION
+from skspec.scripts.gwu_script.tex_templates import SECTION
 
 # Import some spectrometer configurations
 from parameters_model import Parameters, USB2000, USB650
 
 logger = logging.getLogger(__name__)
-from pyuvvis.logger import configure_logger, logclass
-from pyuvvis.data import data_dir
+from skspec.logger import configure_logger, logclass
+from skspec.data import data_dir
 
 SCRIPTNAME = 'gwuspec'
 DEF_INROOT = './scriptinput'
@@ -390,7 +390,7 @@ class Controller(object):
             'Received "%s"' % outpath)
 
         logger.info('Making matlab script: "%s"' % outpath)
-        from pyuvvis.scripts.gwu_script.mlab_templates import SIMPLE_M
+        from skspec.scripts.gwu_script.mlab_templates import SIMPLE_M
 
         m_dic={}
         # Do some hacky string formatting to fit matlab code

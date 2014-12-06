@@ -3,12 +3,12 @@ import os.path as op
 __docformat__ = 'restructuredtext' #What's this actually do
 
 ### Core classes
-from pyuvvis.core.spectra import Spectra
-from pyuvvis.core.timespectra import TimeSpectra
-from pyuvvis.core.anyspectra import AnyFrame
-from pyuvvis.core.specstack import SpecStack
+from skspec.core.spectra import Spectra
+from skspec.core.timespectra import TimeSpectra
+from skspec.core.anyspectra import AnyFrame
+from skspec.core.specstack import SpecStack
 
-from pyuvvis.units.abcunits import Unit
+from skspec.units.abcunits import Unit
 
 #  Borrowing API from skimage
 pkg_dir = op.abspath(op.dirname(__file__))

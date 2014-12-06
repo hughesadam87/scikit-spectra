@@ -1,10 +1,10 @@
-''' Utilities for converting various file formats to a pyuvvis TimeSpectra.
+''' Utilities for converting various file formats to a skspec TimeSpectra.
  To convert a list of raw files, use from_spec_files()
  To convert old-style timefile/spectral data file, use from_timefile_datafile()
  To convert spectral datafiles from Ocean Optics USB2000 and USB650, pas file list in 
  from_spec_files.
  
- Returns a pyuvvis TimeSpectra with custom attributes "metadata", "filedict", "baseline".
+ Returns a skspec TimeSpectra with custom attributes "metadata", "filedict", "baseline".
  '''
 
 __author__ = "Adam Hughes, Zhaowen Liu"
@@ -21,9 +21,9 @@ from pandas import DataFrame, Series, datetime, read_csv, concat
 import numpy as np
 
 # PyUvVis imports
-from pyuvvis.core.timespectra import TimeSpectra
-from pyuvvis.core.specindex import SpecIndex
-from pyuvvis.core.file_utils import get_files_in_dir, get_shortname
+from skspec.core.timespectra import TimeSpectra
+from skspec.core.specindex import SpecIndex
+from skspec.core.file_utils import get_files_in_dir, get_shortname
 
 
 import logging
@@ -96,7 +96,7 @@ def get_headermetadata_dataframe(dataframe, time_file_dict, name=''):
 
 def from_spec_files(file_list, name='', skiphead=17, skipfoot=1, check_for_overlapping_time=True, extract_dark=True):
     ''' Takes in raw files directly from Ocean optics USB2000 and USB650 spectrometers and returns a
-    pyuvvis TimeSpectra. If spectral data stored without header, can be called with skiphead=0.
+    skspec TimeSpectra. If spectral data stored without header, can be called with skiphead=0.
 
     Parameters
     ----------

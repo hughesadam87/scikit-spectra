@@ -7,11 +7,11 @@ import sys
 from pkgutil import get_loader
 from pandas import read_csv
 
-from pyuvvis.pandas_utils.dataframeserial import df_load
-import pyuvvis.exceptions as errors
+from skspec.pandas_utils.dataframeserial import df_load
+import skspec.exceptions as errors
 
 DATAPATH='example_data/'
-PACKAGE='pyuvvis'
+PACKAGE='skspec'
 
 def _get_data_smart(package, resource, as_stream=True):
     """Rewrite of pkgutil.get_data() that actually lets the user determine if data should
@@ -40,14 +40,14 @@ def _get_data_smart(package, resource, as_stream=True):
     
 
 def get_exampledata(filename='spectra.csv', as_stream=False):
-    '''Import pyuvvis example data.  Similar to pkgutil.get_data without forcing
+    '''Import skspec example data.  Similar to pkgutil.get_data without forcing
        read into memory.
        
        Parameters
        ----------
     
        filename :  str
-           File or directory name in pyuvvis/example_data to import.
+           File or directory name in skspec/example_data to import.
     
        as_stream : 
            If true, file is read into memory using open(filename, 'rb').read().  

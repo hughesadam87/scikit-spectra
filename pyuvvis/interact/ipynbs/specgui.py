@@ -1,4 +1,4 @@
-from pyuvvis.plotting.advanced_plots import PLOTPARSER
+from skspec.plotting.advanced_plots import PLOTPARSER
 
 from IPython.html.widgets import (
     FlexBox, VBox, HBox, HTML, Box, RadioButtons,

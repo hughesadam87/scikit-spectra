@@ -3,14 +3,14 @@ import os
 import os.path as op
 from collections import OrderedDict
 
-from pyuvvis.scripts.gwu_script.tex_templates import EXPERIMENT_MAIN, HEADER, \
+from skspec.scripts.gwu_script.tex_templates import EXPERIMENT_MAIN, HEADER, \
     BLANK_SECTION
 
 import logging
 logger = logging.getLogger(__name__)
-from pyuvvis.logger import log, configure_logger, logclass
+from skspec.logger import log, configure_logger, logclass
 
-from pyuvvis.scripts.gwu_script import LOGO_PATH
+from skspec.scripts.gwu_script import LOGO_PATH
 
 logger = configure_logger(name=__name__)
 

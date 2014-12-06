@@ -8,7 +8,7 @@ from gwu_reporter import Reporter
 
 import logging
 logger = logging.getLogger(__name__)
-from pyuvvis.logger import logclass, configure_logger
+from skspec.logger import logclass, configure_logger
 
 SCRIPTNAME = __name__.split('.')[-1]
 SEP_DEFAULT = '/' #Not used atm

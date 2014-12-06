@@ -1,3 +1,3 @@
-from pyuvvis.bundled.nbstyles import load_style
+from skspec.bundled.nbstyles import load_style
 
-from pyuvvis.bundled.nbutils import run_nb_offline
+from skspec.bundled.nbutils import run_nb_offline

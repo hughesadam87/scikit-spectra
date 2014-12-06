@@ -1,9 +1,9 @@
 """ Plots for correlation analysis. Designed for SPEC2D OBJECTS """
 
 import numpy as np
-from pyuvvis.plotting.advanced_plots import _gen2d3d, add_projection
+from skspec.plotting.advanced_plots import _gen2d3d, add_projection
 import matplotlib.pyplot as plt
-import pyuvvis.plotting.plot_utils as pvutil
+import skspec.plotting.plot_utils as pvutil
 import matplotlib.colorbar as mplcbar
 import matplotlib.ticker as mplticker
 from mpl_toolkits.mplot3d import Axes3D, axes3d, art3d #Need Axes3d for 3d projection!
@@ -120,7 +120,7 @@ def corr2d(spec, sideplots='mean', **pltkwargs):
         Contours are lines, or filled regions.
 
     **pltkwargs: dict
-        Any valid matplotlib contour plot keyword, or pyuvvis general
+        Any valid matplotlib contour plot keyword, or skspec general
         plotting keyword (grid, title etc...)
 
     Returns

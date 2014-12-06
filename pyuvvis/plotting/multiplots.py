@@ -1,6 +1,6 @@
 import plot_utils as put
 import matplotlib.pyplot as plt
-from pyuvvis.core.utilities import split_by
+from skspec.core.utilities import split_by
 from basic_plots import areaplot, range_timeplot
 
 # Used by SpecStack.plot()
@@ -211,7 +211,7 @@ def six_plot(ts, *plotargs, **plotkwds):
     return f    
     
 if __name__ == '__main__':
-    from pyuvvis.data import aunps_water
+    from skspec.data import aunps_water
     import matplotlib.pyplot as plt
     ts = aunps_water()
     six_plot(ts, striplegend=True)

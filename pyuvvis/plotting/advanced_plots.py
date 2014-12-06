@@ -17,18 +17,18 @@ import numpy as np
 import matplotlib.cm as cm
 from matplotlib.collections import PolyCollection
 from basic_plots import PlotError
-from pyuvvis.core.abcspectra import SpecError
+from skspec.core.abcspectra import SpecError
 
 import plot_utils as pu
-import pyuvvis.config as pvconfig
+import skspec.config as pvconfig
 
-from pyuvvis.exceptions import badvalue_error
+from skspec.exceptions import badvalue_error
 
 # Smart float to int conversion
 _ir=lambda(x): int(round(x))
 
-from pyuvvis.plotting.basic_plots import range_timeplot, areaplot, _genplot    
-from pyuvvis.plotting.plot_registry import PlotRegister
+from skspec.plotting.basic_plots import range_timeplot, areaplot, _genplot    
+from skspec.plotting.plot_registry import PlotRegister
 
 _TIMESTAMPPADDING = 2.9 #Padding for timestamp labels
 _TIMESTAMPFORMAT = '%H:%M:%S'
@@ -692,7 +692,7 @@ PLOTPARSER.add('spec3d', spec3d, True, '3D Wire + Projection' )
 if __name__ == '__main__':
 
     from matplotlib import rc
-    from pyuvvis.data import aunps_glass, aunps_water, solvent_evap
+    from skspec.data import aunps_glass, aunps_water, solvent_evap
     
     ts = aunps_glass()
 #    ts = ts.nearby[400:700]

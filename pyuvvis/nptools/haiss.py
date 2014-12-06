@@ -79,7 +79,7 @@ def haiss_m1(ts, style='boxcar', width=None, limit_range=(400.0,700.0)):
         to add a reference if ts.iunit results in an error.  
         
         Boxcar is an INSTANCE METHOD of TimeSpectra.  A boxcar function that returns a dataframe can 
-        be found in pyuvvis.core.utilities.
+        be found in skspec.core.utilities.
         
         Code may error if user passes a curve with
         a maximum very far from 510 (lam0 in haiss_m1) as the log will blowup.         
@@ -119,7 +119,7 @@ def haiss_m2(ts, ref=450.0, width=None, style='boxcar', ref_width=None,
         to add a reference if ts.iunit results in an error.  
         
         Boxcar is an INSTANCE METHOD of TimeSpectra.  A boxcar function that returns a dataframe can 
-        be found in pyuvvis.core.utilities.
+        be found in skspec.core.utilities.
 
         Code may error if user passes a curve with
         a maximum very far from 510 (lam0 in haiss_m1) as the log will blowup.
@@ -237,7 +237,7 @@ def haiss_m3(ts, Cau, dilution=None, style='boxcar', width=None, limit_range=(40
         to add a reference if ts.iunit results in an error.  
         
         Boxcar is an INSTANCE METHOD of TimeSpectra.  A boxcar function that returns a dataframe can 
-        be found in pyuvvis.core.utilities.
+        be found in skspec.core.utilities.
         
         We've independently verified that Absorbance at relevant wavelengths (400-700nm) scales linearly 
         with concentration from dilutions as low as 1% up to fully concentrated NP's.  By fully concentrated,

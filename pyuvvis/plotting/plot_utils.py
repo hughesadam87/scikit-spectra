@@ -1,4 +1,4 @@
-''' Plotting wrappers for dataframes, for implementation in pyuvvis.  Basically calls df.plot()
+''' Plotting wrappers for dataframes, for implementation in skspec.  Basically calls df.plot()
 with some extra bells and whistles like trying to extract column labels and dataframe names,
 as well as some exploration into custom labels and color mapping.'''
 
@@ -14,9 +14,9 @@ import numpy as np
 import matplotlib.colors as mplcolors
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
-import pyuvvis.config as cnfg
+import skspec.config as cnfg
 
-from pyuvvis.exceptions import badvalue_error
+from skspec.exceptions import badvalue_error
 
 DEFCOLOR = (1.0, 0.0, 0.0)
 

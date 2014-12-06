@@ -21,7 +21,7 @@ import sys
 from traceback import print_exception
 from functools import wraps
 
-from pyuvvis.exceptions import LogExit
+from skspec.exceptions import LogExit
 
 
 logger = logging.getLogger(__name__) 

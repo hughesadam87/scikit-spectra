@@ -9,7 +9,7 @@ __status__ = "Development"
 
 import os
 from pandas import DataFrame, read_csv, concat
-from pyuvvis.core.imk_utils import get_files_in_dir, get_shortname
+from skspec.core.imk_utils import get_files_in_dir, get_shortname
 
 
 def df_from_directory(directory, csvargs, sortnames=False, concat_axis=1, shortname=True, cut_extension=False):

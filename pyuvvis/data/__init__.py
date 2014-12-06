@@ -3,10 +3,10 @@
     # https://github.com/scikit-image/scikit-image
 
 import os.path as op
-from pyuvvis import data_dir, TimeSpectra, Spectra
-from pyuvvis.core.specindex import SpecIndex
-from pyuvvis.units import Unit
-from pyuvvis.pandas_utils.dataframeserial import df_load
+from skspec import data_dir, TimeSpectra, Spectra
+from skspec.core.specindex import SpecIndex
+from skspec.units import Unit
+from skspec.pandas_utils.dataframeserial import df_load
 from pandas import read_csv
 
 __all__ = ['aunps_glass', 'aunps_water', 'solvent_evap', 'trip_peaks']
@@ -131,7 +131,7 @@ def solvent_evap(*args, **kwargs):
 def aunps_glass(*args, **kwargs):
     """ Reeveslab data obtained by Adam Hughes of gold nanoparticles (AuNPs)
     on a glass optical fiber; spectrum corresponds to the specular Reflectance.
-    Please reference pyuvvis if citing.  
+    Please reference skspec if citing.  
 
     Parameters
     ----------
@@ -178,7 +178,7 @@ def aunps_water(*args, **kwargs):
     """ Reeveslab data obtained by Adam Hughes of gold nanoparticles in water. 
     UV peak is due to residual citrates from citrate reduction in synthesizing
     the nanoparticles via the Turkevich method.
-    Please reference pyuvvis if citing.  Added baseline = 234.0 array.
+    Please reference skspec if citing.  Added baseline = 234.0 array.
     """
     kwargs.setdefault('name', 'Gold Nanoparticles in Water')    
     ts = _load_gwuspec('aunps_water.csv', *args, **kwargs)

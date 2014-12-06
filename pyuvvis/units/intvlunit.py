@@ -1,4 +1,4 @@
-from pyuvvis.units.abcunits import ConversionUnit, UnitError
+from skspec.units.abcunits import ConversionUnit, UnitError
 from datetime import timedelta
 from pandas import DatetimeIndex, date_range, Index
 import datetime

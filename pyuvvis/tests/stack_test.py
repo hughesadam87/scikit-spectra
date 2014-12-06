@@ -2,8 +2,8 @@
     store TimeSpectra classes."""
 
 from pandas.core.panel import Panel
-from pyuvvis.core.timespectra import TimeSpectra
-from pyuvvis.core.utilities import boxcar
+from skspec.core.timespectra import TimeSpectra
+from skspec.core.utilities import boxcar
 
 
 #class SpecStack(Panel):
@@ -121,7 +121,7 @@ PanelNew._setup_axes(axes      = ['items', 'spectral', 'temporal'],
 
 if __name__=='__main__':
     ### For testing.
-    #from pyuvvis.core.specindex import SpecIndex
+    #from skspec.core.specindex import SpecIndex
     #from pandas import date_range, DataFrame, Index
     #import numpy as np       
 

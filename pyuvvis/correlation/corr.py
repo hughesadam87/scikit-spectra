@@ -2,7 +2,7 @@
 
 """ Suite for 2-dimensional correlation analysis.  Decided to put it in, despite already
 seeing a numpy-based version in paper "2D-correlation analysis applied to in situ and operando Mossbauer spectroscopy".
-This would not be pandas friendly, so it wouldn't intgerate into pyuvvis and I also want to build some tools from 
+This would not be pandas friendly, so it wouldn't intgerate into skspec and I also want to build some tools from 
 scratch to refamiliarize myself with the topic.
 
 To remember/writeup eventually:
@@ -42,11 +42,11 @@ logger = logging.getLogger(__name__)
 from math import pi
 import numpy as np
 
-from pyuvvis.core.anyspectra import AnyFrame 
-from pyuvvis.plotting.correlation_plot import corr2d, corr3d, corr_multi
-import pyuvvis.config as pvconfig
-import pyuvvis.core.utilities as pvutils
-from pyuvvis.pandas_utils.metadframe import MetaDataFrame
+from skspec.core.anyspectra import AnyFrame 
+from skspec.plotting.correlation_plot import corr2d, corr3d, corr_multi
+import skspec.config as pvconfig
+import skspec.core.utilities as pvutils
+from skspec.pandas_utils.metadframe import MetaDataFrame
 from pca_lite import PCA
 #from pcakernel import PCA
 
@@ -232,7 +232,7 @@ class Corr2d(object):
             raise CorrError('Data must be 2d!')
 
         if not isinstance(spec, MetaDataFrame):
-            raise CorrError('Corr2d requires pyuvvis data structures (Metadataframe,'
+            raise CorrError('Corr2d requires skspec data structures (Metadataframe,'
                             'Spectra, etc... got %s') % type(data)
 
 
@@ -699,7 +699,7 @@ class Corr2d(object):
 
 
 if __name__ == '__main__':
-    from pyuvvis.data import aunps_glass, solvent_evap, aunps_water
+    from skspec.data import aunps_glass, solvent_evap, aunps_water
     import numpy as np
     import matplotlib.pyplot as plt 
 

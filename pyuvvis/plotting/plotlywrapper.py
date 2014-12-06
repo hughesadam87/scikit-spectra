@@ -1,4 +1,4 @@
-# pyuvvis intefrace to plotly:
+# skspec intefrace to plotly:
 # http://nbviewer.ipython.org/github/plotly/python-user-guide/blob/master/s00_homepage/s00_homepage.ipyn
 
 import plotly.graph_objs as grobs
@@ -145,7 +145,7 @@ def ply_fig(ts, points=False, color='jet', **kwds):
     
     
 if __name__ == '__main__':
-    from pyuvvis.data import test_spectra
+    from skspec.data import test_spectra
     ts = test_spectra()
     out = ply_figure(ts)
 

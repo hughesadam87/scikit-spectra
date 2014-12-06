@@ -1,4 +1,4 @@
-''' Utilities in regard to custom exceptions, used throughout pyuvvis.  Mostly used 
+''' Utilities in regard to custom exceptions, used throughout skspec.  Mostly used 
 to alert users when they've passed incorrect attributes to a function.'''
 
 __author__ = "Adam Hughes"

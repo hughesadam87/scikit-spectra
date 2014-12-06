@@ -1,11 +1,11 @@
 import re
-import pyuvvis
-import pyuvvis.data
+import skspec
+import skspec.data
 import matplotlib.pyplot as plt
 
 from datetime import datetime
 from collections import OrderedDict
-from pyuvvis import Spectra
+from skspec import Spectra
 
 
 from IPython.html.widgets import (
@@ -21,10 +21,10 @@ from IPython.utils.traitlets import (
 from specgui import Box, HTML
 from nbtools import mpl2html, log_message
 
-from pyuvvis.core.spectra import _normdic as NUdic
-import pyuvvis.config as pvconf
-from pyuvvis.data import aunps_glass
-from pyuvvis.plotting.advanced_plots import PLOTPARSER
+from skspec.core.spectra import _normdic as NUdic
+import skspec.config as pvconf
+from skspec.data import aunps_glass
+from skspec.plotting.advanced_plots import PLOTPARSER
 
 class SpectraModel(HTML, Box):
     """
@@ -108,10 +108,10 @@ class SpectraModel(HTML, Box):
     # DEFAULTS
     # --------
     def _spec_default(self):
-        return getattr(pyuvvis.data, 'aunps_water')()
+        return getattr(skspec.data, 'aunps_water')()
     
     def _colormap_default(self):
-        return pvconf.CMAP_1DSPECPLOT #Use pyuvvis config default (red/blue map)
+        return pvconf.CMAP_1DSPECPLOT #Use skspec config default (red/blue map)
     
     # Events
     # ------
@@ -202,7 +202,7 @@ class SpectraModel(HTML, Box):
     # THIS SHOULD BE LOAD BUTTON CLICKED!!!!
     def _file_name_changed(self):
         try:
-            self.spec = getattr(pyuvvis.data, self.file_name)()
+            self.spec = getattr(skspec.data, self.file_name)()
         except AttributeError:
             pass
 

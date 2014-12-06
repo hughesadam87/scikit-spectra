@@ -1,6 +1,6 @@
 import plot_utils as put
-import pyuvvis.core.utilities as pvutils
-import pyuvvis.config as pvcnfg
+import skspec.core.utilities as pvutils
+import skspec.config as pvcnfg
 import logging
 import numpy as np
 import matplotlib.pyplot as plt
@@ -268,7 +268,7 @@ def areaplot(ranged_ts, **pltkwds):
     return _genplot(out, **pltkwds)   #ts TRANSPOSE
     
 if __name__ == '__main__':
-    from pyuvvis.data import aunps_glass
+    from skspec.data import aunps_glass
     ts = aunps_glass()
     print ts.full_iunit
     ts.plot(kind='area')
