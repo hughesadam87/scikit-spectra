@@ -64,4 +64,4 @@ setup(
           'Topic :: Scientific/Engineering :: Physics',
           'Topic :: Scientific/Engineering :: Medical Science Apps.',
           ],
-)
+ )
