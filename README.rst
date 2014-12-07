@@ -5,9 +5,9 @@
    :alt: alternate text
    :align: left
 
-===========================================
-skspec: Tools for explorative spectroscopy
-===========================================
+==================================================
+scikit-spectra: Tools for explorative spectroscopy
+==================================================
 
 Tutorials
 =========

@@ -3,7 +3,7 @@ import os.path as op
 #from distutils.core import setup
 from setuptools import setup, find_packages
 
-NAME = 'skspec'
+NAME = 'scikit-spectra'
 
 # Python >= 2.7 ?
 user_py = sys.version_info
@@ -22,7 +22,7 @@ with open('requirements.txt', 'r') as f:
 #requirements can probably be relaxed, especially chaco.
 setup(
     name = NAME,
-    version = '0.2',
+    version = '0.3',
     author = 'Adam Hughes',
     maintainer = 'Adam Hughes',
     maintainer_email = 'hughesadam87@gmail.com',
@@ -47,11 +47,10 @@ setup(
                     ]
                     },
     
-    url = 'http://pypi.python.org/pypi/pyuvvis/',
-    download_url = 'https://github.com/hugadams/pyuvvis',
+    url = 'http://pypi.python.org/pypi/skspec/',
+    download_url = 'https://github.com/hugadams/skspec',
     license = 'LICENSE.txt',
-    description = 'Pandas-based toolkit for spectral data analysis, primarily '
-    'UVVis spectra for now.',
+    description = 'Spectrosocpy in Python built on Pandas.',
       classifiers = [
           'Development Status :: 2 - Pre-Alpha',
           'Environment :: Console',
