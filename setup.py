@@ -1,6 +1,5 @@
 import sys
 import os.path as op
-#from distutils.core import setup
 from setuptools import setup, find_packages
 
 NAME = 'scikit-spectra'
@@ -22,7 +21,7 @@ with open('requirements.txt', 'r') as f:
 #requirements can probably be relaxed, especially chaco.
 setup(
     name = NAME,
-    version = '0.3',
+    version = '0.3.1',
     author = 'Adam Hughes',
     maintainer = 'Adam Hughes',
     maintainer_email = 'hughesadam87@gmail.com',
@@ -50,9 +49,9 @@ setup(
     url = 'http://pypi.python.org/pypi/skspec/',
     download_url = 'https://github.com/hugadams/skspec',
     license = 'LICENSE.txt',
-    description = 'Spectrosocpy in Python built on Pandas.',
+    description = 'Spectroscopy in Python built on Pandas.',
       classifiers = [
-          'Development Status :: 2 - Pre-Alpha',
+          'Development Status :: 3 - Alpha',
           'Environment :: Console',
           'Intended Audience :: Science/Research',
           'Intended Audience :: Developers',

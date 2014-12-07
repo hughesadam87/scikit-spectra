@@ -118,7 +118,7 @@ Make sure you have pip installed:
     
 Then:
    
-    pip install skspec
+    pip install scikit-spectra
     
 To install all of the dependencies, download ``skspec`` from github, navigate
 to the base directory and type:
@@ -202,9 +202,9 @@ Interested in the Python ecosystem?   Check out some of these related libraries:
    - pandas_ (R on steroids)
    - plotly_ (Interactive/cloud plotting)
 
-   .. _NumPy: http://www.numpy.org/
-   .. _pandas: http://pandas.pydata.org/
-   .. _SciPy: http://scipy.org/
+   .. _NumPy : http://www.numpy.org/
+   .. _pandas : http://pandas.pydata.org/
+   .. _SciPy : http://scipy.org/
    .. _matplotlib : http://matplotlib.org/
    .. _plotly : https://plot.ly/
      
