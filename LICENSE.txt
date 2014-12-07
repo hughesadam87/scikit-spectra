@@ -19,7 +19,7 @@ The views and conclusions contained in the software and documentation are those 
 
 3rd Party Library Addendum
 ===============================================================================
-pyuvvis Includes the following 3rd Party Libraries which may have additional 
+scikit-spectra Includes the following 3rd Party Libraries which may have additional 
 restrictions as indicated below:
 
 pandas license

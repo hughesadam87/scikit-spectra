@@ -3,7 +3,7 @@ import os.path as op
 #from distutils.core import setup
 from setuptools import setup, find_packages
 
-NAME = 'pyuvvis'
+NAME = 'scikit-spectra'
 
 # Python >= 2.7 ?
 user_py = sys.version_info
@@ -22,7 +22,7 @@ with open('requirements.txt', 'r') as f:
 #requirements can probably be relaxed, especially chaco.
 setup(
     name = NAME,
-    version = '0.2',
+    version = '0.3',
     author = 'Adam Hughes',
     maintainer = 'Adam Hughes',
     maintainer_email = 'hughesadam87@gmail.com',
@@ -31,27 +31,26 @@ setup(
 
     # include .tex and .ipynb files
     package_data={
-      'pyuvvis.scripts.gwu_script.tex_templates': ['*.tex'],
-      'pyuvvis.scripts.gwu_script.mlab_templates': ['*.m'],   
+      'skspec.scripts.gwu_script.tex_templates': ['*.tex'],
+      'skspec.scripts.gwu_script.mlab_templates': ['*.m'],   
 #      'pyparty.bundled':['*.css'],   
-      'pyuvvis.examples.Notebooks':['*.ipynb'],
-      'pyuvvis.scripts.gwu_script':['*.png', '*.ipynb'],
-      'pyuvvis.data':['*'],
-      'pyuvvis.bundled':['*.css']
+      'skspec.examples.Notebooks':['*.ipynb'],
+      'skspec.scripts.gwu_script':['*.png', '*.ipynb'],
+      'skspec.data':['*'],
+      'skspec.bundled':['*.css']
    },
        
     entry_points = {'console_scripts': 
                     [
-                       'gwuspec = pyuvvis.scripts.gwu_script.gwuspec:main',
-                       'gwureport = pyuvvis.scripts.gwu_script.gwureport:main'
+                       'gwuspec = skspec.scripts.gwu_script.gwuspec:main',
+                       'gwureport = skspec.scripts.gwu_script.gwureport:main'
                     ]
                     },
     
-    url = 'http://pypi.python.org/pypi/PyUvVis/',
-    download_url = 'https://github.com/hugadams/pyuvvis',
+    url = 'http://pypi.python.org/pypi/skspec/',
+    download_url = 'https://github.com/hugadams/skspec',
     license = 'LICENSE.txt',
-    description = 'Pandas-based toolkit for spectral data analysis, primarily '
-    'UVVis spectra for now.',
+    description = 'Spectrosocpy in Python built on Pandas.',
       classifiers = [
           'Development Status :: 2 - Pre-Alpha',
           'Environment :: Console',
