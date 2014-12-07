@@ -197,14 +197,14 @@ Related Libraries
 Interested in the Python ecosystem?   Check out some of these related libraries:
 
    - NumPy_ (Fundamental vectorized numerics in Python)
-   - SciPy_ (Collection of core, numpy-based scientific libraries)
+   - scipy_ (Collection of core, numpy-based scientific libraries)
    - matplotlib_ (De facto static plotting in Python)
    - pandas_ (R on steroids)
    - plotly_ (Interactive/cloud plotting)
 
    .. _NumPy : http://www.numpy.org/
    .. _pandas : http://pandas.pydata.org/
-   .. _SciPy : http://scipy.org/
+   .. _scipy : http://scipy.org/
    .. _matplotlib : http://matplotlib.org/
    .. _plotly : https://plot.ly/
      
