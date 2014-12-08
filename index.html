@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Welcome to scikit-spectra &mdash; scikit-spectra 0.3.1-2 documentation</title>
+    <title>scikit-spectra: Tools for explorative spectroscopy &mdash; scikit-spectra 0.3.1-2 documentation</title>
     
     <link rel="stylesheet" href="_static/agogo.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -24,8 +24,9 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="about.html" />
     <link rel="top" title="scikit-spectra 0.3.1-2 documentation" href="#" />
-    <link rel="next" title="Dependencies/Installation" href="Tutorial/installation_dependencies.html" /> 
+    <link rel="next" title="API" href="API/skspec.html" /> 
   </head>
   <body role="document">
     <div class="header-wrapper" role="banner">
@@ -33,7 +34,7 @@
         <div class="headertitle"><a
           href="#">scikit-spectra 0.3.1-2 documentation</a></div>
         <div class="rel" role="navigation" aria-label="related navigation">
-          <a href="Tutorial/installation_dependencies.html" title="Dependencies/Installation"
+          <a href="API/skspec.html" title="API"
              accesskey="N">next</a> |
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |
@@ -57,66 +58,105 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="welcome-to-scikit-spectra">
-<h1>Welcome to scikit-spectra<a class="headerlink" href="#welcome-to-scikit-spectra" title="Permalink to this headline">¶</a></h1>
-<p><strong>scikit-spectra</strong> is a set of wrappers and tools written using the <a class="reference external" href="http://pandas.pydata.org/index.html">pandas</a> library
-with the intention of exploring spectral data, especially UV-Vis spectroscopy.</p>
-<blockquote>
-<div></div></blockquote>
-<div class="section" id="what-s-new">
-<h2>What&#8217;s New<a class="headerlink" href="#what-s-new" title="Permalink to this headline">¶</a></h2>
-<p>I finally created this site which is generously hosted by <a class="reference external" href="https://github.com">GitHub</a>.  The <a class="reference external" href="https://github.com/hugadams/scikit-spectra">source code</a> is available for download; and the PyPi package is
-available <a class="reference external" href="http://pypi.python.org/pypi/scikit-spectra/">http://pypi.python.org/pypi/scikit-spectra/</a> installation.</p>
-</div>
-<div class="section" id="on-the-horizon">
-<h2>On the Horizon<a class="headerlink" href="#on-the-horizon" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li>Full documentation.</li>
-<li>More general support.</li>
-</ul>
-<p>Check back soon for updates.</p>
-</div>
-</div>
+  <div class="section" id="scikit-spectra-tools-for-explorative-spectroscopy">
+<h1>scikit-spectra: Tools for explorative spectroscopy<a class="headerlink" href="#scikit-spectra-tools-for-explorative-spectroscopy" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="table-of-contents">
-<h1>Table of Contents<a class="headerlink" href="#table-of-contents" title="Permalink to this headline">¶</a></h1>
+<h2>Table of Contents<a class="headerlink" href="#table-of-contents" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="Tutorial/installation_dependencies.html">Dependencies/Installation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="Tutorial/installation_dependencies.html#dependencies">Dependencies</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Tutorial/installation_dependencies.html#installation">Installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Tutorial/installation_dependencies.html#testing-installation">Testing Installation</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="Tutorial/getting_started.html">Getting Started</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="Tutorial/getting_started.html#manipulation-with-pandas">Manipulation with pandas</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Tutorial/getting_started.html#data-storage-the-pandas-dataframe">Data Storage: The Pandas Dataframe</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Tutorial/getting_started.html#domain-analysis">Domain Analysis</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Tutorial/getting_started.html#integration-with-biopython-seq-class">Integration with BioPython Seq. Class</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="Tutorial/plotting.html">Plotting</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="Tutorial/plotting.html#intro">Intro</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Tutorial/plotting.html#d-plotting">1d plotting</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Tutorial/plotting.html#id1">2d plotting</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Tutorial/plotting.html#id2">3d plotting</a></li>
-</ul>
-</li>
 <li class="toctree-l1"><a class="reference internal" href="API/skspec.html">API</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="API/skspec.html#core-objects">Core Objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API/skspec.html#primary-structures-spectrum-spectra-specstack">Primary Structures: Spectrum, Spectra, SpecStack</a></li>
 <li class="toctree-l2"><a class="reference internal" href="API/skspec.html#index-objects">Index Objects</a></li>
 <li class="toctree-l2"><a class="reference internal" href="API/skspec.html#all-modules">All Modules</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorials.html#getting-started">Getting Started:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials.html#plotting">PLOTTING:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials.html#io-and-datasets">IO AND DATASETS:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials.html#research-applications">RESEARCH APPLICATIONS:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials.html#customization">CUSTOMIZATION:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials.html#special-topics">SPECIAL TOPICS:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials.html#miscellaneous">MISCELLANEOUS:</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="about.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="about.html#dependencies">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="about.html#pip-install">Pip Install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="about.html#installation-from-source">Installation from source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="about.html#testing-installation">Testing Installation</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </div>
+<div class="section" id="license">
+<h2>License<a class="headerlink" href="#license" title="Permalink to this headline">¶</a></h2>
+<p>3-Clause Revised <a class="reference external" href="https://github.com/hugadams/scikit-spectra/blob/master/LICENSE.txt">BSD</a></p>
+<blockquote>
+<div></div></blockquote>
+</div>
+<div class="section" id="history-and-background">
+<h2>History and Background<a class="headerlink" href="#history-and-background" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal"><span class="pre">scikit-spectra</span></code> originally began at the George Washington University in an
+effort to develop exploratory visualization techniques with UVVis
+data, particularly the output of fiberoptic/nanotechnology research.</p>
+<p>The decision to officialy package these nascent tools was made for the following
+reasons:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>To faciliate easier sharing and better organization between collaborators.</li>
+<li>To document the progress and functionalities of the toolset.</li>
+<li>To broadcast the toolkit to the community, and hopefully to merge with other Python spectroscopy packages.</li>
+</ol>
+</div></blockquote>
+<p>In regard to the final point, <code class="docutils literal"><span class="pre">scikit-spectra</span></code> is not an attempt to be the de-facto spectroscopy
+toolkit in Python; rather, it is a domain-specific wrapper for pandas.  It should be quite extensible
+to other spectroscopy domains, where it may perform a supporting or ancillary role.  It is our
+hope that in the future, other internal GWU tools for fiber optics design and nanomaterial plasmonics,
+combined with this package, may form the basis for a crude nano-optics Python package.</p>
+</div>
+<div class="section" id="related-libraries">
+<h2>Related Libraries<a class="headerlink" href="#related-libraries" title="Permalink to this headline">¶</a></h2>
+<p>Interested in the Python ecosystem?   Check out some of these related libraries:</p>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference external" href="http://www.numpy.org/">NumPy</a> (Fundamental vectorized numerics in Python)</li>
+<li><a class="reference external" href="http://scipy.org/">scipy</a> (Collection of core, numpy-based scientific libraries)</li>
+<li><a class="reference external" href="http://matplotlib.org/">matplotlib</a> (De facto static plotting in Python)</li>
+<li><a class="reference external" href="http://pandas.pydata.org/">pandas</a> (R on steroids)</li>
+<li><a class="reference external" href="https://plot.ly/">plotly</a> (Interactive/cloud plotting)</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="about-the-author">
+<h2>About the Author<a class="headerlink" href="#about-the-author" title="Permalink to this headline">¶</a></h2>
+<p>I&#8217;m a PhD student at GWU (check me out on <a class="reference external" href="https://www.researchgate.net/profile/Adam_Hughes2/?ev=hdr_xprf">researchgate</a>, <a class="reference external" href="http://www.linkedin.com/profile/view?id=121484744&amp;goback=%2Enmp_*1_*1_*1_*1_*1_*1_*1_*1_*1_*1_*1&amp;trk=spm_pic">Linkedin</a> or <a class="reference external" href="https://twitter.com/hughesadam87">twitter</a> (&#64;hughesadam87))
+and former Enthought intern. I work in biomolecule sensing and nanophotonics.
+Like any PhD student, my time is stretched across many projects.  As such,
+the <code class="docutils literal"><span class="pre">scikit-spectra</span></code> source code may is messy in places, and a test suite has
+yet to be developed.  Developing the iPython notebook tutorials
+alongside the code helped served as a basic regression test platform.</p>
+<blockquote>
+<div></div></blockquote>
+</div>
+<div class="section" id="acknowledgements">
+<h2>Acknowledgements<a class="headerlink" href="#acknowledgements" title="Permalink to this headline">¶</a></h2>
+<p>Thank you countless developers who have patiently answered hundreds of
+my questions on too many mailing lists and sites to list.</p>
+<p>Thank you <a class="reference external" href="https://github.com/EvelynLiu77">Zhaowen Liu</a> for all of your help with this project, our
+other projects and for your unwaivering encouragement (and for the panda).</p>
+<blockquote>
+<div></div></blockquote>
+</div>
 <div class="section" id="index-and-search">
-<h1>Index and Search<a class="headerlink" href="#index-and-search" title="Permalink to this headline">¶</a></h1>
+<h2>Index and Search<a class="headerlink" href="#index-and-search" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><a class="reference internal" href="genindex.html"><em>Index</em></a></li>
 <li><a class="reference internal" href="py-modindex.html"><em>Module Index</em></a></li>
 <li><a class="reference internal" href="search.html"><em>Search Page</em></a></li>
 </ul>
+</div>
 </div>
 
 
@@ -127,10 +167,9 @@ available <a class="reference external" href="http://pypi.python.org/pypi/scikit
         <div class="sidebar">
           <h3>Table Of Contents</h3>
           <ul>
-<li class="toctree-l1"><a class="reference internal" href="Tutorial/installation_dependencies.html">Dependencies/Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Tutorial/getting_started.html">Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Tutorial/plotting.html">Plotting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="API/skspec.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about.html">Installation</a></li>
 </ul>
 
           <div role="search">
@@ -154,7 +193,7 @@ available <a class="reference external" href="http://pypi.python.org/pypi/scikit
       <div class="footer">
         <div class="left">
           <div role="navigation" aria-label="related navigaton">
-            <a href="Tutorial/installation_dependencies.html" title="Dependencies/Installation"
+            <a href="API/skspec.html" title="API"
               >next</a> |
             <a href="py-modindex.html" title="Python Module Index"
               >modules</a> |

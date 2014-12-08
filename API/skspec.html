@@ -24,8 +24,9 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../about.html" />
     <link rel="top" title="scikit-spectra 0.3.1-2 documentation" href="../index.html" />
-    <link rel="prev" title="Plotting" href="../Tutorial/plotting.html" /> 
+    <link rel="prev" title="scikit-spectra: Tools for explorative spectroscopy" href="../index.html" /> 
   </head>
   <body role="document">
     <div class="header-wrapper" role="banner">
@@ -33,7 +34,7 @@
         <div class="headertitle"><a
           href="../index.html">scikit-spectra 0.3.1-2 documentation</a></div>
         <div class="rel" role="navigation" aria-label="related navigation">
-          <a href="../Tutorial/plotting.html" title="Plotting"
+          <a href="../index.html" title="scikit-spectra: Tools for explorative spectroscopy"
              accesskey="P">previous</a> |
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |
@@ -59,28 +60,74 @@
             
   <div class="section" id="api">
 <h1>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="core-objects">
-<h2>Core Objects<a class="headerlink" href="#core-objects" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="primary-structures-spectrum-spectra-specstack">
+<h2>Primary Structures: Spectrum, Spectra, SpecStack<a class="headerlink" href="#primary-structures-spectrum-spectra-specstack" title="Permalink to this headline">¶</a></h2>
+<p>Each DataStructure below is the Spectroscopic extension of a Pandas object:</p>
+<blockquote>
+<div><ul class="simple">
+<li><cite>Spectrum</cite> : pandas.Series</li>
+<li><cite>Spectra</cite> : pandas.DataFrame</li>
+<li><cite>SpecStack</cite> : pandas.Panel</li>
+</ul>
+</div></blockquote>
+<p>As such, each is constructed similar to its pandas equivalent:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Spectra</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="p">,</span> <span class="n">specunit</span><span class="o">=</span><span class="s">&#39;nm&#39;</span><span class="p">,</span> <span class="n">varunit</span><span class="o">=</span><span class="s">&#39;s&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Please see the <a class="reference external" href="http://nbviewer.ipython.org/github/hugadams/scikit-spectra/blob/master/examples/Notebooks/tutorial_1.ipynb?create=1">basic tutorial</a> for more on <cite>scikit-spectra</cite> datastructures and their instantiations.</p>
+<blockquote>
+<div></div></blockquote>
+<div class="section" id="spectrum">
+<h3>Spectrum<a class="headerlink" href="#spectrum" title="Permalink to this headline">¶</a></h3>
 <table border="1" class="longtable docutils">
 <colgroup>
 <col width="10%" />
 <col width="90%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">anyspectra.AnySpectra</span></code></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><a class="reference internal" href="skspec.core.html#skspec.core.spectra.Spectrum" title="skspec.core.spectra.Spectrum"><code class="xref py py-obj docutils literal"><span class="pre">spectra.Spectrum</span></code></a>(*args,&nbsp;**kwargs)</td>
+<tr class="row-odd"><td><a class="reference internal" href="skspec.core.html#skspec.core.spectra.Spectrum" title="skspec.core.spectra.Spectrum"><code class="xref py py-obj docutils literal"><span class="pre">spectra.Spectrum</span></code></a>(*args,&nbsp;**kwargs)</td>
 <td>Compliment to pandas Series: single array of spectral values with spectral Index.</td>
-</tr>
-<tr class="row-odd"><td><a class="reference internal" href="skspec.core.html#skspec.core.spectra.Spectra" title="skspec.core.spectra.Spectra"><code class="xref py py-obj docutils literal"><span class="pre">spectra.Spectra</span></code></a>(*dfargs,&nbsp;**dfkwargs)</td>
-<td>Provides core Spectra composite pandas DataFrame to represent a set  of spectral data.</td>
-</tr>
-<tr class="row-even"><td><a class="reference internal" href="skspec.core.html#skspec.core.timespectra.TimeSpectra" title="skspec.core.timespectra.TimeSpectra"><code class="xref py py-obj docutils literal"><span class="pre">timespectra.TimeSpectra</span></code></a>(*dfargs,&nbsp;**dfkwargs)</td>
-<td>Spectra that enforces a TimeIndex.</td>
 </tr>
 </tbody>
 </table>
+</div>
+<div class="section" id="spectra">
+<h3>Spectra<a class="headerlink" href="#spectra" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="skspec.core.html#skspec.core.anyspectra.AnyFrame" title="skspec.core.anyspectra.AnyFrame"><code class="xref py py-obj docutils literal"><span class="pre">anyspectra.AnyFrame</span></code></a>(*dfargs,&nbsp;**dfkwargs)</td>
+<td>Spectra with default non-strict columns or index</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="skspec.core.html#skspec.core.spectra.Spectra" title="skspec.core.spectra.Spectra"><code class="xref py py-obj docutils literal"><span class="pre">spectra.Spectra</span></code></a>(*dfargs,&nbsp;**dfkwargs)</td>
+<td>Provides core Spectra composite pandas DataFrame to represent a set  of spectral data.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="skspec.core.html#skspec.core.timespectra.TimeSpectra" title="skspec.core.timespectra.TimeSpectra"><code class="xref py py-obj docutils literal"><span class="pre">timespectra.TimeSpectra</span></code></a>(*dfargs,&nbsp;**dfkwargs)</td>
+<td>Spectra that enforces a TimeIndex.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="skspec.core.html#skspec.core.tempspectra.TempSpectra" title="skspec.core.tempspectra.TempSpectra"><code class="xref py py-obj docutils literal"><span class="pre">tempspectra.TempSpectra</span></code></a>(*dfargs,&nbsp;**dfkwargs)</td>
+<td>Spectral Index (rows) with Temperature Variation (columns)</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="specstack">
+<h3>SpecStack<a class="headerlink" href="#specstack" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="skspec.core.html#skspec.core.specstack.SpecStack" title="skspec.core.specstack.SpecStack"><code class="xref py py-obj docutils literal"><span class="pre">specstack.SpecStack</span></code></a>(data[,&nbsp;keys,&nbsp;name,&nbsp;...])</td>
+<td>Stack for just storing timespectra objects.</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 <div class="section" id="index-objects">
 <h2>Index Objects<a class="headerlink" href="#index-objects" title="Permalink to this headline">¶</a></h2>
@@ -230,10 +277,9 @@
         <div class="sidebar">
           <h3>Table Of Contents</h3>
           <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../Tutorial/installation_dependencies.html">Dependencies/Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../Tutorial/getting_started.html">Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../Tutorial/plotting.html">Plotting</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about.html">Installation</a></li>
 </ul>
 
           <div role="search">
@@ -257,7 +303,7 @@
       <div class="footer">
         <div class="left">
           <div role="navigation" aria-label="related navigaton">
-            <a href="../Tutorial/plotting.html" title="Plotting"
+            <a href="../index.html" title="scikit-spectra: Tools for explorative spectroscopy"
               >previous</a> |
             <a href="../py-modindex.html" title="Python Module Index"
               >modules</a> |

@@ -1,47 +1,86 @@
-.. skspec (formerly pyuvvis) documentation master file, created by
-   sphinx-quickstart on Sun Nov 18 20:25:00 2012.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-Welcome to scikit-spectra
-=========================
-
-**scikit-spectra** is a set of wrappers and tools written using the pandas_ library
-with the intention of exploring spectral data, especially UV-Vis spectroscopy.
-
-   .. _pandas: http://pandas.pydata.org/index.html
-
-What's New
-----------
-
-I finally created this site which is generously hosted by GitHub_.  The `source code`_ is available for download; and the PyPi package is
-available http://pypi.python.org/pypi/scikit-spectra/ installation.  
-
-.. _source code: https://github.com/hugadams/scikit-spectra
-
-.. _GitHub: https://github.com
-
-
-On the Horizon
---------------
-
-* Full documentation.
-* More general support.
-
-Check back soon for updates.
+==================================================
+scikit-spectra: Tools for explorative spectroscopy
+==================================================
 
 Table of Contents
 =================
 
 .. toctree::
    :maxdepth: 2
-
-   Tutorial/installation_dependencies.rst
-   Tutorial/getting_started.rst
-   Tutorial/plotting.rst
+  
    API/skspec.rst
+   tutorials.rst
+   about.rst
 
 
+License
+=======
+
+3-Clause Revised BSD_
+
+   .. _BSD : https://github.com/hugadams/scikit-spectra/blob/master/LICENSE.txt
+
+History and Background
+========================
+
+``scikit-spectra`` originally began at the George Washington University in an 
+effort to develop exploratory visualization techniques with UVVis
+data, particularly the output of fiberoptic/nanotechnology research. 
+
+The decision to officialy package these nascent tools was made for the following 
+reasons:
+ 
+   1. To faciliate easier sharing and better organization between collaborators.
+   2. To document the progress and functionalities of the toolset.
+   3. To broadcast the toolkit to the community, and hopefully to merge with other Python spectroscopy packages.
+
+In regard to the final point, ``scikit-spectra`` is not an attempt to be the de-facto spectroscopy
+toolkit in Python; rather, it is a domain-specific wrapper for pandas.  It should be quite extensible
+to other spectroscopy domains, where it may perform a supporting or ancillary role.  It is our 
+hope that in the future, other internal GWU tools for fiber optics design and nanomaterial plasmonics,
+combined with this package, may form the basis for a crude nano-optics Python package.
+
+Related Libraries
+=================
+Interested in the Python ecosystem?   Check out some of these related libraries:
+
+   - NumPy_ (Fundamental vectorized numerics in Python)
+   - scipy_ (Collection of core, numpy-based scientific libraries)
+   - matplotlib_ (De facto static plotting in Python)
+   - pandas_ (R on steroids)
+   - plotly_ (Interactive/cloud plotting)
+
+   .. _NumPy : http://www.numpy.org/
+   .. _pandas : http://pandas.pydata.org/
+   .. _scipy : http://scipy.org/
+   .. _matplotlib : http://matplotlib.org/
+   .. _plotly : https://plot.ly/
+     
+
+
+About the Author
+================
+
+I'm a PhD student at GWU (check me out on researchgate_, Linkedin_ or twitter_ (@hughesadam87))
+and former Enthought intern. I work in biomolecule sensing and nanophotonics.  
+Like any PhD student, my time is stretched across many projects.  As such,
+the ``scikit-spectra`` source code may is messy in places, and a test suite has
+yet to be developed.  Developing the iPython notebook tutorials 
+alongside the code helped served as a basic regression test platform.  
+
+   .. _researchgate : https://www.researchgate.net/profile/Adam_Hughes2/?ev=hdr_xprf
+   .. _Linkedin : http://www.linkedin.com/profile/view?id=121484744&goback=%2Enmp_*1_*1_*1_*1_*1_*1_*1_*1_*1_*1_*1&trk=spm_pic
+   .. _twitter : https://twitter.com/hughesadam87
+
+Acknowledgements
+================
+Thank you countless developers who have patiently answered hundreds of 
+my questions on too many mailing lists and sites to list.
+
+Thank you `Zhaowen Liu`_ for all of your help with this project, our 
+other projects and for your unwaivering encouragement (and for the panda).
+
+    .. _`Zhaowen Liu` : https://github.com/EvelynLiu77
 
 Index and Search
 ================
