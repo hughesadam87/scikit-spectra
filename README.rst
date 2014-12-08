@@ -1,10 +1,3 @@
-.. image:: skspec/data/coverimage.png
-   :height: 100px
-   :width: 200 px
-   :scale: 50 %
-   :alt: alternate text
-   :align: left
-
 ==================================================
 scikit-spectra: Tools for explorative spectroscopy
 ==================================================

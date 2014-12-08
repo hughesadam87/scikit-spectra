@@ -21,7 +21,7 @@ with open('requirements.txt', 'r') as f:
 #requirements can probably be relaxed, especially chaco.
 setup(
     name = NAME,
-    version = '0.3.1-2',
+    version = '0.3.2',
     author = 'Adam Hughes',
     maintainer = 'Adam Hughes',
     maintainer_email = 'hughesadam87@gmail.com',
