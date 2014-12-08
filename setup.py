@@ -21,7 +21,7 @@ with open('requirements.txt', 'r') as f:
 #requirements can probably be relaxed, especially chaco.
 setup(
     name = NAME,
-    version = '0.3.1',
+    version = '0.3.1-2',
     author = 'Adam Hughes',
     maintainer = 'Adam Hughes',
     maintainer_email = 'hughesadam87@gmail.com',
@@ -46,8 +46,8 @@ setup(
                     ]
                     },
     
-    url = 'http://pypi.python.org/pypi/skspec/',
-    download_url = 'https://github.com/hugadams/skspec',
+    url = 'http://pypi.python.org/pypi/scikit-spectra/',
+    download_url = 'https://github.com/hugadams/scikit-spectra',
     license = 'LICENSE.txt',
     description = 'Spectroscopy in Python built on Pandas.',
       classifiers = [
