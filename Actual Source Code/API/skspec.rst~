@@ -1,8 +1,7 @@
 API
 ===
 
-Core Objects
-------------
+
 .. currentmodule:: skspec.core
 
 .. autosummary::
@@ -13,9 +12,6 @@ Core Objects
    spectra.Spectra
    timespectra.TimeSpectra
    ...
-
-Index Objects
--------------
 
 All Modules
 -----------
