@@ -1,0 +1,239 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>skspec.pandas_utils.dataframeserial &mdash; scikit-spectra 0.3.1-2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.3.1-2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="scikit-spectra 0.3.1-2 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../../../index.html">scikit-spectra 0.3.1-2 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../../../index.html"><img src="../../../_static/new_logo.png" border="100" alt="sampledoc"/></a>
+</div>
+
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for skspec.pandas_utils.dataframeserial</h1><div class="highlight"><pre>
+<span class="sd">&#39;&#39;&#39; Serialization interface for custom DataFrame objects.  Allows to save/load </span>
+<span class="sd"> for memory streams or files.  Because one cannot serialize DataFrames with</span>
+<span class="sd"> custom attributes, this uses an intermediate object for that process.  Plan</span>
+<span class="sd"> it implement pickling saved methods later (requires more work).  These are meant to </span>
+<span class="sd"> supplant the DataFrame&#39;s save() and load() methods when custom attributes must persist.</span>
+<span class="sd"> </span>
+<span class="sd"> Note, this program assesses custom attributes by inspecting your DataFrame&#39;s</span>
+<span class="sd"> attributes using Python&#39;s builting function, dir().  It compares these to the</span>
+<span class="sd"> attributes of an empty DataFrame.  This adds a bit of overhead, but should allow</span>
+<span class="sd"> this program to work with new versions of pandas, as Dataframe&#39;s methods and attributes</span>
+<span class="sd"> are likely to change.  Is there are better way to do this?</span>
+<span class="sd"> </span>
+<span class="sd"> The following four functions are defined:</span>
+<span class="sd">   df_dumps:  Serialize a DataFrame into memory.  Returns serialized stream.</span>
+<span class="sd">   df_dump:  Serialize a DataFrame into a file.  Returns None.</span>
+<span class="sd">   df_loads: Return a DataFrame from a serialized stream.</span>
+<span class="sd">   df_load: Return a Dataframe from a serialized file.</span>
+<span class="sd"> </span>
+<span class="sd"> See bottom of file for test cases:  &#39;&#39;&#39;</span>
+
+<span class="n">__author__</span> <span class="o">=</span> <span class="s">&quot;Adam Hughes&quot;</span>
+<span class="n">__maintainer__</span> <span class="o">=</span> <span class="s">&quot;Adam Hughes&quot;</span>
+<span class="n">__email__</span> <span class="o">=</span> <span class="s">&quot;hugadams@gwmail.gwu.edu&quot;</span>
+<span class="n">__status__</span> <span class="o">=</span> <span class="s">&quot;Prototype&quot;</span>
+
+<span class="kn">import</span> <span class="nn">cPickle</span>
+<span class="kn">from</span> <span class="nn">operator</span> <span class="kn">import</span> <span class="n">attrgetter</span>
+<span class="kn">from</span> <span class="nn">pandas</span> <span class="kn">import</span> <span class="n">DataFrame</span>
+
+<span class="c">### For testing ###</span>
+<span class="kn">from</span> <span class="nn">numpy.random</span> <span class="kn">import</span> <span class="n">randn</span>
+
+
+<div class="viewcode-block" id="TempDump"><a class="viewcode-back" href="../../../API/skspec.pandas_utils.html#skspec.pandas_utils.dataframeserial.TempDump">[docs]</a><span class="k">class</span> <span class="nc">TempDump</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Temporary class to dump DataFrame object with custom attributes.  Custom attrubutes are</span>
+<span class="sd">    passed in as a dictionary and then temporarily stored upon serialization as _metadict.  Upon</span>
+<span class="sd">    deserialization, the attributes and values are re-appended to the DataFrame automatically.&#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataframe</span><span class="p">,</span> <span class="n">metadict</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataframe</span><span class="o">=</span><span class="n">dataframe</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_metadict</span><span class="o">=</span><span class="n">metadict</span>
+</div>
+<span class="n">dfempty</span><span class="o">=</span><span class="n">DataFrame</span><span class="p">()</span> 
+<span class="n">defattrs</span><span class="o">=</span><span class="nb">dir</span><span class="p">(</span><span class="n">dfempty</span><span class="p">)</span>
+
+<div class="viewcode-block" id="print_customattr"><a class="viewcode-back" href="../../../API/skspec.pandas_utils.html#skspec.pandas_utils.dataframeserial.print_customattr">[docs]</a><span class="k">def</span> <span class="nf">print_customattr</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Formatted output of all custom attributes found in a DataFrame.  For all</span>
+<span class="sd">    attributes and methods, use dir(df).&#39;&#39;&#39;</span>
+    <span class="n">metadict</span><span class="o">=</span><span class="n">_get_metadict</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">metadict</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">Found </span><span class="si">%s</span><span class="s"> custom attributes:</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">%</span><span class="nb">len</span><span class="p">(</span><span class="n">metadict</span><span class="p">)</span>        
+        <span class="k">print</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([(</span><span class="n">k</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\t</span><span class="s">&#39;</span><span class="o">+</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">metadict</span><span class="o">.</span><span class="n">items</span><span class="p">())])</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&#39;No custom attributes found&#39;</span>
+</div>
+<span class="k">def</span> <span class="nf">_get_metadict</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Returns dictionary of attributes in a dataframe not found in the default frame.&#39;&#39;&#39;</span>
+    <span class="n">attrs</span><span class="o">=</span><span class="nb">dir</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+    <span class="n">newattr</span><span class="o">=</span><span class="p">[</span><span class="n">att</span> <span class="k">for</span> <span class="n">att</span> <span class="ow">in</span> <span class="n">attrs</span> <span class="k">if</span> <span class="n">att</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">defattrs</span><span class="p">]</span> <span class="c">#if not is type(instancemethod?)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">newattr</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">fget</span><span class="o">=</span><span class="n">attrgetter</span><span class="p">(</span><span class="o">*</span><span class="n">newattr</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">newattr</span><span class="p">,</span> <span class="n">fget</span><span class="p">(</span><span class="n">df</span><span class="p">)))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{}</span>
+
+<div class="viewcode-block" id="df_dumps"><a class="viewcode-back" href="../../../API/skspec.pandas_utils.html#skspec.pandas_utils.dataframeserial.df_dumps">[docs]</a><span class="k">def</span> <span class="nf">df_dumps</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Save dataframe as a stream into memory.&#39;&#39;&#39;</span>
+    <span class="n">metadict</span><span class="o">=</span><span class="n">_get_metadict</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">TempDump</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">metadict</span> <span class="p">))</span> <span class="c">#Dumps writes the object to memory</span>
+    </div>
+<div class="viewcode-block" id="df_dump"><a class="viewcode-back" href="../../../API/skspec.pandas_utils.html#skspec.pandas_utils.dataframeserial.df_dump">[docs]</a><span class="k">def</span> <span class="nf">df_dump</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">outfile</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Save dataframe as a file.&#39;&#39;&#39;</span>
+    <span class="n">outstream</span><span class="o">=</span><span class="n">df_dumps</span><span class="p">(</span><span class="n">df</span><span class="p">)</span> <span class="c">#Dumps writes the object to memory    </span>
+    <span class="n">f</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="c">#Should this be &#39;wb&#39;</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">outstream</span><span class="p">)</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="bp">None</span> <span class="c">#Should I return none or stream?    </span>
+    </div>
+<div class="viewcode-block" id="df_load"><a class="viewcode-back" href="../../../API/skspec.pandas_utils.html#skspec.pandas_utils.dataframeserial.df_load">[docs]</a><span class="k">def</span> <span class="nf">df_load</span><span class="p">(</span><span class="n">infile</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Returns dataframe from a serialized file &#39;&#39;&#39;</span>
+    <span class="n">f</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span>
+    <span class="n">tempobj</span><span class="o">=</span><span class="n">cPickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">df</span><span class="o">=</span><span class="n">tempobj</span><span class="o">.</span><span class="n">dataframe</span>    
+    <span class="k">for</span> <span class="n">attr</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">tempobj</span><span class="o">.</span><span class="n">_metadict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">df</span>       
+</div>
+<div class="viewcode-block" id="df_loads"><a class="viewcode-back" href="../../../API/skspec.pandas_utils.html#skspec.pandas_utils.dataframeserial.df_loads">[docs]</a><span class="k">def</span> <span class="nf">df_loads</span><span class="p">(</span><span class="n">stream</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Returns dataframe from a serialized stream&#39;&#39;&#39;</span>
+    <span class="n">tempobj</span><span class="o">=</span><span class="n">cPickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">stream</span><span class="p">)</span> <span class="c">#loads not load</span>
+    <span class="n">df</span><span class="o">=</span><span class="n">tempobj</span><span class="o">.</span><span class="n">dataframe</span>
+    <span class="k">for</span> <span class="n">attr</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">tempobj</span><span class="o">.</span><span class="n">_metadict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">df</span>    
+
+    </div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="c">### Make a random dataframe, add some attributes</span>
+    <span class="n">df</span><span class="o">=</span><span class="n">DataFrame</span><span class="p">(((</span><span class="n">randn</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">))),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;a&#39;</span><span class="p">,</span><span class="s">&#39;b&#39;</span><span class="p">,</span><span class="s">&#39;c&#39;</span><span class="p">])</span>
+    <span class="n">print_customattr</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+    <span class="k">print</span> <span class="s">&#39;adding some attributes&#39;</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;Billy&#39;</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">junk</span><span class="o">=</span><span class="s">&#39;in the trunk&#39;</span>
+    <span class="n">print_customattr</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+    
+    <span class="c">### Serialize into memory</span>
+    <span class="n">stream</span><span class="o">=</span><span class="n">df_dumps</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+    <span class="k">print</span> <span class="s">&#39;wrote dataframe to memory&#39;</span>
+    <span class="c">### Restore from memory</span>
+    <span class="n">dfnew</span><span class="o">=</span><span class="n">df_loads</span><span class="p">(</span><span class="n">stream</span><span class="p">)</span>
+    <span class="k">print</span> <span class="s">&#39;restored from memory&#39;</span>
+    <span class="n">print_customattr</span><span class="p">(</span><span class="n">dfnew</span><span class="p">)</span>
+    
+    
+    <span class="c">### Serialize into file</span>
+    <span class="n">outfile</span><span class="o">=</span><span class="s">&#39;dftest.df&#39;</span> <span class="c">#What file extension is commonly used for this?</span>
+    <span class="n">df_dump</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">outfile</span><span class="p">)</span>  
+    <span class="k">print</span> <span class="s">&#39;wrote dataframe to file </span><span class="si">%s</span><span class="s">&#39;</span><span class="o">%</span><span class="n">outfile</span>
+    <span class="c">### Restore from file     </span>
+    <span class="n">dfnewnew</span><span class="o">=</span><span class="n">df_load</span><span class="p">(</span><span class="n">outfile</span><span class="p">)</span>
+    <span class="k">print</span> <span class="s">&#39;Restored from file</span><span class="si">%s</span><span class="s">&#39;</span><span class="o">%</span><span class="n">outfile</span>
+    <span class="n">print_customattr</span><span class="p">(</span><span class="n">dfnewnew</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/installation_dependencies.html">Dependencies/Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/plotting.html">Plotting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../API/skspec.html">API</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../../../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+            <p class="searchtip" style="font-size: 90%">
+                Enter search terms or a module, class or function name.
+            </p>
+          </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="../../../py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="../../../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, Adam Hughes, ReevesLab Dept. Physics, George Washington University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3b2.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

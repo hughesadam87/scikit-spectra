@@ -1,0 +1,576 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>plotting Package &mdash; scikit-spectra 0.3.1-2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.3.1-2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="scikit-spectra 0.3.1-2 documentation" href="../index.html" />
+    <link rel="up" title="API" href="skspec.html" />
+    <link rel="next" title="scripts Package" href="skspec.scripts.html" />
+    <link rel="prev" title="pandas_utils Package" href="skspec.pandas_utils.html" /> 
+  </head>
+  <body role="document">
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../index.html">scikit-spectra 0.3.1-2 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="skspec.pandas_utils.html" title="pandas_utils Package"
+             accesskey="P">previous</a> |
+          <a href="skspec.scripts.html" title="scripts Package"
+             accesskey="N">next</a> |
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../index.html"><img src="../_static/new_logo.png" border="100" alt="sampledoc"/></a>
+</div>
+
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="plotting-package">
+<h1>plotting Package<a class="headerlink" href="#plotting-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2><code class="xref py py-mod docutils literal"><span class="pre">plotting</span></code> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-skspec.plotting"></span></div>
+<div class="section" id="module-skspec.plotting.advanced_plots">
+<span id="advanced-plots-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">advanced_plots</span></code> Module<a class="headerlink" href="#module-skspec.plotting.advanced_plots" title="Permalink to this headline">¶</a></h2>
+<p>2d and 3d wrappers for plotting 2d and 3d data in dataframes</p>
+<dl class="function">
+<dt id="skspec.plotting.advanced_plots.add_projection">
+<code class="descclassname">skspec.plotting.advanced_plots.</code><code class="descname">add_projection</code><span class="sig-paren">(</span><em>ts</em>, <em>plane='xz'</em>, <em>flip=False</em>, <em>fill=False</em>, <em>**contourkwds</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/plotting/advanced_plots.html#add_projection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.advanced_plots.add_projection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a contour plot/projection onto the xy, xz, or yz plane of a 3d
+plot.</p>
+<dl class="docutils">
+<dt>args: 2D Arrays or Contour Set</dt>
+<dd>xx, yy, zz : 2D mesh arrays, or contour set.</dd>
+<dt>plane: str (&#8216;xz&#8217;)</dt>
+<dd>&#8216;xz&#8217;, &#8216;yz&#8217;, &#8216;xy&#8217;, choose the plane on which to project the contours.</dd>
+<dt>flip <span class="classifier-delimiter">:</span> <span class="classifier">bool (False)</span></dt>
+<dd>The 3d plot is a square of 6 sides.  Flip will change the projeciton
+from the left wall to right wall, or from floor to ceiling in the 
+same plane.</dd>
+<dt>fill <span class="classifier-delimiter">:</span> <span class="classifier">bool (False)</span></dt>
+<dd>Fill the contours</dd>
+<dt><a href="#id2"><span class="problematic" id="id3">**</span></a>contourkwds</dt>
+<dd>Keywords passed directly to ax.contour.</dd>
+</dl>
+<dl class="docutils">
+<dt>tuple: Axes</dt>
+<dd>Returns axes object.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.plotting.advanced_plots.custom_wireframe">
+<code class="descclassname">skspec.plotting.advanced_plots.</code><code class="descname">custom_wireframe</code><span class="sig-paren">(</span><em>ax</em>, <em>X</em>, <em>Y</em>, <em>Z</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/plotting/advanced_plots.html#custom_wireframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.advanced_plots.custom_wireframe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Overoad matplotlib&#8217;s plot_wireframe for a special use case that we want
+to plot a wireframe over a surface with customizability of those
+lines.
+In future versions, this may be incorporated into matplotlib natively.
+This would still be required for backwards compatibility.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.plotting.advanced_plots.format_date">
+<code class="descclassname">skspec.plotting.advanced_plots.</code><code class="descname">format_date</code><span class="sig-paren">(</span><em>x</em>, <em>pos=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/plotting/advanced_plots.html#format_date"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.advanced_plots.format_date" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="skspec.plotting.advanced_plots.spec3d">
+<code class="descclassname">skspec.plotting.advanced_plots.</code><code class="descname">spec3d</code><span class="sig-paren">(</span><em>ts</em>, <em>projection=True</em>, <em>fill=True</em>, <em>samples=5</em>, <em>contourkwds={}</em>, <em>**pltkwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/plotting/advanced_plots.html#spec3d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.advanced_plots.spec3d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wireframe plot with no connected clines.  By default, adds an xz 
+projection.</p>
+<dl class="docutils">
+<dt>projection <span class="classifier-delimiter">:</span> <span class="classifier">color/colormap</span></dt>
+<dd>Valid colormap or solid color of contour projection.</dd>
+<dt>samples <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Number of samples to take from dataset.  Defaults to 5.  Must
+be within 0 and the number of columns in Spectra.</dd>
+<dt>contourkwds: {}</dt>
+<dd>Dictionary that holds arguments specific to the projection.</dd>
+</dl>
+<dl class="docutils">
+<dt>tuple: (Axes, SurfaceFunction)</dt>
+<dd>Returns axes object and the surface function (e.g. contours for
+contour plot.  Surface for surface plot.)</dd>
+</dl>
+<p>Mostly a shortcut for a very useful 3d look at data. Thus, did not add
+much customizability as this plot can be assembled from _gen2d3d2d and
+add_projeciton.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.plotting.advanced_plots.wire_cmap">
+<code class="descclassname">skspec.plotting.advanced_plots.</code><code class="descname">wire_cmap</code><span class="sig-paren">(</span><em>wires</em>, <em>ax</em>, <em>cmap='hsv'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/plotting/advanced_plots.html#wire_cmap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.advanced_plots.wire_cmap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a colormap to a set of wires (returned form ax.plot_wireframe)</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-skspec.plotting.basic_plots">
+<span id="basic-plots-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">basic_plots</span></code> Module<a class="headerlink" href="#module-skspec.plotting.basic_plots" title="Permalink to this headline">¶</a></h2>
+<dl class="exception">
+<dt id="skspec.plotting.basic_plots.PlotError">
+<em class="property">exception </em><code class="descclassname">skspec.plotting.basic_plots.</code><code class="descname">PlotError</code><a class="reference internal" href="../_modules/skspec/plotting/basic_plots.html#PlotError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.basic_plots.PlotError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.plotting.basic_plots.areaplot">
+<code class="descclassname">skspec.plotting.basic_plots.</code><code class="descname">areaplot</code><span class="sig-paren">(</span><em>ranged_ts</em>, <em>**pltkwds</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/plotting/basic_plots.html#areaplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.basic_plots.areaplot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Makes plots based on ranged time intervals from spec_utilities.wavelength_slices().
+Uses a special function, put._uvvis_colorss() to map the visible spectrum.  
+Changes default legend behavior to true.</p>
+<p>ranged_ts: Spectra or Spectrum.  If n x m spectra, ts.area() will be called,
+and transposed().  If Spectrum, passed directlyt hrough.</p>
+<p>Added some extra functionality on 2/13/13, to make it ok if user passed in 
+transposed() or non-transposed(). Additionally, if user passes non Mx1
+dimensional plot, it recomputes the area.  Hence, user can just do areaplot(ts)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.plotting.basic_plots.range_timeplot">
+<code class="descclassname">skspec.plotting.basic_plots.</code><code class="descname">range_timeplot</code><span class="sig-paren">(</span><em>ranged_ts</em>, <em>**pltkwds</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/plotting/basic_plots.html#range_timeplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.basic_plots.range_timeplot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Makes plots based on ranged time intervals from spec_utilities.wavelength_slices().
+Uses a special function, put._uvvis_colorss() to map the visible spectrum.  Changes default legend
+behavior to true.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-skspec.plotting.correlation_plot">
+<span id="correlation-plot-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">correlation_plot</span></code> Module<a class="headerlink" href="#module-skspec.plotting.correlation_plot" title="Permalink to this headline">¶</a></h2>
+<p>Plots for correlation analysis. Designed for SPEC2D OBJECTS</p>
+<dl class="exception">
+<dt id="skspec.plotting.correlation_plot.CorrPlotError">
+<em class="property">exception </em><code class="descclassname">skspec.plotting.correlation_plot.</code><code class="descname">CorrPlotError</code><a class="reference internal" href="../_modules/skspec/plotting/correlation_plot.html#CorrPlotError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.correlation_plot.CorrPlotError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.plotting.correlation_plot.corr2d">
+<code class="descclassname">skspec.plotting.correlation_plot.</code><code class="descname">corr2d</code><span class="sig-paren">(</span><em>spec</em>, <em>sideplots='mean'</em>, <em>**pltkwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/plotting/correlation_plot.html#corr2d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.correlation_plot.corr2d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Visualize synchronous, asynchronous or phase angle spectra.</p>
+<dl class="docutils">
+<dt>sideplots: str or bool (&#8216;mean&#8217;)</dt>
+<dd>If True, sideplots will be put on side axis of cross plots.  Use
+&#8216;empty&#8217; to return blank sideplots.  mean&#8217;, &#8216;min&#8217;, &#8216;max&#8217;, will 
+plot these respective spectra on the sideplots.</dd>
+<dt>fill <span class="classifier-delimiter">:</span> <span class="classifier">bool (True)</span></dt>
+<dd>Contours are lines, or filled regions.</dd>
+<dt><a href="#id4"><span class="problematic" id="id5">**</span></a>pltkwargs: dict</dt>
+<dd>Any valid matplotlib contour plot keyword, or skspec general
+plotting keyword (grid, title etc...)</dd>
+</dl>
+<dl class="docutils">
+<dt>tuple (matplotlib.Axes)</dt>
+<dd>If side plots, returns (ax1, ax2, ax3, ax4)
+If not side plots, returns ax4 only</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.plotting.correlation_plot.corr3d">
+<code class="descclassname">skspec.plotting.correlation_plot.</code><code class="descname">corr3d</code><span class="sig-paren">(</span><em>spec</em>, <em>projection='xy'</em>, <em>**pltkwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/plotting/correlation_plot.html#corr3d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.correlation_plot.corr3d" title="Permalink to this definition">¶</a></dt>
+<dd><p>pltkwargs are passed to wire plot.  Special keyword &#8216;contourkwargs&#8217;
+can pass arguments directly to contour plot.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.plotting.correlation_plot.corr_multi">
+<code class="descclassname">skspec.plotting.correlation_plot.</code><code class="descname">corr_multi</code><span class="sig-paren">(</span><em>corr2d</em>, <em>**pltkwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/plotting/correlation_plot.html#corr_multi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.correlation_plot.corr_multi" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-skspec.plotting.mpld3wrapper">
+<span id="mpld3wrapper-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">mpld3wrapper</span></code> Module<a class="headerlink" href="#module-skspec.plotting.mpld3wrapper" title="Permalink to this headline">¶</a></h2>
+<p>Wrappers and utilitiles for MPLD3 customization</p>
+<dl class="class">
+<dt id="skspec.plotting.mpld3wrapper.PluginManager">
+<em class="property">class </em><code class="descclassname">skspec.plotting.mpld3wrapper.</code><code class="descname">PluginManager</code><span class="sig-paren">(</span><em>fig</em>, <em>ax=None</em>, <em>names=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/plotting/mpld3wrapper.html#PluginManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.mpld3wrapper.PluginManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>Wrapper for adding/removing/printing plugins available on a 
+mplfigure.  Returns a figure (via self.fig) with seleted plugins attached.
+Used primarily for widgets/guis where the state of plugins
+needs managed.  Otherwise, using MPLD3 API directly with a mpl figure
+is simple and preferred.</p>
+<dl class="method">
+<dt id="skspec.plotting.mpld3wrapper.PluginManager.add">
+<code class="descname">add</code><span class="sig-paren">(</span><em>*plugins</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/plotting/mpld3wrapper.html#PluginManager.add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.mpld3wrapper.PluginManager.add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a plugin to figure</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.plotting.mpld3wrapper.PluginManager.available">
+<code class="descname">available</code><a class="headerlink" href="#skspec.plotting.mpld3wrapper.PluginManager.available" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.plotting.mpld3wrapper.PluginManager.fig">
+<code class="descname">fig</code><a class="headerlink" href="#skspec.plotting.mpld3wrapper.PluginManager.fig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns figure with plugins attached.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.plotting.mpld3wrapper.PluginManager.plugins">
+<code class="descname">plugins</code><a class="headerlink" href="#skspec.plotting.mpld3wrapper.PluginManager.plugins" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skspec.plotting.mpld3wrapper.PluginManager.remove">
+<code class="descname">remove</code><span class="sig-paren">(</span><em>*plugins</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/plotting/mpld3wrapper.html#PluginManager.remove"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.mpld3wrapper.PluginManager.remove" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skspec.plotting.mpld3wrapper.PluginManager.reset_plugins">
+<code class="descname">reset_plugins</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/plotting/mpld3wrapper.html#PluginManager.reset_plugins"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.mpld3wrapper.PluginManager.reset_plugins" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets plugins to default values</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="skspec.plotting.mpld3wrapper.PluginManagerError">
+<em class="property">exception </em><code class="descclassname">skspec.plotting.mpld3wrapper.</code><code class="descname">PluginManagerError</code><a class="reference internal" href="../_modules/skspec/plotting/mpld3wrapper.html#PluginManagerError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.mpld3wrapper.PluginManagerError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-skspec.plotting.multiplots">
+<span id="multiplots-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">multiplots</span></code> Module<a class="headerlink" href="#module-skspec.plotting.multiplots" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="skspec.plotting.multiplots.quad_plot">
+<code class="descclassname">skspec.plotting.multiplots.</code><code class="descname">quad_plot</code><span class="sig-paren">(</span><em>ts</em>, <em>*plotargs</em>, <em>**plotkwds</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/plotting/multiplots.html#quad_plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.multiplots.quad_plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Output a matplotlib figure with full spectra, absorbance, area and 
+stripchart.  Figure should be plotly convertable through py.iplot_mpl(fig)
+assuming one is signed in to plotly through py.sign_in(user, apikey).</p>
+<dl class="docutils">
+<dt>title <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>Title of the overall figure</dd>
+<dt>striplegend <span class="classifier-delimiter">:</span> <span class="classifier">bool (False)</span></dt>
+<dd>Add a legend to the strip chart</dd>
+<dt>colormap <span class="classifier-delimiter">:</span> <span class="classifier">string (&#8216;jet&#8217;)</span></dt>
+<dd>Colormap applied to full and absorbance spectra.
+&#8216;Jet&#8217; is applid to strip chart regardless.</dd>
+<dt>tight_layout: bool (False)</dt>
+<dd>Calls mpl.fig.tight_layout()</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.plotting.multiplots.six_plot">
+<code class="descclassname">skspec.plotting.multiplots.</code><code class="descname">six_plot</code><span class="sig-paren">(</span><em>ts</em>, <em>*plotargs</em>, <em>**plotkwds</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/plotting/multiplots.html#six_plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.multiplots.six_plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Output a matplotlib figure with full spectra, absorbance, area and 
+stripchart.  Figure should be plotly convertable through py.iplot_mpl(fig)
+assuming one is signed in to plotly through py.sign_in(user, apikey).</p>
+<dl class="docutils">
+<dt>title <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>Title of the overall figure</dd>
+<dt>striplegend <span class="classifier-delimiter">:</span> <span class="classifier">bool (False)</span></dt>
+<dd>Add a legend to the strip chart</dd>
+<dt>colormap <span class="classifier-delimiter">:</span> <span class="classifier">string (&#8216;jet&#8217;)</span></dt>
+<dd>Colormap applied to full and absorbance spectra.
+&#8216;Jet&#8217; is applid to strip chart regardless.</dd>
+<dt>tight_layout: bool (False)</dt>
+<dd>Calls mpl.fig.tight_layout()</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.plotting.multiplots.slice_plot">
+<code class="descclassname">skspec.plotting.multiplots.</code><code class="descname">slice_plot</code><span class="sig-paren">(</span><em>ts_list</em>, <em>names=[]</em>, <em>n=4</em>, <em>*plotargs</em>, <em>**plotkwds</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/plotting/multiplots.html#slice_plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.multiplots.slice_plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pass in a container of timespectra; outputs is subplot for reach.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-skspec.plotting.plot_registry">
+<span id="plot-registry-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">plot_registry</span></code> Module<a class="headerlink" href="#module-skspec.plotting.plot_registry" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="skspec.plotting.plot_registry.PlotInfo">
+<em class="property">class </em><code class="descclassname">skspec.plotting.plot_registry.</code><code class="descname">PlotInfo</code><span class="sig-paren">(</span><em>key</em>, <em>function</em>, <em>is_3d</em>, <em>description=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/plotting/plot_registry.html#PlotInfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.plot_registry.PlotInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>Stores key, function, metadata and description for plot</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="skspec.plotting.plot_registry.PlotRegister">
+<em class="property">class </em><code class="descclassname">skspec.plotting.plot_registry.</code><code class="descname">PlotRegister</code><span class="sig-paren">(</span><em>plots={}</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/plotting/plot_registry.html#PlotRegister"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.plot_registry.PlotRegister" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>Basic storage class to track all various plot types in skspec;
+simple relational mapper for operations like &#8220;return all 3D plots.</p>
+<p>Need to be able to parse plots in Spectra.plot() and also in widget notebooks.
+As plotting gets more involved, this will become more useful.</p>
+<dl class="method">
+<dt id="skspec.plotting.plot_registry.PlotRegister.add">
+<code class="descname">add</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/plotting/plot_registry.html#PlotRegister.add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.plot_registry.PlotRegister.add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Passed to PlotInfo</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.plotting.plot_registry.PlotRegister.descriptions">
+<code class="descname">descriptions</code><a class="headerlink" href="#skspec.plotting.plot_registry.PlotRegister.descriptions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.plotting.plot_registry.PlotRegister.functions">
+<code class="descname">functions</code><a class="headerlink" href="#skspec.plotting.plot_registry.PlotRegister.functions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skspec.plotting.plot_registry.PlotRegister.is_2d">
+<code class="descname">is_2d</code><span class="sig-paren">(</span><em>kind</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/plotting/plot_registry.html#PlotRegister.is_2d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.plot_registry.PlotRegister.is_2d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is this a 2d plot (contour)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="skspec.plotting.plot_registry.PlotRegister.is_2d_3d">
+<code class="descname">is_2d_3d</code><span class="sig-paren">(</span><em>kind</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/plotting/plot_registry.html#PlotRegister.is_2d_3d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.plot_registry.PlotRegister.is_2d_3d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is 3d or contour/other mesh plots?</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="skspec.plotting.plot_registry.PlotRegister.is_3d">
+<code class="descname">is_3d</code><span class="sig-paren">(</span><em>kind</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/plotting/plot_registry.html#PlotRegister.is_3d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.plot_registry.PlotRegister.is_3d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is this kind a 3d plot</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="skspec.plotting.plot_registry.PlotRegister.items">
+<code class="descname">items</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/plotting/plot_registry.html#PlotRegister.items"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.plot_registry.PlotRegister.items" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skspec.plotting.plot_registry.PlotRegister.keys">
+<code class="descname">keys</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/plotting/plot_registry.html#PlotRegister.keys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.plot_registry.PlotRegister.keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.plotting.plot_registry.PlotRegister.plots">
+<code class="descname">plots</code><a class="headerlink" href="#skspec.plotting.plot_registry.PlotRegister.plots" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.plotting.plot_registry.PlotRegister.plots_2d_3d">
+<code class="descname">plots_2d_3d</code><a class="headerlink" href="#skspec.plotting.plot_registry.PlotRegister.plots_2d_3d" title="Permalink to this definition">¶</a></dt>
+<dd><p>All 3d plots + contour</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.plotting.plot_registry.PlotRegister.plots_3d">
+<code class="descname">plots_3d</code><a class="headerlink" href="#skspec.plotting.plot_registry.PlotRegister.plots_3d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return plot names that are 3D; for created 3d axes mostly</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="skspec.plotting.plot_registry.PlotRegister.values">
+<code class="descname">values</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/plotting/plot_registry.html#PlotRegister.values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.plot_registry.PlotRegister.values" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="skspec.plotting.plot_registry.RegisterError">
+<em class="property">exception </em><code class="descclassname">skspec.plotting.plot_registry.</code><code class="descname">RegisterError</code><a class="reference internal" href="../_modules/skspec/plotting/plot_registry.html#RegisterError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.plot_registry.RegisterError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-skspec.plotting.plot_utils">
+<span id="plot-utils-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">plot_utils</span></code> Module<a class="headerlink" href="#module-skspec.plotting.plot_utils" title="Permalink to this headline">¶</a></h2>
+<p>Plotting wrappers for dataframes, for implementation in skspec.  Basically calls df.plot()
+with some extra bells and whistles like trying to extract column labels and dataframe names,
+as well as some exploration into custom labels and color mapping.</p>
+<dl class="exception">
+<dt id="skspec.plotting.plot_utils.ColorError">
+<em class="property">exception </em><code class="descclassname">skspec.plotting.plot_utils.</code><code class="descname">ColorError</code><a class="reference internal" href="../_modules/skspec/plotting/plot_utils.html#ColorError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.plot_utils.ColorError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.plotting.plot_utils.cmget">
+<code class="descclassname">skspec.plotting.plot_utils.</code><code class="descname">cmget</code><span class="sig-paren">(</span><em>color</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/plotting/plot_utils.html#cmget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.plot_utils.cmget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return colormap from string (eg &#8216;jet&#8217;)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.plotting.plot_utils.diag_line">
+<code class="descclassname">skspec.plotting.plot_utils.</code><code class="descname">diag_line</code><span class="sig-paren">(</span><em>ax</em>, <em>**linekwds</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/plotting/plot_utils.html#diag_line"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.plot_utils.diag_line" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draw a diagonal line x=y</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.plotting.plot_utils.easy_legend">
+<code class="descclassname">skspec.plotting.plot_utils.</code><code class="descname">easy_legend</code><span class="sig-paren">(</span><em>ax</em>, <em>fancy=True</em>, <em>position='top'</em>, <em>**legendkwds</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/plotting/plot_utils.html#easy_legend"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.plot_utils.easy_legend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper around ax.legend to make it easy to move a legend around the edges of the plot.  Made for sensible
+numbers of lines (1-15) and tries to choose smart placement to avoid conflict with lines, labels etc...</p>
+<p>BROKEN!!!</p>
+<p>This is a bust, since plotting legend is easy enough.  See guide, especially with the &#8216;loc&#8217;      
+<a class="reference external" href="http://matplotlib.org/users/legend_guide.html">http://matplotlib.org/users/legend_guide.html</a></p>
+<dl class="docutils">
+<dt>If coming back to this, here are the issues to resolve:</dt>
+<dd><p class="first">legend[&#8216;loc&#8217;] must be enabled for the bounding box to work correctly/consistently.
+bbox coordinates are (left edge, bottom edge) of legend.</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>-controlling bottom edge is really dumb because want the top edge to clear the xlabel for example, and bottom</dt>
+<dd>edge depends on thickness of plot.  Putting the legend on top actually works nicely for this.</dd>
+</dl>
+</div></blockquote>
+<p class="last">If plotting outside left/right of plot, need to squeeze the plot in afterall, it will not accommadate my legend.
+Had this code, but deleted it.  Basically, need to squeeze left/right width of the axes.bounding width by 20%
+per column of legend.  
+(see second reply here <a class="reference external" href="http://stackoverflow.com/questions/4700614/how-to-put-the-legend-out-of-the-plot">http://stackoverflow.com/questions/4700614/how-to-put-the-legend-out-of-the-plot</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.plotting.plot_utils.hide_axis">
+<code class="descclassname">skspec.plotting.plot_utils.</code><code class="descname">hide_axis</code><span class="sig-paren">(</span><em>ax</em>, <em>axis='x'</em>, <em>axislabel=True</em>, <em>ticklabels=True</em>, <em>ticks=False</em>, <em>hide_everything=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/plotting/plot_utils.html#hide_axis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.plot_utils.hide_axis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hide axis features on an axes instance, including axis label, tick
+labels, tick marks themselves and everything.  Careful: hiding the ticks
+will also hide grid lines if a grid is on!</p>
+<p>axis : &#8216;x&#8217; or &#8216;y&#8217; &#8216;both&#8217;</p>
+<dl class="docutils">
+<dt>axislabel <span class="classifier-delimiter">:</span> <span class="classifier">True</span></dt>
+<dd>Hide the axis label</dd>
+<dt>ticklabels <span class="classifier-delimiter">:</span> <span class="classifier">True</span></dt>
+<dd>Hide the tick labels</dd>
+<dt>ticks <span class="classifier-delimiter">:</span> <span class="classifier">True</span></dt>
+<dd>Hide the tick markers</dd>
+<dt>hide_everything <span class="classifier-delimiter">:</span> <span class="classifier">False</span></dt>
+<dd>Hides labels, tick labels and axis labels.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.plotting.plot_utils.invert_ax">
+<code class="descclassname">skspec.plotting.plot_utils.</code><code class="descname">invert_ax</code><span class="sig-paren">(</span><em>ax</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/plotting/plot_utils.html#invert_ax"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.plot_utils.invert_ax" title="Permalink to this definition">¶</a></dt>
+<dd><p>Inverts x and y data on a plot axis, and flips limits.  Most useful for
+having an oriented axes in correlation side plots.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.plotting.plot_utils.multi_axes">
+<code class="descclassname">skspec.plotting.plot_utils.</code><code class="descname">multi_axes</code><span class="sig-paren">(</span><em>count</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/plotting/plot_utils.html#multi_axes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.plot_utils.multi_axes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="skspec.plotting.plot_utils.splot">
+<code class="descclassname">skspec.plotting.plot_utils.</code><code class="descname">splot</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/plotting/plot_utils.html#splot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.plot_utils.splot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper to plt.subplots(r, c).  Will return flattened axes and discard
+figure.  &#8216;flatten&#8217; keyword will not flatten if the plt.subplots() return
+is not itself flat.  If flatten=False and fig=True, standard plt.subplots
+behavior is recovered.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.plotting.plot_utils.to_normrgb">
+<code class="descclassname">skspec.plotting.plot_utils.</code><code class="descname">to_normrgb</code><span class="sig-paren">(</span><em>color</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/plotting/plot_utils.html#to_normrgb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.plotting.plot_utils.to_normrgb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an rgb len(3) tuple on range 0.0-1.0 with several input styles; 
+wraps matplotlib.color.ColorConvert.  If None, returns config.PCOLOR by
+default.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="plotlywrapper-module">
+<h2><code class="xref py py-mod docutils literal"><span class="pre">plotlywrapper</span></code> Module<a class="headerlink" href="#plotlywrapper-module" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="../Tutorial/installation_dependencies.html">Dependencies/Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Tutorial/getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Tutorial/plotting.html">Plotting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="skspec.html">API</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+            <p class="searchtip" style="font-size: 90%">
+                Enter search terms or a module, class or function name.
+            </p>
+          </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="skspec.pandas_utils.html" title="pandas_utils Package"
+              >previous</a> |
+            <a href="skspec.scripts.html" title="scripts Package"
+              >next</a> |
+            <a href="../py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+              <br/>
+              <a href="../_sources/API/skspec.plotting.txt"
+                rel="nofollow">Show Source</a>
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, Adam Hughes, ReevesLab Dept. Physics, George Washington University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3b2.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

@@ -1,0 +1,245 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>skspec.scripts.gwu_script.gwureport &mdash; scikit-spectra 0.3.1-2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '0.3.1-2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="scikit-spectra 0.3.1-2 documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../../../../index.html">scikit-spectra 0.3.1-2 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../../../../index.html"><img src="../../../../_static/new_logo.png" border="100" alt="sampledoc"/></a>
+</div>
+
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for skspec.scripts.gwu_script.gwureport</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">shlex</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">os.path</span> <span class="kn">as</span> <span class="nn">op</span>
+
+<span class="kn">from</span> <span class="nn">gwu_reporter</span> <span class="kn">import</span> <span class="n">Reporter</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">skspec.logger</span> <span class="kn">import</span> <span class="n">logclass</span><span class="p">,</span> <span class="n">configure_logger</span>
+
+<span class="n">SCRIPTNAME</span> <span class="o">=</span> <span class="n">__name__</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">SEP_DEFAULT</span> <span class="o">=</span> <span class="s">&#39;/&#39;</span> <span class="c">#Not used atm</span>
+
+<span class="nd">@logclass</span><span class="p">(</span><span class="n">log_name</span><span class="o">=</span><span class="n">__name__</span><span class="p">,</span> <span class="n">public_lvl</span><span class="o">=</span><span class="s">&#39;debug&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../../API/skspec.scripts.gwu_script.html#skspec.scripts.gwu_script.gwureport.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    
+    <span class="k">if</span> <span class="n">args</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+            <span class="n">args</span><span class="o">=</span><span class="n">shlex</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">argv</span> <span class="o">=</span> <span class="n">args</span>               
+    
+    
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">SCRIPTNAME</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s">&#39;GWU skspec composite&#39;</span> 
+            <span class="s">&#39; latex report assembly script&#39;</span><span class="p">,</span> <span class="n">epilog</span><span class="o">=</span><span class="s">&#39;Additional help not found&#39;</span><span class="p">,</span> 
+            <span class="n">usage</span><span class="o">=</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> --globals &lt;command&gt; --cmdopts&#39;</span> <span class="o">%</span> <span class="n">SCRIPTNAME</span><span class="p">)</span>    
+        
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s">&#39;-v&#39;</span><span class="p">,</span> <span class="s">&#39;--verbosity&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&#39;Set screen logging; &#39;</span>
+                         <span class="s">&#39;defaults to info.&#39;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s">&#39;?&#39;</span><span class="p">,</span>
+                         <span class="n">default</span><span class="o">=</span><span class="s">&#39;warning&#39;</span><span class="p">,</span> <span class="n">const</span><span class="o">=</span><span class="s">&#39;info&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>    
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s">&#39;-o&#39;</span><span class="p">,</span> <span class="s">&#39;--overwrite&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s">&#39;store_true&#39;</span><span class="p">)</span>
+
+<span class="c">#    parser.add_argument(&#39;-s&#39;, &#39;--sep&#39;, metavar=&#39;&#39;,</span>
+<span class="c">#                         help=&#39;Latex section separator.  Defaults to %s.  &#39;</span>
+<span class="c">#                         &#39;Set to None to avoid auto sub-sectioning&#39; %SEP_DEFAULT)</span>
+
+    <span class="c"># Sub Commands</span>
+    <span class="n">subparsers</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s">&#39;commands&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s">&#39;op&#39;</span><span class="p">)</span>    
+    
+    <span class="c"># TEMPLATE SUBCOMMAND</span>
+    <span class="n">p_template</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s">&#39;template&#39;</span><span class="p">,</span> 
+        <span class="n">usage</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s"> --globals &lt;template&gt; outpath --opts &#39;</span> <span class="o">%</span> <span class="n">SCRIPTNAME</span><span class="p">,</span>    
+        <span class="n">help</span><span class="o">=</span><span class="s">&#39;template help&#39;</span><span class="p">,</span>
+        <span class="n">epilog</span><span class="o">=</span><span class="s">&#39;PUT EXAMPLES HERE&#39;</span><span class="p">)</span>
+    <span class="n">p_template</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s">&#39;outpath&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s">&#39;outfile&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s">&#39;Name of outfile (eg foo.tex or path/to/foo.tex)&#39;</span><span class="p">)</span>
+
+    <span class="n">p_template</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s">&#39;-s&#39;</span><span class="p">,</span> <span class="s">&#39;--sections&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s">&#39;*&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&#39;List of sections to add.&#39;</span>
+        <span class="s">&#39;or tree file.  If not tree file, default section template will be &quot;template/section&quot; &#39;</span>
+        <span class="s">&#39;section names will auto-break into subsections based on value of --sep&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="p">[])</span> 
+    <span class="n">p_template</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s">&#39;-t&#39;</span><span class="p">,</span> <span class="s">&#39;--template_file&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+    
+    
+    
+    <span class="c"># BUILD SUBCOMMAND</span>
+    <span class="n">p_build</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s">&#39;build&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&#39;Adds latex doc header including &#39;</span> 
+        <span class="s">&#39;begin/close document, title, author etc...&#39;</span><span class="p">,</span>
+         <span class="n">usage</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s"> --globals &lt;build&gt; texfile outpath --opts &#39;</span> <span class="o">%</span> <span class="n">SCRIPTNAME</span><span class="p">,</span>    
+         <span class="n">epilog</span><span class="o">=</span><span class="s">&#39;Put examples here&#39;</span><span class="p">)</span>
+    <span class="n">p_build</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s">&#39;texfile&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&#39;Output file of </span><span class="si">%s</span><span class="s"> template&#39;</span> <span class="o">%</span> <span class="n">SCRIPTNAME</span><span class="p">)</span>
+    <span class="n">p_build</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s">&#39;outpath&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s">&#39;outfile&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s">&#39;Name of outfile (eg foo.tex or path/to/foo.tex)&#39;</span><span class="p">)</span>
+    
+    <span class="n">p_build</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s">&#39;--title&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;Untitled&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&#39;Title &#39;</span>
+                         <span class="s">&#39; in outfile&#39;</span><span class="p">)</span>
+    <span class="n">p_build</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s">&#39;--author&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;Adam Hughes&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> 
+                         <span class="n">help</span><span class="o">=</span><span class="s">&#39;Author in outfile&#39;</span><span class="p">)</span>
+    <span class="n">p_build</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s">&#39;--email&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;hugadams@gwmail.gwu.edu&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> 
+                         <span class="n">help</span><span class="o">=</span><span class="s">&#39;Email in outfile&#39;</span><span class="p">)</span>
+            
+
+    <span class="c"># Compile and open</span>
+    <span class="n">p_build</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s">&#39;--nocompile&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&#39;Do not compile outfile&#39;</span>
+                         <span class="s">&#39; (eg latex outfile.tex)&#39;</span> <span class="p">)</span> 
+    <span class="n">p_build</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s">&#39;--nopdf&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&#39;When compiling,&#39;</span> 
+                         <span class="s">&#39; will call &quot;latex&quot; instead of &quot;pdflatex&quot;&#39;</span><span class="p">)</span>
+    <span class="n">p_build</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s">&#39;-c&#39;</span><span class="p">,</span> <span class="s">&#39;--clean&#39;</span><span class="p">,</span> <span class="n">action</span> <span class="o">=</span> <span class="s">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&#39;Remove .aux, .log&#39;</span>
+        <span class="s">&#39; and other latex temporary files.&#39;</span><span class="p">)</span>
+
+    
+    <span class="c">#SUMMARY SUBCOMMAND (not implemented)</span>
+    <span class="c">#p_summary = subparsers.add_parser(&#39;summary&#39;, help=&#39;summary help&#39;)</span>
+    <span class="c">#p_summary.add_argument(&#39;texfile&#39;)</span>
+
+    <span class="n">ns</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+        
+    <span class="c"># No logfile implemented</span>
+    <span class="n">configure_logger</span><span class="p">(</span><span class="n">screen_level</span><span class="o">=</span><span class="s">&#39;debug&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">__name__</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Namespace is: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">ns</span><span class="p">)</span>
+    
+    <span class="n">reporter</span> <span class="o">=</span> <span class="n">Reporter</span><span class="p">(</span><span class="o">**</span><span class="n">ns</span><span class="o">.</span><span class="n">__dict__</span><span class="p">)</span> <span class="c"># Is this ok?</span>
+    
+    <span class="k">if</span> <span class="n">ns</span><span class="o">.</span><span class="n">op</span> <span class="o">==</span> <span class="s">&#39;template&#39;</span><span class="p">:</span>
+        <span class="n">reporter</span><span class="o">.</span><span class="n">output_template</span><span class="p">(</span><span class="n">ns</span><span class="o">.</span><span class="n">outpath</span><span class="p">)</span>
+    
+    <span class="k">elif</span> <span class="n">ns</span><span class="o">.</span><span class="n">op</span> <span class="o">==</span> <span class="s">&#39;build&#39;</span><span class="p">:</span>
+        <span class="n">reporter</span><span class="o">.</span><span class="n">make_report</span><span class="p">(</span><span class="n">ns</span><span class="o">.</span><span class="n">texfile</span><span class="p">,</span> <span class="n">ns</span><span class="o">.</span><span class="n">outpath</span><span class="p">)</span>
+
+        <span class="c"># If compiling, choose pdflatex or latex</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ns</span><span class="o">.</span><span class="n">nocompile</span><span class="p">:</span>
+         
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">ns</span><span class="o">.</span><span class="n">nopdf</span><span class="p">:</span>
+                <span class="n">latex_type</span> <span class="o">=</span> <span class="s">&#39;pdflatex&#39;</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">latex_type</span> <span class="o">=</span> <span class="s">&#39;latex&#39;</span>
+            
+            <span class="c"># Run latex or pdflatex twice to ensure contents load    </span>
+            <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">latex_type</span><span class="p">,</span> <span class="n">ns</span><span class="o">.</span><span class="n">outpath</span><span class="p">)</span> <span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">latex_type</span><span class="p">,</span> <span class="n">ns</span><span class="o">.</span><span class="n">outpath</span><span class="p">)</span> <span class="p">)</span>
+
+            
+        <span class="c"># Cleanup latex .toc/.log/.aux files of outfile</span>
+        <span class="k">if</span> <span class="n">ns</span><span class="o">.</span><span class="n">clean</span><span class="p">:</span>
+            <span class="n">outdir</span><span class="p">,</span> <span class="n">outname</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">ns</span><span class="o">.</span><span class="n">outpath</span><span class="p">))</span>
+            <span class="n">outname</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">outname</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;toc&#39;</span><span class="p">,</span> <span class="s">&#39;log&#39;</span><span class="p">,</span> <span class="s">&#39;aux&#39;</span><span class="p">,</span> <span class="s">&#39;out&#39;</span><span class="p">]:</span>
+                <span class="n">wastefile</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outdir</span><span class="p">,</span> <span class="n">outname</span> <span class="o">+</span> <span class="s">&#39;.&#39;</span> <span class="o">+</span> <span class="n">ext</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">op</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">wastefile</span><span class="p">):</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Cleaning up file: &quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="n">wastefile</span><span class="p">)</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">wastefile</span><span class="p">)</span>
+    
+    <span class="k">else</span><span class="p">:</span>
+        <span class="bp">NotImplemented</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Tutorial/installation_dependencies.html">Dependencies/Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Tutorial/getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Tutorial/plotting.html">Plotting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../API/skspec.html">API</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../../../../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+            <p class="searchtip" style="font-size: 90%">
+                Enter search terms or a module, class or function name.
+            </p>
+          </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="../../../../py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="../../../../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, Adam Hughes, ReevesLab Dept. Physics, George Washington University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3b2.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

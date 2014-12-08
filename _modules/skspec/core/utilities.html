@@ -1,0 +1,552 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>skspec.core.utilities &mdash; scikit-spectra 0.3.1-2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.3.1-2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="scikit-spectra 0.3.1-2 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../../../index.html">scikit-spectra 0.3.1-2 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../../../index.html"><img src="../../../_static/new_logo.png" border="100" alt="sampledoc"/></a>
+</div>
+
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for skspec.core.utilities</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot; Various utilities used for manipultating custom spectral dataframe objects.</span>
+<span class="sd">    Some of these may work for any dataframe, but others require special attributes</span>
+<span class="sd">    such as &quot;baseline&quot; and &quot;filedict&quot;.  For serialization operations, import </span>
+<span class="sd">    from spec_serial.py </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">pandas</span> <span class="kn">import</span> <span class="n">Series</span><span class="p">,</span> <span class="n">DataFrame</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">integrate</span>
+<span class="kn">from</span> <span class="nn">types</span> <span class="kn">import</span> <span class="n">GeneratorType</span>
+
+<span class="kn">from</span> <span class="nn">skspec.pandas_utils.dataframeserial</span> <span class="kn">import</span> <span class="n">_get_metadict</span>
+<span class="kn">from</span> <span class="nn">skspec.exceptions</span> <span class="kn">import</span> <span class="n">badvalue_error</span>
+<span class="kn">import</span> <span class="nn">skspec.config</span> <span class="kn">as</span> <span class="nn">pvconfig</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span> 
+
+
+<div class="viewcode-block" id="UtilsError"><a class="viewcode-back" href="../../../API/skspec.core.html#skspec.core.utilities.UtilsError">[docs]</a><span class="k">class</span> <span class="nc">UtilsError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
+</div>
+<span class="k">def</span> <span class="nf">_compute_span</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">with_unit</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot; Format the first, last entries in an index for string output</span>
+<span class="sd">   like (start - final).  Doesn&#39;t include the unit</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="n">imin</span><span class="p">,</span> <span class="n">imax</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">index</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+   <span class="k">try</span><span class="p">:</span>
+      <span class="n">span</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%.2f</span><span class="s"> - </span><span class="si">%.2f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">imin</span><span class="p">,</span> <span class="n">imax</span><span class="p">)</span>
+
+   <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+      <span class="k">try</span><span class="p">:</span> <span class="c">#hack for datetimeindex</span>
+         <span class="n">span</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s"> - </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+               <span class="nb">str</span><span class="p">(</span><span class="n">imin</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">],</span> <span class="c">#Cut out year</span>
+               <span class="nb">str</span><span class="p">(</span><span class="n">imax</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+           <span class="p">)</span>
+         <span class="c"># Just string format if all else fails</span>
+      <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+         <span class="n">span</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s"> - </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">imin</span><span class="p">,</span> <span class="n">imax</span><span class="p">)</span>
+
+   <span class="k">if</span> <span class="n">with_unit</span><span class="p">:</span>
+      <span class="n">span</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">span</span><span class="p">,</span> <span class="n">index</span><span class="o">.</span><span class="n">_unit</span><span class="o">.</span><span class="n">short</span><span class="p">)</span>
+   <span class="k">return</span> <span class="n">span</span>
+
+
+<div class="viewcode-block" id="hasgetattr"><a class="viewcode-back" href="../../../API/skspec.core.html#skspec.core.utilities.hasgetattr">[docs]</a><span class="k">def</span> <span class="nf">hasgetattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Combines hasattr/getattr to return a default if hasattr fail.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">default</span>
+    <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="safe_lookup"><a class="viewcode-back" href="../../../API/skspec.core.html#skspec.core.utilities.safe_lookup">[docs]</a><span class="k">def</span> <span class="nf">safe_lookup</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">missing</span><span class="o">=</span><span class="n">pvconfig</span><span class="o">.</span><span class="n">MISSING</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Look up attribute on object.  If not found, or set to None,</span>
+<span class="sd">    will return a missing value defaulting to pvconfig.MISSING.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">hasgetattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">missing</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="countNaN"><a class="viewcode-back" href="../../../API/skspec.core.html#skspec.core.utilities.countNaN">[docs]</a><span class="k">def</span> <span class="nf">countNaN</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Returns counts of nans in an object&#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>   
+</div>
+<span class="k">def</span> <span class="nf">_parse_generator</span><span class="p">(</span><span class="n">generator</span><span class="p">,</span> <span class="n">astype</span><span class="o">=</span><span class="nb">tuple</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Convert generator as tuple, list, dict or generator.</span>
+<span class="sd">        </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    astype : container type (tuple, list, dict) or None</span>
+<span class="sd">        Return expression as tuple, list... if None, return as generator. </span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Mostly useful for operations that in some cases return a dictionary, </span>
+<span class="sd">    but also might be useful as a list of kv pairs etc...</span>
+<span class="sd">    &quot;&quot;&quot;</span>        
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">generator</span><span class="p">,</span> <span class="n">GeneratorType</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">UtilsError</span><span class="p">(</span><span class="s">&quot;Generator required; got </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">generator</span><span class="p">))</span>
+    
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">astype</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">astype</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">astype</span><span class="p">)</span>        
+
+    <span class="k">if</span> <span class="n">astype</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">astype</span><span class="p">(</span><span class="n">generator</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">generator</span>   
+
+<span class="c">### Rather deprecated due to TimeSpectra.reference/iunit</span>
+<div class="viewcode-block" id="divby"><a class="viewcode-back" href="../../../API/skspec.core.html#skspec.core.utilities.divby">[docs]</a><span class="k">def</span> <span class="nf">divby</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">divisor</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sameshape</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Small wrapper around pandas.divide() that takes in either column integers, names,</span>
+<span class="sd">    or entire arrays as the divisor.  Note, pandas.divide by default is rowwise, but here</span>
+<span class="sd">    it defaults to column-wise.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters:</span>
+<span class="sd">    -----------</span>
+<span class="sd">      df:  Dataframe object.</span>
+<span class="sd">      divisor: (See notes below)</span>
+<span class="sd">      axis: Division axis. 0=column-wise division. 1=row-wise</span>
+<span class="sd">      sameshape: If true, function will check that the divisor as the same shape as</span>
+<span class="sd">        the data along that axis.  For example, is an array of 2000 units, </span>
+<span class="sd">        and axis=0, then the row dimension must be 2000 for the dataframe.</span>
+<span class="sd">        AFAIK df.div does not enforce this stringency, which sometimes can lead</span>
+<span class="sd">        to hard-to-find bugs.</span>
+<span class="sd">    </span>
+<span class="sd">    Notes:</span>
+<span class="sd">    ------</span>
+<span class="sd">      This program first checks if divisor is an integer.  If not, it attempts</span>
+<span class="sd">      to lookup by rowname or columnname.  Finally, it tries to divide by the divisor itself,</span>
+<span class="sd">      if the divisor is an array/series.  This seemed like a flexible way to do this </span>
+<span class="sd">      without too much type checking.&#39;&#39;&#39;</span>
+
+    <span class="c">### Column-wise division</span>
+    <span class="k">if</span> <span class="n">axis</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>        
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">divisor</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">divisor</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">divisor</span><span class="p">]</span>
+        
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">divisor</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="n">divisor</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">pass</span> <span class="c">#divisor=divisor</span>
+            
+        <span class="n">divlen</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="c">#Store length of a single column</span>
+
+
+    <span class="c">### Rowwise division    </span>
+    <span class="k">elif</span> <span class="n">axis</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">divisor</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">divisor</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="n">divisor</span><span class="p">]</span>
+        
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">divisor</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">xs</span><span class="p">(</span><span class="n">divisor</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="k">pass</span>
+            
+        <span class="n">divlen</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">badvalue_error</span><span class="p">(</span><span class="s">&#39;axis&#39;</span><span class="p">,</span> <span class="s">&#39;0,1&#39;</span><span class="p">)</span>
+    
+    <span class="c">### Enforce strict shapetype</span>
+    <span class="k">if</span> <span class="n">sameshape</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">divisor</span><span class="p">)</span> <span class="o">!=</span> <span class="n">divlen</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&#39;Divisor dimensions </span><span class="si">%s</span><span class="s"> do not match dividend&#39;</span> 
+            <span class="s">&#39; dimension </span><span class="si">%s</span><span class="s"> along axis = </span><span class="si">%s</span><span class="s">&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">divlen</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">divisor</span><span class="p">),</span> <span class="n">axis</span><span class="p">))</span>
+    
+    <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">divisor</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
+    
+            
+</div>
+<div class="viewcode-block" id="boxcar"><a class="viewcode-back" href="../../../API/skspec.core.html#skspec.core.utilities.boxcar">[docs]</a><span class="k">def</span> <span class="nf">boxcar</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">binwidth</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Only works on boxcar for now.  Also, want binwidth and/or binnumber</span>
+<span class="sd">    to be inputs but not both. &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">axis</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">binnumber</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span><span class="o">/</span><span class="n">binwidth</span>    
+        <span class="n">counts</span><span class="p">,</span> <span class="n">binarray</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="n">binnumber</span><span class="p">)</span>
+        <span class="n">digiarray</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">digitize</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span> <span class="n">binarray</span><span class="p">)</span>          
+        <span class="n">mapped_series</span><span class="o">=</span><span class="n">Series</span><span class="p">(</span><span class="n">digiarray</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>       
+        <span class="n">dfout</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">mapped_series</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="n">dfout</span><span class="o">.</span><span class="n">columns</span><span class="o">=</span><span class="n">binarray</span>
+    
+    <span class="k">elif</span> <span class="n">axis</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+        <span class="n">binnumber</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span><span class="o">/</span><span class="n">binwidth</span>  <span class="c">#Converted to int when np.histogram called</span>
+        <span class="n">counts</span><span class="p">,</span> <span class="n">binarray</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="n">binnumber</span><span class="p">)</span>
+        <span class="n">digiarray</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">digitize</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span> <span class="n">binarray</span><span class="p">)</span>    
+        
+        <span class="n">mapped_series</span><span class="o">=</span><span class="n">Series</span><span class="p">(</span><span class="n">digiarray</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        
+        <span class="n">dfout</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">mapped_series</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="n">dfout</span><span class="o">.</span><span class="n">index</span><span class="o">=</span><span class="n">binarray</span>   
+        
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s">&#39;Axis must be 0 (column binning) or 1 (index/row) binning.  You entered </span><span class="si">%s</span><span class="s">&#39;</span><span class="o">%</span><span class="n">axis</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">dfout</span>
+
+                    
+                                
+</div>
+<div class="viewcode-block" id="digitize_by"><a class="viewcode-back" href="../../../API/skspec.core.html#skspec.core.utilities.digitize_by">[docs]</a><span class="k">def</span> <span class="nf">digitize_by</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">digitized_bins</span><span class="p">,</span> <span class="n">binarray</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">avg_fcn</span><span class="o">=</span><span class="s">&#39;mean&#39;</span><span class="p">,</span> <span class="n">weight_max</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Takes in an array of digitized bins, and then restructures a dataframe</span>
+<span class="sd">    based on the bin array&#39;&#39;&#39;</span>
+    
+    <span class="c">### Map the digitized bins to series data with axis same as one that will be collapsed ###</span>
+    <span class="k">if</span> <span class="n">axis</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">mapped_series</span><span class="o">=</span><span class="n">Series</span><span class="p">(</span><span class="n">digitized_bins</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span> <span class="c">#No, this isn&#39;t wrong, just weird</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c">#mapped_series=Series(digitized_bins, index=df.columns)</span>
+        <span class="n">mapped_series</span><span class="o">=</span><span class="n">Series</span><span class="p">(</span><span class="n">digitized_bins</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">avg_fcn</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;mean&#39;</span><span class="p">:</span>
+            <span class="n">dfout</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">mapped_series</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>  <span class="c">#// is importanmt</span>
+    
+        <span class="k">elif</span> <span class="n">avg_fcn</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;sum&#39;</span><span class="p">:</span>
+            <span class="n">dfout</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">mapped_series</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    
+        <span class="c">### Rebins according to the sum, and then divides axis or rows by their maxes.</span>
+        <span class="c">### If I want a normalized array, can call this with bindwidth=1.0</span>
+        <span class="k">elif</span> <span class="n">avg_fcn</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;weighted&#39;</span><span class="p">:</span>
+            <span class="n">dfout</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">mapped_series</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">weight_max</span><span class="p">:</span>
+                <span class="n">dfout</span><span class="o">=</span> <span class="n">dfout</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">/</span> <span class="n">weight_max</span><span class="p">)</span>  <span class="c">#These should be float division</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dfout</span><span class="o">=</span> <span class="n">dfout</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">/</span> <span class="n">x</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+            
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> is not a valid key to df_rebin, must </span><span class="se">\</span>
+<span class="s">                                     be mean, sum or weighted&#39;</span><span class="o">%</span><span class="n">avg_fcn</span><span class="p">)</span>        
+    
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">==</span><span class="mi">2</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">avg_fcn</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;mean&#39;</span><span class="p">:</span>
+            <span class="n">dfout</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">mapped_series</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+            <span class="n">dfout</span><span class="o">.</span><span class="n">index</span><span class="o">=</span><span class="n">binarray</span>
+            
+    
+        <span class="k">elif</span> <span class="n">avg_fcn</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;sum&#39;</span><span class="p">:</span>
+            <span class="n">dfout</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">mapped_series</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    
+        <span class="c">### Rebins according to the sum, and then divides axis or rows by their maxes.</span>
+        <span class="c">### If I want a normalized array, can call this with bindwidth=1.0</span>
+        <span class="k">elif</span> <span class="n">avg_fcn</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;weighted&#39;</span><span class="p">:</span>
+            <span class="n">dfout</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">mapped_series</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">weight_max</span><span class="p">:</span>                
+                <span class="n">dfout</span><span class="o">=</span><span class="n">dfout</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span><span class="n">x</span> <span class="o">/</span> <span class="n">weight_max</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dfout</span><span class="o">=</span><span class="n">dfout</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">/</span> <span class="n">x</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>            
+            
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> is not a valid key to df_rebin, must </span><span class="se">\</span>
+<span class="s">                                     be mean, sum or weighted&#39;</span><span class="o">%</span><span class="n">avg_fcn</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;df_rebin only works with 1-d or 2-d arrays&#39;</span><span class="p">)</span>        
+        
+    <span class="k">return</span> <span class="n">dfout</span>   
+
+</div>
+<div class="viewcode-block" id="split_by"><a class="viewcode-back" href="../../../API/skspec.core.html#skspec.core.utilities.split_by">[docs]</a><span class="k">def</span> <span class="nf">split_by</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">astype</span><span class="o">=</span><span class="nb">list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Returns a list of dataframes sampled by n.  For example, a datframe</span>
+<span class="sd">    of 20 columns, sampled by n=4, will return 5 evenly spaced dataframes.</span>
+<span class="sd">    If uneven samples, will raise warning.  axis=1 for column sampling, axis=0</span>
+<span class="sd">    for row sampling.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="n">n</span> <span class="o">&gt;</span> <span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="n">UtilsError</span><span class="p">(</span><span class="s">&quot;Requested samplesize (n=</span><span class="si">%s</span><span class="s">) exceeds size along axis </span><span class="si">%s</span><span class="s">&quot;</span>
+                         <span class="o">%</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">axis</span><span class="p">))</span>
+    
+    <span class="c"># Integery guarantees rounding down</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">axis</span><span class="p">])</span> <span class="o">/</span> <span class="n">n</span><span class="p">)</span>
+    <span class="n">df_out</span><span class="o">=</span><span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">i</span><span class="o">==</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">df_out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="n">m</span><span class="p">::]])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">df_out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="n">m</span><span class="p">:(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">m</span><span class="p">]])</span>
+
+    <span class="k">if</span> <span class="n">n</span> <span class="o">%</span> <span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">axis</span><span class="p">]:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Returning uneven sampling for (n=</span><span class="si">%s</span><span class="s">) along axis </span><span class="si">%s</span><span class="s">&quot;</span>
+                    <span class="s">&quot;of size </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">axis</span><span class="p">]))</span>
+                    
+    <span class="k">return</span> <span class="n">df_out</span>     
+    
+</div>
+<div class="viewcode-block" id="rebin"><a class="viewcode-back" href="../../../API/skspec.core.html#skspec.core.utilities.rebin">[docs]</a><span class="k">def</span> <span class="nf">rebin</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">binwidth</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">avg_fcn</span><span class="o">=</span><span class="s">&#39;weighted&#39;</span><span class="p">,</span> <span class="n">weight_max</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Pass in an array, this slices and averages it along some spacing increment (bins).</span>
+<span class="sd">    Axis=0 means averages are computed along row.  axis=1 means averages are computed along column.</span>
+<span class="sd">    Dataframe already handles most issues, such as if binning in unequal and/or binning is larger than </span>
+<span class="sd">    actual length of data along axis.  Aka bin 100 rows by 200 rows/bin.</span>
+<span class="sd">    Binwidth is the spacing as in every X entries, take an average.  Width of 3 would be</span>
+<span class="sd">    every 3 entries, take an average.</span>
+<span class="sd">    </span>
+<span class="sd">    Redundant because if series is passed in, the axis keyword causes errors.</span>
+<span class="sd">    </span>
+<span class="sd">    If using avg_fcn=&#39;weighted&#39;, one can pass an upper limmit into the &quot;weight_max&quot; category</span>
+<span class="sd">    so that weighting is to a fixed value and not to the max of the dataset.  This is</span>
+<span class="sd">    useful when comparing datasets objectively.  For dataframes, weight_max may be a 1d</span>
+<span class="sd">    array of the normalization constant to each column in the dataframe.  If a single value</span>
+<span class="sd">    is entered, or for a series, that value will be divided through to every row.</span>
+<span class="sd">    </span>
+<span class="sd">    Note: avg_fct=&#39;weighted&#39; and weight_max=None will find a max after binning the data, </span>
+<span class="sd">    and divide all other column(or row values) by the max.  </span>
+<span class="sd">    This is not the statistical normaization, which should be added later (X-u / sigma).&#39;&#39;&#39;</span>
+
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">avg_fcn</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;mean&#39;</span><span class="p">:</span>
+            <span class="n">dfout</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span><span class="n">x</span><span class="o">//</span><span class="n">binwidth</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>  <span class="c">#// is importanmt</span>
+    
+        <span class="k">elif</span> <span class="n">avg_fcn</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;sum&#39;</span><span class="p">:</span>
+            <span class="n">dfout</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span><span class="n">x</span><span class="o">//</span><span class="n">binwidth</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    
+        <span class="c">### Rebins according to the sum, and then divides axis or rows by their maxes.</span>
+        <span class="c">### If I want a normalized array, can call this with bindwidth=1.0</span>
+        <span class="k">elif</span> <span class="n">avg_fcn</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;weighted&#39;</span><span class="p">:</span>
+            <span class="n">dfout</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span><span class="n">x</span><span class="o">//</span><span class="n">binwidth</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>  <span class="c">#Groupby uses int division</span>
+            <span class="k">if</span> <span class="n">weight_max</span><span class="p">:</span>
+                <span class="n">dfout</span><span class="o">=</span><span class="n">dfout</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">/</span> <span class="n">weight_max</span><span class="p">)</span>      <span class="c">#Apply uses float division</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dfout</span><span class="o">=</span><span class="n">dfout</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">/</span> <span class="n">x</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+            
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> is not a valid key to df_rebin, must </span><span class="se">\</span>
+<span class="s">                                     be mean, sum or weighted&#39;</span><span class="o">%</span><span class="n">avg_fcn</span><span class="p">)</span>        
+    
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">==</span><span class="mi">2</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">avg_fcn</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;mean&#39;</span><span class="p">:</span>
+            <span class="n">dfout</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span><span class="n">x</span><span class="o">//</span><span class="n">binwidth</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    
+        <span class="k">elif</span> <span class="n">avg_fcn</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;sum&#39;</span><span class="p">:</span>
+            <span class="n">dfout</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span><span class="n">x</span><span class="o">//</span><span class="n">binwidth</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    
+        <span class="c">### Rebins according to the sum, and then divides axis or rows by their maxes.</span>
+        <span class="c">### If I want a normalized array, can call this with bindwidth=1.0</span>
+        <span class="k">elif</span> <span class="n">avg_fcn</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;weighted&#39;</span><span class="p">:</span>
+            <span class="n">dfout</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span><span class="n">x</span><span class="o">//</span><span class="n">binwidth</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">weight_max</span><span class="p">:</span>                
+                <span class="n">dfout</span><span class="o">=</span><span class="n">dfout</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span><span class="n">x</span> <span class="o">/</span> <span class="n">weight_max</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dfout</span><span class="o">=</span><span class="n">dfout</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">/</span> <span class="n">x</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>            
+            
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> is not a valid key to df_rebin, must </span><span class="se">\</span>
+<span class="s">                                     be mean, sum or weighted&#39;</span><span class="o">%</span><span class="n">avg_fcn</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;df_rebin only works with 1-d or 2-d arrays&#39;</span><span class="p">)</span>        
+        
+    <span class="k">return</span> <span class="n">dfout</span>   
+</div>
+<div class="viewcode-block" id="maxmin_xy"><a class="viewcode-back" href="../../../API/skspec.core.html#skspec.core.utilities.maxmin_xy">[docs]</a><span class="k">def</span> <span class="nf">maxmin_xy</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s">&#39;max&#39;</span><span class="p">,</span> <span class="n">arg</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">idx</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Return arg (eg integer index position), index val, and object val</span>
+<span class="sd">        at the data maximum.  Works on series or dataframes.</span>
+<span class="sd">        </span>
+<span class="sd">        Params:</span>
+<span class="sd">        -------</span>
+<span class="sd">          obj: 1 or 2-d array type.</span>
+<span class="sd">          style: return &#39;max&#39; or &#39;min&#39; vals along the dataset.</span>
+<span class="sd">          arg: Index position at maximum.</span>
+<span class="sd">          idx: Index val at maximum.</span>
+<span class="sd">          val: Return the data val at this point.&#39;&#39;&#39;</span>
+    
+    <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_maxmin_xy</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">,</span> <span class="n">arg</span><span class="o">=</span><span class="n">arg</span><span class="p">,</span> <span class="n">idx</span><span class="o">=</span><span class="n">idx</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">val</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">obj</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">_maxmin_xy</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">,</span> <span class="n">arg</span><span class="o">=</span><span class="n">arg</span><span class="p">,</span> <span class="n">idx</span><span class="o">=</span><span class="n">idx</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">val</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">badval_error</span><span class="p">(</span><span class="s">&#39;ndim&#39;</span><span class="p">,</span> <span class="s">&#39;1,2&#39;</span><span class="p">)</span>
+        
+</div>
+<span class="k">def</span> <span class="nf">_maxmin_xy</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s">&#39;max&#39;</span><span class="p">,</span> <span class="n">arg</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">idx</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Return index and val at maximum in a series.  For index position (eg 6) at max,</span>
+<span class="sd">        use argmax()&#39;&#39;&#39;</span>    
+    
+    <span class="k">if</span> <span class="n">style</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;max&#39;</span><span class="p">,</span> <span class="s">&#39;min&#39;</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="n">badval_error</span><span class="p">(</span><span class="s">&#39;style&#39;</span><span class="p">,</span> <span class="s">&#39;max, min&#39;</span><span class="p">)</span>        
+    
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">arg</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">idx</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">val</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s">&#39;max_xy requires at least one of the following boolean arguments: arg, idx, val&#39;</span><span class="p">)</span>    
+    
+    <span class="n">out</span><span class="o">=</span><span class="p">[]</span>    
+
+    <span class="k">if</span> <span class="n">style</span><span class="o">==</span><span class="s">&#39;max&#39;</span><span class="p">:</span>               <span class="c">#X: idxmax/idxmin no longger array attributes</span>
+        <span class="n">fidx</span><span class="o">=</span><span class="n">array</span><span class="o">.</span><span class="n">argmax</span><span class="p">();</span> <span class="n">farg</span><span class="o">=</span><span class="n">array</span><span class="p">[</span><span class="n">array</span><span class="o">.</span><span class="n">idxmax</span><span class="p">()];</span> <span class="n">fval</span><span class="o">=</span><span class="n">array</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> 
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">fidx</span><span class="o">=</span><span class="n">array</span><span class="o">.</span><span class="n">argmin</span><span class="p">();</span> <span class="n">farg</span><span class="o">=</span><span class="n">array</span><span class="p">[</span><span class="n">array</span><span class="o">.</span><span class="n">idxmin</span><span class="p">()];</span> <span class="n">fval</span><span class="o">=</span><span class="n">array</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+        
+    
+    <span class="k">if</span> <span class="n">arg</span><span class="p">:</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">farg</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">idx</span><span class="p">:</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fidx</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">val</span><span class="p">:</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fval</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">out</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">out</span><span class="o">=</span><span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    
+    <span class="k">return</span> <span class="n">out</span>
+
+<div class="viewcode-block" id="find_nearest"><a class="viewcode-back" href="../../../API/skspec.core.html#skspec.core.utilities.find_nearest">[docs]</a><span class="k">def</span> <span class="nf">find_nearest</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">arg</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">idx</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_find_nearest</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="n">arg</span><span class="o">=</span><span class="n">arg</span><span class="p">,</span> <span class="n">idx</span><span class="o">=</span><span class="n">idx</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">val</span><span class="p">)</span>  <span class="c">#Positional args still passed as kwargs</span>
+
+    <span class="k">elif</span> <span class="n">obj</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">_find_nearest</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="n">arg</span><span class="o">=</span><span class="n">arg</span><span class="p">,</span> <span class="n">idx</span><span class="o">=</span><span class="n">idx</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">val</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">badval_error</span><span class="p">(</span><span class="s">&#39;ndim&#39;</span><span class="p">,</span> <span class="s">&#39;1,2&#39;</span><span class="p">)</span>    
+    
+    </div>
+<span class="k">def</span> <span class="nf">_find_nearest</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">arg</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">idx</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Find nearest val in an array, return index and array val.</span>
+<span class="sd">      Parameters:</span>
+<span class="sd">      ---------</span>
+<span class="sd">         array: Actually think this is set up for series/dataframe?</span>
+
+<span class="sd">      Notes:</span>
+<span class="sd">      ------</span>
+<span class="sd">         This works by computing the absolute difference array of the value and looking</span>
+<span class="sd">         for minimums along this array as seen in stack overflow discussions.</span>
+<span class="sd">         http://stackoverflow.com/questions/2566412/find-nearest-value-in-numpy-array</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="c">### Get index and arg from diff array</span>
+    <span class="n">diff_array</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">array</span><span class="o">-</span><span class="n">value</span><span class="p">)</span>
+    <span class="n">arg</span><span class="p">,</span> <span class="n">idx</span><span class="o">=</span><span class="n">_maxmin_xy</span><span class="p">(</span><span class="n">diff_array</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s">&#39;min&#39;</span><span class="p">,</span> <span class="n">arg</span><span class="o">=</span><span class="n">arg</span><span class="p">,</span> <span class="n">idx</span><span class="o">=</span><span class="n">idx</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">val</span><span class="p">)</span>
+    
+    <span class="c">### Find corresponding value from original array</span>
+    <span class="n">val</span><span class="o">=</span><span class="n">array</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+    
+    <span class="n">out</span><span class="o">=</span><span class="p">[]</span>
+    <span class="k">if</span> <span class="n">arg</span><span class="p">:</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+        
+    <span class="k">if</span> <span class="n">idx</span><span class="p">:</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+        
+    <span class="k">if</span> <span class="n">val</span><span class="p">:</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">out</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">out</span><span class="o">=</span><span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    
+    <span class="k">return</span> <span class="n">out</span>    
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/installation_dependencies.html">Dependencies/Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/plotting.html">Plotting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../API/skspec.html">API</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../../../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+            <p class="searchtip" style="font-size: 90%">
+                Enter search terms or a module, class or function name.
+            </p>
+          </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="../../../py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="../../../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, Adam Hughes, ReevesLab Dept. Physics, George Washington University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3b2.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

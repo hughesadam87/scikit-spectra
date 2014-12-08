@@ -1,0 +1,418 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pandas_utils Package &mdash; scikit-spectra 0.3.1-2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.3.1-2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="scikit-spectra 0.3.1-2 documentation" href="../index.html" />
+    <link rel="up" title="Full API by Module" href="skspec.html" />
+    <link rel="next" title="plotting Package" href="skspec.plotting.html" />
+    <link rel="prev" title="nptools Package" href="skspec.nptools.html" /> 
+  </head>
+  <body role="document">
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../index.html">scikit-spectra 0.3.1-2 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="skspec.nptools.html" title="nptools Package"
+             accesskey="P">previous</a> |
+          <a href="skspec.plotting.html" title="plotting Package"
+             accesskey="N">next</a> |
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../index.html"><img src="../_static/new_logo.png" border="100" alt="sampledoc"/></a>
+</div>
+
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="pandas-utils-package">
+<h1>pandas_utils Package<a class="headerlink" href="#pandas-utils-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-skspec.pandas_utils.dataframeserial">
+<span id="dataframeserial-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">dataframeserial</span></code> Module<a class="headerlink" href="#module-skspec.pandas_utils.dataframeserial" title="Permalink to this headline">¶</a></h2>
+<p>Serialization interface for custom DataFrame objects.  Allows to save/load 
+for memory streams or files.  Because one cannot serialize DataFrames with
+custom attributes, this uses an intermediate object for that process.  Plan
+it implement pickling saved methods later (requires more work).  These are meant to 
+supplant the DataFrame&#8217;s save() and load() methods when custom attributes must persist.</p>
+<p>Note, this program assesses custom attributes by inspecting your DataFrame&#8217;s
+attributes using Python&#8217;s builting function, dir().  It compares these to the
+attributes of an empty DataFrame.  This adds a bit of overhead, but should allow
+this program to work with new versions of pandas, as Dataframe&#8217;s methods and attributes
+are likely to change.  Is there are better way to do this?</p>
+<dl class="docutils">
+<dt>The following four functions are defined:</dt>
+<dd>df_dumps:  Serialize a DataFrame into memory.  Returns serialized stream.
+df_dump:  Serialize a DataFrame into a file.  Returns None.
+df_loads: Return a DataFrame from a serialized stream.
+df_load: Return a Dataframe from a serialized file.</dd>
+</dl>
+<p>See bottom of file for test cases:</p>
+<dl class="class">
+<dt id="skspec.pandas_utils.dataframeserial.TempDump">
+<em class="property">class </em><code class="descclassname">skspec.pandas_utils.dataframeserial.</code><code class="descname">TempDump</code><span class="sig-paren">(</span><em>dataframe</em>, <em>metadict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/pandas_utils/dataframeserial.html#TempDump"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.pandas_utils.dataframeserial.TempDump" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>Temporary class to dump DataFrame object with custom attributes.  Custom attrubutes are
+passed in as a dictionary and then temporarily stored upon serialization as _metadict.  Upon
+deserialization, the attributes and values are re-appended to the DataFrame automatically.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.pandas_utils.dataframeserial.df_dump">
+<code class="descclassname">skspec.pandas_utils.dataframeserial.</code><code class="descname">df_dump</code><span class="sig-paren">(</span><em>df</em>, <em>outfile</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/pandas_utils/dataframeserial.html#df_dump"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.pandas_utils.dataframeserial.df_dump" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save dataframe as a file.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.pandas_utils.dataframeserial.df_dumps">
+<code class="descclassname">skspec.pandas_utils.dataframeserial.</code><code class="descname">df_dumps</code><span class="sig-paren">(</span><em>df</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/pandas_utils/dataframeserial.html#df_dumps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.pandas_utils.dataframeserial.df_dumps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save dataframe as a stream into memory.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.pandas_utils.dataframeserial.df_load">
+<code class="descclassname">skspec.pandas_utils.dataframeserial.</code><code class="descname">df_load</code><span class="sig-paren">(</span><em>infile</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/pandas_utils/dataframeserial.html#df_load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.pandas_utils.dataframeserial.df_load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns dataframe from a serialized file</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.pandas_utils.dataframeserial.df_loads">
+<code class="descclassname">skspec.pandas_utils.dataframeserial.</code><code class="descname">df_loads</code><span class="sig-paren">(</span><em>stream</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/pandas_utils/dataframeserial.html#df_loads"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.pandas_utils.dataframeserial.df_loads" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns dataframe from a serialized stream</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.pandas_utils.dataframeserial.print_customattr">
+<code class="descclassname">skspec.pandas_utils.dataframeserial.</code><code class="descname">print_customattr</code><span class="sig-paren">(</span><em>df</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/pandas_utils/dataframeserial.html#print_customattr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.pandas_utils.dataframeserial.print_customattr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Formatted output of all custom attributes found in a DataFrame.  For all
+attributes and methods, use dir(df).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.pandas_utils.dataframeserial.randn">
+<code class="descclassname">skspec.pandas_utils.dataframeserial.</code><code class="descname">randn</code><span class="sig-paren">(</span><em>d0</em>, <em>d1</em>, <em>...</em>, <em>dn</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.pandas_utils.dataframeserial.randn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a sample (or samples) from the &#8220;standard normal&#8221; distribution.</p>
+<p>If positive, int_like or int-convertible arguments are provided,
+<cite>randn</cite> generates an array of shape <code class="docutils literal"><span class="pre">(d0,</span> <span class="pre">d1,</span> <span class="pre">...,</span> <span class="pre">dn)</span></code>, filled
+with random floats sampled from a univariate &#8220;normal&#8221; (Gaussian)
+distribution of mean 0 and variance 1 (if any of the <span class="math">\(d_i\)</span> are
+floats, they are first converted to integers by truncation). A single
+float randomly sampled from the distribution is returned if no
+argument is provided.</p>
+<p>This is a convenience function.  If you want an interface that takes a
+tuple as the first argument, use <cite>numpy.random.standard_normal</cite> instead.</p>
+<dl class="docutils">
+<dt>d0, d1, ..., dn <span class="classifier-delimiter">:</span> <span class="classifier">int, optional</span></dt>
+<dd>The dimensions of the returned array, should be all positive.
+If no argument is given a single Python float is returned.</dd>
+</dl>
+<dl class="docutils">
+<dt>Z <span class="classifier-delimiter">:</span> <span class="classifier">ndarray or float</span></dt>
+<dd>A <code class="docutils literal"><span class="pre">(d0,</span> <span class="pre">d1,</span> <span class="pre">...,</span> <span class="pre">dn)</span></code>-shaped array of floating-point samples from
+the standard normal distribution, or a single such float if
+no parameters were supplied.</dd>
+</dl>
+<p>random.standard_normal : Similar, but takes a tuple as its argument.</p>
+<p>For random samples from <span class="math">\(N(\mu, \sigma^2)\)</span>, use:</p>
+<p><code class="docutils literal"><span class="pre">sigma</span> <span class="pre">*</span> <span class="pre">np.random.randn(...)</span> <span class="pre">+</span> <span class="pre">mu</span></code></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">()</span>
+<span class="go">2.1923875335537315 #random</span>
+</pre></div>
+</div>
+<p>Two-by-four array of samples from N(3, 6.25):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="mf">2.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span> <span class="o">+</span> <span class="mi">3</span>
+<span class="go">array([[-4.49401501,  4.00950034, -1.81814867,  7.29718677],  #random</span>
+<span class="go">       [ 0.39924804,  4.68456316,  4.99394529,  4.84057254]]) #random</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-skspec.pandas_utils.df_attrhandler">
+<span id="df-attrhandler-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">df_attrhandler</span></code> Module<a class="headerlink" href="#module-skspec.pandas_utils.df_attrhandler" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="skspec.pandas_utils.df_attrhandler.restore_attr">
+<code class="descclassname">skspec.pandas_utils.df_attrhandler.</code><code class="descname">restore_attr</code><span class="sig-paren">(</span><em>df</em>, <em>stored_attr</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/pandas_utils/df_attrhandler.html#restore_attr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.pandas_utils.df_attrhandler.restore_attr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the attributes of the pandas dataframe using sotred_attr dictionary.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.pandas_utils.df_attrhandler.store_attr">
+<code class="descclassname">skspec.pandas_utils.df_attrhandler.</code><code class="descname">store_attr</code><span class="sig-paren">(</span><em>df</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/pandas_utils/df_attrhandler.html#store_attr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.pandas_utils.df_attrhandler.store_attr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Store all the attributes in a dataframe that are not found in an empty dataframe
+declared with DataFrame().</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.pandas_utils.df_attrhandler.transfer_attr">
+<code class="descclassname">skspec.pandas_utils.df_attrhandler.</code><code class="descname">transfer_attr</code><span class="sig-paren">(</span><em>df1</em>, <em>df2</em>, <em>reversedeletion=False</em>, <em>speakup=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/pandas_utils/df_attrhandler.html#transfer_attr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.pandas_utils.df_attrhandler.transfer_attr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transfer all the attributes from df1 to df2.  If none found, returns df2.
+Speakup keyword just adds print statements.
+Reverse deletion means that all attributes in df2 that are not found in df1.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-skspec.pandas_utils.metadframe">
+<span id="metadframe-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">metadframe</span></code> Module<a class="headerlink" href="#module-skspec.pandas_utils.metadframe" title="Permalink to this headline">¶</a></h2>
+<p>Provides composition class, MetaPandasObject, which is an ordinary python object that stores a Dataframe and 
+attempts to promote attributes and methods to the instance level (eg self.x instead of self.df.x).  This object
+can be subclassed and ensures persistence of custom attributes.  The goal of this MetaPandasObject is to provide a 
+subclassing api beyond monkey patching (which currently fails in persisting attributes upon most method returns 
+and upon derialization.</p>
+<dl class="class">
+<dt id="skspec.pandas_utils.metadframe.MetaDataFrame">
+<em class="property">class </em><code class="descclassname">skspec.pandas_utils.metadframe.</code><code class="descname">MetaDataFrame</code><span class="sig-paren">(</span><em>*dfargs</em>, <em>**dfkwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/pandas_utils/metadframe.html#MetaDataFrame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.pandas_utils.metadframe.MetaDataFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#skspec.pandas_utils.metadframe.MetaPandasObject" title="skspec.pandas_utils.metadframe.MetaPandasObject"><code class="xref py py-class docutils literal"><span class="pre">skspec.pandas_utils.metadframe.MetaPandasObject</span></code></a></p>
+<dl class="attribute">
+<dt id="skspec.pandas_utils.metadframe.MetaDataFrame.columns">
+<code class="descname">columns</code><a class="headerlink" href="#skspec.pandas_utils.metadframe.MetaDataFrame.columns" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.pandas_utils.metadframe.MetaDataFrame.cousin">
+<code class="descname">cousin</code><a class="headerlink" href="#skspec.pandas_utils.metadframe.MetaDataFrame.cousin" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">DataFrame</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skspec.pandas_utils.metadframe.MetaPandasObject">
+<em class="property">class </em><code class="descclassname">skspec.pandas_utils.metadframe.</code><code class="descname">MetaPandasObject</code><span class="sig-paren">(</span><em>*dfargs</em>, <em>**dfkwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/pandas_utils/metadframe.html#MetaPandasObject"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.pandas_utils.metadframe.MetaPandasObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>Base composition for subclassing pandas DataFrame and Series.</p>
+<dl class="attribute">
+<dt id="skspec.pandas_utils.metadframe.MetaPandasObject.cousin">
+<code class="descname">cousin</code><em class="property"> = None</em><a class="headerlink" href="#skspec.pandas_utils.metadframe.MetaPandasObject.cousin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.pandas_utils.metadframe.MetaPandasObject.data">
+<code class="descname">data</code><a class="headerlink" href="#skspec.pandas_utils.metadframe.MetaPandasObject.data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accesses self._frame.  RETURNS COPY SO USER DOESNT OVERWRITE IN PLACE</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="skspec.pandas_utils.metadframe.MetaPandasObject.deepcopy">
+<code class="descname">deepcopy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/pandas_utils/metadframe.html#MetaPandasObject.deepcopy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.pandas_utils.metadframe.MetaPandasObject.deepcopy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a deepcopy of self, including the dataframe.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="skspec.pandas_utils.metadframe.MetaPandasObject.dumps">
+<code class="descname">dumps</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/pandas_utils/metadframe.html#MetaPandasObject.dumps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.pandas_utils.metadframe.MetaPandasObject.dumps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Output TimeSpectra into a pickled string in memory.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.pandas_utils.metadframe.MetaPandasObject.iloc">
+<code class="descname">iloc</code><a class="headerlink" href="#skspec.pandas_utils.metadframe.MetaPandasObject.iloc" title="Permalink to this definition">¶</a></dt>
+<dd><p>See pandas.Index.iloc; preserves metadata</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.pandas_utils.metadframe.MetaPandasObject.index">
+<code class="descname">index</code><a class="headerlink" href="#skspec.pandas_utils.metadframe.MetaPandasObject.index" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.pandas_utils.metadframe.MetaPandasObject.ix">
+<code class="descname">ix</code><a class="headerlink" href="#skspec.pandas_utils.metadframe.MetaPandasObject.ix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pandas Indexing.  Note, this has been modified to ensure that series returns (eg ix[3])
+still maintain attributes.  To remove this behavior, replace the following:</p>
+<p>self._ix = _MetaIXIndexer(self, _IXIndexer(self) ) &#8211;&gt; self._ix=_IXIndexer(self)</p>
+<p>The above works because slicing preserved attributes because the _IXIndexer is a python object 
+subclass.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.pandas_utils.metadframe.MetaPandasObject.loc">
+<code class="descname">loc</code><a class="headerlink" href="#skspec.pandas_utils.metadframe.MetaPandasObject.loc" title="Permalink to this definition">¶</a></dt>
+<dd><p>See pandas.Index.loc; preserves metadata</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="skspec.pandas_utils.metadframe.MetaPandasObject.save">
+<code class="descname">save</code><span class="sig-paren">(</span><em>outname</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/pandas_utils/metadframe.html#MetaPandasObject.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.pandas_utils.metadframe.MetaPandasObject.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes in str or opened file and saves. cPickle.dump wrapper.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="skspec.pandas_utils.metadframe.MetaPandasObject.subtract">
+<code class="descname">subtract</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/pandas_utils/metadframe.html#MetaPandasObject.subtract"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.pandas_utils.metadframe.MetaPandasObject.subtract" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skspec.pandas_utils.metadframe.MetaSeries">
+<em class="property">class </em><code class="descclassname">skspec.pandas_utils.metadframe.</code><code class="descname">MetaSeries</code><span class="sig-paren">(</span><em>*dfargs</em>, <em>**dfkwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/pandas_utils/metadframe.html#MetaSeries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.pandas_utils.metadframe.MetaSeries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#skspec.pandas_utils.metadframe.MetaPandasObject" title="skspec.pandas_utils.metadframe.MetaPandasObject"><code class="xref py py-class docutils literal"><span class="pre">skspec.pandas_utils.metadframe.MetaPandasObject</span></code></a></p>
+<dl class="attribute">
+<dt id="skspec.pandas_utils.metadframe.MetaSeries.cousin">
+<code class="descname">cousin</code><a class="headerlink" href="#skspec.pandas_utils.metadframe.MetaSeries.cousin" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">Series</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skspec.pandas_utils.metadframe.SubFoo">
+<em class="property">class </em><code class="descclassname">skspec.pandas_utils.metadframe.</code><code class="descname">SubFoo</code><span class="sig-paren">(</span><em>a</em>, <em>b</em>, <em>*dfargs</em>, <em>**dfkwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/pandas_utils/metadframe.html#SubFoo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.pandas_utils.metadframe.SubFoo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#skspec.pandas_utils.metadframe.MetaDataFrame" title="skspec.pandas_utils.metadframe.MetaDataFrame"><code class="xref py py-class docutils literal"><span class="pre">skspec.pandas_utils.metadframe.MetaDataFrame</span></code></a></p>
+<p>Shows an example of how to subclass MetaPandasObject with custom attributes, a and b.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.pandas_utils.metadframe.mload">
+<code class="descclassname">skspec.pandas_utils.metadframe.</code><code class="descname">mload</code><span class="sig-paren">(</span><em>inname</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/pandas_utils/metadframe.html#mload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.pandas_utils.metadframe.mload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load MetaPandasObject from file</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.pandas_utils.metadframe.mloads">
+<code class="descclassname">skspec.pandas_utils.metadframe.</code><code class="descname">mloads</code><span class="sig-paren">(</span><em>string</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/pandas_utils/metadframe.html#mloads"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.pandas_utils.metadframe.mloads" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load a MetaPandasObject from string stored in memory.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.pandas_utils.metadframe.randn">
+<code class="descclassname">skspec.pandas_utils.metadframe.</code><code class="descname">randn</code><span class="sig-paren">(</span><em>d0</em>, <em>d1</em>, <em>...</em>, <em>dn</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.pandas_utils.metadframe.randn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a sample (or samples) from the &#8220;standard normal&#8221; distribution.</p>
+<p>If positive, int_like or int-convertible arguments are provided,
+<cite>randn</cite> generates an array of shape <code class="docutils literal"><span class="pre">(d0,</span> <span class="pre">d1,</span> <span class="pre">...,</span> <span class="pre">dn)</span></code>, filled
+with random floats sampled from a univariate &#8220;normal&#8221; (Gaussian)
+distribution of mean 0 and variance 1 (if any of the <span class="math">\(d_i\)</span> are
+floats, they are first converted to integers by truncation). A single
+float randomly sampled from the distribution is returned if no
+argument is provided.</p>
+<p>This is a convenience function.  If you want an interface that takes a
+tuple as the first argument, use <cite>numpy.random.standard_normal</cite> instead.</p>
+<dl class="docutils">
+<dt>d0, d1, ..., dn <span class="classifier-delimiter">:</span> <span class="classifier">int, optional</span></dt>
+<dd>The dimensions of the returned array, should be all positive.
+If no argument is given a single Python float is returned.</dd>
+</dl>
+<dl class="docutils">
+<dt>Z <span class="classifier-delimiter">:</span> <span class="classifier">ndarray or float</span></dt>
+<dd>A <code class="docutils literal"><span class="pre">(d0,</span> <span class="pre">d1,</span> <span class="pre">...,</span> <span class="pre">dn)</span></code>-shaped array of floating-point samples from
+the standard normal distribution, or a single such float if
+no parameters were supplied.</dd>
+</dl>
+<p>random.standard_normal : Similar, but takes a tuple as its argument.</p>
+<p>For random samples from <span class="math">\(N(\mu, \sigma^2)\)</span>, use:</p>
+<p><code class="docutils literal"><span class="pre">sigma</span> <span class="pre">*</span> <span class="pre">np.random.randn(...)</span> <span class="pre">+</span> <span class="pre">mu</span></code></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">()</span>
+<span class="go">2.1923875335537315 #random</span>
+</pre></div>
+</div>
+<p>Two-by-four array of samples from N(3, 6.25):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="mf">2.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span> <span class="o">+</span> <span class="mi">3</span>
+<span class="go">array([[-4.49401501,  4.00950034, -1.81814867,  7.29718677],  #random</span>
+<span class="go">       [ 0.39924804,  4.68456316,  4.99394529,  4.84057254]]) #random</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="../Tutorial/installation_dependencies.html">Dependencies/Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Tutorial/getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Tutorial/plotting.html">Plotting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="skspec.html">Full API by Module</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+            <p class="searchtip" style="font-size: 90%">
+                Enter search terms or a module, class or function name.
+            </p>
+          </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="skspec.nptools.html" title="nptools Package"
+              >previous</a> |
+            <a href="skspec.plotting.html" title="plotting Package"
+              >next</a> |
+            <a href="../py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+              <br/>
+              <a href="../_sources/API/skspec.pandas_utils.txt"
+                rel="nofollow">Show Source</a>
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, Adam Hughes, ReevesLab Dept. Physics, George Washington University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3b2.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

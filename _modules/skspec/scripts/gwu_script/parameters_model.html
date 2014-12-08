@@ -1,0 +1,361 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>skspec.scripts.gwu_script.parameters_model &mdash; scikit-spectra 0.3.1-2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '0.3.1-2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="scikit-spectra 0.3.1-2 documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../../../../index.html">scikit-spectra 0.3.1-2 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../../../../index.html"><img src="../../../../_static/new_logo.png" border="100" alt="sampledoc"/></a>
+</div>
+
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for skspec.scripts.gwu_script.parameters_model</h1><div class="highlight"><pre>
+<span class="sd">&#39;&#39;&#39; Model for building correct parameters that will be assigned to timespectra</span>
+<span class="sd">    in gwu_spec script.&#39;&#39;&#39;</span>
+<span class="kn">from</span> <span class="nn">skspec.exceptions</span> <span class="kn">import</span> <span class="n">ParameterError</span><span class="p">,</span> <span class="n">badkey_check</span>
+<span class="kn">from</span> <span class="nn">skspec.core.spectra</span> <span class="kn">import</span> <span class="n">_normdic</span>
+<span class="kn">import</span> <span class="nn">os.path</span> <span class="kn">as</span> <span class="nn">op</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">_to_bool</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Convert a value to bool.  If str is &quot;true/false/none&quot;, converts.</span>
+<span class="sd">        Useful since users may want to set norm=None from cmdline, and argparse</span>
+<span class="sd">        will yiled norm=&quot;None&quot; for example.&#39;&#39;&#39;</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;none&#39;</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">elif</span> <span class="n">value</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;true&#39;</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">elif</span> <span class="n">value</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;false&#39;</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="bp">False</span>
+            
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ParameterError</span><span class="p">(</span><span class="s">&#39;Parameter must be true, false or None: </span><span class="si">%s</span><span class="s">&#39;</span>
+                                 <span class="s">&#39; received </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">value</span><span class="p">)</span>            
+    <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Parameters"><a class="viewcode-back" href="../../../../API/skspec.scripts.gwu_script.html#skspec.scripts.gwu_script.parameters_model.Parameters">[docs]</a><span class="k">class</span> <span class="nc">Parameters</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Defines timespectra scripting parameters. &#39;&#39;&#39;</span>
+
+    <span class="n">reference_default</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">specunit_default</span> <span class="o">=</span> <span class="s">&#39;nm&#39;</span>
+    <span class="n">intvlunit_default</span> <span class="o">=</span> <span class="s">&#39;m&#39;</span>
+    <span class="n">uv_ranges_default</span> <span class="o">=</span> <span class="mi">8</span>
+    <span class="c"># or((430.0,450.0), (450.0,515.0), (515.0, 570.0),</span>
+    <span class="c">#(570.0,620.0), (620.0,680.0))</span>
+    
+    <span class="n">t_start_default</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">t_end_default</span> <span class="o">=</span> <span class="bp">None</span> 
+    <span class="n">xmin_default</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">xmax_default</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="n">norm_default</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">,</span> <span class="s">&#39;a&#39;</span><span class="p">]</span>
+    <span class="n">sub_base_default</span> <span class="o">=</span> <span class="bp">False</span>
+    
+    <span class="n">valid_minmax_default</span> <span class="o">=</span> <span class="bp">None</span> <span class="c">#nm</span>
+    
+    <span class="n">bline_fit_default</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">fit_regions_default</span> <span class="o">=</span> <span class="bp">None</span>
+    
+    <span class="n">git</span> <span class="o">=</span> <span class="bp">True</span>
+
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Set defaults from either parameters or class defaults. &#39;&#39;&#39;</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_params</span> <span class="o">=</span> <span class="n">params</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">reference</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loud_apply</span><span class="p">(</span><span class="s">&#39;reference&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reference_default</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reference</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reference</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">pass</span>
+        
+
+        <span class="k">if</span> <span class="s">&#39;git&#39;</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">git</span> <span class="o">=</span> <span class="bp">False</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">specunit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loud_apply</span><span class="p">(</span><span class="s">&#39;specunit&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">specunit_default</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">intvlunit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loud_apply</span><span class="p">(</span><span class="s">&#39;intvlunit&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">intvlunit_default</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">intvlunit</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;none&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">intvlunit</span><span class="o">=</span><span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">uv_ranges</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loud_apply</span><span class="p">(</span><span class="s">&#39;uv_ranges&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">uv_ranges_default</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">t_start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loud_apply</span><span class="p">(</span><span class="s">&#39;t_start&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_start_default</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t_end</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loud_apply</span><span class="p">(</span><span class="s">&#39;t_end&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_end_default</span><span class="p">)</span>
+
+        <span class="c"># Slicing wavelengths (not sure how to handle times)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_min</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loud_apply</span><span class="p">(</span><span class="s">&#39;x_min&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xmin_default</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_max</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loud_apply</span><span class="p">(</span><span class="s">&#39;x_max&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xmax_default</span><span class="p">)</span>
+        
+        <span class="c"># Float-convert slices (should be properties)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_min</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_min</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;none&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">x_min</span> <span class="o">=</span> <span class="bp">None</span>
+                
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_max</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_max</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;none&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">x_max</span> <span class="o">=</span> <span class="bp">None</span>                
+                
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_min</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>                    
+            <span class="bp">self</span><span class="o">.</span><span class="n">x_min</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_min</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_max</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">x_max</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_max</span><span class="p">)</span>
+            
+        <span class="c"># Boolean defaults</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sub_base</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loud_apply</span><span class="p">(</span><span class="s">&#39;sub_base&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sub_base_default</span><span class="p">,</span> <span class="n">boolean</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>       
+        <span class="bp">self</span><span class="o">.</span><span class="n">bline_fit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loud_apply</span><span class="p">(</span><span class="s">&#39;bline_fit&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bline_fit_default</span><span class="p">,</span> <span class="n">boolean</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="c"># Properties (don&#39;t use loud_apply)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">norms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;norms&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm_default</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fit_regions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;fit_regions&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit_regions_default</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">valid_minmax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;valid_minmax&#39;</span><span class="p">,</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">valid_minmax_default</span><span class="p">)</span>
+        
+        <span class="c"># Warn if unused self._params</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="s">&quot;Unused parameters passed to </span><span class="si">%s</span><span class="s">: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> 
+                        <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+            
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">norms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_norms</span>
+        
+    <span class="nd">@norms.setter</span>
+    <span class="k">def</span> <span class="nf">norms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">norms</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Returns list of valid units (None, &#39;a&#39;, &#39;r&#39;) &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">norms</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&#39;&quot;norms&quot; parameter not found.  Setting to [None].  Only&#39;</span>
+                        <span class="s">&#39; rawdata will be analyzed.&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Converting &#39;norms&#39; from str to list&quot;</span><span class="p">)</span>            
+            <span class="bp">self</span><span class="o">.</span><span class="n">_norms</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span>         
+            <span class="k">return</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">norms</span><span class="p">,</span> <span class="s">&#39;__iter__&#39;</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Converting &#39;norms&#39; list&quot;</span><span class="p">)</span>
+            <span class="n">norms</span> <span class="o">=</span> <span class="n">norms</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                
+        <span class="c"># Make sure all outtypes (a, r, None) are valid; convert &quot;None&quot; to none</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">otype</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">norms</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">otype</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">otype</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;none&#39;</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Changing inuit=&quot;None&quot; (str) to Nonetype&#39;</span><span class="p">)</span>
+                    <span class="n">norms</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>                    
+            <span class="n">badkey_check</span><span class="p">(</span><span class="n">norms</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="n">_normdic</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+ 
+        <span class="bp">self</span><span class="o">.</span><span class="n">_norms</span> <span class="o">=</span> <span class="n">norms</span>         
+
+        
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">fit_regions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fit_regions</span>
+    
+    <span class="c"># Probably best nto to set these through cmdline, as it&#39;s hard to ensure</span>
+    <span class="c"># proper type, but if must, this calls eval</span>
+    <span class="nd">@fit_regions.setter</span>
+    <span class="k">def</span> <span class="nf">fit_regions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">regions</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">regions</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fit_regions</span> <span class="o">=</span> <span class="n">regions</span>
+            <span class="k">return</span> 
+        
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">regions</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+            <span class="n">regions</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">regions</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">regions</span><span class="p">,</span> <span class="s">&#39;__iter__&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">ParameterError</span><span class="p">(</span><span class="s">&#39;fit_regions must be an iterable of pairs: &#39;</span>
+                                 <span class="s">&#39;received </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">regions</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fit_regions</span> <span class="o">=</span> <span class="n">regions</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">valid_minmax</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_valid_minmax</span>        
+        
+    <span class="nd">@valid_minmax.setter</span>
+    <span class="k">def</span> <span class="nf">valid_minmax</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">minmax</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">minmax</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_valid_minmax</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="k">return</span> 
+        
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">minmax</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+            <span class="n">minmax</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">minmax</span><span class="p">)</span>
+            
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">minmax</span><span class="p">,</span> <span class="s">&#39;__iter__&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">ParameterError</span><span class="p">(</span><span class="s">&#39;fit_regions must be an iterable of pairs: &#39;</span>
+                                 <span class="s">&#39;received </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">minmax</span><span class="p">))</span>
+        
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">minmax</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ParameterError</span><span class="p">(</span><span class="s">&#39;valid_minmax must be lenth two iterable IE &#39;</span>
+                    <span class="s">&#39;(560, 600).  Received: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">minmax</span><span class="p">)</span>
+  
+        <span class="bp">self</span><span class="o">.</span><span class="n">_valid_minmax</span> <span class="o">=</span> <span class="n">minmax</span>
+
+<div class="viewcode-block" id="Parameters.loud_apply"><a class="viewcode-back" href="../../../../API/skspec.scripts.gwu_script.html#skspec.scripts.gwu_script.parameters_model.Parameters.loud_apply">[docs]</a>    <span class="k">def</span> <span class="nf">loud_apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="n">boolean</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="n">attr</span><span class="p">):</span>
+            <span class="n">outval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="n">attr</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">attr</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> not found in user-supplied parameters. &#39;</span>  
+            <span class="s">&#39;Automatically setting to &quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">default</span><span class="p">))</span>
+            <span class="n">outval</span> <span class="o">=</span> <span class="n">default</span>        
+
+        <span class="k">if</span> <span class="n">boolean</span><span class="p">:</span>
+            <span class="n">outval</span> <span class="o">=</span> <span class="n">_to_bool</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">outval</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">outval</span>
+    
+    <span class="c"># Useful for methods calling params.items() (implement full dict interface later)</span></div>
+<div class="viewcode-block" id="Parameters.items"><a class="viewcode-back" href="../../../../API/skspec.scripts.gwu_script.html#skspec.scripts.gwu_script.parameters_model.Parameters.items">[docs]</a>    <span class="k">def</span> <span class="nf">items</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[(</span><span class="n">attr</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">))</span> <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span> 
+                <span class="k">if</span> <span class="n">attr</span> <span class="o">!=</span> <span class="s">&#39;_params&#39;</span><span class="p">]</span>
+    
+    </div>
+<div class="viewcode-block" id="Parameters.as_markdownlist"><a class="viewcode-back" href="../../../../API/skspec.scripts.gwu_script.html#skspec.scripts.gwu_script.parameters_model.Parameters.as_markdownlist">[docs]</a>    <span class="k">def</span> <span class="nf">as_markdownlist</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return parameters for markdown list for .ipynb use:</span>
+<span class="sd">            - foo = bar</span>
+<span class="sd">            - baz = ing</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">out</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>            
+            <span class="n">out</span> <span class="o">+=</span> <span class="p">(</span><span class="s">&#39;</span><span class="se">\&quot;</span><span class="s">- **</span><span class="si">%s</span><span class="s">:** </span><span class="si">%s</span><span class="se">\\</span><span class="s">n</span><span class="se">\&quot;</span><span class="s">,</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="n">v</span><span class="p">))</span>
+            
+        <span class="c"># Pain in my ass here...</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s">&#39;&quot;&#39;</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s">&#39;&quot;&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span>
+            
+</div></div>
+<div class="viewcode-block" id="USB2000"><a class="viewcode-back" href="../../../../API/skspec.scripts.gwu_script.html#skspec.scripts.gwu_script.parameters_model.USB2000">[docs]</a><span class="k">class</span> <span class="nc">USB2000</span><span class="p">(</span><span class="n">Parameters</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Define some shared parameters between ocean optics spectrometers.&#39;&#39;&#39;</span>
+    
+    <span class="c"># Change spectral parameter defaults in NM</span>
+    <span class="n">xmin_default</span> <span class="o">=</span> <span class="mf">430.0</span> 
+    <span class="n">xmax_default</span> <span class="o">=</span> <span class="mf">680.0</span>
+    <span class="n">valid_minmax_default</span> <span class="o">=</span> <span class="p">(</span><span class="mf">339.0</span><span class="p">,</span> <span class="mf">1024.0</span><span class="p">)</span> <span class="c">#nm</span>
+
+    <span class="n">sub_base_default</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="n">bline_fit_default</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="n">fit_regions_default</span> <span class="o">=</span> <span class="p">((</span><span class="mf">345.0</span><span class="p">,</span> <span class="mf">395.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">900.0</span><span class="p">,</span> <span class="mf">1000.0</span><span class="p">))</span>
+    
+        </div>
+<div class="viewcode-block" id="USB650"><a class="viewcode-back" href="../../../../API/skspec.scripts.gwu_script.html#skspec.scripts.gwu_script.parameters_model.USB650">[docs]</a><span class="k">class</span> <span class="nc">USB650</span><span class="p">(</span><span class="n">Parameters</span><span class="p">):</span>
+    
+    <span class="n">valid_minmax_default</span> <span class="o">=</span> <span class="p">(</span><span class="mf">200.0</span><span class="p">,</span> <span class="mf">850.0</span><span class="p">)</span> <span class="c">#nm</span>
+    <span class="n">sub_base_default</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="n">bline_fit_default</span> <span class="o">=</span> <span class="bp">False</span>
+    
+    <span class="c"># Set xmin/xmax?</span>
+        </div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Tutorial/installation_dependencies.html">Dependencies/Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Tutorial/getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Tutorial/plotting.html">Plotting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../API/skspec.html">API</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../../../../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+            <p class="searchtip" style="font-size: 90%">
+                Enter search terms or a module, class or function name.
+            </p>
+          </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="../../../../py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="../../../../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, Adam Hughes, ReevesLab Dept. Physics, George Washington University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3b2.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

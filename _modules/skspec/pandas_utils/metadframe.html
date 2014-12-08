@@ -1,0 +1,552 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>skspec.pandas_utils.metadframe &mdash; scikit-spectra 0.3.1-2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.3.1-2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="scikit-spectra 0.3.1-2 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../../../index.html">scikit-spectra 0.3.1-2 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../../../index.html"><img src="../../../_static/new_logo.png" border="100" alt="sampledoc"/></a>
+</div>
+
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for skspec.pandas_utils.metadframe</h1><div class="highlight"><pre>
+<span class="sd">&#39;&#39;&#39; Provides composition class, MetaPandasObject, which is an ordinary python object that stores a Dataframe and </span>
+<span class="sd">attempts to promote attributes and methods to the instance level (eg self.x instead of self.df.x).  This object</span>
+<span class="sd">can be subclassed and ensures persistence of custom attributes.  The goal of this MetaPandasObject is to provide a </span>
+<span class="sd">subclassing api beyond monkey patching (which currently fails in persisting attributes upon most method returns </span>
+<span class="sd">and upon derialization.&#39;&#39;&#39;</span>
+
+<span class="kn">from</span> <span class="nn">types</span> <span class="kn">import</span> <span class="n">MethodType</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">import</span> <span class="nn">cPickle</span>
+<span class="kn">import</span> <span class="nn">collections</span>
+
+<span class="kn">from</span> <span class="nn">pandas.core.indexing</span> <span class="kn">import</span> <span class="n">_IXIndexer</span><span class="p">,</span> <span class="n">_iLocIndexer</span><span class="p">,</span> <span class="n">_LocIndexer</span>
+
+<span class="kn">from</span> <span class="nn">pandas</span> <span class="kn">import</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">Series</span>
+
+<span class="c"># for testing</span>
+<span class="kn">from</span> <span class="nn">numpy.random</span> <span class="kn">import</span> <span class="n">randn</span>
+
+<span class="c"># Logging functions</span>
+<span class="kn">from</span> <span class="nn">skspec.logger</span> <span class="kn">import</span> <span class="n">logclass</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span> 
+
+<span class="c">#----------------------------------------------------------------------</span>
+<span class="c"># Store attributes/methods of dataframe for later inspection with __setattr__</span>
+<span class="c"># Note: This is preferred to a storing individual instances of self._frame with custom </span>
+<span class="c">#       attr as if user tried self.a and self._frame.a existed, it would call this...</span>
+<span class="n">_dfattrs</span><span class="o">=</span><span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">DataFrame</span><span class="p">)</span> <span class="k">if</span> <span class="s">&#39;__&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span>
+
+<span class="c">#----------------------------------------------------------------------</span>
+<span class="c"># Loading (perhaps change name?) ... Doesn&#39;t work correctly as instance methods</span>
+
+<div class="viewcode-block" id="mload"><a class="viewcode-back" href="../../../API/skspec.pandas_utils.html#skspec.pandas_utils.metadframe.mload">[docs]</a><span class="k">def</span> <span class="nf">mload</span><span class="p">(</span><span class="n">inname</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Load MetaPandasObject from file&#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inname</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+        <span class="n">inname</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">inname</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">inname</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="mloads"><a class="viewcode-back" href="../../../API/skspec.pandas_utils.html#skspec.pandas_utils.metadframe.mloads">[docs]</a><span class="k">def</span> <span class="nf">mloads</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Load a MetaPandasObject from string stored in memory.&#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>        
+        
+
+<span class="c"># Log all public/private methods to debug</span>
+<span class="c">#@logclass(public_lvl=&#39;debug&#39;, log_name=__name__, skip=[&#39;_transfer&#39;])</span></div>
+<div class="viewcode-block" id="MetaPandasObject"><a class="viewcode-back" href="../../../API/skspec.pandas_utils.html#skspec.pandas_utils.metadframe.MetaPandasObject">[docs]</a><span class="k">class</span> <span class="nc">MetaPandasObject</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Base composition for subclassing pandas DataFrame and Series.&#39;&#39;&#39;</span>
+    
+    <span class="n">cousin</span> <span class="o">=</span> <span class="bp">None</span> <span class="c">#OVERWRITE</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">dfargs</span><span class="p">,</span> <span class="o">**</span><span class="n">dfkwargs</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Stores a dataframe under reserved attribute name, self._frame&#39;&#39;&#39;</span>      
+        <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cousin</span><span class="p">(</span><span class="o">*</span><span class="n">dfargs</span><span class="p">,</span> <span class="o">**</span><span class="n">dfkwargs</span><span class="p">)</span>
+
+    <span class="c">### Save methods    </span>
+<div class="viewcode-block" id="MetaPandasObject.save"><a class="viewcode-back" href="../../../API/skspec.pandas_utils.html#skspec.pandas_utils.metadframe.MetaPandasObject.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outname</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Takes in str or opened file and saves. cPickle.dump wrapper.&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">outname</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+            <span class="n">outname</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">outname</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span>
+        <span class="n">cPickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outname</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="MetaPandasObject.dumps"><a class="viewcode-back" href="../../../API/skspec.pandas_utils.html#skspec.pandas_utils.metadframe.MetaPandasObject.dumps">[docs]</a>    <span class="k">def</span> <span class="nf">dumps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Output TimeSpectra into a pickled string in memory.&#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>    
+
+    <span class="c">#----------------------------------------------------------------------</span>
+    <span class="c"># Overwrite Dataframe methods and operators</span>
+</div>
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keyslice</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Item lookup.  If output is an interable, _transfer is called.  </span>
+<span class="sd">        Sometimes __getitem__ returns a float (indexing a series) at which </span>
+<span class="sd">        point we just want to return that.&#39;&#39;&#39;</span>
+
+        <span class="n">frameout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">__getitem__</span><span class="p">(</span><span class="n">keyslice</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="nb">iter</span><span class="p">(</span><span class="n">frameout</span><span class="p">)</span>  <span class="c">#Test if iterable without forcing user to have collections package.</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">frameout</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transfer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">__getitem__</span><span class="p">(</span><span class="n">keyslice</span><span class="p">)</span> <span class="p">)</span>               
+
+    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">__setitem__</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>    
+
+    <span class="c">### These tell python to ignore __getattr__ when pickling; hence, treat this like a normal class    </span>
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span>
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>    
+
+    <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="o">*</span><span class="n">fcnargs</span><span class="p">,</span> <span class="o">**</span><span class="n">fcnkwargs</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Tells python how to handle all attributes that are not found.</span>
+<span class="sd">        Basic attributes are directly referenced to self._frame; however, </span>
+<span class="sd">        instance methods (like df.corr() ) are handled specially using a</span>
+<span class="sd">        special private parsing method, _framegetattr().&#39;&#39;&#39;</span>
+
+        <span class="c"># Return basic attribute        </span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">refout</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s">&#39;Either failed to find attribute &quot;</span><span class="si">%s</span><span class="s">&quot; in </span><span class="si">%s</span><span class="s"> or &#39;</span>
+             <span class="s">&#39;its underlying pandas object, or it is found, but throwing an error&#39;</span>
+             <span class="s">&#39; when accessed.&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">))</span>           
+           
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">refout</span><span class="p">,</span> <span class="n">MethodType</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">refout</span>
+
+        <span class="c"># Handle instance methods using _framegetattr().</span>
+        <span class="c"># see http://stackoverflow.com/questions/3434938/python-allowing-methods-not-specifically-defined-to-be-called-ala-getattr</span>
+        <span class="k">else</span><span class="p">:</span>         
+            <span class="k">return</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_framegetattr</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="o">*</span><span class="n">fcnargs</span><span class="p">,</span> <span class="o">**</span><span class="n">fcnkwargs</span><span class="p">)</span>
+            <span class="c"># This is a reference to the fuction (aka a wrapper) not the function itself</span>
+            
+    <span class="k">def</span> <span class="nf">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; When user sets an attribute, this tries to intercept any name conflicts.  For example, if user attempts to set</span>
+<span class="sd">        self.columns=50, this will actually try self._frame.columns=50, which throws an error.  The behavior is acheived by</span>
+<span class="sd">        using dir() on the data frame created upon initialization, filtering __x__ type methods.   Not guaranteed to work 100%</span>
+<span class="sd">        of the time due to implicit possible issues with dir() and inspection in Python.  Best practice is for users to avoid name</span>
+<span class="sd">        conflicts when possible.&#39;&#39;&#39;</span>
+        
+        <span class="nb">super</span><span class="p">(</span><span class="n">MetaPandasObject</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__setattr__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>        
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">_dfattrs</span><span class="p">:</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">=</span><span class="n">value</span>
+
+
+    <span class="k">def</span> <span class="nf">_transfer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dfnew</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Copy current attributes into a new dataframe.  For methods that</span>
+<span class="sd">        return a dataframe and need to append current attributes/columns/index.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">newobj</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>  <span class="c">#This looks like None, but is it type (MetaPandasObject, just __union__ prints None</span>
+        <span class="n">newobj</span><span class="o">.</span><span class="n">_frame</span> <span class="o">=</span> <span class="n">dfnew</span>
+        
+        <span class="c"># THESE ARE NEVER TRANSFERED AT DF LEVEL, JUST CREATED NEW.  TRY</span>
+        <span class="c"># df.loc</span>
+        <span class="c"># a = df*50</span>
+        <span class="c"># a._loc  ---&gt; Will be None</span>
+        <span class="c">#newobj._loc = self._loc</span>
+        <span class="c">#newobj._iloc = self._iloc</span>
+        <span class="c">#newobj._ix = self._ix         </span>
+        <span class="k">return</span> <span class="n">newobj</span>
+
+
+<div class="viewcode-block" id="MetaPandasObject.deepcopy"><a class="viewcode-back" href="../../../API/skspec.pandas_utils.html#skspec.pandas_utils.metadframe.MetaPandasObject.deepcopy">[docs]</a>    <span class="k">def</span> <span class="nf">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Make a deepcopy of self, including the dataframe.&#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>  
+</div>
+    <span class="k">def</span> <span class="nf">_framegetattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="o">*</span><span class="n">fcnargs</span><span class="p">,</span> <span class="o">**</span><span class="n">fcnkwargs</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Called by __getattr__ as a wrapper, this private method is used </span>
+<span class="sd">        to ensure that output is MetaPandasObject.  For example, MetaDataFrame</span>
+<span class="sd">        will return DataFrame, MetaSeries will return Series.  This is done</span>
+<span class="sd">        through inspecting the output object type and comparing with self.cousin.</span>
+
+<span class="sd">        **kwargs: use_base - If true, program attempts to call attribute on</span>
+<span class="sd">        the reference.  reference ought to be maintained as a series, and </span>
+<span class="sd">        Series/Dataframe API&#39;s must be same.</span>
+
+<span class="sd">        *fcnargs and **fcnkwargs are passed to the dataframe method.</span>
+
+<span class="sd">        Note: tried to ad an as_new keyword to do this operation in place, </span>
+<span class="sd">        but doing self=dfout instead of return dfout didn&#39;t work.  Could </span>
+<span class="sd">        try to add this at the __getattr__ level; however, may not be worth it.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="n">out</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="p">,</span> <span class="n">attr</span><span class="p">)(</span><span class="o">*</span><span class="n">fcnargs</span><span class="p">,</span> <span class="o">**</span><span class="n">fcnkwargs</span><span class="p">)</span>
+
+        <span class="c">### If operation returns a dataframe, return new TimeSpectra</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cousin</span><span class="p">):</span> <span class="c">#metadataframe or won&#39;t have _transfer method</span>
+            <span class="n">dfout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_transfer</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">dfout</span>
+
+        <span class="c">### Otherwise return whatever the method return would be</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">out</span>
+
+    <span class="k">def</span> <span class="nf">_repr_html_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Allows ipython notebook to display as default html&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">_repr_html_</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">__repr__</span><span class="p">()</span>
+    
+    <span class="k">def</span> <span class="nf">_fast_xs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">print</span> <span class="s">&#39;in fastxs&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">_fast_xs</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>  
+
+    <span class="c">### Operator overloading ####</span>
+    <span class="c">### In place operations need to overwrite self._frame</span>
+    <span class="k">def</span> <span class="nf">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transfer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">__add__</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transfer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">__sub__</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transfer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">__mul__</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__div__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transfer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">__div__</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__truediv__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transfer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">__truediv__</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+
+    <span class="c">### From what I can tell, __pos__(), __abs__() builtin to df, just __neg__()    </span>
+    <span class="k">def</span> <span class="nf">__neg__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transfer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">__neg__</span><span class="p">()</span> <span class="p">)</span>
+
+    <span class="c">### Object comparison operators</span>
+    <span class="k">def</span> <span class="nf">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transfer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">__lt__</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__le__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transfer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">__le__</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transfer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">__eq__</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transfer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">__ne__</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__ge__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transfer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">__ge__</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__gt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transfer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">__gt__</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>     
+
+    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">__len__</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__nonzero__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">__nonzero__</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">__contains__</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">__iter__</span><span class="p">()</span>
+    
+    <span class="k">def</span> <span class="nf">__pow__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exp</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transfer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">__pow__</span><span class="p">(</span><span class="n">exp</span><span class="p">))</span>
+    
+    <span class="k">def</span> <span class="nf">__abs__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transfer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">__abs__</span><span class="p">())</span>     
+    
+    <span class="c"># Reflected operands (http://www.rafekettler.com/magicmethods.html)</span>
+    <span class="k">def</span> <span class="nf">__radd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transfer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">__radd__</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__rsub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transfer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">__rsub__</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+    
+    <span class="k">def</span> <span class="nf">__rmul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transfer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">__rmul__</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>    
+
+    <span class="k">def</span> <span class="nf">__rdiv__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transfer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">__rdiv__</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+    
+    <span class="k">def</span> <span class="nf">__rtruediv__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transfer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">__rtruediv__</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>    
+    
+    <span class="k">def</span> <span class="nf">__rmod__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transfer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">__rmod__</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+    
+    <span class="k">def</span> <span class="nf">__rdivmod__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transfer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">__rdivmod__</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>    
+    
+<div class="viewcode-block" id="MetaPandasObject.subtract"><a class="viewcode-back" href="../../../API/skspec.pandas_utils.html#skspec.pandas_utils.metadframe.MetaPandasObject.subtract">[docs]</a>    <span class="k">def</span> <span class="nf">subtract</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transfer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+</div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Accesses self._frame.  RETURNS COPY SO USER DOESNT OVERWRITE IN PLACE&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deep</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>    
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">index</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">index</span>
+    
+    <span class="c">#To avoid accidentally setting index ie ts.index()</span>
+    <span class="nd">@index.setter</span>
+    <span class="k">def</span> <span class="nf">index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">index</span>
+        
+
+    <span class="c">## Fancy indexing</span>
+    <span class="n">_ix</span><span class="o">=</span><span class="bp">None</span>     
+    <span class="n">_iloc</span><span class="o">=</span><span class="bp">None</span>
+    <span class="n">_loc</span><span class="o">=</span><span class="bp">None</span>
+
+        
+    <span class="nd">@property</span>	  	
+    <span class="k">def</span> <span class="nf">ix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>      	
+        <span class="sd">&#39;&#39;&#39; Pandas Indexing.  Note, this has been modified to ensure that series returns (eg ix[3])</span>
+<span class="sd">        still maintain attributes.  To remove this behavior, replace the following:</span>
+<span class="sd">        </span>
+<span class="sd">        self._ix = _MetaIXIndexer(self, _IXIndexer(self) ) --&gt; self._ix=_IXIndexer(self)</span>
+<span class="sd">        </span>
+<span class="sd">        The above works because slicing preserved attributes because the _IXIndexer is a python object </span>
+<span class="sd">        subclass.&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ix</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_ix</span><span class="o">=</span><span class="n">_IXIndexer</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="c">#New versions of _IXIndexer require &quot;name&quot; attribute.</span>
+            <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">TE</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_ix</span><span class="o">=</span><span class="n">_IXIndexer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;ix&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ix</span>   
+
+    <span class="nd">@property</span>	  	
+    <span class="k">def</span> <span class="nf">iloc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>      	
+        <span class="sd">&quot;&quot;&quot; See pandas.Index.iloc; preserves metadata&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iloc</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_iloc</span> <span class="o">=</span><span class="n">_iLocIndexer</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="c">#New versions of _IXIndexer require &quot;name&quot; attribute.</span>
+            <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">TE</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_iloc</span><span class="o">=</span><span class="n">_iLocIndexer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;iloc&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iloc</span>   
+    
+
+    <span class="nd">@property</span>	  	
+    <span class="k">def</span> <span class="nf">loc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>      	
+        <span class="sd">&quot;&quot;&quot;See pandas.Index.loc; preserves metadata&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loc</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_loc</span> <span class="o">=</span> <span class="n">_LocIndexer</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="c">#New versions of _IXIndexer require &quot;name&quot; attribute.</span>
+            <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">TE</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_loc</span><span class="o">=</span> <span class="n">_LocIndexer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;loc&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loc</span>         
+    
+            
+
+
+<span class="c">#@logclass(public_lvl=&#39;debug&#39;, log_name=__name__, skip=[&#39;_transfer&#39;])</span></div>
+<div class="viewcode-block" id="MetaDataFrame"><a class="viewcode-back" href="../../../API/skspec.pandas_utils.html#skspec.pandas_utils.metadframe.MetaDataFrame">[docs]</a><span class="k">class</span> <span class="nc">MetaDataFrame</span><span class="p">(</span><span class="n">MetaPandasObject</span><span class="p">):</span>
+
+    <span class="c"># Repeated for clarity</span>
+    <span class="n">cousin</span> <span class="o">=</span> <span class="n">DataFrame</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">columns</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">columns</span>
+
+    <span class="nd">@columns.setter</span>
+    <span class="k">def</span> <span class="nf">columns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">columns</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">columns</span>
+
+        
+<span class="c">#@logclass(public_lvl=&#39;debug&#39;, log_name=__name__, skip=[&#39;_transfer&#39;])</span></div>
+<div class="viewcode-block" id="MetaSeries"><a class="viewcode-back" href="../../../API/skspec.pandas_utils.html#skspec.pandas_utils.metadframe.MetaSeries">[docs]</a><span class="k">class</span> <span class="nc">MetaSeries</span><span class="p">(</span><span class="n">MetaPandasObject</span><span class="p">):</span>
+    
+    <span class="n">cousin</span> <span class="o">=</span> <span class="n">Series</span>
+        
+	            
+    
+
+<span class="c"># Test Subclass</span>
+<span class="c"># -------------</span></div>
+<div class="viewcode-block" id="SubFoo"><a class="viewcode-back" href="../../../API/skspec.pandas_utils.html#skspec.pandas_utils.metadframe.SubFoo">[docs]</a><span class="k">class</span> <span class="nc">SubFoo</span><span class="p">(</span><span class="n">MetaDataFrame</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Shows an example of how to subclass MetaPandasObject with custom attributes, a and b.&#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="o">*</span><span class="n">dfargs</span><span class="p">,</span> <span class="o">**</span><span class="n">dfkwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">=</span> <span class="n">a</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="n">b</span>    
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">SubFoo</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">dfargs</span><span class="p">,</span> <span class="o">**</span><span class="n">dfkwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;Hi I&#39;m SubFoo. I&#39;m not really a DataFrame, but I quack like one.&quot;</span>
+
+
+<span class="c">#### TESTING ###</span></div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+
+    <span class="c">### Create a MetaPandasObject</span>
+    <span class="n">meta_df</span><span class="o">=</span><span class="n">MetaDataFrame</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">randn</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">)),</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;A&#39;</span><span class="p">,</span><span class="s">&#39;B&#39;</span><span class="p">,</span><span class="s">&#39;C&#39;</span><span class="p">],</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;c11&#39;</span><span class="p">,</span><span class="s">&#39;c22&#39;</span><span class="p">,</span> <span class="s">&#39;c33&#39;</span><span class="p">])</span>    
+    
+    <span class="n">meta_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s">&#39;deletejunkme&#39;</span><span class="p">)</span>
+
+    <span class="c">### Add some new attributes</span>
+    <span class="n">meta_df</span><span class="o">.</span><span class="n">a</span><span class="o">=</span><span class="mi">50</span>
+    <span class="n">meta_df</span><span class="o">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#39;Pamela&#39;</span>
+    <span class="k">print</span> <span class="s">&#39;See the original metadataframe</span><span class="se">\n</span><span class="s">&#39;</span>
+    <span class="k">print</span> <span class="n">meta_df</span>
+    <span class="k">print</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">I can operate on it (+ - / *) and call dataframe methods like rank()&#39;</span>
+    
+    <span class="n">meta_df</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c">### Perform some intrinsic DF operations</span>
+    <span class="n">new</span><span class="o">=</span><span class="n">meta_df</span><span class="o">*</span><span class="mf">50.0</span>
+    <span class="n">new</span><span class="o">=</span><span class="n">new</span><span class="o">.</span><span class="n">rank</span><span class="p">()</span>
+    <span class="k">print</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">See modified dataframe:</span><span class="se">\n</span><span class="s">&#39;</span>
+    <span class="k">print</span> <span class="n">new</span>
+
+    <span class="c">### Verify attribute persistence</span>
+    <span class="k">print</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">Attributes a = </span><span class="si">%s</span><span class="s"> and b = </span><span class="si">%s</span><span class="s"> will persist when new metadataframes are returned.&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">new</span><span class="o">.</span><span class="n">a</span><span class="p">,</span> <span class="n">new</span><span class="o">.</span><span class="n">b</span><span class="p">)</span>
+
+    <span class="c">### Demonstrate subclassing by invoking SubFoo class</span>
+    <span class="k">print</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">I can subclass a dataframe an overwrite its __repr__() or more carefully __bytes__()/__unicode__() method(s)</span><span class="se">\n</span><span class="s">&#39;</span>
+    <span class="n">subclass</span><span class="o">=</span><span class="n">SubFoo</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="nb">abs</span><span class="p">(</span><span class="n">randn</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">)),</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;A&#39;</span><span class="p">,</span><span class="s">&#39;B&#39;</span><span class="p">,</span><span class="s">&#39;C&#39;</span><span class="p">],</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;c11&#39;</span><span class="p">,</span><span class="s">&#39;c22&#39;</span><span class="p">,</span> <span class="s">&#39;c33&#39;</span><span class="p">])</span>    
+    <span class="k">print</span> <span class="n">subclass</span>
+    <span class="c">### Access underlying dataframe</span>
+    <span class="k">print</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">My underlying dataframe is stored in the &quot;data&quot; attribute.</span><span class="se">\n</span><span class="s">&#39;</span>
+    <span class="k">print</span> <span class="n">subclass</span><span class="o">.</span><span class="n">data</span>
+
+    <span class="c">### Pickle</span>
+    <span class="k">print</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">Save me by using x.save() / x.dumps() and load using mload(x) / mloads(x).&#39;</span>
+    
+    <span class="c"># INDEX SLICING THROUGH LOC AND ILOC</span>
+    <span class="k">print</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">slicing one column </span><span class="se">\n</span><span class="s">&#39;</span>
+    <span class="k">print</span> <span class="n">meta_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">print</span> <span class="n">meta_df</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">print</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">slicing many columns</span><span class="se">\n</span><span class="s">&#39;</span>
+    <span class="k">print</span>  <span class="n">meta_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">print</span> <span class="n">meta_df</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
+    
+    <span class="k">print</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">Indexing by label</span><span class="se">\n</span><span class="s">&#39;</span>
+    <span class="k">print</span> <span class="n">meta_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s">&#39;A&#39;</span><span class="p">:</span><span class="s">&#39;B&#39;</span><span class="p">]</span>
+
+    <span class="c">#GOOD EXPLANATION OF WHY CANT STRING SLICE COLUMNS</span>
+    <span class="c">#http://stackoverflow.com/questions/11285613/selecting-columns    </span>
+    <span class="k">print</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">Column slicing</span><span class="se">\n</span><span class="s">&#39;</span>
+    <span class="k">print</span> <span class="n">meta_df</span><span class="p">[[</span><span class="s">&#39;c11&#39;</span><span class="p">,</span><span class="s">&#39;c33&#39;</span><span class="p">]]</span>
+    <span class="k">print</span> <span class="n">meta_df</span><span class="p">[[</span><span class="s">&#39;c11&#39;</span><span class="p">,</span><span class="s">&#39;c33&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">a</span>
+    
+<span class="c">#    df.save(&#39;outpath&#39;)</span>
+<span class="c">#    f=open(&#39;outpath&#39;, &#39;r&#39;)</span>
+<span class="c">#    df2=load(f)    </span>
+
+    <span class="k">print</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">Creating MetaSeries&#39;</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">MetaSeries</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+    <span class="k">print</span> <span class="n">s</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">print</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">Series Slicing 0:5&#39;</span>
+    <span class="k">print</span> <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/installation_dependencies.html">Dependencies/Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/plotting.html">Plotting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../API/skspec.html">API</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../../../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+            <p class="searchtip" style="font-size: 90%">
+                Enter search terms or a module, class or function name.
+            </p>
+          </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="../../../py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="../../../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, Adam Hughes, ReevesLab Dept. Physics, George Washington University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3b2.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

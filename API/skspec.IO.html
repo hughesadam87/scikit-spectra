@@ -1,0 +1,234 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>IO Package &mdash; scikit-spectra 0.3.1-2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.3.1-2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="scikit-spectra 0.3.1-2 documentation" href="../index.html" />
+    <link rel="up" title="API" href="skspec.html" />
+    <link rel="next" title="bundled Package" href="skspec.bundled.html" /> 
+  </head>
+  <body role="document">
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../index.html">scikit-spectra 0.3.1-2 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="skspec.bundled.html" title="bundled Package"
+             accesskey="N">next</a> |
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../index.html"><img src="../_static/new_logo.png" border="100" alt="sampledoc"/></a>
+</div>
+
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="io-package">
+<h1>IO Package<a class="headerlink" href="#io-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="csv-wrapper-module">
+<h2><code class="xref py py-mod docutils literal"><span class="pre">csv_wrapper</span></code> Module<a class="headerlink" href="#csv-wrapper-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-skspec.IO.gwu_interfaces">
+<span id="gwu-interfaces-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">gwu_interfaces</span></code> Module<a class="headerlink" href="#module-skspec.IO.gwu_interfaces" title="Permalink to this headline">¶</a></h2>
+<p>Utilities for converting various file formats to a skspec TimeSpectra.
+To convert a list of raw files, use from_spec_files()
+To convert old-style timefile/spectral data file, use from_timefile_datafile()
+To convert spectral datafiles from Ocean Optics USB2000 and USB650, pas file list in 
+from_spec_files.</p>
+<p>Returns a skspec TimeSpectra with custom attributes &#8220;metadata&#8221;, &#8220;filedict&#8221;, &#8220;baseline&#8221;.</p>
+<dl class="function">
+<dt id="skspec.IO.gwu_interfaces.extract_darkfile">
+<code class="descclassname">skspec.IO.gwu_interfaces.</code><code class="descname">extract_darkfile</code><span class="sig-paren">(</span><em>filelist</em>, <em>return_null=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/IO/gwu_interfaces.html#extract_darkfile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.IO.gwu_interfaces.extract_darkfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attempts to pick out a dark file from a list using string matching.  Handling of darkfile
+is done by other functions.  Opted to raise errors and warnings here, instead of downstream.</p>
+<p>If return_null: it will return none if no dark file is found.  Otherwise it will raise an error.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.IO.gwu_interfaces.from_gwu_chem_UVVIS">
+<code class="descclassname">skspec.IO.gwu_interfaces.</code><code class="descname">from_gwu_chem_UVVIS</code><span class="sig-paren">(</span><em>filelist</em>, <em>sortnames=False</em>, <em>shortname=True</em>, <em>cut_extension=False</em>, <em>name=''</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/IO/gwu_interfaces.html#from_gwu_chem_UVVIS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.IO.gwu_interfaces.from_gwu_chem_UVVIS" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format for comma delimited two column data from GWU chemistry&#8217;s UVVis.  These have no useful metadata
+or dark data and so it is important that users either pass in a correctly sorted filelist.  Once the 
+dataframe is created, on can do df=df.reindex(columns=[correct order]).</p>
+<p>It uses read_csv() to and creates a list of dataframes.  Afterwards, concat() merges these.</p>
+<dl class="docutils">
+<dt>Kwds:</dt>
+<dd><dl class="first docutils">
+<dt>sortnames- Will attempt to autosort the filelist. Otherwise, order of files passed in is</dt>
+<dd>directly used as columns.</dd>
+</dl>
+<p>shortname- If false, full file path is used as the column name.  If true, only the filename is used.</p>
+<p class="last">cut_extension- If using the shortname, this will determine if the file extension is saved or cut from the data.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.IO.gwu_interfaces.from_oceanoptics">
+<code class="descclassname">skspec.IO.gwu_interfaces.</code><code class="descname">from_oceanoptics</code><span class="sig-paren">(</span><em>directory</em>, <em>sample_by=None</em>, <em>sort=True</em>, <em>**from_spec_files_kwds</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/IO/gwu_interfaces.html#from_oceanoptics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.IO.gwu_interfaces.from_oceanoptics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper to from_spec_files to both generate a file list from a directory and read files into time spectra.</p>
+<blockquote>
+<div>directory: directory with raw spectral files.
+sample_by: Sample every X files.  (Useful for reducing large datsets prior to readin)
+<a href="#id1"><span class="problematic" id="id2">**</span></a>from_spec_files_kwds: All kwds passed to from_spec_files().</div></blockquote>
+<blockquote>
+<div>Slice works by taking the 0 file every time and counting from there.  So if you enter sample_by=3,
+expect to get files 0, 3, 6 etc... but if sample_by_10, you get files 0,10,20</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.IO.gwu_interfaces.from_spec_files">
+<code class="descclassname">skspec.IO.gwu_interfaces.</code><code class="descname">from_spec_files</code><span class="sig-paren">(</span><em>file_list</em>, <em>name=''</em>, <em>skiphead=17</em>, <em>skipfoot=1</em>, <em>check_for_overlapping_time=True</em>, <em>extract_dark=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/IO/gwu_interfaces.html#from_spec_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.IO.gwu_interfaces.from_spec_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes in raw files directly from Ocean optics USB2000 and USB650 spectrometers and returns a
+skspec TimeSpectra. If spectral data stored without header, can be called with skiphead=0.</p>
+<blockquote>
+<div><p>name: Set name of returned TimeSpectra.</p>
+<dl class="docutils">
+<dt>check_for_overlapping_time: will raise errors if any files have identical times. Otherwise, time</dt>
+<dd>is overwritten.  Really only useful for testing or otherwise cornercase instances.</dd>
+<dt>extract_dark: Attempt to find a filename with caseinsenstive string match to &#8220;dark&#8221;.  If dark spectrum</dt>
+<dd>not found, will print warning.  If multiple darks found, will raise error.</dd>
+</dl>
+<p>skiphead/skipfoot: Mostly for reminder that this filetype has a 17 line header and a 1 line footer.</p>
+</div></blockquote>
+<blockquote>
+<div><p>Built to work with 2-column data only!!!</p>
+<p>Dataframe is constructed from a list of dictionaries.
+Each dataframe gets an appended headerdata attribute (dataframe.headerdata) which is a dictionary,
+keyed by columns and stores (infile, header, footer) data so no info is lost between files.</p>
+<p>Constructed to work for non-equally spaced datafiles, or non-identical data (aka wavelengths can have nans).</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.IO.gwu_interfaces.from_timefile_datafile">
+<code class="descclassname">skspec.IO.gwu_interfaces.</code><code class="descname">from_timefile_datafile</code><span class="sig-paren">(</span><em>datafile</em>, <em>timefile</em>, <em>extract_dark=True</em>, <em>name=''</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/IO/gwu_interfaces.html#from_timefile_datafile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.IO.gwu_interfaces.from_timefile_datafile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts old-style spectral data from GWU phys lab into  
+a dataframe with timestamp column index and wavelength row indicies.</p>
+<p>Creates the DataFrame from a dictionary of Series, keyed by datetime.
+<a href="#id3"><span class="problematic" id="id4">**</span></a>name becomes name of dataframe</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.IO.gwu_interfaces.get_headermetadata_dataframe">
+<code class="descclassname">skspec.IO.gwu_interfaces.</code><code class="descname">get_headermetadata_dataframe</code><span class="sig-paren">(</span><em>dataframe</em>, <em>time_file_dict</em>, <em>name=''</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/IO/gwu_interfaces.html#get_headermetadata_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.IO.gwu_interfaces.get_headermetadata_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd><p>After creation of the dataframe and datetime-to-file dic, various metadata attributes 
+come together like filecount, filestart, filend etc...
+<a href="#id5"><span class="problematic" id="id6">**</span></a>run title becomes name of dataframe and can be adopted by plots</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.IO.gwu_interfaces.get_shortname">
+<code class="descclassname">skspec.IO.gwu_interfaces.</code><code class="descname">get_shortname</code><span class="sig-paren">(</span><em>filepath</em>, <em>cut_extension=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/IO/gwu_interfaces.html#get_shortname"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.IO.gwu_interfaces.get_shortname" title="Permalink to this definition">¶</a></dt>
+<dd><p>simply get the filename of fullpath.  Cut extension will remove file extension</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-skspec.IO.specrecord">
+<span id="specrecord-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">specrecord</span></code> Module<a class="headerlink" href="#module-skspec.IO.specrecord" title="Permalink to this headline">¶</a></h2>
+<dl class="attribute">
+<dt id="skspec.IO.specrecord.MetaData">
+<code class="descclassname">skspec.IO.specrecord.</code><code class="descname">MetaData</code><a class="headerlink" href="#skspec.IO.specrecord.MetaData" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">Spectralmetadata</span></code></p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="../Tutorial/installation_dependencies.html">Dependencies/Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Tutorial/getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Tutorial/plotting.html">Plotting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="skspec.html">API</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+            <p class="searchtip" style="font-size: 90%">
+                Enter search terms or a module, class or function name.
+            </p>
+          </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="skspec.bundled.html" title="bundled Package"
+              >next</a> |
+            <a href="../py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+              <br/>
+              <a href="../_sources/API/skspec.IO.txt"
+                rel="nofollow">Show Source</a>
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, Adam Hughes, ReevesLab Dept. Physics, George Washington University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3b2.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

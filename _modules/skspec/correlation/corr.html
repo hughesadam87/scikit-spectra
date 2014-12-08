@@ -1,0 +1,834 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>skspec.correlation.corr &mdash; scikit-spectra 0.3.1-2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.3.1-2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="scikit-spectra 0.3.1-2 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../../../index.html">scikit-spectra 0.3.1-2 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../../../index.html"><img src="../../../_static/new_logo.png" border="100" alt="sampledoc"/></a>
+</div>
+
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for skspec.correlation.corr</h1><div class="highlight"><pre>
+<span class="c">#CITE BOOK, REWRITE</span>
+
+<span class="sd">&quot;&quot;&quot; Suite for 2-dimensional correlation analysis.  Decided to put it in, despite already</span>
+<span class="sd">seeing a numpy-based version in paper &quot;2D-correlation analysis applied to in situ and operando Mossbauer spectroscopy&quot;.</span>
+<span class="sd">This would not be pandas friendly, so it wouldn&#39;t intgerate into skspec and I also want to build some tools from </span>
+<span class="sd">scratch to refamiliarize myself with the topic.</span>
+
+<span class="sd">To remember/writeup eventually:</span>
+
+<span class="sd">From page 32 Noda book,</span>
+<span class="sd">Classical statistical cross correlation measures the dot product between spectral variables at different times.</span>
+<span class="sd">For example, a pulse at t=0 and again at t=3, then the cross correlation would be max at tau=3.  If this experiment</span>
+<span class="sd">went on for 50 minutes, then we average and integrate over all time.  If this pulse happed every 3 seconds, this correlation</span>
+<span class="sd">would be 100% for exmaple.  If the pulse happed like only 5 times, the correlation would be diluted by the normalization factor.</span>
+
+<span class="sd">The synchronous spectrum is the cross correlation at tau=0, summed and averaged over all times.  Basically, it measures the instantaneous</span>
+<span class="sd">correlation of all spectral variables.  The asynchronous spectrum is the instantaneous orthogonal spectrum basically.  So whenever two things</span>
+<span class="sd">are moving together at one instant, weight goes into the sync.  If not, weight goes into the async  Makes me think of an easy filter!  Can</span>
+<span class="sd">just throw out regions where not much is happening right?  Maybe call it a 2dcs filter.</span>
+
+
+<span class="sd">2d Codistriubtion Spectroscopy[2] is a more recent development and is also included.</span>
+
+<span class="sd">References</span>
+<span class="sd">----------</span>
+
+<span class="sd">[1] Scaling techniques to enhance two-dimensional correlation spectra, Isao Noda,</span>
+<span class="sd">    Journal of Molecular Structure.  2008. Volume: 883-884, Issue: 1-3, (216-227) </span>
+<span class="sd">[2] Isao Nodal. Journal of Molectul Structure. 2014.  Two-dimensional codistriubtion spectroscopy to</span>
+<span class="sd">    determine the sequential order of distributed presence of species.  1069. 2014 (50-59)</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c">#Copy these to notebooks?</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">pandas</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span> 
+
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">pi</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">skspec.core.anyspectra</span> <span class="kn">import</span> <span class="n">AnyFrame</span> 
+<span class="kn">from</span> <span class="nn">skspec.plotting.correlation_plot</span> <span class="kn">import</span> <span class="n">corr2d</span><span class="p">,</span> <span class="n">corr3d</span><span class="p">,</span> <span class="n">corr_multi</span>
+<span class="kn">import</span> <span class="nn">skspec.config</span> <span class="kn">as</span> <span class="nn">pvconfig</span>
+<span class="kn">import</span> <span class="nn">skspec.core.utilities</span> <span class="kn">as</span> <span class="nn">pvutils</span>
+<span class="kn">from</span> <span class="nn">skspec.pandas_utils.metadframe</span> <span class="kn">import</span> <span class="n">MetaDataFrame</span>
+<span class="kn">from</span> <span class="nn">pca_lite</span> <span class="kn">import</span> <span class="n">PCA</span>
+<span class="c">#from pcakernel import PCA</span>
+
+
+<span class="c"># Original way to subtract ref spec:</span>
+<span class="c">#     data_trans = matrix.transpose()</span>
+<span class="c">#    return (data_trans - vector).transpose()</span>
+
+<div class="viewcode-block" id="noda_matrix"><a class="viewcode-back" href="../../../API/skspec.correlation.html#skspec.correlation.corr.noda_matrix">[docs]</a><span class="k">def</span> <span class="nf">noda_matrix</span><span class="p">(</span><span class="n">length</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Length is the number of timepoints/columns in the dataframe. </span>
+<span class="sd">       Returns the hilbert noda Transformation matrix.&#39;&#39;&#39;</span>
+
+    <span class="c"># XXX: how to vectorize?</span>
+    <span class="n">Njk</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span> <span class="p">(</span><span class="n">length</span><span class="p">,</span><span class="n">length</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">length</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">length</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">j</span><span class="o">==</span><span class="n">k</span><span class="p">:</span>
+                <span class="n">Njk</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="mi">0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">Njk</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="mf">1.0</span> <span class="o">/</span>  <span class="p">(</span> <span class="n">pi</span> <span class="o">*</span> <span class="p">(</span><span class="n">k</span><span class="o">-</span><span class="n">j</span><span class="p">)</span>  <span class="p">)</span>  <span class="c">#DOUBLE CHECK j-i with old verison.    </span>
+    <span class="k">return</span> <span class="n">Njk</span>
+
+</div>
+<div class="viewcode-block" id="CorrError"><a class="viewcode-back" href="../../../API/skspec.correlation.html#skspec.correlation.corr.CorrError">[docs]</a><span class="k">class</span> <span class="nc">CorrError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
+    </div>
+<div class="viewcode-block" id="Spec2dError"><a class="viewcode-back" href="../../../API/skspec.correlation.html#skspec.correlation.corr.Spec2dError">[docs]</a><span class="k">class</span> <span class="nc">Spec2dError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
+</div>
+<div class="viewcode-block" id="Spec2d"><a class="viewcode-back" href="../../../API/skspec.correlation.html#skspec.correlation.corr.Spec2d">[docs]</a><span class="k">class</span> <span class="nc">Spec2d</span><span class="p">(</span><span class="n">AnyFrame</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Frame to hold synchronous, asynchronous and other 2D spectra objects.</span>
+<span class="sd">    Mostly just want to customize headers, and subclasses correspond to various</span>
+<span class="sd">    corr2D object.  For example, synchronous spectra has spectral data on </span>
+<span class="sd">    index and columns.  Therefore, it is represented by Spec2D class.</span>
+
+<span class="sd">    Also overwrites Spectra.norm for 3dPlotting purposes.</span>
+
+<span class="sd">    Will update active/spectral unit based on index/columns, but original</span>
+<span class="sd">    datarange (like how much time synchronous corresponds to) is stored</span>
+<span class="sd">    permanently in self._span_string</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Hack over norms for plotting API sake.  Stores metadata like</span>
+<span class="sd">        scaling, spectral and variance range of spectra.  *args, **kwargs</span>
+<span class="sd">        passed to AnyFrame constructor.</span>
+
+<span class="sd">        kwargs</span>
+<span class="sd">        ------</span>
+
+<span class="sd">        _corr2d: Corr2D object</span>
+
+<span class="sd">        _norm: &#39;&#39;</span>
+<span class="sd">           norm to appear in 3dplots and on contour colorbar</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+
+        <span class="c"># Mandatory, access to corr2d and hence original dataset </span>
+        <span class="c"># (passed by reference)!</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_corr2d</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;corr2d&#39;</span><span class="p">)</span>
+
+        <span class="c">#self._scalestring = kwargs.pop(&#39;scalestring&#39;, &#39;??&#39;)</span>
+        <span class="c">#self._originadataindex</span>
+
+        <span class="c"># INDEX/COLUMNS are SET TO INDEX OF ORIGINAL DATA</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;index&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_corr2d</span><span class="o">.</span><span class="n">index</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;columns&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_corr2d</span><span class="o">.</span><span class="n">index</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">Spec2d</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Spec2d.from_corr2d"><a class="viewcode-back" href="../../../API/skspec.correlation.html#skspec.correlation.corr.Spec2d.from_corr2d">[docs]</a>    <span class="k">def</span> <span class="nf">from_corr2d</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">corr2d</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="n">scale_string</span><span class="o">=</span><span class="n">corr2d</span><span class="o">.</span><span class="n">scalestring</span><span class="p">,</span> 
+                   <span class="n">originaldatindex</span><span class="o">=</span><span class="n">corr2d</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        </div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_var_span</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_corr2d</span><span class="o">.</span><span class="n">columns</span>
+        <span class="k">return</span> <span class="n">pvutils</span><span class="o">.</span><span class="n">_compute_span</span><span class="p">(</span><span class="n">cols</span><span class="p">,</span> <span class="n">with_unit</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    
+    <span class="c"># Header/output</span>
+    <span class="c"># -------------</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_header</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Header for string printout &quot;&quot;&quot;</span>
+        <span class="n">delim</span> <span class="o">=</span> <span class="n">pvconfig</span><span class="o">.</span><span class="n">HEADERDELIM</span>
+
+        <span class="c"># Since correlation REQUIRES index units, this will probably just work</span>
+        
+        <span class="c"># Certain methods aren&#39;t copying this correctly.  Delete later if fix</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">pvutils</span><span class="o">.</span><span class="n">safe_lookup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">)</span>
+        <span class="n">ftunit</span> <span class="o">=</span> <span class="n">pvutils</span><span class="o">.</span><span class="n">safe_lookup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;varunit&#39;</span><span class="p">)</span>  
+        <span class="n">spunit</span> <span class="o">=</span> <span class="n">pvutils</span><span class="o">.</span><span class="n">safe_lookup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;specunit&#39;</span><span class="p">)</span>
+
+
+        <span class="n">header</span> <span class="o">=</span> <span class="s">&quot;*</span><span class="si">%s</span><span class="s">*</span><span class="si">%s</span><span class="s">Scaling:</span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> \
+            <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">delim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_corr2d</span><span class="o">.</span><span class="n">_scale_string</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">header</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_header_html</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Header for html printout &quot;&quot;&quot;</span>
+        <span class="n">delim</span> <span class="o">=</span> <span class="n">pvconfig</span><span class="o">.</span><span class="n">HEADERHTMLDELIM</span>
+
+        <span class="c"># Should be same by virtue of index units being same, but don&#39;t</span>
+        <span class="c"># enforece it; up to user not to change it!</span>
+        <span class="n">ftunit</span> <span class="o">=</span> <span class="n">pvutils</span><span class="o">.</span><span class="n">safe_lookup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;varunit&#39;</span><span class="p">)</span>  
+        <span class="n">spunit</span> <span class="o">=</span> <span class="n">pvutils</span><span class="o">.</span><span class="n">safe_lookup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;specunit&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">s1</span><span class="p">,</span> <span class="n">s2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span>            
+            <span class="n">colorshape</span> <span class="o">=</span> <span class="s">&#39;&lt;font color=&quot;#0000CD&quot;&gt;(</span><span class="si">%s%s</span><span class="s"> X </span><span class="si">%s%s</span><span class="s">)&lt;/font&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">s1</span><span class="p">,</span>
+                <span class="n">spunit</span><span class="p">,</span>
+                <span class="n">s2</span><span class="p">,</span>
+                <span class="n">ftunit</span><span class="p">)</span>
+
+        <span class="c">#If user turns 2D Corr into a 1D spectrum (which they shouldn&#39;t...)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">colorshape</span> <span class="o">=</span> <span class="s">&#39;&lt;font color=&quot;#0000CD&quot;&gt; (</span><span class="si">%s</span><span class="s">)&lt;/font&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="c"># Green        </span>
+        <span class="n">scale_string</span> <span class="o">=</span> <span class="s">&#39;Scaling: &lt;font color=&quot;#197519&quot;&gt;</span><span class="si">%s</span><span class="s">&lt;/font&gt;&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_corr2d</span><span class="o">.</span><span class="n">_scale_string</span>
+
+        <span class="c"># Black </span>
+        <span class="n">span_string</span> <span class="o">=</span> <span class="s">&#39;Span:  &lt;font color=&quot;#000000&quot;&gt;</span><span class="si">%s</span><span class="s">&lt;/font&gt;&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var_span</span>
+
+        <span class="n">header</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">:&amp;nbsp</span><span class="si">%s%s%s%s%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> \
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> 
+             <span class="n">colorshape</span><span class="p">,</span>
+             <span class="n">delim</span><span class="p">,</span>
+             <span class="n">scale_string</span><span class="p">,</span>
+             <span class="n">delim</span><span class="p">,</span>
+             <span class="n">span_string</span>         
+             <span class="p">)</span>   
+
+        <span class="k">return</span> <span class="n">header</span>
+
+
+<div class="viewcode-block" id="Spec2d.plot"><a class="viewcode-back" href="../../../API/skspec.correlation.html#skspec.correlation.corr.Spec2d.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s">&#39;corr2d&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">pltkwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
+
+        <span class="n">pltkwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;title&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s"> (</span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var_span</span><span class="p">))</span>        
+
+        <span class="c"># Default to specplot</span>
+        <span class="k">if</span> <span class="n">kind</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;corr2d&#39;</span><span class="p">,</span> <span class="s">&#39;corr3d&#39;</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Spec2d</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="n">kind</span><span class="p">,</span> <span class="o">**</span><span class="n">pltkwargs</span><span class="p">)</span>
+
+        <span class="n">pltkwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;xlabel&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">specunit</span><span class="p">)</span>
+        <span class="n">pltkwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;ylabel&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">specunit</span><span class="p">)</span>         
+
+        <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s">&#39;corr2d&#39;</span><span class="p">:</span>
+            <span class="c"># If user sets color/cmap, will overwrite</span>
+            <span class="k">if</span> <span class="s">&#39;cmap&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">pltkwargs</span> <span class="ow">and</span> <span class="s">&#39;color&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">pltkwargs</span> <span class="ow">and</span> <span class="s">&#39;colors&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">pltkwargs</span><span class="p">:</span>
+                <span class="n">pltkwargs</span><span class="p">[</span><span class="s">&#39;cmap&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pvconfig</span><span class="o">.</span><span class="n">CMAP_CONTOUR</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="n">pltkwargs</span><span class="p">[</span><span class="s">&#39;_reverse_axis&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+
+
+            <span class="k">return</span> <span class="n">corr2d</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">pltkwargs</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s">&#39;corr3d&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">corr3d</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">pltkwargs</span><span class="p">)</span>
+
+
+
+
+<span class="c"># Keep this independt of TS; just numpy then more flexible</span></div></div>
+<div class="viewcode-block" id="Corr2d"><a class="viewcode-back" href="../../../API/skspec.correlation.html#skspec.correlation.corr.Corr2d">[docs]</a><span class="k">class</span> <span class="nc">Corr2d</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Computed 2d correlation spectra, including synchronous and asynchronus,</span>
+<span class="sd">    correlation, disrelation and other spectra given a 2d data matrix, index</span>
+<span class="sd">    and columns.  Index and columns are necessary for plotting, so made them</span>
+<span class="sd">    a mandatory requirement.&quot;&quot;&quot;</span>
+
+    <span class="c"># Columns aren&#39;t used; should I eliminate</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spec</span><span class="p">,</span> <span class="n">refspec</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; refspec is if you want custom centering.  &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">spec</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CorrError</span><span class="p">(</span><span class="s">&#39;Data must be 2d!&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">MetaDataFrame</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">CorrError</span><span class="p">(</span><span class="s">&#39;Corr2d requires skspec data structures (Metadataframe,&#39;</span>
+                            <span class="s">&#39;Spectra, etc... got </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+
+        <span class="c"># MAKE AN ACTUAL COPY OF DATA, NOT PASSING BY REFERENCE</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spec</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">index</span>   <span class="c">#Relax these maybe and just hide some sideplots...</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">columns</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">specunit</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">specunit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">varunit</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">varunit</span>
+
+        <span class="c"># Better to store than compute as a property over and over</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_noda</span> <span class="o">=</span> <span class="n">noda_matrix</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">M</span><span class="p">)</span>
+
+        <span class="c"># Defaults</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_scaled</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.8</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_PCA</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="c"># Ref spectrum/dynamic spectrum/centering</span>
+        <span class="k">if</span> <span class="n">refspec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c"># QUICKEST VAILDATION OF REF_SPEC (WHY CLASS NOT WORKING WIT NP.NDARRAY)</span>
+            
+            <span class="c">#INSTEAD OF TYPE CHECK, JUST FORCE CONVERT BY DOING array(REFSPEC)</span>
+            <span class="n">refspec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">refspec</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">refspec</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">CorrError</span><span class="p">(</span><span class="s">&#39;Shape mismatch: spectral data index </span><span class="si">%s</span><span class="s"> and&#39;</span>
+                                <span class="s">&#39; reference spec shape %.&#39;</span> <span class="o">%</span> \
+                                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">refspec</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+
+            <span class="c"># Ref spectrum must be stored as an array for subtraction to work </span>
+            <span class="c"># as defined here!</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ref_spectrum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">refspec</span><span class="p">)</span>           
+            <span class="bp">self</span><span class="o">.</span><span class="n">_center</span> <span class="o">=</span> <span class="s">&#39;Pre-centered&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dyn_spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ref_spectrum</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_center</span><span class="p">(</span><span class="s">&#39;mean&#39;</span><span class="p">)</span>
+
+
+    <span class="c"># Scaling and Centering</span>
+    <span class="c"># ---------------------</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_scale_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Current state of scalling, used in __repr__ and plot &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scaled</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&#39;(a=</span><span class="si">%s</span><span class="s">, b=</span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s">&#39;False&#39;</span>
+
+
+<div class="viewcode-block" id="Corr2d.scale"><a class="viewcode-back" href="../../../API/skspec.correlation.html#skspec.correlation.corr.Corr2d.scale">[docs]</a>    <span class="k">def</span> <span class="nf">scale</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Scale the synchronous and asynchronous spectra via REF 2</span>
+<span class="sd">        based on generalized exponential parameters.  Scaling alpha will enhance</span>
+<span class="sd">        the fine detail of the correlations, but also the noise.  Enhancing beta</span>
+<span class="sd">        can screen the fine details and enhance the primary correlations.  Alpha</span>
+<span class="sd">        0.8 and beta 0.0 are suggested as optimal tradeoff between fine correlation</span>
+<span class="sd">        enhancement and low noise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">args</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">CorrError</span><span class="p">(</span><span class="s">&#39;Please use keywords (alpha=..., beta=...) to&#39;</span>
+                                <span class="s">&#39;avoid ambiguity.&#39;</span><span class="p">)</span> 
+                <span class="c"># Make that a custom exception</span>
+            <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="bp">True</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scaled</span> <span class="o">==</span> <span class="bp">True</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Data already scaled!&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_scaled</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="k">elif</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="bp">False</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scaled</span> <span class="o">==</span> <span class="bp">False</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Data already unscaled!&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_scaled</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">CorrError</span><span class="p">(</span><span class="s">&#39;Argument &quot;</span><span class="si">%s</span><span class="s">&quot; not understood; please use True or False.&#39;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_scaled</span> <span class="o">=</span> <span class="bp">True</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;alpha&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;beta&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&#39;Alpha/Beta lose meaning off of range 0-1.&#39;</span><span class="p">)</span>
+
+</div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">center</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_center</span>
+    
+
+<div class="viewcode-block" id="Corr2d.set_center"><a class="viewcode-back" href="../../../API/skspec.correlation.html#skspec.correlation.corr.Corr2d.set_center">[docs]</a>    <span class="k">def</span> <span class="nf">set_center</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">style</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; User sets centering, this updates the  &quot;&quot;&quot;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">style</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_center</span> <span class="o">=</span> <span class="bp">None</span>
+                <span class="c"># Instead of np.zeros, I will just multiply 0 times a column</span>
+                <span class="c"># To get spectrum of 0&#39;s</span>
+                <span class="n">ref_spectrum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mf">0.0</span>  
+
+            <span class="k">elif</span> <span class="n">style</span> <span class="o">==</span> <span class="s">&#39;mean&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_center</span> <span class="o">=</span> <span class="s">&#39;mean&#39;</span>
+                <span class="n">ref_spectrum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+            <span class="c"># style is understood as a function, but not inspected</span>
+            <span class="k">else</span><span class="p">:</span>            
+                <span class="bp">self</span><span class="o">.</span><span class="n">_center</span> <span class="o">=</span> <span class="s">&#39;custom fcn.&#39;</span>           
+                <span class="n">ref_spectrum</span> <span class="o">=</span> <span class="n">style</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+
+            <span class="k">raise</span> <span class="n">CorrError</span><span class="p">(</span><span class="s">&#39;Center requires style of &quot;mean&quot;, None or a &#39;</span>
+                            <span class="s">&#39; a function, got &quot;</span><span class="si">%s</span><span class="s">&quot;.&#39;</span> <span class="o">%</span> <span class="n">style</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ref_spectrum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ref_spectrum</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ref_spectrum</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="n">CorrError</span><span class="p">(</span><span class="s">&#39;ref. spectrum should be of spectral length (</span><span class="si">%s</span><span class="s">)&#39;</span>
+                            <span class="s">&#39; got &quot;</span><span class="si">%s</span><span class="s">&quot;.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ref_spectrum</span><span class="p">)))</span>
+
+        <span class="c"># Set dynamic spectrum.  Should just be able to subtract but numpy messing up        </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dyn_spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ref_spectrum</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+</div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">shape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">shape</span>     
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">M</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c"># Numpy Arrays</span>
+    <span class="c"># ------------</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">sync_noscale</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return unscaled, synchronous spectrum as a numpy array. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dyn_spec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dynconjtranspose</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">M</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span>  <span class="c">#ORDER OF OPERATIONS DEPENDENT (aka np.dot(t_dyn, dyn) doesn&#39;t work)</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">async_noscale</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dyn_spec</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_noda</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dynconjtranspose</span><span class="p">)</span> <span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">M</span><span class="o">-</span><span class="mf">1.0</span><span class="p">)</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">coeff_corr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Correlation coefficient (pg 78) &quot;&quot;&quot;</span>   
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sync_noscale</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">joint_var</span><span class="p">)</span> 
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">coeff_disr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Disrelation coefficient (pg 79) &quot;&quot;&quot;</span>
+        <span class="c"># Not the same as np.sqrt( 1 - coef_corr**2), only same in magnitude!</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">async_noscale</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">joint_var</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">joint_var</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Product of standard devations of dynamic spectrum. </span>
+<span class="sd">        s1 * s2 or sqrt(siag(sync*sync)).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">std</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dyn_spec</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="c">#sigma(lambda)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">std</span><span class="p">,</span> <span class="n">std</span><span class="p">)</span>
+        <span class="c">#return Spec2d(np.outer(std, std),</span>
+                      <span class="c">#corr2d = self,</span>
+                      <span class="c">#name=&#39;Joint Variance&#39;,</span>
+                      <span class="c">#iunit=&#39;variance&#39;)</span>
+
+
+    <span class="c"># 11/10/14</span>
+    <span class="c"># I confirmed that these are equivalent to book definitions from </span>
+    <span class="c"># diagonals of synchronous spectrum!  IE std = sqrt(diag(sync*sync))</span>
+    <span class="c"># and var = diag(sync * sync)</span>
+    <span class="c"># std is actually &gt; var cuz var &lt;1 so sqrt makes larger</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_dynconjtranspose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Dynamic spectrum conjugate transpose; helpful to be cached&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">conj</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dyn_spec</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+
+
+    <span class="c"># 2D Correlation Spectra</span>
+    <span class="c"># ----------------------</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">sync</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scaled</span><span class="p">:</span>
+            <span class="n">matrixout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sync_noscale</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">joint_var</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">)</span> <span class="o">*</span> \
+                <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coeff_corr</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">beta</span><span class="p">)</span>
+                    <span class="c"># ** faster than np.power but abs and np.abs same        </span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">matrixout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sync_noscale</span>
+
+        <span class="k">return</span> <span class="n">Spec2d</span><span class="p">(</span><span class="n">matrixout</span><span class="p">,</span> 
+                      <span class="n">corr2d</span> <span class="o">=</span> <span class="bp">self</span><span class="p">,</span>
+                      <span class="n">name</span><span class="o">=</span><span class="s">&#39;Synchronous Correlation&#39;</span><span class="p">,</span>
+                      <span class="n">iunit</span><span class="o">=</span><span class="s">&#39;synchronicity&#39;</span><span class="p">)</span>   
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">async</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>     
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scaled</span><span class="p">:</span>
+            <span class="n">matrixout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">async_noscale</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">joint_var</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">)</span> <span class="o">*</span> \
+                <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coeff_disr</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">beta</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">matrixout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">async_noscale</span>
+
+        <span class="k">return</span> <span class="n">Spec2d</span><span class="p">(</span><span class="n">matrixout</span><span class="p">,</span> 
+                      <span class="n">corr2d</span> <span class="o">=</span> <span class="bp">self</span><span class="p">,</span>
+                      <span class="n">name</span><span class="o">=</span><span class="s">&#39;Asynchronous Correlation&#39;</span><span class="p">,</span>
+                      <span class="n">iunit</span><span class="o">=</span><span class="s">&#39;asynchronicity&#39;</span><span class="p">)</span>   
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">phase</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Global phase angle (pg 79).  This will use scaled data.&quot;&quot;&quot;</span>
+        <span class="n">phase</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">async</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">sync</span><span class="p">)</span>
+        <span class="n">phase</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#39;Phase Map&#39;</span> 
+        <span class="n">phase</span><span class="o">.</span><span class="n">iunit</span> <span class="o">=</span> <span class="s">&#39;phase angle&#39;</span>
+        <span class="k">return</span> <span class="n">phase</span>    
+    
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">modulous</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Effective lengh the vector with components Sync/Async&quot;&quot;&quot;</span>
+        <span class="n">modulous</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sync</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">async</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">modulous</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#39;Modulous&#39;</span>
+        <span class="n">modulous</span><span class="o">.</span><span class="n">iunit</span> <span class="o">=</span> <span class="s">&#39;mod&#39;</span>
+        <span class="k">return</span> <span class="n">modulous</span>
+        
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">correlation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; 2D Correlation Spectrum&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">Spec2d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coeff_corr</span><span class="p">,</span> 
+                      <span class="n">corr2d</span> <span class="o">=</span> <span class="bp">self</span><span class="p">,</span>
+                      <span class="n">name</span> <span class="o">=</span> <span class="s">&#39;Correlation Coefficient&#39;</span><span class="p">,</span>
+                      <span class="n">iunit</span><span class="o">=</span><span class="s">&#39;corr. coefficient&#39;</span><span class="p">)</span>                
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">disrelation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; 2D Disrelation Spectrum&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">Spec2d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coeff_disr</span><span class="p">,</span>
+                      <span class="n">corr2d</span> <span class="o">=</span> <span class="bp">self</span><span class="p">,</span>
+                      <span class="n">name</span> <span class="o">=</span> <span class="s">&#39;Disrelation Coefficient&#39;</span><span class="p">,</span>
+                      <span class="n">iunit</span><span class="o">=</span><span class="s">&#39;disr. coefficient&#39;</span><span class="p">)</span>   
+
+
+    <span class="c"># 2DCodistribution Spectroscopy</span>
+    <span class="c"># -----------------------------</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">char_index</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Characteristic index.  In Ref. [2], this is the </span>
+<span class="sd">        characteristic time, and is equation 6.</span>
+
+<span class="sd">        Returns: Spectrum of length equivalent to spectral index.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">M</span>
+
+<span class="c">#        if self._center is None: #pre-center also has this case</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ref_spectrum</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CorrError</span><span class="p">(</span><span class="s">&#39;CoDistribution divides by ref spectrum.  If&#39;</span>
+                            <span class="s">&#39; not centring, the ref spec is 0 and you get infinities!&#39;</span><span class="p">)</span>
+        <span class="n">coeff</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="n">m</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">ref_spectrum</span><span class="p">)</span>
+
+        <span class="n">summation</span> <span class="o">=</span> <span class="mi">0</span> 
+        <span class="n">k_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">m</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span> <span class="c">#m+1 to include m in sum</span>
+            <span class="n">k_matrix</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="c"># in place</span>
+            <span class="c"># df.mul is same as dotting:</span>
+                <span class="c">#http://stackoverflow.com/questions/15753916/dot-products-in-pandas</span>
+            <span class="n">summation</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dyn_spec</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">k_matrix</span><span class="p">)</span> <span class="o">+</span> <span class="p">((</span><span class="n">m</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">coeff</span> <span class="o">*</span> <span class="n">summation</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">char_perturb</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Characteristic index.  In Ref. [2], this is the </span>
+<span class="sd">        characteristic time, and is equation 6.</span>
+
+<span class="sd">        Returns: Spectrum of length equivalent to spectral index.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tm</span><span class="p">,</span> <span class="n">t1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">Kj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">char_index</span>
+        
+        <span class="k">return</span> <span class="p">((</span><span class="n">tm</span><span class="o">-</span><span class="n">t1</span><span class="p">)</span> <span class="o">*</span> <span class="p">((</span><span class="n">Kj</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">M</span> <span class="o">-</span><span class="mi">1</span><span class="p">)))</span> <span class="o">+</span> <span class="n">t1</span>
+
+
+    <span class="c"># TO	VECTORIZE:</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">async_codist</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Asynchronous codistribution &quot;&quot;&quot;</span>
+        
+        <span class="c"># Empty asyn matrix</span>
+        <span class="n">numrows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>        
+        <span class="n">async</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">numrows</span><span class="p">,</span><span class="n">numrows</span><span class="p">))</span>
+
+        <span class="n">tm</span><span class="p">,</span> <span class="n">t1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        
+        <span class="c"># Numpy arrays to speed up loop/indexer?</span>
+        <span class="n">tbar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">char_perturb</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">joint_var</span>
+        
+        <span class="c"># broadcast this?</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numrows</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numrows</span><span class="p">):</span>
+                <span class="n">coeff</span> <span class="o">=</span> <span class="p">(</span><span class="n">tbar</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">-</span> <span class="n">tbar</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">tm</span> <span class="o">-</span><span class="n">t1</span><span class="p">)</span>
+                <span class="c"># I believe std[i] std[j] is correct way</span>
+                <span class="n">async</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">coeff</span> <span class="o">*</span> <span class="n">var</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">Spec2d</span><span class="p">(</span><span class="n">async</span><span class="p">,</span> 
+                      <span class="n">corr2d</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> 
+                      <span class="n">name</span><span class="o">=</span><span class="s">&#39;Asynchronous Codistribution&#39;</span><span class="p">,</span> 
+                      <span class="n">iunit</span><span class="o">=</span><span class="s">&#39;asynchronicity&#39;</span><span class="p">)</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">sync_codist</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Syncrhonous codistribution.  Computed from asyn_codist&quot;&quot;&quot;</span>
+        <span class="n">numrows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>                    
+
+        <span class="c"># Numpy arrays to speed up calculation</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">joint_var</span>
+        <span class="n">async_cod</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">async_codist</span><span class="o">.</span><span class="n">values</span>
+        
+        <span class="n">sync</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">numrows</span><span class="p">,</span><span class="n">numrows</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numrows</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numrows</span><span class="p">):</span>
+                <span class="n">sync</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">var</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="n">async_cod</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="p">)</span>
+                 
+        <span class="k">return</span> <span class="n">Spec2d</span><span class="p">(</span><span class="n">sync</span><span class="p">,</span> 
+                      <span class="n">corr2d</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> 
+                      <span class="n">name</span><span class="o">=</span><span class="s">&#39;Synchronous Codistribution&#39;</span><span class="p">,</span> 
+                      <span class="n">iunit</span><span class="o">=</span><span class="s">&#39;synchronicity&#39;</span><span class="p">)</span>
+    
+
+<div class="viewcode-block" id="Corr2d.plot"><a class="viewcode-back" href="../../../API/skspec.correlation.html#skspec.correlation.corr.Corr2d.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">pltkwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Quad plot shows several kinds of correlation plots.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">corr_multi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">pltkwargs</span><span class="p">)</span>
+        
+</div>
+    <span class="k">def</span> <span class="nf">_pcagate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Raise an error if use calls inaccessible PCA method.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_PCA</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CorrError</span><span class="p">(</span><span class="s">&#39;Please run .pca_fit() method before &#39;</span>
+                            <span class="s">&#39;calling </span><span class="si">%s</span><span class="s">.</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>    
+
+<div class="viewcode-block" id="Corr2d.pca_fit"><a class="viewcode-back" href="../../../API/skspec.correlation.html#skspec.correlation.corr.Corr2d.pca_fit">[docs]</a>    <span class="k">def</span> <span class="nf">pca_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_components</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fit_transform</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span><span class="c"># k=None, kernel=None, extern=False):           </span>
+        <span class="sd">&quot;&quot;&quot;         </span>
+<span class="sd">        Adaptation of Alexis Mignon&#39;s pca.py script</span>
+
+<span class="sd">        Adapted to fit skspec 5/6/2013.  </span>
+<span class="sd">        Original credit to Alexis Mignon:</span>
+<span class="sd">        Module for Principal Component Analysis.</span>
+
+<span class="sd">        Author: Alexis Mignon (c)</span>
+<span class="sd">        Date: 10/01/2012</span>
+<span class="sd">        e-mail: alexis.mignon@gmail.com</span>
+<span class="sd">        (https://code.google.com/p/pypca/source/browse/trunk/PCA.py)</span>
+
+<span class="sd">        Constructor arguments:</span>
+<span class="sd">        * k: number of principal components to compute. &#39;None&#39;</span>
+<span class="sd">             (default) means that all components are computed.</span>
+<span class="sd">        * kernel: perform PCA on kernel matrices (default is False)</span>
+<span class="sd">        * extern: use extern product to perform PCA (default is </span>
+<span class="sd">               False). Use this option when the number of samples</span>
+<span class="sd">               is much smaller than the number of features.            </span>
+
+<span class="sd">        See pca.py constructor for more info.</span>
+
+<span class="sd">        This will initialize PCA class and fit current values of timespectra.</span>
+
+<span class="sd">        Notes:</span>
+<span class="sd">        ------</span>
+<span class="sd">        The pcakernel.py module is more modular.  These class methods</span>
+<span class="sd">        make it easier to perform PCA on a timespectra, but are less </span>
+<span class="sd">        flexible than using the module functions directly.</span>
+
+<span class="sd">        timespectra gets transposed as PCA module expects rows as </span>
+<span class="sd">        samples and columns as features.</span>
+
+<span class="sd">        Changes to timespectra do not retrigger PCA refresh.  This </span>
+<span class="sd">        method should be called each time changes are made to the data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="c"># NOW USES DYNSPEC BUT DID NOT TEST BEFORE CHANGING</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">center</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&#39;Builtin PCA will perform mean-centering on&#39;</span>
+                        <span class="s">&#39; data.  Data is not mean centered yet.&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_PCA</span> <span class="o">=</span> <span class="n">PCA</span><span class="p">(</span><span class="n">n_components</span><span class="o">=</span><span class="n">n_components</span><span class="p">)</span>                
+        <span class="k">if</span> <span class="n">fit_transform</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_PCA</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dyn_spec</span><span class="p">)</span><span class="c">#.transpose())</span>
+        <span class="k">else</span><span class="p">:</span>    
+            <span class="bp">self</span><span class="o">.</span><span class="n">_PCA</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dyn_spec</span><span class="p">)</span><span class="c">#.transpose())</span>
+
+</div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">PCA</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return the full PCA class object&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pcagate</span><span class="p">(</span><span class="s">&#39;pca&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_PCA</span> 
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pca_evals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pcagate</span><span class="p">(</span><span class="s">&#39;eigen values&#39;</span><span class="p">)</span>
+        <span class="c"># Index is not self.columns because eigenvalues are still computed with</span>
+        <span class="c"># all timepoints, not a subset of the columns        </span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_PCA</span><span class="o">.</span><span class="n">eigen_values_</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pca_evecs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pcagate</span><span class="p">(</span><span class="s">&#39;eigen vectors&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_PCA</span><span class="o">.</span><span class="n">eigen_vectors_</span>
+
+<div class="viewcode-block" id="Corr2d.load_vec"><a class="viewcode-back" href="../../../API/skspec.correlation.html#skspec.correlation.corr.Corr2d.load_vec">[docs]</a>    <span class="k">def</span> <span class="nf">load_vec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return loading vector series for k.  If k &gt; number of components</span>
+<span class="sd">            computed with runpca(), this raises an error rather than </span>
+<span class="sd">            recomputing.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pcagate</span><span class="p">(</span><span class="s">&#39;load_vec&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="k">raise</span> <span class="n">CorrError</span><span class="p">(</span><span class="s">&#39;Principle components must be &lt;= number&#39;</span>
+                            <span class="s">&#39;of samples </span><span class="si">%s</span><span class="s">&#39;</span><span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="c"># Decided to put impetus on user to recompute when not using enough principle components</span>
+        <span class="c"># rather then trying to figure out logic of all use cases.</span>
+        <span class="c"># If k &gt; currently stored eigenvectors, recomputes pca</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_PCA</span><span class="o">.</span><span class="n">_k</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pca_evals</span><span class="p">):</span>   
+                <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&#39;Refitting, only </span><span class="si">%s</span><span class="s"> components were computed&#39;</span>
+                            <span class="s">&#39;originally&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_PCA</span><span class="o">.</span><span class="n">_k</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pca_fit</span><span class="p">(</span><span class="n">n_components</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">fit_transform</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_PCA</span><span class="o">.</span><span class="n">eigen_vectors_</span><span class="p">[:,</span><span class="n">k</span><span class="p">]</span>
+
+</div>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Aligned columns like pyparty.multicanvas &quot;&quot;&quot;</span>
+        <span class="n">pad</span> <span class="o">=</span> <span class="n">pvconfig</span><span class="o">.</span><span class="n">PAD</span>
+        <span class="n">address</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">Corr2d</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__repr__</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s">&quot;&#39;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s">&#39;&gt;&#39;</span><span class="p">)</span>
+
+        <span class="n">outstring</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s"> (</span><span class="si">%s</span><span class="s"> X </span><span class="si">%s</span><span class="s">) at </span><span class="si">%s</span><span class="s">:</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span>
+                                               <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">address</span><span class="p">)</span>
+
+        <span class="c">#Units</span>
+    <span class="c">#     outstring += &#39;%sUnits --&gt;  %s X %s\n&#39; % (pad, self.specunit.lower(), self.varunit.lower())</span>
+
+        <span class="c">#Centering</span>
+        <span class="n">outstring</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">Centering --&gt;  </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pad</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">center</span><span class="p">)</span>
+
+        <span class="c">#Scaling</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scaled</span><span class="p">:</span>
+            <span class="n">outstring</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">Scaled    --&gt;  </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pad</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scale_string</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">outstring</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">Scaled    --&gt;  </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pad</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scaled</span><span class="p">)</span>        
+
+        <span class="n">outstring</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">Units     --&gt;  [</span><span class="si">%s</span><span class="s"> X </span><span class="si">%s</span><span class="s">]&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pad</span><span class="p">,</span> 
+                                                     <span class="bp">self</span><span class="o">.</span><span class="n">specunit</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> 
+                                                     <span class="bp">self</span><span class="o">.</span><span class="n">varunit</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">outstring</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">skspec.data</span> <span class="kn">import</span> <span class="n">aunps_glass</span><span class="p">,</span> <span class="n">solvent_evap</span><span class="p">,</span> <span class="n">aunps_water</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+    <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span> 
+
+<span class="c">#    ts=aunps_water().as_varunit(&#39;s&#39;)</span>
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">solvent_evap</span><span class="p">()</span><span class="c">#.as_varunit(&#39;s&#39;).as_norm(&#39;r&#39;)</span>
+
+    <span class="n">cd</span> <span class="o">=</span> <span class="n">Corr2d</span><span class="p">(</span><span class="n">ts</span><span class="p">)</span><span class="c">#, refspec=ts.mean(axis=1) )</span>
+    <span class="n">cd</span><span class="o">.</span><span class="n">set_center</span><span class="p">(</span><span class="s">&#39;mean&#39;</span><span class="p">)</span>
+    <span class="k">print</span> <span class="n">cd</span><span class="o">.</span><span class="n">sync</span>
+    <span class="n">cd</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">cd</span><span class="o">.</span><span class="n">sync</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">contours</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s">&#39;corr3d&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="c">#    cd.scale(a=.5, b=.5)</span>
+    
+<span class="c">#    cd.sync</span>
+<span class="c">#    cd.async_noscale</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/installation_dependencies.html">Dependencies/Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/plotting.html">Plotting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../API/skspec.html">API</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../../../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+            <p class="searchtip" style="font-size: 90%">
+                Enter search terms or a module, class or function name.
+            </p>
+          </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="../../../py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="../../../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, Adam Hughes, ReevesLab Dept. Physics, George Washington University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3b2.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

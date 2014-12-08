@@ -1,0 +1,246 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>skspec.tests.stack_test &mdash; scikit-spectra 0.3.1-2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.3.1-2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="scikit-spectra 0.3.1-2 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../../../index.html">scikit-spectra 0.3.1-2 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../../../index.html"><img src="../../../_static/new_logo.png" border="100" alt="sampledoc"/></a>
+</div>
+
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for skspec.tests.stack_test</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot; SpecStack: Similar to pandas Panel but built to </span>
+<span class="sd">    store TimeSpectra classes.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">pandas.core.panel</span> <span class="kn">import</span> <span class="n">Panel</span>
+<span class="kn">from</span> <span class="nn">skspec.core.timespectra</span> <span class="kn">import</span> <span class="n">TimeSpectra</span>
+<span class="kn">from</span> <span class="nn">skspec.core.utilities</span> <span class="kn">import</span> <span class="n">boxcar</span>
+
+
+<span class="c">#class SpecStack(Panel):</span>
+    
+    <span class="c">#_constructor_sliced = TimeSpectra    </span>
+    
+    <span class="c">#def __init__(self, data=None, items=None, major_axis=None, minor_axis=None,</span>
+                     <span class="c">#copy=False, dtype=None, name=None):</span>
+        <span class="c">#&#39;&#39;&#39;Initialize with same arguments as panel, with special keywords</span>
+           <span class="c">#for the SpecStack object.</span>
+           
+        <span class="c">#Parameters:</span>
+        <span class="c">#-----------</span>
+            <span class="c">#See Panel API for Panel__init__() arguments.</span>
+            <span class="c">#name: name of the SpecStack object.&#39;&#39;&#39;</span>
+            
+        <span class="c">#super(SpecStack, self).__init__(data=data, items=items, major_axis=</span>
+                             <span class="c">#major_axis, minor_axis=minor_axis, copy=copy,</span>
+                             <span class="c">#dtype=dtype)      </span>
+       
+        <span class="c">#self.name=name</span>
+                
+    <span class="c">#def _get_unique(self, attr):</span>
+        <span class="c">#&#39;&#39;&#39; Inspects SpecStack itemwise for an attribute for unique values.</span>
+            <span class="c">#If non-unique value for the attributes are found, returns</span>
+            <span class="c">#&quot;mixed&quot;. &#39;&#39;&#39;</span>
+        <span class="c">#unique=set(self.inspect(attr).values())</span>
+        <span class="c">#if len(unique) &gt; 1:</span>
+            <span class="c">#return &#39;mixed&#39;</span>
+        <span class="c">#else:</span>
+            <span class="c">#return tuple(unique)[0] #set doesn&#39;t support indexing        </span>
+        
+    <span class="c">#def _set_attr(self, attr, val):</span>
+        <span class="c">#&#39;&#39;&#39; Set attributes itemwise.&#39;&#39;&#39;</span>
+        <span class="c">#for item in self:</span>
+            <span class="c">#setattr(self[item], attr, val)</span>
+            
+    <span class="c">#def inspect(self, attr):</span>
+        <span class="c">#&#39;&#39;&#39;Returns a dictionary of items:attribute for a given attribute.&#39;&#39;&#39;</span>
+        <span class="c">#return dict((item, getattr(self[item], attr)) for item in self.items)</span>
+    
+    <span class="c">#@property</span>
+    <span class="c">#def specunit(self):</span>
+        <span class="c">#return self._get_unique(&#39;specunit&#39;)</span>
+                
+    <span class="c">#### Do I want to make as a _set method to avoid accidental overwrite?</span>
+    <span class="c">#@specunit.setter</span>
+    <span class="c">#def specunit(self, unit):</span>
+        <span class="c">#&#39;&#39;&#39; Sets specunit for every stored TimeSpectra.&#39;&#39;&#39;</span>
+        <span class="c">#self._set_attr(&#39;specunit&#39;, unit)</span>
+    
+    <span class="c">#@property</span>
+    <span class="c">#def iunit(self):</span>
+        <span class="c">#return self._get_unique(&#39;iunit&#39;)    </span>
+    
+
+    <span class="c">#### This shouldn&#39;t have a setter</span>
+    <span class="c">#@property</span>
+    <span class="c">#def timeunit(self):</span>
+        <span class="c">#return self._get_unique(&#39;timeunit&#39;)</span>
+    
+
+    <span class="c">##def apply(self, func, axis=&#39;major&#39;):</span>
+        <span class="c">##&quot;&quot;&quot;</span>
+        <span class="c">##Apply</span>
+
+        <span class="c">##Parameters</span>
+        <span class="c">##----------</span>
+        <span class="c">##func : numpy function</span>
+            <span class="c">##Signature should match numpy.{sum, mean, var, std} etc.</span>
+        <span class="c">##axis : {&#39;major&#39;, &#39;minor&#39;, &#39;items&#39;}</span>
+        <span class="c">##fill_value : boolean, default True</span>
+            <span class="c">##Replace NaN values with specified first</span>
+
+        <span class="c">##Returns</span>
+        <span class="c">##-------</span>
+        <span class="c">##result : DataFrame or Panel</span>
+        <span class="c">##&quot;&quot;&quot;</span>
+        <span class="c">##i = self._get_axis_number(axis)</span>
+        <span class="c">##result = np.apply_along_axis(func, i, self.values)</span>
+        <span class="c">##return self._wrap_result(result, axis=axis)</span>
+    
+    <span class="c">#def applynew(self, func, *args, **kwargs):</span>
+        <span class="c">#for item in self:</span>
+            <span class="c">#self[item]=getattr(self[item], func)(*args, **kwargs)</span>
+
+<span class="c">##SpecStack._setup_axes(axes      = [&#39;items&#39;, &#39;major_axis&#39;, &#39;minor_axis&#39;], </span>
+                  <span class="c">##info_axis = 0,</span>
+                  <span class="c">##stat_axis = 1,</span>
+                  <span class="c">##aliases   = { &#39;spectral&#39;: &#39;major_axis&#39;,</span>
+                                <span class="c">##&#39;temporal&#39;: &#39;minor_axis&#39; },</span>
+                  <span class="c">##slicers   = { &#39;major_axis&#39;: &#39;index&#39;,</span>
+                                <span class="c">#&#39;minor_axis&#39;: &#39;columns&#39; })</span>
+
+<span class="kn">from</span> <span class="nn">pandas.core</span> <span class="kn">import</span> <span class="n">panelnd</span>
+<span class="kn">from</span> <span class="nn">pandas.core.generic</span> <span class="kn">import</span> <span class="n">NDFrame</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">pandas</span> <span class="kn">import</span> <span class="n">DataFrame</span>
+
+<div class="viewcode-block" id="PanelNew"><a class="viewcode-back" href="../../../API/skspec.tests.html#skspec.tests.stack_test.PanelNew">[docs]</a><span class="k">class</span> <span class="nc">PanelNew</span><span class="p">(</span><span class="n">NDFrame</span><span class="p">):</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_constructor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="n">_constructor_sliced</span> <span class="o">=</span> <span class="n">DataFrame</span>
+</div>
+<span class="n">PanelNew</span><span class="o">.</span><span class="n">_setup_axes</span><span class="p">(</span><span class="n">axes</span>      <span class="o">=</span> <span class="p">[</span><span class="s">&#39;items&#39;</span><span class="p">,</span> <span class="s">&#39;spectral&#39;</span><span class="p">,</span> <span class="s">&#39;temporal&#39;</span><span class="p">],</span> 
+                  <span class="n">info_axis</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+                  <span class="n">stat_axis</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+                  <span class="n">aliases</span>   <span class="o">=</span> <span class="p">{</span> <span class="s">&#39;spectral&#39;</span><span class="p">:</span> <span class="s">&#39;major_axis&#39;</span><span class="p">,</span>
+                                <span class="s">&#39;temporal&#39;</span><span class="p">:</span> <span class="s">&#39;minor_axis&#39;</span> <span class="p">},</span>
+                  <span class="n">slicers</span>   <span class="o">=</span> <span class="p">{</span> <span class="s">&#39;spectral&#39;</span><span class="p">:</span> <span class="s">&#39;index&#39;</span><span class="p">,</span>
+                                <span class="s">&#39;temporal&#39;</span><span class="p">:</span> <span class="s">&#39;columns&#39;</span> <span class="p">})</span>
+
+<span class="k">if</span> <span class="n">__name__</span><span class="o">==</span><span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="c">### For testing.</span>
+    <span class="c">#from skspec.core.specindex import SpecIndex</span>
+    <span class="c">#from pandas import date_range, DataFrame, Index</span>
+    <span class="c">#import numpy as np       </span>
+
+    <span class="n">x</span><span class="o">=</span><span class="n">TimeSpectra</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">y</span><span class="o">=</span><span class="n">PanelNew</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> 
+    <span class="k">print</span> <span class="n">y</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/installation_dependencies.html">Dependencies/Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/plotting.html">Plotting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../API/skspec.html">API</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../../../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+            <p class="searchtip" style="font-size: 90%">
+                Enter search terms or a module, class or function name.
+            </p>
+          </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="../../../py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="../../../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, Adam Hughes, ReevesLab Dept. Physics, George Washington University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3b2.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

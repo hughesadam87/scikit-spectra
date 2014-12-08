@@ -1,0 +1,803 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>correlation Package &mdash; scikit-spectra 0.3.1-2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.3.1-2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="scikit-spectra 0.3.1-2 documentation" href="../index.html" />
+    <link rel="up" title="Full API by Module" href="skspec.html" />
+    <link rel="next" title="data Package" href="skspec.data.html" />
+    <link rel="prev" title="core Package" href="skspec.core.html" /> 
+  </head>
+  <body role="document">
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../index.html">scikit-spectra 0.3.1-2 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="skspec.core.html" title="core Package"
+             accesskey="P">previous</a> |
+          <a href="skspec.data.html" title="data Package"
+             accesskey="N">next</a> |
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../index.html"><img src="../_static/new_logo.png" border="100" alt="sampledoc"/></a>
+</div>
+
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="correlation-package">
+<h1>correlation Package<a class="headerlink" href="#correlation-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2><code class="xref py py-mod docutils literal"><span class="pre">correlation</span></code> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-skspec.correlation"></span></div>
+<div class="section" id="module-skspec.correlation.corr">
+<span id="corr-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">corr</span></code> Module<a class="headerlink" href="#module-skspec.correlation.corr" title="Permalink to this headline">¶</a></h2>
+<p>Suite for 2-dimensional correlation analysis.  Decided to put it in, despite already
+seeing a numpy-based version in paper &#8220;2D-correlation analysis applied to in situ and operando Mossbauer spectroscopy&#8221;.
+This would not be pandas friendly, so it wouldn&#8217;t intgerate into skspec and I also want to build some tools from 
+scratch to refamiliarize myself with the topic.</p>
+<p>To remember/writeup eventually:</p>
+<p>From page 32 Noda book,
+Classical statistical cross correlation measures the dot product between spectral variables at different times.
+For example, a pulse at t=0 and again at t=3, then the cross correlation would be max at tau=3.  If this experiment
+went on for 50 minutes, then we average and integrate over all time.  If this pulse happed every 3 seconds, this correlation
+would be 100% for exmaple.  If the pulse happed like only 5 times, the correlation would be diluted by the normalization factor.</p>
+<p>The synchronous spectrum is the cross correlation at tau=0, summed and averaged over all times.  Basically, it measures the instantaneous
+correlation of all spectral variables.  The asynchronous spectrum is the instantaneous orthogonal spectrum basically.  So whenever two things
+are moving together at one instant, weight goes into the sync.  If not, weight goes into the async  Makes me think of an easy filter!  Can
+just throw out regions where not much is happening right?  Maybe call it a 2dcs filter.</p>
+<p>2d Codistriubtion Spectroscopy[2] is a more recent development and is also included.</p>
+<div class="section" id="references">
+<h3>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h3>
+<dl class="docutils">
+<dt>[1] Scaling techniques to enhance two-dimensional correlation spectra, Isao Noda,</dt>
+<dd>Journal of Molecular Structure.  2008. Volume: 883-884, Issue: 1-3, (216-227)</dd>
+<dt>[2] Isao Nodal. Journal of Molectul Structure. 2014.  Two-dimensional codistriubtion spectroscopy to</dt>
+<dd>determine the sequential order of distributed presence of species.  1069. 2014 (50-59)</dd>
+</dl>
+<dl class="class">
+<dt id="skspec.correlation.corr.Corr2d">
+<em class="property">class </em><code class="descclassname">skspec.correlation.corr.</code><code class="descname">Corr2d</code><span class="sig-paren">(</span><em>spec</em>, <em>refspec=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/correlation/corr.html#Corr2d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.correlation.corr.Corr2d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>Computed 2d correlation spectra, including synchronous and asynchronus,
+correlation, disrelation and other spectra given a 2d data matrix, index
+and columns.  Index and columns are necessary for plotting, so made them
+a mandatory requirement.</p>
+<dl class="attribute">
+<dt id="skspec.correlation.corr.Corr2d.M">
+<code class="descname">M</code><a class="headerlink" href="#skspec.correlation.corr.Corr2d.M" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.correlation.corr.Corr2d.PCA">
+<code class="descname">PCA</code><a class="headerlink" href="#skspec.correlation.corr.Corr2d.PCA" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the full PCA class object</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.correlation.corr.Corr2d.async">
+<code class="descname">async</code><a class="headerlink" href="#skspec.correlation.corr.Corr2d.async" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.correlation.corr.Corr2d.async_codist">
+<code class="descname">async_codist</code><a class="headerlink" href="#skspec.correlation.corr.Corr2d.async_codist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Asynchronous codistribution</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.correlation.corr.Corr2d.async_noscale">
+<code class="descname">async_noscale</code><a class="headerlink" href="#skspec.correlation.corr.Corr2d.async_noscale" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.correlation.corr.Corr2d.center">
+<code class="descname">center</code><a class="headerlink" href="#skspec.correlation.corr.Corr2d.center" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.correlation.corr.Corr2d.char_index">
+<code class="descname">char_index</code><a class="headerlink" href="#skspec.correlation.corr.Corr2d.char_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Characteristic index.  In Ref. [2], this is the 
+characteristic time, and is equation 6.</p>
+<p>Returns: Spectrum of length equivalent to spectral index.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.correlation.corr.Corr2d.char_perturb">
+<code class="descname">char_perturb</code><a class="headerlink" href="#skspec.correlation.corr.Corr2d.char_perturb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Characteristic index.  In Ref. [2], this is the 
+characteristic time, and is equation 6.</p>
+<p>Returns: Spectrum of length equivalent to spectral index.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.correlation.corr.Corr2d.coeff_corr">
+<code class="descname">coeff_corr</code><a class="headerlink" href="#skspec.correlation.corr.Corr2d.coeff_corr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Correlation coefficient (pg 78)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.correlation.corr.Corr2d.coeff_disr">
+<code class="descname">coeff_disr</code><a class="headerlink" href="#skspec.correlation.corr.Corr2d.coeff_disr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disrelation coefficient (pg 79)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.correlation.corr.Corr2d.correlation">
+<code class="descname">correlation</code><a class="headerlink" href="#skspec.correlation.corr.Corr2d.correlation" title="Permalink to this definition">¶</a></dt>
+<dd><p>2D Correlation Spectrum</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.correlation.corr.Corr2d.disrelation">
+<code class="descname">disrelation</code><a class="headerlink" href="#skspec.correlation.corr.Corr2d.disrelation" title="Permalink to this definition">¶</a></dt>
+<dd><p>2D Disrelation Spectrum</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.correlation.corr.Corr2d.joint_var">
+<code class="descname">joint_var</code><a class="headerlink" href="#skspec.correlation.corr.Corr2d.joint_var" title="Permalink to this definition">¶</a></dt>
+<dd><p>Product of standard devations of dynamic spectrum. 
+s1 * s2 or sqrt(siag(sync*sync)).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="skspec.correlation.corr.Corr2d.load_vec">
+<code class="descname">load_vec</code><span class="sig-paren">(</span><em>k</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/correlation/corr.html#Corr2d.load_vec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.correlation.corr.Corr2d.load_vec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return loading vector series for k.  If k &gt; number of components
+computed with runpca(), this raises an error rather than 
+recomputing.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.correlation.corr.Corr2d.modulous">
+<code class="descname">modulous</code><a class="headerlink" href="#skspec.correlation.corr.Corr2d.modulous" title="Permalink to this definition">¶</a></dt>
+<dd><p>Effective lengh the vector with components Sync/Async</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.correlation.corr.Corr2d.pca_evals">
+<code class="descname">pca_evals</code><a class="headerlink" href="#skspec.correlation.corr.Corr2d.pca_evals" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.correlation.corr.Corr2d.pca_evecs">
+<code class="descname">pca_evecs</code><a class="headerlink" href="#skspec.correlation.corr.Corr2d.pca_evecs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skspec.correlation.corr.Corr2d.pca_fit">
+<code class="descname">pca_fit</code><span class="sig-paren">(</span><em>n_components=None</em>, <em>fit_transform=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/correlation/corr.html#Corr2d.pca_fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.correlation.corr.Corr2d.pca_fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adaptation of Alexis Mignon&#8217;s pca.py script</p>
+<p>Adapted to fit skspec 5/6/2013.  
+Original credit to Alexis Mignon:
+Module for Principal Component Analysis.</p>
+<p>Author: Alexis Mignon (c)
+Date: 10/01/2012
+e-mail: <a class="reference external" href="mailto:alexis&#46;mignon&#37;&#52;&#48;gmail&#46;com">alexis<span>&#46;</span>mignon<span>&#64;</span>gmail<span>&#46;</span>com</a>
+(<a class="reference external" href="https://code.google.com/p/pypca/source/browse/trunk/PCA.py">https://code.google.com/p/pypca/source/browse/trunk/PCA.py</a>)</p>
+<p>Constructor arguments:
+* k: number of principal components to compute. &#8216;None&#8217;</p>
+<blockquote>
+<div>(default) means that all components are computed.</div></blockquote>
+<ul>
+<li><p class="first">kernel: perform PCA on kernel matrices (default is False)</p>
+</li>
+<li><dl class="first docutils">
+<dt>extern: use extern product to perform PCA (default is </dt>
+<dd><p class="first last">False). Use this option when the number of samples
+is much smaller than the number of features.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<p>See pca.py constructor for more info.</p>
+<p>This will initialize PCA class and fit current values of timespectra.</p>
+<p>The pcakernel.py module is more modular.  These class methods
+make it easier to perform PCA on a timespectra, but are less 
+flexible than using the module functions directly.</p>
+<p>timespectra gets transposed as PCA module expects rows as 
+samples and columns as features.</p>
+<p>Changes to timespectra do not retrigger PCA refresh.  This 
+method should be called each time changes are made to the data.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.correlation.corr.Corr2d.phase">
+<code class="descname">phase</code><a class="headerlink" href="#skspec.correlation.corr.Corr2d.phase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Global phase angle (pg 79).  This will use scaled data.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="skspec.correlation.corr.Corr2d.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><em>**pltkwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/correlation/corr.html#Corr2d.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.correlation.corr.Corr2d.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Quad plot shows several kinds of correlation plots.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="skspec.correlation.corr.Corr2d.scale">
+<code class="descname">scale</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/correlation/corr.html#Corr2d.scale"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.correlation.corr.Corr2d.scale" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scale the synchronous and asynchronous spectra via REF 2
+based on generalized exponential parameters.  Scaling alpha will enhance
+the fine detail of the correlations, but also the noise.  Enhancing beta
+can screen the fine details and enhance the primary correlations.  Alpha
+0.8 and beta 0.0 are suggested as optimal tradeoff between fine correlation
+enhancement and low noise.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="skspec.correlation.corr.Corr2d.set_center">
+<code class="descname">set_center</code><span class="sig-paren">(</span><em>style</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/correlation/corr.html#Corr2d.set_center"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.correlation.corr.Corr2d.set_center" title="Permalink to this definition">¶</a></dt>
+<dd><p>User sets centering, this updates the</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.correlation.corr.Corr2d.shape">
+<code class="descname">shape</code><a class="headerlink" href="#skspec.correlation.corr.Corr2d.shape" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.correlation.corr.Corr2d.sync">
+<code class="descname">sync</code><a class="headerlink" href="#skspec.correlation.corr.Corr2d.sync" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.correlation.corr.Corr2d.sync_codist">
+<code class="descname">sync_codist</code><a class="headerlink" href="#skspec.correlation.corr.Corr2d.sync_codist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Syncrhonous codistribution.  Computed from asyn_codist</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.correlation.corr.Corr2d.sync_noscale">
+<code class="descname">sync_noscale</code><a class="headerlink" href="#skspec.correlation.corr.Corr2d.sync_noscale" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return unscaled, synchronous spectrum as a numpy array.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="skspec.correlation.corr.CorrError">
+<em class="property">exception </em><code class="descclassname">skspec.correlation.corr.</code><code class="descname">CorrError</code><a class="reference internal" href="../_modules/skspec/correlation/corr.html#CorrError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.correlation.corr.CorrError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="skspec.correlation.corr.Spec2d">
+<em class="property">class </em><code class="descclassname">skspec.correlation.corr.</code><code class="descname">Spec2d</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/correlation/corr.html#Spec2d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.correlation.corr.Spec2d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="skspec.core.html#skspec.core.anyspectra.AnyFrame" title="skspec.core.anyspectra.AnyFrame"><code class="xref py py-class docutils literal"><span class="pre">skspec.core.anyspectra.AnyFrame</span></code></a></p>
+<p>Frame to hold synchronous, asynchronous and other 2D spectra objects.
+Mostly just want to customize headers, and subclasses correspond to various
+corr2D object.  For example, synchronous spectra has spectral data on 
+index and columns.  Therefore, it is represented by Spec2D class.</p>
+<p>Also overwrites Spectra.norm for 3dPlotting purposes.</p>
+<p>Will update active/spectral unit based on index/columns, but original
+datarange (like how much time synchronous corresponds to) is stored
+permanently in self._span_string</p>
+<dl class="classmethod">
+<dt id="skspec.correlation.corr.Spec2d.from_corr2d">
+<em class="property">classmethod </em><code class="descname">from_corr2d</code><span class="sig-paren">(</span><em>corr2d</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/correlation/corr.html#Spec2d.from_corr2d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.correlation.corr.Spec2d.from_corr2d" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skspec.correlation.corr.Spec2d.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><em>kind='corr2d'</em>, <em>**pltkwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/correlation/corr.html#Spec2d.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.correlation.corr.Spec2d.plot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="skspec.correlation.corr.Spec2dError">
+<em class="property">exception </em><code class="descclassname">skspec.correlation.corr.</code><code class="descname">Spec2dError</code><a class="reference internal" href="../_modules/skspec/correlation/corr.html#Spec2dError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.correlation.corr.Spec2dError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.correlation.corr.noda_matrix">
+<code class="descclassname">skspec.correlation.corr.</code><code class="descname">noda_matrix</code><span class="sig-paren">(</span><em>length</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/correlation/corr.html#noda_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.correlation.corr.noda_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Length is the number of timepoints/columns in the dataframe. 
+Returns the hilbert noda Transformation matrix.</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="module-skspec.correlation.pca_lite">
+<span id="pca-lite-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">pca_lite</span></code> Module<a class="headerlink" href="#module-skspec.correlation.pca_lite" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="skspec.correlation.pca_lite.PCA">
+<em class="property">class </em><code class="descclassname">skspec.correlation.pca_lite.</code><code class="descname">PCA</code><span class="sig-paren">(</span><em>n_components=None</em>, <em>copy=True</em>, <em>whiten=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/correlation/pca_lite.html#PCA"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.correlation.pca_lite.PCA" title="Permalink to this definition">¶</a></dt>
+<dd><p>Principal component analysis (PCA)</p>
+<p>Linear dimensionality reduction using Singular Value Decomposition of the
+data and keeping only the most significant singular vectors to project the
+data to a lower dimensional space.</p>
+<p>This implementation uses the scipy.linalg implementation of the singular
+value decomposition. It only works for dense arrays and is not scalable to
+large dimensional data.</p>
+<p>The time complexity of this implementation is <code class="docutils literal"><span class="pre">O(n</span> <span class="pre">**</span> <span class="pre">3)</span></code> assuming
+n ~ n_samples ~ n_features.</p>
+<dl class="docutils">
+<dt>n_components <span class="classifier-delimiter">:</span> <span class="classifier">int, None or string</span></dt>
+<dd><p class="first">Number of components to keep.
+if n_components is not set all components are kept:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">n_components</span> <span class="o">==</span> <span class="nb">min</span><span class="p">(</span><span class="n">n_samples</span><span class="p">,</span> <span class="n">n_features</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="last">if n_components == &#8216;mle&#8217;, Minka&#8217;s MLE is used to guess the dimension
+if <code class="docutils literal"><span class="pre">0</span> <span class="pre">&lt;</span> <span class="pre">n_components</span> <span class="pre">&lt;</span> <span class="pre">1</span></code>, select the number of components such that
+the amount of variance that needs to be explained is greater than the
+percentage specified by n_components</p>
+</dd>
+<dt>copy <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd>If False, data passed to fit are overwritten</dd>
+<dt>whiten <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional</span></dt>
+<dd><p class="first">When True (False by default) the <cite>components_</cite> vectors are divided
+by n_samples times singular values to ensure uncorrelated outputs
+with unit component-wise variances.</p>
+<p class="last">Whitening will remove some information from the transformed signal
+(the relative variance scales of the components) but can sometime
+improve the predictive accuracy of the downstream estimators by
+making there data respect some hard-wired assumptions.</p>
+</dd>
+</dl>
+<dl class="docutils">
+<dt><cite>components_</cite> <span class="classifier-delimiter">:</span> <span class="classifier">array, [n_components, n_features]</span></dt>
+<dd>Components with maximum variance.</dd>
+<dt><cite>explained_variance_ratio_</cite> <span class="classifier-delimiter">:</span> <span class="classifier">array, [n_components]</span></dt>
+<dd>Percentage of variance explained by each of the selected components.         k is not set then all components are stored and the sum of explained         variances is equal to 1.0</dd>
+</dl>
+<p>For n_components=&#8217;mle&#8217;, this class uses the method of <cite>Thomas P. Minka:
+Automatic Choice of Dimensionality for PCA. NIPS 2000: 598-604</cite></p>
+<p>Due to implementation subtleties of the Singular Value Decomposition (SVD),
+which is used in this implementation, running fit twice on the same matrix
+can lead to principal components with signs flipped (change in direction).
+For this reason, it is important to always use the same estimator object to
+transform data in a consistent fashion.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sklearn.decomposition</span> <span class="kn">import</span> <span class="n">PCA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pca</span> <span class="o">=</span> <span class="n">PCA</span><span class="p">(</span><span class="n">n_components</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pca</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+<span class="go">PCA(copy=True, n_components=2, whiten=False)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">pca</span><span class="o">.</span><span class="n">explained_variance_ratio_</span> 
+<span class="go">[ 0.99244...  0.00755...]</span>
+</pre></div>
+</div>
+<p>ProbabilisticPCA
+RandomizedPCA
+KernelPCA
+SparsePCA</p>
+<dl class="attribute">
+<dt id="skspec.correlation.pca_lite.PCA.S">
+<code class="descname">S</code><a class="headerlink" href="#skspec.correlation.pca_lite.PCA.S" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.correlation.pca_lite.PCA.U">
+<code class="descname">U</code><a class="headerlink" href="#skspec.correlation.pca_lite.PCA.U" title="Permalink to this definition">¶</a></dt>
+<dd><p>Score matrix (in Noda = W)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.correlation.pca_lite.PCA.VT">
+<code class="descname">VT</code><a class="headerlink" href="#skspec.correlation.pca_lite.PCA.VT" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loading Vectors</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.correlation.pca_lite.PCA.W">
+<code class="descname">W</code><a class="headerlink" href="#skspec.correlation.pca_lite.PCA.W" title="Permalink to this definition">¶</a></dt>
+<dd><p>Score matrix</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="skspec.correlation.pca_lite.PCA.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em>, <em>**params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/correlation/pca_lite.html#PCA.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.correlation.pca_lite.PCA.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit the model with X.</p>
+<dl class="docutils">
+<dt>X: array-like, shape (n_samples, n_features)</dt>
+<dd>Training data, where n_samples in the number of samples
+and n_features is the number of features.</dd>
+</dl>
+<dl class="docutils">
+<dt>self <span class="classifier-delimiter">:</span> <span class="classifier">object</span></dt>
+<dd>Returns the instance itself.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="skspec.correlation.pca_lite.PCA.fit_transform">
+<code class="descname">fit_transform</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em>, <em>**params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/correlation/pca_lite.html#PCA.fit_transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.correlation.pca_lite.PCA.fit_transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit the model with X and apply the dimensionality reduction on X.</p>
+<dl class="docutils">
+<dt>X <span class="classifier-delimiter">:</span> <span class="classifier">array-like, shape (n_samples, n_features)</span></dt>
+<dd>Training data, where n_samples in the number of samples
+and n_features is the number of features.</dd>
+</dl>
+<p>X_new : array-like, shape (n_samples, n_components)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="skspec.correlation.pca_lite.PCA.inverse_transform">
+<code class="descname">inverse_transform</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/correlation/pca_lite.html#PCA.inverse_transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.correlation.pca_lite.PCA.inverse_transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform data back to its original space, i.e.,
+return an input X_original whose transform would be X</p>
+<dl class="docutils">
+<dt>X <span class="classifier-delimiter">:</span> <span class="classifier">array-like, shape (n_samples, n_components)</span></dt>
+<dd>New data, where n_samples in the number of samples
+and n_components is the number of components.</dd>
+</dl>
+<p>X_original array-like, shape (n_samples, n_features)</p>
+<p>If whitening is enabled, inverse_transform does not compute the
+exact inverse operation as transform.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="skspec.correlation.pca_lite.PCA.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/correlation/pca_lite.html#PCA.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.correlation.pca_lite.PCA.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply the dimensionality reduction on X.</p>
+<dl class="docutils">
+<dt>X <span class="classifier-delimiter">:</span> <span class="classifier">array-like, shape (n_samples, n_features)</span></dt>
+<dd>New data, where n_samples in the number of samples
+and n_features is the number of features.</dd>
+</dl>
+<p>X_new : array-like, shape (n_samples, n_components)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="skspec.correlation.pca_lite.PCAError">
+<em class="property">exception </em><code class="descclassname">skspec.correlation.pca_lite.</code><code class="descname">PCAError</code><a class="reference internal" href="../_modules/skspec/correlation/pca_lite.html#PCAError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.correlation.pca_lite.PCAError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.correlation.pca_lite.array2d">
+<code class="descclassname">skspec.correlation.pca_lite.</code><code class="descname">array2d</code><span class="sig-paren">(</span><em>X</em>, <em>dtype=None</em>, <em>order=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/correlation/pca_lite.html#array2d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.correlation.pca_lite.array2d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns at least 2-d array with data from X</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.correlation.pca_lite.as_float_array">
+<code class="descclassname">skspec.correlation.pca_lite.</code><code class="descname">as_float_array</code><span class="sig-paren">(</span><em>X</em>, <em>copy=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/correlation/pca_lite.html#as_float_array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.correlation.pca_lite.as_float_array" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts an array-like to an array of floats</p>
+<p>The new dtype will be np.float32 or np.float64, depending on the original
+type. The function can create a copy or modify the argument depending
+on the argument copy.</p>
+<p>X : array</p>
+<dl class="docutils">
+<dt>copy <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional</span></dt>
+<dd>If True, a copy of X will be created. If False, a copy may still be
+returned if X&#8217;s dtype is not a floating point type.</dd>
+</dl>
+<dl class="docutils">
+<dt>X <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>An array of type np.float</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-skspec.correlation.pcakernel">
+<span id="pcakernel-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">pcakernel</span></code> Module<a class="headerlink" href="#module-skspec.correlation.pcakernel" title="Permalink to this headline">¶</a></h2>
+<p>Adapted to fit skspec 5/6/2013.  Original credit to Alexis Mignon:</p>
+<p>Module for Principal Component Analysis.</p>
+<p>Features:
+* pca and kernel pca
+* pca through singular value decomposition (SVD)</p>
+<p>Author: Alexis Mignon (c)
+Date: 10/01/2012
+e-mail: <a class="reference external" href="mailto:alexis&#46;mignon&#37;&#52;&#48;gmail&#46;com">alexis<span>&#46;</span>mignon<span>&#64;</span>gmail<span>&#46;</span>com</a></p>
+<dl class="class">
+<dt id="skspec.correlation.pcakernel.PCA">
+<em class="property">class </em><code class="descclassname">skspec.correlation.pcakernel.</code><code class="descname">PCA</code><span class="sig-paren">(</span><em>k=None</em>, <em>kernel=False</em>, <em>extern=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/correlation/pcakernel.html#PCA"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.correlation.pcakernel.PCA" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>PCA object to perform Principal Component Analysis.</p>
+<dl class="method">
+<dt id="skspec.correlation.pcakernel.PCA.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/correlation/pcakernel.html#PCA.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.correlation.pcakernel.PCA.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs PCA on the data array X.
+arguments:
+* X: 2D numpy array. In case the array represents a kernel</p>
+<blockquote>
+<div>matrix, X should be symmetric. Otherwise each row
+represents a sample and each column represents a
+feature.</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="skspec.correlation.pcakernel.PCA.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>X</em>, <em>whiten=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/correlation/pcakernel.html#PCA.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.correlation.pcakernel.PCA.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Project data on the principal components. If the whitening
+option is used, components will be normalized to that they
+have the same contribution.</p>
+<p>arguments:
+* X: 2D numpy array of data to project.
+* whiten: (default is False) all components are normalized</p>
+<blockquote>
+<div>so that they have the same contribution.</div></blockquote>
+<p>returns:
+* prX : projection of X on the principal components.</p>
+<dl class="docutils">
+<dt>Notes: In the case of Kernel PCA, X[i] represents the value</dt>
+<dd><p class="first">of the kernel between sample i and the j-th sample used
+at train time. Thus, if fit was called with a NxN kernel
+matrix, X should be a MxN matrix.</p>
+<p>The projection in the kernel case is made to be equivalent
+to the projection in the linear case.</p>
+<blockquote>
+<div><p>X.T = U * S * v.T
+C = 1/(N-1) * X.T * X
+X.T * X = U*S^2*U.T
+K = X * X.T = v*S^2*v.T</p>
+<p>U = X.T * v * S^(-1)</p>
+</div></blockquote>
+<dl class="last docutils">
+<dt>The projection with PCA is :</dt>
+<dd>X&#8217; = X * U
+X&#8217; = X * X.T * v * S^(-1)
+X&#8217; = K * v * S^(-1)</dd>
+<dt>For whiten PCA :</dt>
+<dd>X&#8217; = X * U * S^(-1) * sqrt(N-1)
+X&#8217; = X * X.T * v * S^(-1) * S^(-1) * sqrt(N-1)
+X&#8217; = K * S^(-2) * sqrt(N-1)</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.correlation.pcakernel.extern_pca">
+<code class="descclassname">skspec.correlation.pcakernel.</code><code class="descname">extern_pca</code><span class="sig-paren">(</span><em>data</em>, <em>k</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/correlation/pcakernel.html#extern_pca"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.correlation.pcakernel.extern_pca" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs the eigen decomposition of the covariance matrix based
+on the eigen decomposition of the exterior product matrix.</p>
+<p>arguments:
+* data: 2D numpy array where each row is a sample and</p>
+<blockquote>
+<div>each column a feature.</div></blockquote>
+<ul class="simple">
+<li>k: number of principal components to keep.</li>
+</ul>
+<p>return:
+* w: the eigen values of the covariance matrix sorted in from</p>
+<blockquote>
+<div>highest to lowest.</div></blockquote>
+<ul>
+<li><dl class="first docutils">
+<dt>u: the corresponding eigen vectors. u[:,i] is the vector</dt>
+<dd><p class="first last">corresponding to w[i]</p>
+</dd>
+</dl>
+</li>
+</ul>
+<dl class="docutils">
+<dt>Notes: This function computes PCA, based on the exterior product</dt>
+<dd><p class="first">matrix (C = X*X.T/(n-1)) instead of the covariance matrix
+(C = X.T*X) and uses relations based of the singular
+value decomposition to compute the corresponding the
+final eigen vectors. While this can be much faster when 
+the number of samples is much smaller than the number
+of features, it can lead to loss of precisions.</p>
+<dl class="docutils">
+<dt>The (centered) data matrix X can be decomposed as:</dt>
+<dd>X.T = U * S * v.T</dd>
+<dt>On computes the eigen decomposition of :</dt>
+<dd>X * X.T = v*S^2*v.T</dd>
+</dl>
+<p>and the eigen vectors of the covariance matrix are
+computed as :</p>
+<blockquote class="last">
+<div>U = X.T * v * S^(-1)</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.correlation.pcakernel.full_kpca">
+<code class="descclassname">skspec.correlation.pcakernel.</code><code class="descname">full_kpca</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/correlation/pcakernel.html#full_kpca"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.correlation.pcakernel.full_kpca" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs the complete eigen decomposition of a kernel matrix.</p>
+<p>arguments:
+* data: 2D numpy array representing the symmetric kernel matrix.</p>
+<p>return:
+* w: the eigen values of the covariance matrix sorted in from</p>
+<blockquote>
+<div>highest to lowest.</div></blockquote>
+<ul>
+<li><dl class="first docutils">
+<dt>u: the corresponding eigen vectors. u[:,i] is the vector</dt>
+<dd><p class="first last">corresponding to w[i]</p>
+</dd>
+</dl>
+</li>
+</ul>
+<dl class="docutils">
+<dt>Notes: If you want to compute only a few number of principal</dt>
+<dd>components, you should consider using &#8216;kpca&#8217;.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.correlation.pcakernel.full_pca">
+<code class="descclassname">skspec.correlation.pcakernel.</code><code class="descname">full_pca</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/correlation/pcakernel.html#full_pca"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.correlation.pcakernel.full_pca" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs the complete eigen decomposition of
+the covariance matrix.</p>
+<p>arguments:
+* data: 2D numpy array where each row is a sample and</p>
+<blockquote>
+<div>each column a feature.</div></blockquote>
+<p>return:
+* w: the eigen values of the covariance matrix sorted in from</p>
+<blockquote>
+<div>highest to lowest.</div></blockquote>
+<ul>
+<li><dl class="first docutils">
+<dt>u: the corresponding eigen vectors. u[:,i] is the vector</dt>
+<dd><p class="first last">corresponding to w[i]</p>
+</dd>
+</dl>
+</li>
+</ul>
+<dl class="docutils">
+<dt>Notes: If you want to compute only a few number of principal</dt>
+<dd>components, you should consider using &#8216;pca&#8217; or &#8216;svd_pca&#8217;.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.correlation.pcakernel.kpca">
+<code class="descclassname">skspec.correlation.pcakernel.</code><code class="descname">kpca</code><span class="sig-paren">(</span><em>data</em>, <em>k</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/correlation/pcakernel.html#kpca"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.correlation.pcakernel.kpca" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs the eigen decomposition of the kernel matrix.</p>
+<p>arguments:
+* data: 2D numpy array representing the symmetric kernel matrix.
+* k: number of principal components to keep.</p>
+<p>return:
+* w: the eigen values of the covariance matrix sorted in from</p>
+<blockquote>
+<div>highest to lowest.</div></blockquote>
+<ul>
+<li><dl class="first docutils">
+<dt>u: the corresponding eigen vectors. u[:,i] is the vector</dt>
+<dd><p class="first last">corresponding to w[i]</p>
+</dd>
+</dl>
+</li>
+</ul>
+<dl class="docutils">
+<dt>Notes: If you want to perform the full decomposition, consider </dt>
+<dd>using &#8216;full_kpca&#8217; instead.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.correlation.pcakernel.pca">
+<code class="descclassname">skspec.correlation.pcakernel.</code><code class="descname">pca</code><span class="sig-paren">(</span><em>data</em>, <em>k</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/correlation/pcakernel.html#pca"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.correlation.pcakernel.pca" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs the eigen decomposition of the covariance matrix.</p>
+<p>arguments:
+* data: 2D numpy array where each row is a sample and</p>
+<blockquote>
+<div>each column a feature.</div></blockquote>
+<ul class="simple">
+<li>k: number of principal components to keep.</li>
+</ul>
+<p>return:
+* w: the eigen values of the covariance matrix sorted in from</p>
+<blockquote>
+<div>highest to lowest.</div></blockquote>
+<ul>
+<li><dl class="first docutils">
+<dt>u: the corresponding eigen vectors. u[:,i] is the vector</dt>
+<dd><p class="first last">corresponding to w[i]</p>
+</dd>
+</dl>
+</li>
+</ul>
+<dl class="docutils">
+<dt>Notes: If the number of samples is much smaller than the number</dt>
+<dd>of features, you should consider the use of &#8216;svd_pca&#8217;.</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="../Tutorial/installation_dependencies.html">Dependencies/Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Tutorial/getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Tutorial/plotting.html">Plotting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="skspec.html">Full API by Module</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+            <p class="searchtip" style="font-size: 90%">
+                Enter search terms or a module, class or function name.
+            </p>
+          </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="skspec.core.html" title="core Package"
+              >previous</a> |
+            <a href="skspec.data.html" title="data Package"
+              >next</a> |
+            <a href="../py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+              <br/>
+              <a href="../_sources/API/skspec.correlation.txt"
+                rel="nofollow">Show Source</a>
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, Adam Hughes, ReevesLab Dept. Physics, George Washington University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3b2.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

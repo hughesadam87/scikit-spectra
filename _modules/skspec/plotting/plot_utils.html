@@ -1,0 +1,563 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>skspec.plotting.plot_utils &mdash; scikit-spectra 0.3.1-2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.3.1-2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="scikit-spectra 0.3.1-2 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../../../index.html">scikit-spectra 0.3.1-2 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../../../index.html"><img src="../../../_static/new_logo.png" border="100" alt="sampledoc"/></a>
+</div>
+
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for skspec.plotting.plot_utils</h1><div class="highlight"><pre>
+<span class="sd">&#39;&#39;&#39; Plotting wrappers for dataframes, for implementation in skspec.  Basically calls df.plot()</span>
+<span class="sd">with some extra bells and whistles like trying to extract column labels and dataframe names,</span>
+<span class="sd">as well as some exploration into custom labels and color mapping.&#39;&#39;&#39;</span>
+
+<span class="n">__author__</span> <span class="o">=</span> <span class="s">&quot;Adam Hughes&quot;</span>
+<span class="n">__copyright__</span> <span class="o">=</span> <span class="s">&quot;Copyright 2012, GWU Physics&quot;</span>
+<span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;Free BSD&quot;</span>
+<span class="n">__maintainer__</span> <span class="o">=</span> <span class="s">&quot;Adam Hughes&quot;</span>
+<span class="n">__email__</span> <span class="o">=</span> <span class="s">&quot;hugadams@gwmail.gwu.edu&quot;</span>
+<span class="n">__status__</span> <span class="o">=</span> <span class="s">&quot;Development&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib.colors</span> <span class="kn">as</span> <span class="nn">mplcolors</span>
+<span class="kn">import</span> <span class="nn">matplotlib.cm</span> <span class="kn">as</span> <span class="nn">cm</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">skspec.config</span> <span class="kn">as</span> <span class="nn">cnfg</span>
+
+<span class="kn">from</span> <span class="nn">skspec.exceptions</span> <span class="kn">import</span> <span class="n">badvalue_error</span>
+
+<span class="n">DEFCOLOR</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+
+<span class="n">_rgb_from_string</span> <span class="o">=</span> <span class="n">mplcolors</span><span class="o">.</span><span class="n">ColorConverter</span><span class="p">()</span><span class="o">.</span><span class="n">to_rgb</span>
+
+<div class="viewcode-block" id="ColorError"><a class="viewcode-back" href="../../../API/skspec.plotting.html#skspec.plotting.plot_utils.ColorError">[docs]</a><span class="k">class</span> <span class="nc">ColorError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
+</div>
+<div class="viewcode-block" id="cmget"><a class="viewcode-back" href="../../../API/skspec.plotting.html#skspec.plotting.plot_utils.cmget">[docs]</a><span class="k">def</span> <span class="nf">cmget</span><span class="p">(</span><span class="n">color</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Return colormap from string (eg &#39;jet&#39;)&#39;&#39;&#39;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">cmap</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">color</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">badvalue_error</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="s">&#39;a custom LInearSegmentedColormap or a string matching </span><span class="se">\</span>
+<span class="s">        the default colormaps available to matplotlib (http://dept.astro.lsa.umich.edu/~msshin/science/code/matplotlib_cm/)&#39;</span><span class="p">)</span> 
+    <span class="k">return</span> <span class="n">cmap</span>
+
+</div>
+<div class="viewcode-block" id="diag_line"><a class="viewcode-back" href="../../../API/skspec.plotting.html#skspec.plotting.plot_utils.diag_line">[docs]</a><span class="k">def</span> <span class="nf">diag_line</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="o">**</span><span class="n">linekwds</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Draw a diagonal line x=y&quot;&quot;&quot;</span>
+    <span class="n">linekwds</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;ls&#39;</span><span class="p">,</span> <span class="s">&#39;:&#39;</span><span class="p">)</span>   <span class="c">#Dotted ... </span>
+    <span class="n">linekwds</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;color&#39;</span><span class="p">,</span> <span class="s">&#39;k&#39;</span><span class="p">)</span> <span class="c">#black</span>
+    <span class="n">linekwds</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;linewidth&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="c"># Bisecting line</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">get_xlim</span><span class="p">(),</span> 
+            <span class="n">ax</span><span class="o">.</span><span class="n">get_ylim</span><span class="p">(),</span> 
+            <span class="o">**</span><span class="n">linekwds</span><span class="p">)</span>    
+    <span class="k">return</span> <span class="n">ax</span>
+</div>
+<div class="viewcode-block" id="multi_axes"><a class="viewcode-back" href="../../../API/skspec.plotting.html#skspec.plotting.plot_utils.multi_axes">[docs]</a><span class="k">def</span> <span class="nf">multi_axes</span><span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
+    <span class="n">figsize</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;figsize&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span><span class="c">#, rcParams[&#39;figure.figsize&#39;])</span>
+    <span class="n">ncols</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;ncols&#39;</span><span class="p">,</span> <span class="n">cnfg</span><span class="o">.</span><span class="n">multicols</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">count</span> <span class="o">&lt;=</span> <span class="n">ncols</span><span class="p">:</span>
+        <span class="n">nrows</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">ncols</span> <span class="o">=</span> <span class="n">count</span>
+
+    <span class="k">else</span><span class="p">:</span>  
+<span class="c">#       ncols = _mod_closest(count)</span>
+        <span class="n">nrows</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">count</span><span class="o">/</span><span class="n">ncols</span><span class="p">)</span>         
+        <span class="k">if</span> <span class="n">count</span> <span class="o">%</span> <span class="n">ncols</span><span class="p">:</span> <span class="c">#If not perfect division</span>
+            <span class="n">nrows</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">figsize</span><span class="p">:</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">splot</span><span class="p">(</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">splot</span><span class="p">(</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="p">,</span><span class="n">fig</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+
+    <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">fig</span><span class="o">.</span><span class="n">axes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">count</span><span class="p">:</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">delaxes</span><span class="p">(</span><span class="n">fig</span><span class="o">.</span><span class="n">axes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">fig</span><span class="o">.</span><span class="n">axes</span><span class="p">,</span> <span class="n">kwargs</span>
+
+
+</div>
+<span class="k">def</span> <span class="nf">_parse_names</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">default_names</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Boilerplate: user enters *names to overwrite X default names.  </span>
+<span class="sd">    For example, if user enters 2 names but 5 unique labels in an image </span>
+<span class="sd">    are found, and vice versa.&quot;&quot;&quot;</span>
+
+    <span class="n">default_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">default_names</span><span class="p">)</span>
+    <span class="n">names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">names</span><span class="p">)</span>
+
+    <span class="c"># Handle various cases of names/values not being the same</span>
+    <span class="k">if</span> <span class="n">names</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">default_names</span><span class="p">):</span>
+            <span class="k">pass</span>
+
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">default_names</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;length : </span><span class="si">%s</span><span class="s"> names provided but </span><span class="si">%s</span><span class="s"> unique &quot;</span>
+                        <span class="s">&quot;labels were found&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">default_names</span><span class="p">))</span> <span class="p">)</span>              
+            <span class="n">default_names</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">)]</span> <span class="o">=</span> <span class="n">names</span><span class="p">[:]</span>
+            <span class="k">return</span> <span class="n">default_names</span>
+
+        <span class="k">else</span><span class="p">:</span> <span class="c">#len(names) &gt;= len(default_names)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;length : </span><span class="si">%s</span><span class="s"> names provided but </span><span class="si">%s</span><span class="s"> unique &quot;</span>
+                        <span class="s">&quot;labels were found&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">default_names</span><span class="p">))</span> <span class="p">)</span>     
+            <span class="k">return</span> <span class="n">names</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="nb">len</span><span class="p">(</span><span class="n">default_names</span><span class="p">)]</span> 
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">names</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">default_names</span><span class="p">[:]</span>
+
+    <span class="k">return</span> <span class="n">names</span>
+
+<span class="k">def</span> <span class="nf">_annotate_mappable</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">cmap</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cmap</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span> 
+        <span class="n">cmap</span><span class="o">=</span><span class="n">cmget</span><span class="p">(</span><span class="n">cmap</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">axis</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">axis</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">badvalue_error</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="s">&#39;integers 0 or 1&#39;</span><span class="p">)</span>
+
+    <span class="c"># Min and max values of color map must be min and max of dataframe</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">vmin</span><span class="p">:</span>
+        <span class="n">vmin</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">vmax</span><span class="p">:</span>        
+        <span class="n">vmax</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">))</span>
+
+    <span class="n">cNorm</span> <span class="o">=</span> <span class="n">mplcolors</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(</span><span class="n">vmin</span><span class="o">=</span><span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="n">vmax</span><span class="p">)</span>
+    <span class="n">scalarmap</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">ScalarMappable</span><span class="p">(</span><span class="n">norm</span><span class="o">=</span><span class="n">cNorm</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">)</span>    
+<span class="c">#   http://stackoverflow.com/questions/6600579/colorbar-for-matplotlib-plot-surface-command</span>
+    <span class="n">scalarmap</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span> <span class="c">#Thsi can be anything, arbitrary</span>
+    <span class="k">return</span> <span class="n">scalarmap</span><span class="p">,</span> <span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span>
+
+
+<span class="k">def</span> <span class="nf">_df_colormapper</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">cmap</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">colorbymax</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Maps matplotlibcolors to a dataframe based on the mean value of each curve along that</span>
+<span class="sd">    axis.  </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    colorbymax : bool (False)</span>
+<span class="sd">        If true, curves are colored based on their maxima value (ie largest</span>
+<span class="sd">        curve is max color regardless of where it appears in time). Otherwise,</span>
+<span class="sd">        curves are colored chornologically.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Useful for df.plot() which doesn&#39;t take a normalized colormap natively. </span>
+<span class="sd">    cmap can be an instance of an RGB color map, or a string which such that </span>
+<span class="sd">    cm.string will produce one.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cmap</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span> 
+        <span class="n">cmap</span><span class="o">=</span><span class="n">cmget</span><span class="p">(</span><span class="n">cmap</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">axis</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">axis</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">badvalue_error</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="s">&#39;integers 0 or 1&#39;</span><span class="p">)</span>
+
+    <span class="c"># Min and max values of color map must be min and max of dataframe</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">vmin</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">vmin</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">))</span> 
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span> <span class="c">#If df only is one column...</span>
+            <span class="n">vmin</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">vmax</span><span class="p">:</span>   
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">vmax</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="n">vmax</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
+
+    <span class="n">cNorm</span> <span class="o">=</span> <span class="n">mplcolors</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(</span><span class="n">vmin</span><span class="o">=</span><span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="n">vmax</span><span class="p">)</span>
+    <span class="n">scalarmap</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">ScalarMappable</span><span class="p">(</span><span class="n">norm</span><span class="o">=</span><span class="n">cNorm</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">)</span>    
+
+    <span class="k">if</span> <span class="n">axis</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">colorbymax</span><span class="p">:</span>
+            <span class="n">colors</span><span class="o">=</span><span class="p">[</span><span class="n">scalarmap</span><span class="o">.</span><span class="n">to_rgba</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">x</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">())</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="n">scalarmap</span><span class="o">.</span><span class="n">to_rgba</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> 
+                      <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">))]</span>
+
+    <span class="k">elif</span> <span class="n">axis</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">colorbymax</span><span class="p">:</span>
+            <span class="n">colors</span><span class="o">=</span><span class="p">[</span><span class="n">scalarmap</span><span class="o">.</span><span class="n">to_rgba</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="n">x</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">())</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">]</span>                
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="n">scalarmap</span><span class="o">.</span><span class="n">to_rgba</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> 
+                      <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">))]</span>
+
+    <span class="k">return</span> <span class="n">colors</span>
+
+<div class="viewcode-block" id="to_normrgb"><a class="viewcode-back" href="../../../API/skspec.plotting.html#skspec.plotting.plot_utils.to_normrgb">[docs]</a><span class="k">def</span> <span class="nf">to_normrgb</span><span class="p">(</span><span class="n">color</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Returns an rgb len(3) tuple on range 0.0-1.0 with several input styles; </span>
+<span class="sd">        wraps matplotlib.color.ColorConvert.  If None, returns config.PCOLOR by</span>
+<span class="sd">        default.&quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">color</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">DEFCOLOR</span> 
+
+    <span class="c"># If iterable, assume 3-channel RGB</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="s">&#39;__iter__&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">color</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">color</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+                <span class="n">color</span> <span class="o">=</span> <span class="n">color</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+                <span class="c">#   logger.warn(&quot;4-channel RGBA recieved; ignoring A channel&quot;)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ColorError</span><span class="p">(</span><span class="s">&quot;Multi-channel color must be 3-channel;&quot;</span>
+                                 <span class="s">&quot; recieved </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">color</span><span class="p">))</span>
+        <span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">color</span>
+        <span class="k">if</span> <span class="n">r</span> <span class="o">&lt;=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">g</span> <span class="o">&lt;=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">b</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+
+        <span class="c"># Any thing like (0, 255, 30) ... uses 255 as upper limit!</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">_pix_norm</span><span class="p">,</span> <span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="p">)</span>        
+            <span class="k">return</span> <span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">color</span> <span class="o">==</span> <span class="s">&#39;random&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&quot;random color generation not supported&quot;</span><span class="p">)</span>
+<span class="c">#            color = rand_color(style=&#39;hex&#39;)            </span>
+        <span class="k">return</span> <span class="n">_rgb_from_string</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+
+    <span class="c"># If single channel --&gt; map accross channels EG 22 --&gt; (22, 22, 22)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">color</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">color</span> <span class="o">=</span> <span class="n">_pix_norm</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">color</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">color</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="mf">1.</span><span class="p">,</span><span class="mf">1.</span><span class="p">,</span><span class="mf">1.</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">)</span>
+
+    <span class="k">raise</span> <span class="n">ColorError</span><span class="p">(</span><span class="n">ERRORMESSAGE</span><span class="p">)</span>        
+</div>
+<span class="k">def</span> <span class="nf">_uvvis_colors</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">delim</span><span class="o">=</span><span class="s">&#39;:&#39;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;    From a dataframe with indicies of ranged wavelengths (eg 450.0:400.0), and builds colormap</span>
+<span class="sd">    with fixed uv_vis limits (for now 400, 700).  Here are some builtin ones:</span>
+<span class="sd">    http://dept.astro.lsa.umich.edu/~msshin/science/code/matplotlib_cm/.  </span>
+
+<span class="sd">    Colors each curve based on the mid value in range. &#39;&#39;&#39;</span>
+    <span class="n">colors</span><span class="o">=</span><span class="p">[]</span>
+    <span class="n">cNorm</span><span class="o">=</span><span class="n">mplcolors</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(</span><span class="n">vmin</span><span class="o">=</span><span class="mf">350.0</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mf">700.0</span><span class="p">)</span>
+    <span class="n">scalarmap</span><span class="o">=</span><span class="n">cm</span><span class="o">.</span><span class="n">ScalarMappable</span><span class="p">(</span><span class="n">norm</span><span class="o">=</span><span class="n">cNorm</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cm</span><span class="o">.</span><span class="n">jet</span><span class="p">)</span>  
+
+    <span class="k">for</span> <span class="n">rng</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+        <span class="n">start</span><span class="p">,</span><span class="n">stop</span><span class="o">=</span><span class="n">rng</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">delim</span><span class="p">)</span>
+        <span class="n">colors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">scalarmap</span><span class="o">.</span><span class="n">to_rgba</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">stop</span><span class="p">)</span><span class="o">+</span><span class="nb">float</span><span class="p">(</span><span class="n">start</span><span class="p">)</span> <span class="p">)</span> <span class="p">)</span> <span class="p">)</span>
+    <span class="k">return</span> <span class="n">colors</span>
+
+
+<div class="viewcode-block" id="splot"><a class="viewcode-back" href="../../../API/skspec.plotting.html#skspec.plotting.plot_utils.splot">[docs]</a><span class="k">def</span> <span class="nf">splot</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Wrapper to plt.subplots(r, c).  Will return flattened axes and discard</span>
+<span class="sd">    figure.  &#39;flatten&#39; keyword will not flatten if the plt.subplots() return</span>
+<span class="sd">    is not itself flat.  If flatten=False and fig=True, standard plt.subplots</span>
+<span class="sd">    behavior is recovered.&quot;&quot;&quot;</span>
+
+    <span class="n">flatten</span> <span class="o">=</span> <span class="n">kwds</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;flatten&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+    <span class="n">_return_fig</span> <span class="o">=</span> <span class="n">kwds</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;fig&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+
+    <span class="n">fig</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
+
+    <span class="c"># Seems like sometimes returns flat, sometimes returns list of lists</span>
+    <span class="c"># so either way I flatten    </span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s">&#39;__iter__&#39;</span><span class="p">):</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">args</span><span class="p">]</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">ax</span><span class="o">.</span><span class="n">axes</span> <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">args</span><span class="p">]</span> 
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">flatten</span><span class="p">:</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">ax</span><span class="o">.</span><span class="n">axes</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">args</span> <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">row</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">axes</span> <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">row</span><span class="p">)</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">args</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">_return_fig</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">args</span>
+
+</div>
+<div class="viewcode-block" id="hide_axis"><a class="viewcode-back" href="../../../API/skspec.plotting.html#skspec.plotting.plot_utils.hide_axis">[docs]</a><span class="k">def</span> <span class="nf">hide_axis</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s">&#39;x&#39;</span><span class="p">,</span> <span class="n">axislabel</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">ticklabels</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">ticks</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+              <span class="n">hide_everything</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Hide axis features on an axes instance, including axis label, tick</span>
+<span class="sd">    labels, tick marks themselves and everything.  Careful: hiding the ticks</span>
+<span class="sd">    will also hide grid lines if a grid is on!</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    axis : &#39;x&#39; or &#39;y&#39; &#39;both&#39;</span>
+
+<span class="sd">    axislabel : True</span>
+<span class="sd">        Hide the axis label</span>
+
+<span class="sd">    ticklabels : True</span>
+<span class="sd">        Hide the tick labels</span>
+
+<span class="sd">    ticks : True</span>
+<span class="sd">        Hide the tick markers</span>
+
+<span class="sd">    hide_everything : False</span>
+<span class="sd">        Hides labels, tick labels and axis labels.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">axis</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;x&#39;</span><span class="p">,</span><span class="s">&#39;y&#39;</span><span class="p">,</span><span class="s">&#39;both&#39;</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s">&#39;axis must be &quot;x&quot; or &quot;y&quot; or both&#39;</span><span class="p">)</span>
+
+    <span class="n">axis_to_modify</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">if</span> <span class="n">hide_everything</span><span class="p">:</span>
+        <span class="n">ticks</span> <span class="o">=</span> <span class="bp">True</span><span class="p">;</span> <span class="n">axislabel</span><span class="o">=</span><span class="bp">True</span><span class="p">;</span> <span class="n">ticklabels</span><span class="o">=</span><span class="bp">True</span>
+
+    <span class="c"># Set axis labels</span>
+    <span class="k">if</span> <span class="n">axis</span> <span class="o">==</span> <span class="s">&#39;x&#39;</span> <span class="ow">or</span> <span class="n">axis</span> <span class="o">==</span> <span class="s">&#39;both&#39;</span><span class="p">:</span>
+        <span class="n">axis_to_modify</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">get_xaxis</span><span class="p">())</span>
+
+        <span class="k">if</span> <span class="n">axislabel</span><span class="p">:</span> 
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">axis</span> <span class="o">==</span> <span class="s">&#39;y&#39;</span> <span class="ow">or</span> <span class="n">axis</span> <span class="o">==</span> <span class="s">&#39;both&#39;</span><span class="p">:</span> <span class="c">#not elif becuase &quot;both&quot; stipulation</span>
+        <span class="n">axis_to_modify</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">get_yaxis</span><span class="p">())</span>
+
+        <span class="k">if</span> <span class="n">axislabel</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">an_axis</span> <span class="ow">in</span> <span class="n">axis_to_modify</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ticklabels</span><span class="p">:</span>
+            <span class="n">an_axis</span><span class="o">.</span><span class="n">set_ticklabels</span><span class="p">([])</span>
+        <span class="k">if</span> <span class="n">ticks</span><span class="p">:</span>
+            <span class="n">an_axis</span><span class="o">.</span><span class="n">set_ticks</span><span class="p">([])</span>
+
+    <span class="k">return</span> <span class="n">ax</span> 
+
+</div>
+<div class="viewcode-block" id="invert_ax"><a class="viewcode-back" href="../../../API/skspec.plotting.html#skspec.plotting.plot_utils.invert_ax">[docs]</a><span class="k">def</span> <span class="nf">invert_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Inverts x and y data on a plot axis, and flips limits.  Most useful for</span>
+<span class="sd">    having an oriented axes in correlation side plots.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">ax</span><span class="o">.</span><span class="n">lines</span><span class="p">:</span>
+        <span class="n">xd</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">get_xdata</span><span class="p">()</span>
+        <span class="n">yd</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">get_ydata</span><span class="p">()</span>
+        <span class="n">line</span><span class="o">.</span><span class="n">set_xdata</span><span class="p">(</span><span class="n">yd</span><span class="p">)</span>
+        <span class="n">line</span><span class="o">.</span><span class="n">set_ydata</span><span class="p">(</span><span class="n">xd</span><span class="p">)</span>
+
+    <span class="n">xlim</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_xlim</span><span class="p">()</span>
+    <span class="n">ylim</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_ylim</span><span class="p">()</span>
+    <span class="n">ylim</span> <span class="o">=</span> <span class="p">(</span><span class="n">ylim</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">ylim</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">ylim</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">xlim</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ax</span>
+
+</div>
+<div class="viewcode-block" id="easy_legend"><a class="viewcode-back" href="../../../API/skspec.plotting.html#skspec.plotting.plot_utils.easy_legend">[docs]</a><span class="k">def</span> <span class="nf">easy_legend</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">fancy</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="s">&#39;top&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">legendkwds</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Wrapper around ax.legend to make it easy to move a legend around the edges of the plot.  Made for sensible</span>
+<span class="sd">    numbers of lines (1-15) and tries to choose smart placement to avoid conflict with lines, labels etc...</span>
+
+<span class="sd">    BROKEN!!!</span>
+
+<span class="sd">    This is a bust, since plotting legend is easy enough.  See guide, especially with the &#39;loc&#39;      </span>
+<span class="sd">    http://matplotlib.org/users/legend_guide.html</span>
+
+<span class="sd">    If coming back to this, here are the issues to resolve:</span>
+<span class="sd">       legend[&#39;loc&#39;] must be enabled for the bounding box to work correctly/consistently.</span>
+<span class="sd">       bbox coordinates are (left edge, bottom edge) of legend.  </span>
+<span class="sd">         -controlling bottom edge is really dumb because want the top edge to clear the xlabel for example, and bottom</span>
+<span class="sd">           edge depends on thickness of plot.  Putting the legend on top actually works nicely for this.</span>
+
+<span class="sd">       If plotting outside left/right of plot, need to squeeze the plot in afterall, it will not accommadate my legend.</span>
+<span class="sd">       Had this code, but deleted it.  Basically, need to squeeze left/right width of the axes.bounding width by 20%</span>
+<span class="sd">       per column of legend.  </span>
+<span class="sd">       (see second reply here http://stackoverflow.com/questions/4700614/how-to-put-the-legend-out-of-the-plot)</span>
+
+
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">ir</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+    <span class="n">position</span><span class="o">=</span><span class="n">position</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> 
+    <span class="n">legendkwds</span><span class="p">[</span><span class="s">&#39;loc&#39;</span><span class="p">]</span><span class="o">=</span><span class="mi">3</span> <span class="c">#MUST BE SET TO SOMETHING, 2 or 3 doesn&#39;t matter, or lower left is no longer start point    </span>
+
+    <span class="k">if</span> <span class="n">position</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;top&#39;</span><span class="p">,</span> <span class="s">&#39;bottom&#39;</span><span class="p">,</span> <span class="s">&#39;left&#39;</span><span class="p">,</span> <span class="s">&#39;right&#39;</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="n">badvalue_error</span><span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="s">&#39;top, bottom, left, or right&#39;</span><span class="p">)</span>
+
+    <span class="c">################################################################</span>
+    <span class="c">### Choose skinny legend for top bottom, long for left/right ###</span>
+    <span class="c">################################################################</span>
+    <span class="k">if</span> <span class="s">&#39;ncol&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">legendkwds</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">position</span><span class="o">==</span><span class="s">&#39;top&#39;</span> <span class="ow">or</span> <span class="n">position</span><span class="o">==</span><span class="s">&#39;bottom&#39;</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">lines</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
+                <span class="n">ncol</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">lines</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ncol</span><span class="o">=</span><span class="mi">4</span>           
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ncol</span><span class="o">=</span><span class="n">ir</span><span class="p">(</span> <span class="nb">len</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">lines</span><span class="p">)</span><span class="o">/</span><span class="mf">20.0</span><span class="p">)</span> <span class="c">#For left right, nice if columns have large vertical extent (10 lines is good)</span>
+            <span class="k">if</span> <span class="n">ncol</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">ncol</span><span class="o">=</span><span class="mi">1</span>
+        <span class="n">legendkwds</span><span class="p">[</span><span class="s">&#39;ncol&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">ncol</span>
+
+    <span class="c">###################################################</span>
+    <span class="c">### Choose legend position around plot elements ###</span>
+    <span class="c">###################################################</span>
+
+    <span class="n">box</span><span class="o">=</span><span class="n">ax</span><span class="o">.</span><span class="n">get_position</span><span class="p">()</span>   <span class="c">#Can do box.x0 and stuff when resetting ax.set_position()</span>
+
+    <span class="k">if</span> <span class="s">&#39;bbox_to_anchor&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">legendkwds</span><span class="p">:</span>  <span class="c">#Don&#39;t use has_key(), gone in 3.x</span>
+
+        <span class="k">if</span> <span class="n">position</span><span class="o">==</span><span class="s">&#39;top&#39;</span><span class="p">:</span>     
+            <span class="sd">&#39;&#39;&#39; Legend slightly inside the upper bound of plot&#39;&#39;&#39;</span>
+            <span class="k">if</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_title</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+                <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">1.025</span><span class="p">)</span>  <span class="c">#0.25 will only center plot if plot is 0.5 units long, then</span>
+            <span class="k">else</span><span class="p">:</span>                             <span class="c">#other end at 0.75.  0.2 looks nice for 8 column uv-vis plot. </span>
+                <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">1.05</span><span class="p">)</span>   <span class="c">#Also depends on size of monitor!! so either way, screwed</span>
+
+
+        <span class="k">elif</span> <span class="n">position</span><span class="o">==</span><span class="s">&#39;bottom&#39;</span><span class="p">:</span>
+            <span class="sd">&#39;&#39;&#39; Centered legend under the label&#39;&#39;&#39;</span>
+
+            <span class="k">if</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_xlabel</span><span class="p">()</span><span class="o">==</span><span class="s">&#39;&#39;</span><span class="p">:</span>
+                <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">0.25</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.025</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">0.25</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.05</span><span class="p">)</span>
+
+
+        <span class="k">elif</span> <span class="n">position</span><span class="o">==</span><span class="s">&#39;right&#39;</span><span class="p">:</span>
+            <span class="sd">&#39;&#39;&#39; Squeeze 20% width inward per column in legend to make room&#39;&#39;&#39;</span>
+            <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">1.05</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span> <span class="c">#WHY DOESNT 1,1 work</span>
+
+        <span class="k">elif</span> <span class="n">position</span><span class="o">==</span><span class="s">&#39;left&#39;</span><span class="p">:</span>
+            <span class="sd">&#39;&#39;&#39; Squeeze 20% width inward per column in legend to make room&#39;&#39;&#39;</span>
+            <span class="k">if</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_ylabel</span><span class="p">()</span><span class="o">==</span><span class="s">&#39;&#39;</span><span class="p">:</span>
+                <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">0.07</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>   
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">0.12</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+
+
+        <span class="n">legendkwds</span><span class="p">[</span><span class="s">&#39;bbox_to_anchor&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">bbox_to_anchor</span>
+
+    <span class="k">if</span> <span class="n">fancy</span> <span class="ow">and</span> <span class="s">&#39;fancybox&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">legendkwds</span> <span class="ow">and</span> <span class="s">&#39;shadow&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">legendkwds</span><span class="p">:</span>
+        <span class="n">legendkwds</span><span class="p">[</span><span class="s">&#39;fancybox&#39;</span><span class="p">]</span><span class="o">=</span><span class="bp">True</span>
+        <span class="n">legendkwds</span><span class="p">[</span><span class="s">&#39;shadow&#39;</span><span class="p">]</span><span class="o">=</span><span class="bp">True</span>
+
+    <span class="k">if</span> <span class="s">&#39;borderaxespad&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">legendkwds</span><span class="p">:</span>
+        <span class="n">legendkwds</span><span class="p">[</span><span class="s">&#39;borderaxespad&#39;</span><span class="p">]</span><span class="o">=</span><span class="mf">0.0</span>  <span class="c">#Havne&#39;t played with this</span>
+
+        <span class="c">### WHY IS MODE BROKEN (comes up garbled on plot)  </span>
+<span class="c">#    if &#39;mode&#39; not in legendkwds:</span>
+    <span class="c">#       legendkwds[&#39;mode&#39;]=&#39;expand&#39;</span>
+
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="o">**</span><span class="n">legendkwds</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ax</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/installation_dependencies.html">Dependencies/Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/plotting.html">Plotting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../API/skspec.html">API</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../../../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+            <p class="searchtip" style="font-size: 90%">
+                Enter search terms or a module, class or function name.
+            </p>
+          </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="../../../py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="../../../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, Adam Hughes, ReevesLab Dept. Physics, George Washington University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3b2.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

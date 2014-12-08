@@ -1,0 +1,443 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>skspec.nptools.haiss &mdash; scikit-spectra 0.3.1-2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.3.1-2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="scikit-spectra 0.3.1-2 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../../../index.html">scikit-spectra 0.3.1-2 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../../../index.html"><img src="../../../_static/new_logo.png" border="100" alt="sampledoc"/></a>
+</div>
+
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for skspec.nptools.haiss</h1><div class="highlight"><pre>
+<span class="sd">&#39;&#39;&#39; Series of utilities for determining the size of spherical gold nanoparticles </span>
+<span class="sd">    from the optical aborsbance spectra, as published in:</span>
+
+<span class="sd">    Haiss, Thanh, Aveyard, Fernig, Determination of Size and Concentration of Gold </span>
+<span class="sd">    Nanoparticles from UV-Vis Spectra Anal. Chem, 79, 2007.</span>
+
+<span class="sd">    Three functions are build based on the results of this paper, as well as a utility</span>
+<span class="sd">    for estimating nanoparticle concentration.&#39;&#39;&#39;</span>
+
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<span class="k">def</span> <span class="nf">_haiss_preformat</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s">&#39;boxcar&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">limit_range</span><span class="o">=</span><span class="p">(</span><span class="mf">400.0</span><span class="p">,</span><span class="mf">700.0</span><span class="p">)):</span>
+    <span class="sd">&#39;&#39;&#39;Called by other haiss method to preforma the timespectra before calling</span>
+<span class="sd">       haiss functions.</span>
+<span class="sd">       </span>
+<span class="sd">        See description under haiss_m1 for explanation of parameters.  &#39;&#39;&#39;</span>
+
+
+    <span class="c">### Ensure ts is in units of absorbance and has nanometer spectral unit</span>
+    <span class="k">if</span> <span class="n">ts</span><span class="o">.</span><span class="n">iunit</span> <span class="o">!=</span> <span class="s">&#39;a&#39;</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">ts</span><span class="o">.</span><span class="n">iunit</span><span class="o">=</span><span class="s">&#39;a&#39;</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> must be in absorbance units for quick_haiss_m1 to function.&#39;</span><span class="o">%</span><span class="n">ts</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&#39;Converted iunit to absorbance in haiss function.&#39;</span><span class="p">)</span>
+        
+    
+    <span class="k">if</span> <span class="n">ts</span><span class="o">.</span><span class="n">specunit</span> <span class="o">!=</span> <span class="s">&#39;nm&#39;</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">ts</span><span class="o">.</span><span class="n">specunit</span><span class="o">=</span><span class="s">&#39;nm&#39;</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> must have specunits of nm to be consistent with published formulae.&#39;</span><span class="o">%</span><span class="n">ts</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&#39;Converted specunit to nm in haiss function.&#39;</span><span class="p">)</span>
+            
+                    
+  
+    <span class="k">if</span> <span class="n">width</span><span class="o">==</span><span class="mf">0.0</span><span class="p">:</span>
+        <span class="n">width</span><span class="o">=</span><span class="bp">None</span>
+
+    <span class="c">### Smoothing    </span>
+    <span class="k">if</span> <span class="n">width</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">style</span><span class="o">==</span><span class="s">&#39;boxcar&#39;</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">ts</span><span class="o">=</span><span class="n">ts</span><span class="o">.</span><span class="n">boxcar</span><span class="p">(</span><span class="n">width</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s">&#39;Cannot find boxcar() method on </span><span class="si">%s</span><span class="s"> object.&#39;</span><span class="o">%</span><span class="n">ts</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;Only boxcar smoothing is available&#39;</span><span class="p">)</span>
+    
+    <span class="c">### Slice data</span>
+    <span class="k">if</span> <span class="n">limit_range</span><span class="p">:</span>        
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">limit_range</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s">&#39;Limit_range must be a length-2 iterable.&#39;</span><span class="p">)</span>
+        
+        <span class="n">ts</span><span class="o">=</span><span class="n">ts</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span> <span class="n">limit_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="n">limit_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">]</span>    
+        
+    <span class="k">return</span> <span class="n">ts</span>
+
+<div class="viewcode-block" id="haiss_m1"><a class="viewcode-back" href="../../../API/skspec.nptools.html#skspec.nptools.haiss.haiss_m1">[docs]</a><span class="k">def</span> <span class="nf">haiss_m1</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s">&#39;boxcar&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">limit_range</span><span class="o">=</span><span class="p">(</span><span class="mf">400.0</span><span class="p">,</span><span class="mf">700.0</span><span class="p">)):</span>
+    <span class="sd">&#39;&#39;&#39; Wrapper function for Haiss method  1.  Allows for range slicing/smoothing and applies</span>
+<span class="sd">        haiss_m1 over the entire timespectra object.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">        ---------</span>
+<span class="sd">  </span>
+<span class="sd">        ts: TimeSpectra.</span>
+<span class="sd">        style: Smoothing style.  For now, only boxcar is used.</span>
+<span class="sd">        width: Smoothing binwidth in units of ts.specunit.  If None or 0, no smoothing is performed.</span>
+<span class="sd">        limit_range: width of the range used (default is (400.0,700.0)</span>
+<span class="sd">    </span>
+<span class="sd">        Notes:</span>
+<span class="sd">        -----------</span>
+<span class="sd">    </span>
+<span class="sd">        TimeSpectra must have iunit of absorbance.  Code attempts to convert it but does not attempt</span>
+<span class="sd">        to add a reference if ts.iunit results in an error.  </span>
+<span class="sd">        </span>
+<span class="sd">        Boxcar is an INSTANCE METHOD of TimeSpectra.  A boxcar function that returns a dataframe can </span>
+<span class="sd">        be found in skspec.core.utilities.</span>
+<span class="sd">        </span>
+<span class="sd">        Code may error if user passes a curve with</span>
+<span class="sd">        a maximum very far from 510 (lam0 in haiss_m1) as the log will blowup.         </span>
+<span class="sd">    </span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">ts</span><span class="o">=</span><span class="n">_haiss_preformat</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">limit_range</span><span class="o">=</span><span class="n">limit_range</span><span class="p">)</span>
+
+    <span class="c">### Feed index at maxiumum. to haiss function</span>
+    <span class="n">spr</span><span class="o">=</span><span class="n">ts</span><span class="o">.</span><span class="n">idxmax</span><span class="p">()</span>    
+    <span class="k">return</span> <span class="n">spr</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">_haiss_m1</span><span class="p">)</span>
+        
+</div>
+<div class="viewcode-block" id="haiss_m2"><a class="viewcode-back" href="../../../API/skspec.nptools.html#skspec.nptools.haiss.haiss_m2">[docs]</a><span class="k">def</span> <span class="nf">haiss_m2</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="mf">450.0</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s">&#39;boxcar&#39;</span><span class="p">,</span> <span class="n">ref_width</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> 
+                    <span class="n">peak_width</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">limit_range</span><span class="o">=</span><span class="p">(</span><span class="mf">400.0</span><span class="p">,</span><span class="mf">700.0</span><span class="p">),</span> <span class="n">exp</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Wrapper for haiss_m2 to return diamter of nanoparticles based on features of its</span>
+<span class="sd">        absorbance spectrum relative to water.  Program has special call options to handle</span>
+<span class="sd">        smoothing and range slicing on the fly.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    ----------</span>
+<span class="sd">    curve: </span>
+<span class="sd">    smooth: If True, applies smoothing to ts.</span>
+<span class="sd">    boxcar: The value of boxcar when smoothing the spectrum.</span>
+<span class="sd">    width: Smoothing binwidth in units of ts.specunit.</span>
+<span class="sd">    limit_range: width of the range used (default is (400.0,700.0)</span>
+<span class="sd">    peak_width: +/- wavelength to average around peak value when determining Absorbance at SPR.</span>
+<span class="sd">    Xspr: x value (wavelength) corresponding to max y</span>
+<span class="sd">    Aspr: if using peak_width, uses average value of absorbance in range [Xspr-peak_width : Xspr+peak_width] as maximum absorbance. Otherwise, defaults to max value.</span>
+<span class="sd">    ref_width: The width of the range designated for reference point window</span>
+<span class="sd">    Aref: if using ref_width, uses average value of absorbance in range [refspr-ref_width : refspr+ref_width] as reference value. Otherwise, defaults to max value</span>
+<span class="sd">    exp: If true, use experimental parameters from Haiss et. al. to do fit; otherwise use theoretical.</span>
+
+<span class="sd">    Notes:</span>
+<span class="sd">    -----------</span>
+<span class="sd">    TimeSpectra must have iunit of absorbance.  Code attempts to convert it but does not attempt</span>
+<span class="sd">        to add a reference if ts.iunit results in an error.  </span>
+<span class="sd">        </span>
+<span class="sd">        Boxcar is an INSTANCE METHOD of TimeSpectra.  A boxcar function that returns a dataframe can </span>
+<span class="sd">        be found in skspec.core.utilities.</span>
+
+<span class="sd">        Code may error if user passes a curve with</span>
+<span class="sd">        a maximum very far from 510 (lam0 in haiss_m1) as the log will blowup.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    
+    <span class="n">ts</span><span class="o">=</span><span class="n">_haiss_preformat</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">limit_range</span><span class="o">=</span><span class="n">limit_range</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">ts</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">_m2_haiss</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="n">ref</span><span class="p">,</span> <span class="n">peak_width</span><span class="o">=</span><span class="n">peak_width</span><span class="p">,</span> <span class="n">ref_width</span><span class="o">=</span><span class="n">ref_width</span><span class="p">,</span> <span class="n">exp</span><span class="o">=</span><span class="n">exp</span><span class="p">)</span>
+
+</div>
+<span class="k">def</span> <span class="nf">_m2_haiss</span><span class="p">(</span><span class="n">curve</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="mf">450.0</span><span class="p">,</span> <span class="n">peak_width</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ref_width</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">exp</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Private method to quick_haiss_m2.  This separation is necessary to allow</span>
+<span class="sd">        haissm2 (with 2 required arguments) to be compatable with quick_haiss_m2.</span>
+<span class="sd">        In other words, because we need to compute Aspr and Aref separately, can&#39;t</span>
+<span class="sd">        just call .apply() method in the normal fashion as done for example</span>
+<span class="sd">        in _haiss_m1/_haiss_m3. This handles the single curve/series operations.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+	
+    <span class="c">### Get Aspr from peak value with or w/o averaging neighbors    </span>
+    <span class="k">if</span> <span class="n">peak_width</span><span class="p">:</span>
+        <span class="n">Xspr</span><span class="o">=</span><span class="n">curve</span><span class="o">.</span><span class="n">idxmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">Aspr</span><span class="o">=</span><span class="n">curve</span><span class="p">[</span><span class="n">Xspr</span><span class="o">-</span><span class="n">peak_width</span> <span class="p">:</span> <span class="n">Xspr</span><span class="o">+</span><span class="n">peak_width</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> 
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">Aspr</span><span class="o">=</span><span class="n">curve</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="c">### Get Aref from peak value with or w/o averaging neighbors</span>
+    <span class="k">if</span> <span class="n">ref_width</span><span class="p">:</span>
+        <span class="n">Aref</span><span class="o">=</span><span class="n">curve</span><span class="p">[</span><span class="n">ref</span><span class="o">-</span><span class="n">ref_width</span> <span class="p">:</span> <span class="n">ref</span><span class="o">+</span><span class="n">ref_width</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">Aref</span><span class="o">=</span><span class="n">curve</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="n">ref</span><span class="p">]</span>   <span class="c">#FIND CLOSEST WAVELENGTH</span>
+                
+ 
+    <span class="k">if</span> <span class="n">Aspr</span><span class="o">==</span><span class="mf">0.0</span> <span class="ow">or</span> <span class="n">Aref</span><span class="o">==</span><span class="mf">0.0</span><span class="p">:</span>
+        <span class="n">d</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">NaN</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">d</span><span class="o">=</span> <span class="n">_haiss_m2</span><span class="p">(</span><span class="n">Aspr</span><span class="p">,</span> <span class="n">Aref</span><span class="p">,</span> <span class="n">exp</span><span class="o">=</span><span class="n">exp</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">d</span>
+
+<span class="k">def</span> <span class="nf">_haiss_m1</span><span class="p">(</span><span class="n">lambda_spr</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Return diameter from wavelength at spr maximum of absorbance curve.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    -----------</span>
+<span class="sd">    lambda_spr: the wavelength at spr absorbance maximum.</span>
+
+<span class="sd">    Notes:</span>
+<span class="sd">    -----------</span>
+<span class="sd">    this method is not accurate for particles with diameter less than 25nm.</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">lambda_0</span><span class="o">=</span><span class="mi">512</span>
+    <span class="n">L1</span><span class="o">=</span><span class="mf">6.53</span>
+    <span class="n">L2</span><span class="o">=</span><span class="mf">0.0216</span>
+
+    <span class="n">d</span><span class="o">=</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">((</span><span class="n">lambda_spr</span><span class="o">-</span><span class="n">lambda_0</span><span class="p">)</span><span class="o">/</span><span class="n">L1</span><span class="p">))</span><span class="o">/</span><span class="n">L2</span>
+    <span class="k">return</span> <span class="n">d</span>
+
+
+<span class="k">def</span> <span class="nf">_haiss_m2</span><span class="p">(</span><span class="n">Aspr</span><span class="p">,</span> <span class="n">A450</span><span class="p">,</span> <span class="n">exp</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Return diameter from absorbance at spr and 450 from Haiss et al. </span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">        -----------</span>
+<span class="sd">           Aspr: the absorbance at spr max.</span>
+<span class="sd">           A450: the absorbance at 450nm.</span>
+<span class="sd">           exp: If true, experimentally derived Haiss fit parameters are used.</span>
+<span class="sd">                Otherwise, theoretical Haiss fit parameters are used.</span>
+
+<span class="sd">        Notes:</span>
+<span class="sd">        -----------</span>
+<span class="sd">           the diameter is calcualted by dividing the absorbance at the spr </span>
+<span class="sd">           maximum by that at 450nm and fitting to experimental/theoretical</span>
+<span class="sd">           parameters.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="c">### Calculate diameter from experimental fit parameters</span>
+    <span class="k">if</span> <span class="n">exp</span><span class="p">:</span>
+        <span class="n">B1</span><span class="o">=</span><span class="mf">3.00</span> 
+        <span class="n">B2</span><span class="o">=</span><span class="mf">2.20</span>
+        <span class="n">d</span><span class="o">=</span><span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span> <span class="p">(</span><span class="n">B1</span> <span class="o">*</span> <span class="p">(</span><span class="n">Aspr</span><span class="o">/</span><span class="n">A450</span><span class="p">)</span> <span class="o">-</span> <span class="n">B2</span><span class="p">)</span> <span class="p">)</span>
+
+    <span class="c">### Calculate diameter from theoretical fit parameters </span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">B1</span><span class="o">=</span><span class="mf">3.55</span>
+        <span class="n">B2</span><span class="o">=</span><span class="mf">3.11</span>
+        <span class="n">d</span><span class="o">=</span><span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span> <span class="p">(</span><span class="n">B1</span> <span class="o">*</span> <span class="p">(</span><span class="n">Aspr</span><span class="o">/</span><span class="n">A450</span><span class="p">)</span> <span class="o">-</span> <span class="n">B2</span><span class="p">)</span> <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">d</span>
+
+<div class="viewcode-block" id="haiss_m3"><a class="viewcode-back" href="../../../API/skspec.nptools.html#skspec.nptools.haiss.haiss_m3">[docs]</a><span class="k">def</span> <span class="nf">haiss_m3</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">Cau</span><span class="p">,</span> <span class="n">dilution</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s">&#39;boxcar&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">limit_range</span><span class="o">=</span><span class="p">(</span><span class="mf">400.0</span><span class="p">,</span><span class="mf">700.0</span><span class="p">),</span> <span class="n">peak_width</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">exp</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Wrapper function for Haiss method  3.  Estimates diamter of gold nanoparticles</span>
+<span class="sd">        based on the SPR max of the absorbance and the initial concentration of gold use to synthesize</span>
+<span class="sd">        the nanoparticles.  Should be valid between 5-50nm diatmeters.  Please take note of the dilution</span>
+<span class="sd">        parameter description below.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">        ---------</span>
+<span class="sd">  </span>
+<span class="sd">        ts: TimeSpectra.</span>
+<span class="sd">        Cau: Initial concentration of gold used to synthesize nps (in mol/L)</span>
+<span class="sd">        dilution: This method requires absorbance of FULLY concentrated np solution.  If data was taken for</span>
+<span class="sd">                  a dilute conenctration, say 10% stock NP concentration, then use dilution=0.1.</span>
+<span class="sd">        style: Smoothing style.  For now, only boxcar is used.</span>
+<span class="sd">        width: Smoothing binwidth in units of ts.specunit.  If None or 0, no smoothing is performed.</span>
+<span class="sd">        limit_range: width of the range used (default is (400.0,700.0)</span>
+<span class="sd">        peak_width: +/- wavelength to average around peak value when determining Absorbance at SPR.</span>
+<span class="sd">        exp: If true, use experimental parameters from Haiss et. al. to do fit; otherwise use theoretical.</span>
+
+<span class="sd">    </span>
+<span class="sd">        Notes:</span>
+<span class="sd">        -----------</span>
+<span class="sd">    </span>
+<span class="sd">        TimeSpectra must have iunit of absorbance.  Code attempts to convert it but does not attempt</span>
+<span class="sd">        to add a reference if ts.iunit results in an error.  </span>
+<span class="sd">        </span>
+<span class="sd">        Boxcar is an INSTANCE METHOD of TimeSpectra.  A boxcar function that returns a dataframe can </span>
+<span class="sd">        be found in skspec.core.utilities.</span>
+<span class="sd">        </span>
+<span class="sd">        We&#39;ve independently verified that Absorbance at relevant wavelengths (400-700nm) scales linearly </span>
+<span class="sd">        with concentration from dilutions as low as 1% up to fully concentrated NP&#39;s.  By fully concentrated,</span>
+<span class="sd">        we mean the typical batch concentration made from the Turkevich protocol (Generally 10^12-14 np&#39;s/mL)</span>
+<span class="sd">        In extremely dilute or concentrate solutions, this linearity may breakdown and the accuracy of this </span>
+<span class="sd">        function is reduced.</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">ts</span><span class="o">=</span><span class="n">_haiss_preformat</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">limit_range</span><span class="o">=</span><span class="n">limit_range</span><span class="p">)</span>
+
+    <span class="c">### Feed index at maxiumum. to haiss function</span>
+    <span class="c">### Get Aspr from peak value with or w/o averaging neighbors    </span>
+    <span class="k">if</span> <span class="n">peak_width</span><span class="p">:</span>
+        <span class="c">### Need to compute a slice average based on SPR xvalue (bit tricky when ts not a single curve)</span>
+        <span class="n">Xspr</span><span class="o">=</span><span class="n">ts</span><span class="o">.</span><span class="n">idxmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">xrng0</span><span class="o">=</span><span class="n">Xspr</span><span class="o">-</span><span class="n">peak_width</span>
+        <span class="n">xrng1</span><span class="o">=</span><span class="n">Xspr</span><span class="o">+</span><span class="n">peak_width</span>
+        <span class="n">xavg</span><span class="o">=</span><span class="p">(</span><span class="n">xrng0</span> <span class="o">+</span> <span class="n">xrng1</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span>
+        <span class="n">Aspr</span><span class="o">=</span><span class="n">ts</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="n">xavg</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">Aspr</span><span class="o">=</span><span class="n">ts</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        
+    <span class="c">### Scale up Aspr based on dilution factor.</span>
+    <span class="k">if</span> <span class="n">dilution</span><span class="p">:</span>
+        <span class="n">Aspr</span><span class="o">=</span><span class="n">Aspr</span><span class="o">/</span><span class="n">dilution</span>
+
+    <span class="k">return</span> <span class="n">Aspr</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">_haiss_m3</span><span class="p">,</span> <span class="n">Cau</span><span class="o">=</span><span class="n">Cau</span><span class="p">,</span> <span class="n">exp</span><span class="o">=</span><span class="n">exp</span><span class="p">)</span>
+
+</div>
+<span class="k">def</span> <span class="nf">_haiss_m3</span><span class="p">(</span><span class="n">Aspr</span><span class="p">,</span> <span class="n">Cau</span><span class="p">,</span> <span class="n">exp</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; See descriptoin for haiss_m3 &#39;&#39;&#39;</span>
+
+    <span class="n">term</span><span class="o">=</span><span class="mf">5.89</span><span class="o">*</span><span class="mi">10</span><span class="o">**-</span><span class="mi">6</span>
+
+    <span class="c">### Calculate diameter from experimental fit parameters</span>
+    <span class="k">if</span> <span class="n">exp</span><span class="p">:</span>
+        <span class="n">C1</span><span class="o">=-</span><span class="mf">4.75</span>
+        <span class="n">C2</span><span class="o">=</span><span class="mf">0.314</span> 
+
+    <span class="c">### Calculate diameter from theoretical fit parameters </span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">C1</span><span class="o">=-</span><span class="mf">4.70</span>
+        <span class="n">C2</span><span class="o">=</span><span class="mf">0.300</span>
+
+    <span class="k">return</span> <span class="p">(</span> <span class="p">(</span><span class="n">Aspr</span> <span class="o">*</span> <span class="n">term</span> <span class="p">)</span><span class="o">/</span> <span class="p">(</span><span class="n">Cau</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">C1</span><span class="p">)</span> <span class="p">)</span> <span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="mf">1.0</span><span class="o">/</span><span class="n">C2</span><span class="p">)</span>
+
+<div class="viewcode-block" id="haiss_conc"><a class="viewcode-back" href="../../../API/skspec.nptools.html#skspec.nptools.haiss.haiss_conc">[docs]</a><span class="k">def</span> <span class="nf">haiss_conc</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s">&#39;boxcar&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">limit_range</span><span class="o">=</span><span class="p">(</span><span class="mf">400.0</span><span class="p">,</span><span class="mf">700.0</span><span class="p">),</span> <span class="n">ref</span><span class="o">=</span><span class="mf">450.0</span><span class="p">,</span> <span class="n">ref_width</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">exp</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Return estimation of AuNP concentration given the diameter of gold nanoparticles as the Absorbance</span>
+<span class="sd">        at 450nm (or other wavelength controlled by ref).  Should be valid for particles with diameters ranging</span>
+<span class="sd">        from 2.5nm to 100nm and possibly beyond these limits.  Works for stock and dilute samples.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters:</span>
+<span class="sd">        ---------</span>
+<span class="sd">  </span>
+<span class="sd">        ts: TimeSpectra.</span>
+<span class="sd">        d: Size of gold nanoparticles in nm</span>
+<span class="sd">        style: Smoothing style.  For now, only boxcar is used.</span>
+<span class="sd">        width: Smoothing binwidth in units of ts.specunit.  If None or 0, no smoothing is performed.</span>
+<span class="sd">        limit_range: width of the range used (default is (400.0,700.0)</span>
+<span class="sd">        ref: Wavelength used for calibration in haiss paper (default is 450nm)</span>
+<span class="sd">        ref_width: +/- wavelength to average around peak value when determining Absorbance at ref.</span>
+<span class="sd">        exp: If true, use experimental parameters from Haiss et. al. to do fit; otherwise use theoretical.</span>
+<span class="sd">       </span>
+<span class="sd">        Notes:</span>
+<span class="sd">        -----</span>
+<span class="sd">          I verified that dilution is not a factor by including it into some trials.  Since N scales linearly </span>
+<span class="sd">          with A450, then a dilution of .1 yeilds 1/10th N and so forth.  Therefore, uses can take results form</span>
+<span class="sd">          this function, and scale them up by the dilution factor to get the full-batch number density.</span>
+<span class="sd">        </span>
+<span class="sd">        &#39;&#39;&#39;</span>
+    <span class="n">ts</span><span class="o">=</span><span class="n">_haiss_preformat</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">limit_range</span><span class="o">=</span><span class="n">limit_range</span><span class="p">)</span>
+    <span class="c">### Get Aref from peak value with or w/o averaging neighbors</span>
+    <span class="k">if</span> <span class="n">ref_width</span><span class="p">:</span>
+        <span class="n">Aref</span><span class="o">=</span><span class="n">ts</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="n">ref</span><span class="o">-</span><span class="n">ref_width</span> <span class="p">:</span> <span class="n">ref</span><span class="o">+</span><span class="n">ref_width</span><span class="p">]</span>  <span class="c">#Stil slices by wavelength</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">Aref</span><span class="o">=</span><span class="n">ts</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="n">ref</span><span class="p">]</span>  <span class="c">#FIND CLOSEST WAVELENGTH    </span>
+    
+    <span class="k">return</span> <span class="n">Aref</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">_haiss_conc</span><span class="p">,</span> <span class="n">d</span><span class="o">=</span><span class="n">d</span><span class="p">)</span>
+
+</div>
+<span class="k">def</span> <span class="nf">_haiss_conc</span><span class="p">(</span><span class="n">Aref</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; See haiss conc &#39;&#39;&#39;</span>
+    <span class="n">num</span><span class="o">=</span><span class="n">Aref</span> <span class="o">*</span> <span class="mi">10</span><span class="o">**</span><span class="mi">14</span>
+    <span class="n">t1</span><span class="o">=</span><span class="mf">1.36</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span> <span class="p">(</span><span class="n">d</span><span class="o">-</span><span class="mf">96.8</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mf">78.2</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span> <span class="p">)</span>
+    <span class="n">den</span><span class="o">=</span><span class="n">d</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="o">-</span><span class="mf">0.295</span><span class="o">+</span> <span class="n">t1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">num</span><span class="o">/</span><span class="n">den</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/installation_dependencies.html">Dependencies/Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/plotting.html">Plotting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../API/skspec.html">API</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../../../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+            <p class="searchtip" style="font-size: 90%">
+                Enter search terms or a module, class or function name.
+            </p>
+          </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="../../../py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="../../../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, Adam Hughes, ReevesLab Dept. Physics, George Washington University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3b2.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

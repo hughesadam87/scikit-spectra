@@ -1,0 +1,397 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>skspec.core.timespectra &mdash; scikit-spectra 0.3.1-2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.3.1-2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="scikit-spectra 0.3.1-2 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../../../index.html">scikit-spectra 0.3.1-2 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../../../index.html"><img src="../../../_static/new_logo.png" border="100" alt="sampledoc"/></a>
+</div>
+
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for skspec.core.timespectra</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;Provides core &quot;TimeSpectra&quot; class and associated utilities.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">skspec.logger</span> <span class="kn">import</span> <span class="n">decode_lvl</span><span class="p">,</span> <span class="n">logclass</span>
+<span class="kn">from</span> <span class="nn">pandas</span> <span class="kn">import</span> <span class="n">DatetimeIndex</span><span class="p">,</span> <span class="n">Index</span>
+<span class="kn">from</span> <span class="nn">skspec.core.spectra</span> <span class="kn">import</span> <span class="n">_valid_xunit</span>
+<span class="kn">from</span> <span class="nn">skspec.units.intvlunit</span> <span class="kn">import</span> <span class="n">INTVLUNITS</span><span class="p">,</span> <span class="n">DatetimeCanonicalError</span>
+<span class="kn">from</span> <span class="nn">skspec.core.timeindex</span> <span class="kn">import</span> <span class="n">TimeIndex</span>
+<span class="kn">from</span> <span class="nn">spectra</span> <span class="kn">import</span> <span class="n">Spectra</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span> 
+
+<span class="k">def</span> <span class="nf">_valid_intvlunit</span><span class="p">(</span><span class="n">sout</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Validate interval unit.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_valid_xunit</span><span class="p">(</span><span class="n">sout</span><span class="p">,</span> <span class="n">intvl_dic</span><span class="p">)</span>
+
+<span class="c"># Ignore all class methods!</span>
+<span class="c">#@logclass(log_name=__name__, skip = [&#39;wraps&#39;,&#39;_framegetattr&#39;, &#39;from_csv&#39;, </span>
+ <span class="c">#                                    &#39;_comment&#39;, &#39;_transfer&#39;])</span>
+<div class="viewcode-block" id="TimeSpectra"><a class="viewcode-back" href="../../../API/skspec.core.html#skspec.core.timespectra.TimeSpectra">[docs]</a><span class="k">class</span> <span class="nc">TimeSpectra</span><span class="p">(</span><span class="n">Spectra</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Spectra that enforces a TimeIndex.  TimeIndex converts representations</span>
+<span class="sd">    between DatetimeIndex and Intervals.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    force_datetime: bool (False)</span>
+<span class="sd">        Convienence method for when a user is passing in datetimes, but does</span>
+<span class="sd">        not have them in a DatetimeIndex.  The only use case we&#39;ve found is</span>
+<span class="sd">        trying to parse CSV files; the datetimes are a list of strings and</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+    <span class="c"># Has to be this way because class methods not accessible via metadataframe __getattr__()</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">dfargs</span><span class="p">,</span> <span class="o">**</span><span class="n">dfkwargs</span><span class="p">):</span>
+        <span class="n">dfkwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;strict_columns&#39;</span><span class="p">,</span> <span class="n">TimeIndex</span><span class="p">)</span>            
+        <span class="nb">super</span><span class="p">(</span><span class="n">TimeSpectra</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">dfargs</span><span class="p">,</span> <span class="o">**</span><span class="n">dfkwargs</span><span class="p">)</span>
+        
+
+
+<span class="c">## TESTING ###</span></div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">specindex</span> <span class="kn">import</span> <span class="n">SpecIndex</span>
+    <span class="kn">from</span> <span class="nn">pandas</span> <span class="kn">import</span> <span class="n">date_range</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+    <span class="kn">from</span> <span class="nn">skspec.data</span> <span class="kn">import</span> <span class="n">solvent_evap</span><span class="p">,</span> <span class="n">aunps_glass</span><span class="p">,</span> <span class="n">aunps_water</span>
+    
+    <span class="n">x</span> <span class="o">=</span> <span class="n">AnyFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">))</span>
+    <span class="k">print</span> <span class="n">x</span>
+
+    <span class="k">def</span> <span class="nf">sumdiff</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">absolute</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">cumsum</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Sum of the differences of an array (usually array of areas).  If absolute, absolute difference is used.</span>
+<span class="sd">        If cumsum, the cumulative sum is returned.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sdiff</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c"># Compute the forward difference up to i=final -1</span>
+    <span class="c">#    array = array.values</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">array</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">array</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">new</span> <span class="o">=</span> <span class="n">array</span><span class="p">[</span><span class="n">idx</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">out</span> <span class="o">=</span> <span class="n">new</span><span class="o">-</span><span class="n">value</span>          
+                <span class="k">if</span> <span class="n">absolute</span><span class="p">:</span>
+                    <span class="n">out</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>        
+                <span class="n">sdiff</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+    
+        <span class="k">if</span> <span class="n">cumsum</span><span class="p">:</span>
+            <span class="n">sdiff</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">sdiff</span><span class="p">))</span> 
+        <span class="n">sdiff</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sdiff</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="c">#REPEAST LAST VALUE</span>
+        <span class="k">return</span> <span class="n">sdiff</span>
+
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">aunps_glass</span><span class="p">()</span>
+
+    <span class="n">ts</span><span class="o">.</span><span class="n">iunit</span> <span class="o">=</span> <span class="bp">None</span> <span class="c">#is the most accurate</span>
+    <span class="n">ts</span><span class="o">.</span><span class="n">varunit</span> <span class="o">=</span> <span class="s">&#39;m&#39;</span>
+    <span class="kn">from</span> <span class="nn">pandas</span> <span class="kn">import</span> <span class="n">Index</span>
+    <span class="n">ts</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">Index</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+    <span class="n">area</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">area</span><span class="p">()</span>
+    
+    <span class="n">DIFF</span> <span class="o">=</span> <span class="n">area</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">sumdiff</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    
+
+    <span class="c"># Be careful when generating test data from Pandas Index/DataFrame objects, as this module has overwritten their defaul behavior</span>
+    <span class="c"># best to generate them in other modules and import them to simulate realisitc usec ase</span>
+
+
+    <span class="c">## For testing </span>
+    <span class="c">#import matplotlib.pyplot as plt</span>
+
+
+    <span class="c">#from skspec.data import aunps_water, aunps_glass</span>
+    <span class="c">#from skspec.plotting import splot, range_timeplot</span>
+    <span class="c">#ts_water = aunps_glass()</span>
+<span class="c">##    ax1, ax2 = splot(1,2)</span>
+
+<span class="c">##    ts_water.plot(ax=ax1)</span>
+    <span class="c">#range_timeplot(ts_water.wavelength_slices(8))</span>
+<span class="c">##    bline = ts_water.baseline</span>
+<span class="c">##    bline.plot(ax=ax1, lw=5, color=&#39;r&#39;)</span>
+    <span class="c">#plt.show()</span>
+
+
+
+    <span class="n">spec</span><span class="o">=</span><span class="n">SpecIndex</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="mi">700</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="n">unit</span><span class="o">=</span><span class="s">&#39;nm&#39;</span><span class="p">)</span>
+<span class="c">###    spec=SpecIndex([400.,500.,600.])</span>
+    <span class="n">testdates</span> <span class="o">=</span> <span class="n">date_range</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="s">&#39;3/3/12&#39;</span><span class="p">,</span><span class="n">periods</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span><span class="n">freq</span><span class="o">=</span><span class="s">&#39;h&#39;</span><span class="p">)</span>
+    <span class="c">##testdates2 = date_range(start=&#39;3/3/12&#39;,periods=30,freq=&#39;45s&#39;)</span>
+
+    <span class="c">#ts=TimeSpectra(abs(np.random.randn(300,30)), </span>
+<span class="c">##                   columns=testdates, </span>
+                    <span class="c">#index=spec, </span>
+                    <span class="c">#name=&#39;ts1&#39;)  </span>
+
+    <span class="c">#print ts.list_varunits()</span>
+    <span class="c">#print ts.list_specunits()</span>
+
+    <span class="c">###t2=TimeSpectra(abs(np.random.randn(300,30)), </span>
+                    <span class="c">###columns=testdates2, </span>
+                    <span class="c">###index=spec, </span>
+                    <span class="c">###name=&#39;ts2&#39;) </span>
+
+    <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+    <span class="kn">from</span> <span class="nn">skspec.plotting</span> <span class="kn">import</span> <span class="n">areaplot</span>
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">solvent_evap</span><span class="p">()</span>
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">as_varunit</span><span class="p">(</span><span class="s">&#39;m&#39;</span><span class="p">)</span>
+
+    <span class="kn">from</span> <span class="nn">pandas</span> <span class="kn">import</span> <span class="n">DataFrame</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">))</span>
+    
+<span class="c">#    ts.nearby[900:]</span>
+    <span class="n">ts</span><span class="o">.</span><span class="n">nearby</span><span class="p">[[</span><span class="mi">1200</span><span class="p">,</span><span class="mi">1400</span><span class="p">]]</span>
+        
+    <span class="n">ts</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">:</span><span class="mf">4.4</span><span class="p">]</span><span class="o">.</span><span class="n">columns</span>
+    <span class="n">ts</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">:</span><span class="mf">4.4</span><span class="p">]</span><span class="o">.</span><span class="n">columns</span>
+<span class="c">#    ts = aunps_glass()</span>
+    <span class="k">print</span> <span class="n">ts</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="mf">1505.0</span><span class="p">:</span><span class="mf">1500.0</span><span class="p">]</span>
+    <span class="c">#ts.loc[:, 50.5, 520.0]</span>
+    <span class="c">##area = ts.area()</span>
+    <span class="c">##tf=ts[ts.columns[-1]]</span>
+    <span class="c">##print tf </span>
+    <span class="c">#cols = ts.columns[0:5]</span>
+    <span class="c">#c2 = ts.columns[0:5].convert(&#39;m&#39;)</span>
+    <span class="c">#c2.datetimeindex</span>
+    <span class="c">#mins = cols.convert(&#39;m&#39;)</span>
+    <span class="c">#print mins</span>
+    <span class="c">#ts.as_varunit(&#39;m&#39;)</span>
+
+    <span class="c">#t2 = ts.ix[1500.0:1000.0]</span>
+    <span class="c">#print ts.index</span>
+    <span class="c">#print t2.index</span>
+
+
+    <span class="c">##t2 = ts.as_interval(&#39;m&#39;)</span>
+
+    <span class="c">##t2 = t2.as_iunit(&#39;r&#39;)</span>
+
+    <span class="c">###stack = ts.split_by(1)</span>
+    <span class="c">###stack.iunit = &#39;a&#39;</span>
+
+    <span class="c">###ts[ts.columns[0]].plot(colormap=&#39;RdBu&#39;)</span>
+    <span class="c">###plt.show()</span>
+    <span class="c">##t2 = ts.as_interval(&#39;m&#39;)</span>
+    <span class="c">###t2 = ts.as_iunit(&#39;r&#39;)</span>
+    <span class="c">###ts.area().plot()</span>
+    <span class="c">###import sys</span>
+    <span class="c">###sys.exit()</span>
+
+<span class="c">####    stack.plot(title=&#39;Big bad plots&#39;)</span>
+    <span class="c">##from skspec.plotting import six_plot</span>
+    <span class="c">##import matplotlib.pyplot as plt</span>
+    <span class="c">##six_plot(ts, striplegend=True)</span>
+    <span class="c">##plt.show()</span>
+    <span class="c">###t1 = ts.as_interval()</span>
+    <span class="c">###print t1.columns</span>
+    <span class="c">###t1.plot(cbar=True)</span>
+    <span class="c">###t1.to_datetime()</span>
+    <span class="c">###t1.ix[500.0:600.0]</span>
+    <span class="c">###t2 = ts.as_specunit(&#39;ev&#39;)</span>
+    <span class="c">###t3 = ts.as_iunit(&#39;a&#39;)</span>
+    <span class="c">###print t2.specunit, &#39;hi t2&#39;</span>
+    <span class="c">###print t3.specunit, &#39;hi t3&#39;</span>
+    <span class="c">###print t2.specunit, &#39;hi t2&#39;</span>
+    <span class="c">###specplot(ts, cbar=True)</span>
+
+
+
+<span class="c">####    a=ts.area()</span>
+<span class="c">####    print &#39;hi&#39;, a.specunit</span>
+<span class="c">####    ts.specunit = &#39;ev&#39;</span>
+    <span class="c">####from skspec.plotting import specplot, areaplot</span>
+    <span class="c">####areaplot(ts)</span>
+    <span class="c">####plt.show()</span>
+
+    <span class="c">####from skspec.IO.gwu_interfaces import from_spec_files, get_files_in_dir</span>
+    <span class="c">####from skspec.exampledata import get_exampledata</span>
+    <span class="c">####ts=from_spec_files(get_files_in_dir(get_exampledata(&#39;NPSAM&#39;), sort=True), name=&#39;foofromfile&#39;)</span>
+
+    <span class="c">###ts.to_interval(&#39;s&#39;)</span>
+    <span class="c">###ts=ts.ix[440.0:700.0,0.0:100.0]</span>
+    <span class="c">###ts.reference=0    </span>
+    <span class="c">###print ts._baseline.shape, ts.shape</span>
+
+    <span class="c">#### Goes to site packages because using from_spec_files, which is site package module</span>
+    <span class="c">###ts.run_pca()</span>
+    <span class="c">####   ts.pca_evals</span>
+
+    <span class="c">####from pandas import Panel</span>
+    <span class="c">####Panel._constructor_sliced=TimeSpectra</span>
+    <span class="c">####pdic={&#39;ts&#39;:ts}</span>
+    <span class="c">####tp=Panel.from_dict(pdic)</span>
+
+    <span class="c">###d={&#39;start&#39;:2/22/12, &#39;periods&#39;:len(ts.columns), &#39;freq&#39;:&#39;45s&#39;}</span>
+    <span class="c">###ts.set_daterange(start=&#39;2/22/12&#39;, periods=len(ts.columns), freq=&#39;45s&#39;)</span>
+
+    <span class="c">###ts.baseline=ts.reference</span>
+    <span class="c">###ts.sub_base()</span>
+
+    <span class="c">#### THIS FAILS WHEN INDEX=SPEC </span>
+    <span class="c">###t3=TimeSpectra(abs(np.random.randn(ts.baseline.shape[0], 30)), columns=\</span>
+                    <span class="c">###testdates, </span>
+                    <span class="c">###baseline=ts._baseline, name=&#39;foobar&#39;)  </span>
+
+
+
+    <span class="c">####ts._reference.x=&#39;I WORK&#39;</span>
+    <span class="c">####ts._reference.name=&#39;joe&#39;</span>
+    <span class="c">###ts.baseline=Series([20,30,50,50], index=[400., 500., 600., 700.])</span>
+<span class="c">#####    t2.baseline=ts.baseline</span>
+    <span class="c">####ts._frame.ix[:, 0:4]</span>
+    <span class="c">####ts.ix[:,0:4]</span>
+    <span class="c">####ts.pvutils.boxcar(binwidth=20, axis=1)</span>
+    <span class="c">####x=ts.ix[450.0:650.]</span>
+    <span class="c">####y=t2.ix[500.:650.]</span>
+
+    <span class="c">####ts.cnsvdmeth=&#39;name&#39;</span>
+
+    <span class="c">###from skspec.pandas_utils.metadframe import mload</span>
+    <span class="c">####from skspec import areaplot, absplot</span>
+    <span class="c">###ts=mload(&#39;rundata.pickle&#39;)    </span>
+    <span class="c">###ts=ts.as_interval(&#39;m&#39;)</span>
+    <span class="c">###x=ts.area()    </span>
+    <span class="c">###print &#39;hi&#39;, x</span>
+    <span class="c">####ts.reference=0</span>
+    <span class="c">####ts=ts[ts.columns[800.0::]]</span>
+    <span class="c">####ts=ts.ix[400.0:800.0]</span>
+    <span class="c">####c=haiss_m2(ts, peak_width=2.0, ref_width=2.0)</span>
+    <span class="c">####a=haiss_m3(ts, 0.000909, peak_width=None, dilution=0.1)</span>
+    <span class="c">####b=haiss_conc(ts, 12.0)</span>
+    <span class="c">#####b2=haiss_conc(ts, 12.0, dilution=0.2)</span>
+
+<span class="c">#####    bline=ts[ts.columns[0]]</span>
+<span class="c">#####    ts=ts.ix[:,25.0:30.0]</span>
+<span class="c">#####    ts.reference=bline</span>
+
+    <span class="c">####uv_ranges=((430.0,450.0))#, (450.0,515.0), (515.0, 570.0), (570.0,620.0), (620.0,680.0))</span>
+
+    <span class="c">####tssliced=ts.wavelength_slices(uv_ranges, apply_fcn=&#39;mean&#39;)</span>
+
+    <span class="c">####from skspec.core.utilities import find_nearest</span>
+    <span class="c">####x=ts.ix[500.:510, 0]</span>
+    <span class="c">####b=pvutils.maxmin_xy(x)</span>
+    <span class="c">####a=find_nearest(x, .15)</span>
+    <span class="c">####ts.iunit=None</span>
+    <span class="c">####ts.iunit=&#39;a&#39;</span>
+    <span class="c">####ts.iunit=None</span>
+
+
+    <span class="c">####ts.to_csv(&#39;junk&#39;)</span>
+    <span class="c">####range_timeplot(ts)</span>
+
+    <span class="c">####ts.a=50; ts.b=&#39;as&#39;</span>
+    <span class="c">####ts.iunit=&#39;t&#39;</span>
+
+    <span class="c">####ts.list_attr(dfattr=False, methods=False, types=True)    </span>
+    <span class="c">####ts.as_iunit(&#39;a&#39;)</span>
+    <span class="c">####x=ts.as_iunit(&#39;a&#39;)</span>
+    <span class="c">#####ts.as_interval()</span>
+    <span class="c">#####spec_surface3d(ts)  ##Not working because of axis format problem</span>
+    <span class="c">#####plt.show()</span>
+<span class="c">#####    ts.rank(use_base=True)</span>
+    <span class="c">####x=ts.dumps()</span>
+    <span class="c">####ts=mloads(x)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/installation_dependencies.html">Dependencies/Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/plotting.html">Plotting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../API/skspec.html">API</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../../../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+            <p class="searchtip" style="font-size: 90%">
+                Enter search terms or a module, class or function name.
+            </p>
+          </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="../../../py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="../../../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, Adam Hughes, ReevesLab Dept. Physics, George Washington University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3b2.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

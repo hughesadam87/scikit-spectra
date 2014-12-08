@@ -1,0 +1,198 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>data Package &mdash; scikit-spectra 0.3.1-2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.3.1-2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="scikit-spectra 0.3.1-2 documentation" href="../index.html" />
+    <link rel="up" title="Full API by Module" href="skspec.html" />
+    <link rel="next" title="interact Package" href="skspec.interact.html" />
+    <link rel="prev" title="correlation Package" href="skspec.correlation.html" /> 
+  </head>
+  <body role="document">
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../index.html">scikit-spectra 0.3.1-2 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="skspec.correlation.html" title="correlation Package"
+             accesskey="P">previous</a> |
+          <a href="skspec.interact.html" title="interact Package"
+             accesskey="N">next</a> |
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../index.html"><img src="../_static/new_logo.png" border="100" alt="sampledoc"/></a>
+</div>
+
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="data-package">
+<h1>data Package<a class="headerlink" href="#data-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2><code class="xref py py-mod docutils literal"><span class="pre">data</span></code> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-skspec.data"></span><dl class="function">
+<dt id="skspec.data.aunps_glass">
+<code class="descclassname">skspec.data.</code><code class="descname">aunps_glass</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/data.html#aunps_glass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.data.aunps_glass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reeveslab data obtained by Adam Hughes of gold nanoparticles (AuNPs)
+on a glass optical fiber; spectrum corresponds to the specular Reflectance.
+Please reference skspec if citing.</p>
+<dl class="docutils">
+<dt>style <span class="classifier-delimiter">:</span> <span class="classifier">int (1,2,or 3</span></dt>
+<dd>represents three types of AuNPs on fibers.  style 1 is very homegenous
+coverage.  style 2 is fair coverage with early signs of aggregation.
+style=3 is poor coverage is many AuNP aggregates.</dd>
+</dl>
+<p>style 1 correponds to dataset 5/22/14, fiber 4.  style 2 from 9/11/13 fiber 1
+and style 3 from 10/1/DTSSP fiber 1.  All of these were cropped and resampled
+to have exatly 100 columns.  Such sampling may exagerate features of the 
+original dataset, such as the temporal gaps in the style=3 dataset.  They were
+there in original data, but sampling makes them seem more pronounced or intense.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.data.aunps_water">
+<code class="descclassname">skspec.data.</code><code class="descname">aunps_water</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/data.html#aunps_water"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.data.aunps_water" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reeveslab data obtained by Adam Hughes of gold nanoparticles in water. 
+UV peak is due to residual citrates from citrate reduction in synthesizing
+the nanoparticles via the Turkevich method.
+Please reference skspec if citing.  Added baseline = 234.0 array.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.data.solvent_evap">
+<code class="descclassname">skspec.data.</code><code class="descname">solvent_evap</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/data.html#solvent_evap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.data.solvent_evap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Model solvent evaporation dataset graciously shared by Dr. Isao Noda;
+used in his 2004 book Two-Dimensional Correlation Spectroscopy.  From 
+page 47:</p>
+<p>&#8216;The system described here is a three-component solution mixture of 
+polystyrene (PS) dissolved in a 50:50 blblend of metyl etyl ketone (MEK) and
+perdeuterated tolune.  The initial concentration of PS is about 1.0wt%.
+Once the solution mixture is exposed to the open atmosphere, the solvents 
+start evaporating, and the PS concentraiton increases with time.  However,
+due to the substantial difference in the volatility of MEK and toluene 
+coupled with their slightly dissimilar affinity to PS, the composition of
+the solution mixture changes as a function of time in a rather complex 
+manner during hte spontaneous evaporation process.</p>
+<p>The transient IR spectra were collected as the two solvents evaporated, 
+eventually leaving a PS film behind, as shown schematically in Figure 4.1
+(A).  The measurement was actually made using a horizontal attenuated total 
+reflectance (ATR) prism.</p>
+<p>...</p>
+<p>As expected, the intensities of bands at 2980 and 1720 cm-1 due to violatile
+MEK and those of bands at 2275 and 820cm-1 assigned to perdeuterated toluene
+gradually decrease, while those of PS bands at 3020 and 1450cm-1 increase 
+with time.&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.data.trip_peaks">
+<code class="descclassname">skspec.data.</code><code class="descname">trip_peaks</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/data.html#trip_peaks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.data.trip_peaks" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Sample data packaged from 2d Shiege:</dt>
+<dd>(<a class="reference external" href="http://sci-tech.ksc.kwansei.ac.jp/~ozaki/2D-shige.htm">http://sci-tech.ksc.kwansei.ac.jp/~ozaki/2D-shige.htm</a>)</dd>
+</dl>
+<p>Data depicts three changing peaks.  Perturbation units is genera</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="../Tutorial/installation_dependencies.html">Dependencies/Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Tutorial/getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Tutorial/plotting.html">Plotting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="skspec.html">Full API by Module</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+            <p class="searchtip" style="font-size: 90%">
+                Enter search terms or a module, class or function name.
+            </p>
+          </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="skspec.correlation.html" title="correlation Package"
+              >previous</a> |
+            <a href="skspec.interact.html" title="interact Package"
+              >next</a> |
+            <a href="../py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+              <br/>
+              <a href="../_sources/API/skspec.data.txt"
+                rel="nofollow">Show Source</a>
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, Adam Hughes, ReevesLab Dept. Physics, George Washington University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3b2.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

@@ -1,0 +1,220 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>skspec.chaco_interface.spectral_converter_demo &mdash; scikit-spectra 0.3.1-2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.3.1-2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="scikit-spectra 0.3.1-2 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../../../index.html">scikit-spectra 0.3.1-2 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../../../index.html"><img src="../../../_static/new_logo.png" border="100" alt="sampledoc"/></a>
+</div>
+
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for skspec.chaco_interface.spectral_converter_demo</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">traits.api</span> <span class="kn">import</span> <span class="n">HasTraits</span><span class="p">,</span> <span class="n">Float</span><span class="p">,</span> <span class="n">Array</span><span class="p">,</span> <span class="n">Property</span><span class="p">,</span> <span class="n">Enum</span><span class="p">,</span> <span class="n">Trait</span><span class="p">,</span> <span class="n">CFloat</span><span class="p">,</span> <span class="n">Constant</span>
+<span class="kn">from</span> <span class="nn">traitsui.api</span> <span class="kn">import</span> <span class="n">View</span><span class="p">,</span> <span class="n">Item</span><span class="p">,</span> <span class="n">Group</span><span class="p">,</span> <span class="n">HSplit</span><span class="p">,</span> <span class="n">VSplit</span>
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">linspace</span><span class="p">,</span> <span class="n">array</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">pi</span>
+
+<span class="c"># Help text:</span>
+<span class="n">ViewHelp</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">This program is based on the Converter example in the TraitsUI examples archive.  This example is similar with</span>
+<span class="s">the following changes:</span>
+<span class="s">  1.  Full arrays are used in the place of single values for all the conversions.</span>
+<span class="s">  2.  The conversions allow for reciprocal unit systems, which is often necessary in spectrometry.  For example,</span>
+<span class="s">      the energy of a photon can be described in energy units, but also in units of wavelength and frequency using </span>
+<span class="s">      the formulas:  E=hf  and lf=c   </span>
+<span class="s">	E=photon energy, c=speed of light, l=wavelength of light, f=frequency of light, c=speed of light</span>
+<span class="s">        Therefore, the energy and wavelength are related inversely by E=hc/l</span>
+<span class="s">  3.  The first and last values of the array are shown in the View to give the view some idea of the underlying array</span>
+<span class="s">      manipulations taking place.  This is merely for aesthetics.</span>
+<span class="s">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="SpectralConverter"><a class="viewcode-back" href="../../../API/skspec.chaco_interface.html#skspec.chaco_interface.spectral_converter_demo.SpectralConverter">[docs]</a><span class="k">class</span> <span class="nc">SpectralConverter</span> <span class="p">(</span> <span class="n">HasTraits</span> <span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Converts between many sets of spectral units&#39;&#39;&#39;</span>
+    <span class="n">h</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="mf">6.626068</span><span class="o">*</span><span class="mi">10</span><span class="o">**-</span><span class="mi">34</span><span class="p">)</span>          <span class="c">#Planck&#39;s constant m**2 kg / s</span>
+    <span class="n">eVtoJ</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="mf">1.60217646</span> <span class="o">*</span> <span class="mi">10</span><span class="o">**-</span><span class="mi">19</span><span class="p">)</span>  <span class="c">#Number of Joules in one eV (needed becasue eV is not the standard MKS unit of energy)</span>
+    <span class="n">c</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="mi">299792458</span><span class="p">)</span>                 <span class="c">#speed of light m/</span>
+
+    <span class="c"># Units trait maps all units to meters.  This allows us to use the physical constants in there MKS default units:</span>
+    <span class="n">Units</span> <span class="o">=</span> <span class="n">Trait</span><span class="p">(</span> <span class="s">&#39;Meters&#39;</span><span class="p">,</span> <span class="p">{</span> <span class="s">&#39;Meters&#39;</span><span class="p">:</span>      <span class="mf">1.0</span><span class="p">,</span>        
+				   <span class="s">&#39;Centimeters&#39;</span><span class="p">:</span><span class="o">.</span><span class="mo">01</span><span class="p">,</span>
+				   <span class="s">&#39;Micrometers&#39;</span><span class="p">:</span><span class="o">.</span><span class="mo">000001</span><span class="p">,</span>    <span class="c">#All of these are proportional to units of length</span>
+				   <span class="s">&#39;Nanometers&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mo">000000001</span><span class="p">,</span>          
+				   <span class="s">&#39;cm-1&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mo">01</span><span class="p">,</span>              <span class="c">#All of these are inversely proportional to units of length</span>
+				   <span class="s">&#39;Wavenumber(nm-1)&#39;</span><span class="p">:</span><span class="o">.</span><span class="mo">000000001</span><span class="p">,</span> 
+				   <span class="s">&#39;Frequency(Hz)&#39;</span><span class="p">:</span>  <span class="n">c</span><span class="p">,</span>  
+				   <span class="s">&#39;Angular Frequency(rad)&#39;</span><span class="p">:</span> <span class="mf">2.0</span><span class="o">*</span><span class="n">pi</span><span class="o">*</span><span class="n">c</span><span class="p">,</span>
+				   <span class="s">&#39;eV&#39;</span><span class="p">:</span> <span class="n">h</span><span class="o">*</span><span class="n">c</span><span class="o">/</span><span class="p">(</span><span class="n">eVtoJ</span><span class="p">)</span>  
+					 <span class="p">}</span> <span class="p">)</span>
+
+    <span class="c">#Next we specify which units are related to length directly and inversely#</span>
+    <span class="n">proportional</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;Meters&#39;</span><span class="p">,</span> <span class="s">&#39;Nanometers&#39;</span><span class="p">,</span> <span class="s">&#39;Centimeters&#39;</span><span class="p">,</span> <span class="s">&#39;Micrometers&#39;</span><span class="p">]</span> 
+    <span class="n">reciprocal</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;cm-1&#39;</span><span class="p">,</span> <span class="s">&#39;eV&#39;</span><span class="p">,</span> <span class="s">&#39;Wavenumber(nm-1)&#39;</span><span class="p">,</span> <span class="s">&#39;Frequency(Hz)&#39;</span><span class="p">,</span> <span class="s">&#39;Angular Frequency(rad)&#39;</span><span class="p">]</span>             
+
+    <span class="n">input_array</span>  <span class="o">=</span> <span class="n">Array</span><span class="p">(</span> <span class="p">)</span>   <span class="c">#Set on initialization</span>
+    <span class="n">input_units</span>  <span class="o">=</span> <span class="n">Units</span><span class="p">(</span> <span class="p">)</span>   <span class="c">#Set on initialization</span>
+    <span class="n">output_array</span> <span class="o">=</span> <span class="n">Property</span><span class="p">(</span><span class="n">Array</span><span class="p">,</span> <span class="n">depends_on</span> <span class="o">=</span> <span class="p">[</span> <span class="s">&#39;input_array&#39;</span><span class="p">,</span> <span class="s">&#39;input_units&#39;</span><span class="p">,</span>
+                                             <span class="s">&#39;output_units&#39;</span> <span class="p">])</span>
+    <span class="n">output_units</span>  <span class="o">=</span> <span class="n">Units</span><span class="p">(</span><span class="s">&#39;Frequency(Hz)&#39;</span><span class="p">)</span>  <span class="c">#Default output unit</span>
+
+    <span class="c">#Property Traits#</span>
+    <span class="n">xstart</span><span class="o">=</span><span class="n">Property</span><span class="p">(</span><span class="n">Float</span><span class="p">,</span> <span class="n">depends_on</span><span class="o">=</span><span class="s">&#39;input_array&#39;</span><span class="p">)</span>
+    <span class="n">xend</span><span class="o">=</span><span class="n">Property</span><span class="p">(</span><span class="n">Float</span><span class="p">,</span> <span class="n">depends_on</span><span class="o">=</span><span class="s">&#39;input_array&#39;</span><span class="p">)</span>
+
+    <span class="n">xnewstart</span><span class="o">=</span><span class="n">Property</span><span class="p">(</span><span class="n">Float</span><span class="p">,</span> <span class="n">depends_on</span><span class="o">=</span><span class="s">&#39;output_array&#39;</span><span class="p">)</span>
+    <span class="n">xnewend</span><span class="o">=</span><span class="n">Property</span><span class="p">(</span><span class="n">Float</span><span class="p">,</span> <span class="n">depends_on</span><span class="o">=</span><span class="s">&#39;output_array&#39;</span><span class="p">)</span>
+
+    <span class="n">traits_view</span><span class="o">=</span><span class="n">View</span><span class="p">(</span>  
+		<span class="n">VSplit</span><span class="p">(</span>
+		<span class="n">Group</span><span class="p">(</span><span class="n">HSplit</span><span class="p">(</span> <span class="n">Item</span><span class="p">(</span><span class="s">&#39;xstart&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;Old Spectral Min&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s">&#39;readonly&#39;</span><span class="p">),</span> 
+			      <span class="n">Item</span><span class="p">(</span><span class="s">&#39;xend&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;Old Spectral Max&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s">&#39;readonly&#39;</span><span class="p">),</span>
+			      <span class="n">Item</span><span class="p">(</span><span class="s">&#39;input_units&#39;</span> <span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s">&#39;simple&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;Input Units&#39;</span> <span class="p">))</span>  <span class="p">),</span>
+		<span class="n">Group</span><span class="p">(</span><span class="n">HSplit</span><span class="p">(</span> <span class="n">Item</span><span class="p">(</span><span class="s">&#39;xnewstart&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;New Spectral Min&#39;</span><span class="p">),</span>
+			      <span class="n">Item</span><span class="p">(</span><span class="s">&#39;xnewend&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;New Spectral Max&#39;</span><span class="p">),</span> 
+			      <span class="n">Item</span><span class="p">(</span><span class="s">&#39;output_units&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;Output Units&#39;</span><span class="p">)</span>  <span class="p">)</span>
+		      <span class="p">)</span>
+		      <span class="p">),</span>  <span class="n">kind</span><span class="o">=</span><span class="s">&#39;modal&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="c"># help=ViewHelp,</span>
+		          <span class="n">buttons</span> <span class="o">=</span> <span class="p">[</span> <span class="s">&#39;Undo&#39;</span><span class="p">,</span> <span class="s">&#39;OK&#39;</span><span class="p">,</span> <span class="s">&#39;Cancel&#39;</span><span class="p">,</span> <span class="s">&#39;Help&#39;</span> <span class="p">])</span>
+
+    <span class="c"># Property implementations#</span>
+    <span class="k">def</span> <span class="nf">_get_xstart</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_array</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_get_xend</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  
+	<span class="n">end</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_array</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">-</span><span class="mi">1</span>
+	<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_array</span><span class="p">[</span><span class="n">end</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_get_xnewstart</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_array</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+	
+    <span class="k">def</span> <span class="nf">_get_xnewend</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+	<span class="n">end</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">output_array</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span>
+	<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_array</span><span class="p">[</span><span class="n">end</span><span class="p">]</span>
+
+    <span class="c">#This computes the new array, and depending on the relation between the input and output values,</span>
+    <span class="c"># it changes the output to account for the relative inversion between the quanties.  There are four</span>
+    <span class="c"># cases to consider:</span>
+	 <span class="c">#(both inputs are in proportional list--no relative inverion)</span>
+         <span class="c">#(both inputs are in reciprocal list--double inversion)</span>
+         <span class="c">#(one input in reciprocal, one in proprotional- single inversion (2 cases)</span>
+    <span class="k">def</span> <span class="nf">_get_output_array</span> <span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
+	<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_units</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">proportional</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_units</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">proportional</span><span class="p">:</span>
+	        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_array</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_units_</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_units_</span>
+
+	<span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_units</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">proportional</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_units</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reciprocal</span><span class="p">:</span>
+	        <span class="k">return</span> <span class="mf">1.0</span><span class="o">/</span><span class="p">(</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_array</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_units_</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_units_</span><span class="p">)</span>
+
+	<span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_units</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reciprocal</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_units</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">proportional</span><span class="p">:</span>
+	        <span class="k">return</span> <span class="mf">1.0</span><span class="o">/</span><span class="p">(</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_array</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_units_</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_units_</span><span class="p">)</span>   <span class="c">#Output/input</span>
+
+	<span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_units</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reciprocal</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_units</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reciprocal</span><span class="p">:</span>
+	        <span class="k">return</span>  <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_array</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_units_</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_units_</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="c">#Populate an aribtrary array to mimic the visible light spectrum (400nm -700nm)#</span>
+    <span class="n">x</span><span class="o">=</span><span class="n">linspace</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="mi">700</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+    <span class="n">f</span><span class="o">=</span><span class="n">SpectralConverter</span><span class="p">()</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">input_array</span><span class="o">=</span><span class="n">x</span><span class="p">;</span> <span class="n">f</span><span class="o">.</span><span class="n">input_units</span><span class="o">=</span><span class="s">&#39;Nanometers&#39;</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">configure_traits</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/installation_dependencies.html">Dependencies/Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/plotting.html">Plotting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../API/skspec.html">API</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../../../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+            <p class="searchtip" style="font-size: 90%">
+                Enter search terms or a module, class or function name.
+            </p>
+          </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="../../../py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="../../../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, Adam Hughes, ReevesLab Dept. Physics, George Washington University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3b2.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

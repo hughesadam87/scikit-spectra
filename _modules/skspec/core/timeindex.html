@@ -1,0 +1,388 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>skspec.core.timeindex &mdash; scikit-spectra 0.3.1-2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.3.1-2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="scikit-spectra 0.3.1-2 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../../../index.html">scikit-spectra 0.3.1-2 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../../../index.html"><img src="../../../_static/new_logo.png" border="100" alt="sampledoc"/></a>
+</div>
+
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for skspec.core.timeindex</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span><span class="p">,</span> <span class="n">copy</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">pandas</span> <span class="kn">import</span> <span class="n">DatetimeIndex</span><span class="p">,</span> <span class="n">Timestamp</span>
+
+<span class="kn">from</span> <span class="nn">skspec.core.abcindex</span> <span class="kn">import</span> <span class="n">ConversionIndex</span><span class="p">,</span> <span class="n">_parse_conversion_unit</span>
+<span class="kn">from</span> <span class="nn">skspec.units.abcunits</span> <span class="kn">import</span> <span class="n">UnitError</span>
+<span class="kn">from</span> <span class="nn">skspec.units.intvlunit</span> <span class="kn">import</span> <span class="n">INTVLUNITS</span><span class="p">,</span> <span class="n">TimeDelta</span><span class="p">,</span> <span class="n">DateTime</span><span class="p">,</span> \
+    <span class="n">DatetimeCanonicalError</span>
+
+<div class="viewcode-block" id="TimeIndex"><a class="viewcode-back" href="../../../API/skspec.core.html#skspec.core.timeindex.TimeIndex">[docs]</a><span class="k">class</span> <span class="nc">TimeIndex</span><span class="p">(</span><span class="n">ConversionIndex</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Stores time labels as Timestamps, Time Deltas or cumulative intervals</span>
+<span class="sd">    ie seconds, minutes, days from t=0.  Timestamps (e.g. datetimes) are </span>
+<span class="sd">    stored as objects, while seconds, minutes etc.. are stored as floats.  </span>
+<span class="sd">    Therefore, some extra logic is in place to fix breaking points with the</span>
+<span class="sd">    dtype would otherwise cause errors, mostly the case when dataframe does</span>
+<span class="sd">    slicing or indexing.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">unitdict</span> <span class="o">=</span> <span class="n">INTVLUNITS</span>
+    <span class="n">cumsum</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="c"># Overload because datetime and interval need different array types</span>
+    <span class="c"># i.e. seconds --&gt; float64 while dti ---&gt; timestamp</span>
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">input_array</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Unit is valid key of unitdict &quot;&quot;&quot;</span>
+
+        <span class="c"># Is datetimeindex stored on object, or is object itself datetimeindex</span>
+        <span class="n">datetimeindex</span> <span class="o">=</span> <span class="bp">None</span> 
+        <span class="c">#NEEDS TO BE _STORED DTI FOR __new__, DATETIMEINDEX IS A PROPERTY!</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">datetimeindex</span> <span class="o">=</span> <span class="n">input_array</span><span class="o">.</span><span class="n">_stored_dti</span> 
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+    
+        <span class="c"># IF INPUTARRAY COMES IN AS A PANDAS DATETIMEINDEX, FORMATS IT</span>
+        <span class="c"># TO AN ARRAY OF DATETIMES THEN TO AN ARRAY OF TIMESTAMPS,</span>
+        <span class="c"># THE ARRAY OF TIMESTAMPS IS NECESSARY FOR TIMEINDEX</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_array</span><span class="p">,</span> <span class="n">DatetimeIndex</span><span class="p">):</span>
+            <span class="c">#Convert datetimes to timestamp</span>
+            <span class="k">if</span> <span class="n">unit</span> <span class="o">!=</span> <span class="s">&#39;dti&#39;</span> <span class="ow">and</span> <span class="n">unit</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="s">&quot;When creating TimeIndex from DatetimeIndex&quot;</span>
+                     <span class="s">&quot; unit must be &#39;dti&#39; or None, recived </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">unit</span><span class="p">)</span>
+            <span class="n">datetimeindex</span> <span class="o">=</span> <span class="n">input_array</span>            
+            <span class="n">input_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">input_array</span><span class="o">.</span><span class="n">to_pydatetime</span><span class="p">())</span>
+            <span class="n">input_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">Timestamp</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">input_array</span><span class="p">])</span>
+
+            <span class="c"># Could force unit = DTI at this point, but are there cases</span>
+            <span class="c"># where they want to retain unit = None? </span>
+            <span class="c"># Decided default behavior should be DTI and None set if desired</span>
+            <span class="n">unit</span> <span class="o">=</span> <span class="s">&#39;dti&#39;</span>
+
+                        
+        <span class="k">if</span> <span class="n">unit</span><span class="p">:</span>
+            <span class="c"># dti, timedelta</span>
+            <span class="k">if</span> <span class="n">unit</span> <span class="o">==</span> <span class="s">&#39;intvl&#39;</span> <span class="ow">or</span> <span class="n">unit</span> <span class="o">==</span> <span class="s">&#39;dti&#39;</span><span class="p">:</span>
+                <span class="n">dtype</span> <span class="o">=</span> <span class="s">&#39;object&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dtype</span> <span class="o">=</span> <span class="s">&#39;float64&#39;</span>
+                <span class="c"># FLOAT ROUNDING</span>
+<span class="c">#                input_array = np.around(input_array, decimals=6)</span>
+
+            <span class="n">obj</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">input_array</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">cls</span><span class="p">)</span>   
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">input_array</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">cls</span><span class="p">)</span>   
+
+        <span class="k">if</span> <span class="n">datetimeindex</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">obj</span><span class="o">.</span><span class="n">_stored_dti</span> <span class="o">=</span> <span class="n">datetimeindex</span>
+
+        <span class="c"># Ensure valid unit</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">_unit</span> <span class="o">=</span> <span class="n">_parse_conversion_unit</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span> <span class="n">cls</span><span class="o">.</span><span class="n">unitdict</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cls</span><span class="o">.</span><span class="n">cumsum</span><span class="p">:</span>
+            <span class="n">obj</span><span class="o">.</span><span class="n">cumsum</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">return</span> <span class="n">obj</span>   
+
+    <span class="c"># Remove</span>
+    <span class="k">def</span> <span class="nf">_validate_slicer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Trips up by operations like loc/iloc.&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+
+<div class="viewcode-block" id="TimeIndex.convert"><a class="viewcode-back" href="../../../API/skspec.core.html#skspec.core.timeindex.TimeIndex.convert">[docs]</a>    <span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outunit</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Converts spectral units (see abcindex.convert()).  Handles special</span>
+<span class="sd">        case of converting to datetimeindex, since the DateTime unit does</span>
+<span class="sd">        not have conversions; instead the datetimeindex is stored in this</span>
+<span class="sd">        TimeIndex class and needs to be handled separately.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">inunit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unit</span><span class="o">.</span><span class="n">short</span>        
+        
+        <span class="c"># Corner case: None to DTI --&gt; DTI constructor accepts most anything so</span>
+        <span class="c"># Enforce that user has set datetimeinex manually</span>
+        <span class="k">if</span> <span class="n">outunit</span> <span class="o">==</span> <span class="s">&#39;dti&#39;</span> <span class="ow">and</span> <span class="n">inunit</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">datetimeindex</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="s">&quot;Going from None to DTI can result in incorrect datetimeindex.&quot;</span>
+                        <span class="s">&quot; therefore, please construct index from datetime index from begining.&quot;</span><span class="p">)</span>
+        <span class="c"># Hack: when going from None to seconds or another float unit, </span>
+        <span class="c"># the array dtype will change.  This isn&#39;t an issue for ABCIndex</span>
+        <span class="c"># which is always float type.</span>
+
+        <span class="c"># Handle non-dti conversion and conversions involvin DTI and None</span>
+
+        <span class="c">#if inunit is None and outunit is not None and outunit != &#39;dti&#39; and self.dtype !=&#39;float&#39;:</span>
+            <span class="c">#raise IndexError(&quot;Converting TimeIndex from None to float type&quot;</span>
+                  <span class="c">#&quot;is not allowed; please set the timeindex unit first.&quot;)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">TimeIndex</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">outunit</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">DatetimeCanonicalError</span><span class="p">:</span>
+ 
+            <span class="c"># DTI (just pass self.datetimeindex into the constructor)</span>
+            <span class="k">if</span> <span class="n">outunit</span> <span class="o">==</span> <span class="s">&#39;dti&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">datetimeindex</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="s">&quot;Datetime index not stored; cannot convert to dti&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datetimeindex</span><span class="p">,</span> <span class="n">unit</span> <span class="o">=</span> <span class="s">&#39;dti&#39;</span><span class="p">)</span>
+    
+            <span class="c">#DTI TO SOMETHING ELSE            </span>
+            <span class="k">elif</span> <span class="n">outunit</span> <span class="o">!=</span> <span class="s">&#39;dti&#39;</span> <span class="ow">and</span> <span class="n">inunit</span> <span class="o">==</span> <span class="s">&#39;dti&#39;</span><span class="p">:</span>
+                <span class="n">nanoseconds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datetimeindex</span><span class="o">.</span><span class="n">asi8</span><span class="p">)</span>  <span class="c">#asi8 only defined on DatetimeIndex      </span>
+                <span class="n">seconds</span> <span class="o">=</span> <span class="n">nanoseconds</span> <span class="o">*</span> <span class="mi">10</span><span class="o">**-</span><span class="mi">9</span>  
+                <span class="n">seconds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">seconds</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">seconds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">seconds</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cumsum</span><span class="p">:</span>
+                    <span class="n">seconds</span> <span class="o">=</span> <span class="n">seconds</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
+                <span class="c"># Seconds to datetime to new unit (hacky/three steps)</span>
+                <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">(</span><span class="n">seconds</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">outunit</span><span class="p">)</span>  <span class="c">#THIS MAKES NP ARRAY SO ADD DATETIMEINDEX</span>
+                <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unitdict</span><span class="p">[</span><span class="n">outunit</span><span class="p">]</span><span class="o">.</span><span class="n">from_canonical</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>           
+                <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">outunit</span><span class="p">)</span>
+
+            <span class="c"># Should never happen</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="s">&quot;SOME LOGIC APPARENTLY NOT ACCOUNTED FOR&quot;</span><span class="p">)</span>
+        
+        <span class="c"># all conversions go through numpy arrays, so need to manually assign DTI!</span>
+        <span class="c">#NEEDS TO BE _STORED DTI FOR __new__, DATETIMEINDEX IS A PROPERTY!        </span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">_stored_dti</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">datetimeindex</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        
+        <span class="k">return</span> <span class="n">out</span>
+
+</div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">datetimeindex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stored_dti</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s">&quot;DatetimeIndex not stored.&quot;</span><span class="p">)</span>
+
+
+    <span class="nd">@datetimeindex.deleter</span>
+    <span class="k">def</span> <span class="nf">datetimeindex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Delete stored datetimeindex.  Not sure if useful, but code will</span>
+<span class="sd">        breatk if I allow this set to None, so must delete.&quot;&quot;&quot;</span>
+        <span class="k">del</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_stored_dti</span><span class="p">)</span>
+            
+        
+    <span class="nd">@datetimeindex.setter</span>
+    <span class="k">def</span> <span class="nf">datetimeindex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dti</span><span class="p">):</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dti</span><span class="p">,</span> <span class="n">DatetimeIndex</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">dti</span> <span class="o">=</span> <span class="n">DatetimeIndex</span><span class="p">(</span><span class="n">dti</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="s">&#39;Could not store DatetimeIndex; wrong type </span><span class="si">%s</span><span class="s">&#39;</span> \
+                                 <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">dti</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dti</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="s">&quot;Length mismatch between passed&quot;</span>
+                         <span class="s">&quot;datetimeindex </span><span class="si">%s</span><span class="s"> and object </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dti</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)))</span>
+                
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stored_dti</span> <span class="o">=</span> <span class="n">dti</span>
+
+
+    <span class="k">def</span> <span class="nf">__getslice__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">)</span> <span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;This solves a subtle bug, where __getitem__ is not called, and all</span>
+<span class="sd">        the dimensional checking not done, when a slice of only the first</span>
+<span class="sd">        dimension is taken, e.g. a[1:3]. From the Python docs:</span>
+<span class="sd">           Deprecated since version 2.0: Support slice objects as parameters</span>
+<span class="sd">           to the __getitem__() method. (However, built-in types in CPython</span>
+<span class="sd">           currently still implement __getslice__(). Therefore, you have to</span>
+<span class="sd">           override it in derived classes when implementing slicing.)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__getitem__</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; When slicing, the datetimeindex should also be sliced. Otherwise,</span>
+<span class="sd">        when converting to datetimeindex, could have length mismatch.  EG:</span>
+<span class="sd">        </span>
+<span class="sd">        min = ts.convert(&#39;m&#39;)[0:5]</span>
+<span class="sd">        len(min) = 5</span>
+<span class="sd">        dti = min.convert(&#39;dti&#39;)</span>
+<span class="sd">        len(dti) = &lt;length of original array&gt;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">TimeIndex</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__getitem__</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="c"># If not returning a single value (eg index[0])</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="s">&#39;__iter__&#39;</span><span class="p">):</span>
+            <span class="c"># Slice datetime index as well</span>
+            <span class="c">#NEEDS TO BE _STORED DTI FOR __new__, DATETIMEINDEX IS A PROPERTY!            </span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">_stored_dti</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">datetimeindex</span><span class="o">.</span><span class="n">__getitem__</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> 
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="k">return</span> <span class="n">out</span>
+    
+<div class="viewcode-block" id="TimeIndex.copy"><a class="viewcode-back" href="../../../API/skspec.core.html#skspec.core.timeindex.TimeIndex.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Datetimeindex not properly stored when running various copy routines</span>
+<span class="sd">        either from dataframe.copy or import copy, so manually overriding.</span>
+<span class="sd">        </span>
+<span class="sd">        Args kwargs passed to copy (e.g. deep =True)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">outdict</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">TimeIndex</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">outdict</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="s">&#39;_stored_dti&#39;</span><span class="p">]</span><span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">datetimeindex</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">return</span> <span class="n">outdict</span>
+
+</div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_all_dates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Overwirte this Index method because it&#39;s source of many issues</span>
+<span class="sd">        deep in cython level.  Basically, only should be called if python</span>
+<span class="sd">        objects.  Otherwise, get ValueError:</span>
+<span class="sd">             Buffer dtype mismatch, expected &#39;Python object&#39; but got &#39;double&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Don&#39;t ever want this True, or Series will convert ot DateTimeIndex</span>
+        <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="c"># How I used to do it, but resulted in bug #146</span>
+        <span class="c"># https://github.com/hugadams/skspec/issues/146</span>
+        <span class="c">#if self.dtype != &#39;object&#39;:</span>
+            <span class="c">#return False</span>
+        <span class="c">#else:</span>
+            <span class="c">#return super(ConversionIndex, self).is_all_dates    </span>
+
+
+    <span class="c"># Hack to return _engine type correctly for mixed index objects like TimeIndex</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_engine_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">pandas.index</span> <span class="kn">as</span> <span class="nn">_index</span>      
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="s">&#39;object&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">_index</span><span class="o">.</span><span class="n">ObjectEngine</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="s">&#39;float64&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">_index</span><span class="o">.</span><span class="n">Float64Engine</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="s">&quot;Not sure which Engine to return for dtype </span><span class="si">%s</span><span class="s">&quot;</span>\
+                             <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>      
+
+<span class="c">#    def _validate_slicer(self, key, f):</span>
+<span class="c">#        pass</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">pandas</span> <span class="kn">import</span> <span class="n">date_range</span>
+
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">TimeIndex</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">idx</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s">&#39;s&#39;</span><span class="p">)</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">idx</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s">&#39;m&#39;</span><span class="p">)</span>
+
+    <span class="c">#From datetime constructor</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">TimeIndex</span><span class="o">.</span><span class="n">from_datetime</span><span class="p">(</span><span class="n">date_range</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="s">&#39;3/3/12&#39;</span><span class="p">,</span><span class="n">periods</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span><span class="n">freq</span><span class="o">=</span><span class="s">&#39;45s&#39;</span><span class="p">))</span>
+    <span class="k">print</span> <span class="n">idx</span>
+    <span class="k">for</span> <span class="n">unit</span> <span class="ow">in</span> <span class="n">INTVLUNITS</span><span class="p">:</span>
+        <span class="k">print</span> <span class="n">unit</span><span class="p">,</span> <span class="n">idx</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
+
+    <span class="k">print</span> <span class="n">idx</span><span class="o">.</span><span class="n">unitdict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+<span class="c">#   idx.cumsum = False</span>
+<span class="c">#   for unit in INTVLUNITS:</span>
+<span class="c">#      print unit, idx.convert(unit)   </span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/installation_dependencies.html">Dependencies/Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/plotting.html">Plotting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../API/skspec.html">API</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../../../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+            <p class="searchtip" style="font-size: 90%">
+                Enter search terms or a module, class or function name.
+            </p>
+          </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="../../../py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="../../../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, Adam Hughes, ReevesLab Dept. Physics, George Washington University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3b2.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

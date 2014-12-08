@@ -1,0 +1,601 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gwu_script Package &mdash; scikit-spectra 0.3.1-2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.3.1-2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="scikit-spectra 0.3.1-2 documentation" href="../index.html" />
+    <link rel="up" title="scripts Package" href="skspec.scripts.html" />
+    <link rel="next" title="mlab_templates Package" href="skspec.scripts.gwu_script.mlab_templates.html" />
+    <link rel="prev" title="scripts Package" href="skspec.scripts.html" /> 
+  </head>
+  <body role="document">
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../index.html">scikit-spectra 0.3.1-2 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="skspec.scripts.html" title="scripts Package"
+             accesskey="P">previous</a> |
+          <a href="skspec.scripts.gwu_script.mlab_templates.html" title="mlab_templates Package"
+             accesskey="N">next</a> |
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../index.html"><img src="../_static/new_logo.png" border="100" alt="sampledoc"/></a>
+</div>
+
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="gwu-script-package">
+<h1>gwu_script Package<a class="headerlink" href="#gwu-script-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2><code class="xref py py-mod docutils literal"><span class="pre">gwu_script</span></code> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-skspec.scripts.gwu_script"></span></div>
+<div class="section" id="module-skspec.scripts.gwu_script.gwu_controller">
+<span id="gwu-controller-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">gwu_controller</span></code> Module<a class="headerlink" href="#module-skspec.scripts.gwu_script.gwu_controller" title="Permalink to this headline">¶</a></h2>
+<p>GWU in-house script for dataanalysis of fiberoptic probe data.</p>
+<dl class="class">
+<dt id="skspec.scripts.gwu_script.gwu_controller.AddUnderscore">
+<em class="property">class </em><code class="descclassname">skspec.scripts.gwu_script.gwu_controller.</code><code class="descname">AddUnderscore</code><span class="sig-paren">(</span><em>option_strings</em>, <em>dest</em>, <em>nargs=None</em>, <em>const=None</em>, <em>default=None</em>, <em>type=None</em>, <em>choices=None</em>, <em>required=False</em>, <em>help=None</em>, <em>metavar=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/scripts/gwu_script/gwu_controller.html#AddUnderscore"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.AddUnderscore" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">argparse.Action</span></code></p>
+<p>Adds an underscore to end of value (used in &#8220;rootname&#8221;)</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="skspec.scripts.gwu_script.gwu_controller.Controller">
+<em class="property">class </em><code class="descclassname">skspec.scripts.gwu_script.gwu_controller.</code><code class="descname">Controller</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/scripts/gwu_script/gwu_controller.html#Controller"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.Controller" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.gwu_controller.Controller.analysis">
+<code class="descname">analysis</code><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.Controller.analysis" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skspec.scripts.gwu_script.gwu_controller.Controller.analyze_dir">
+<code class="descname">analyze_dir</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.Controller.analyze_dir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skspec.scripts.gwu_script.gwu_controller.Controller.apply_parameters">
+<code class="descname">apply_parameters</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.Controller.apply_parameters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skspec.scripts.gwu_script.gwu_controller.Controller.area_thirds_plot">
+<code class="descname">area_thirds_plot</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.Controller.area_thirds_plot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skspec.scripts.gwu_script.gwu_controller.Controller.build_outroot">
+<code class="descname">build_outroot</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.Controller.build_outroot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skspec.scripts.gwu_script.gwu_controller.Controller.build_timespectra">
+<code class="descname">build_timespectra</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.Controller.build_timespectra" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skspec.scripts.gwu_script.gwu_controller.Controller.corr_analysis">
+<code class="descname">corr_analysis</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.Controller.corr_analysis" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="skspec.scripts.gwu_script.gwu_controller.Controller.from_namespace">
+<em class="property">classmethod </em><code class="descname">from_namespace</code><span class="sig-paren">(</span><em>args=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/scripts/gwu_script/gwu_controller.html#Controller.from_namespace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.Controller.from_namespace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create Controller from argparse-generated namespace.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.gwu_controller.Controller.img_ignore">
+<code class="descname">img_ignore</code><em class="property"> = ['.png', '.jpeg', '.tif', '.bmp', '.ipynb']</em><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.Controller.img_ignore" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.gwu_controller.Controller.infolder">
+<code class="descname">infolder</code><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.Controller.infolder" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.gwu_controller.Controller.inpath">
+<code class="descname">inpath</code><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.Controller.inpath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.gwu_controller.Controller.inroot">
+<code class="descname">inroot</code><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.Controller.inroot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skspec.scripts.gwu_script.gwu_controller.Controller.main_walk">
+<code class="descname">main_walk</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.Controller.main_walk" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skspec.scripts.gwu_script.gwu_controller.Controller.make_matlab">
+<code class="descname">make_matlab</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.Controller.make_matlab" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.gwu_controller.Controller.name">
+<code class="descname">name</code><em class="property"> = 'Controller'</em><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.Controller.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.gwu_controller.Controller.nb_links">
+<code class="descname">nb_links</code><em class="property"> = {}</em><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.Controller.nb_links" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.gwu_controller.Controller.outfolder">
+<code class="descname">outfolder</code><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.Controller.outfolder" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.gwu_controller.Controller.outpath">
+<code class="descname">outpath</code><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.Controller.outpath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.gwu_controller.Controller.outroot">
+<code class="descname">outroot</code><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.Controller.outroot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.gwu_controller.Controller.params">
+<code class="descname">params</code><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.Controller.params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skspec.scripts.gwu_script.gwu_controller.Controller.plots_1d">
+<code class="descname">plots_1d</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.Controller.plots_1d" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skspec.scripts.gwu_script.gwu_controller.Controller.plots_2d">
+<code class="descname">plots_2d</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.Controller.plots_2d" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skspec.scripts.gwu_script.gwu_controller.Controller.plots_3d">
+<code class="descname">plots_3d</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.Controller.plots_3d" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skspec.scripts.gwu_script.gwu_controller.Controller.plt_clrsave">
+<code class="descname">plt_clrsave</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.Controller.plt_clrsave" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skspec.scripts.gwu_script.gwu_controller.Controller.save_csv">
+<code class="descname">save_csv</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.Controller.save_csv" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skspec.scripts.gwu_script.gwu_controller.Controller.section_report">
+<code class="descname">section_report</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.Controller.section_report" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skspec.scripts.gwu_script.gwu_controller.Controller.start_run">
+<code class="descname">start_run</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.Controller.start_run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skspec.scripts.gwu_script.gwu_controller.Controller.validate_ts">
+<code class="descname">validate_ts</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.Controller.validate_ts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.scripts.gwu_script.gwu_controller.dict_out">
+<code class="descclassname">skspec.scripts.gwu_script.gwu_controller.</code><code class="descname">dict_out</code><span class="sig-paren">(</span><em>header</em>, <em>dic</em>, <em>sort=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/scripts/gwu_script/gwu_controller.html#dict_out"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.dict_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retures a string of form header 
+k       val</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.scripts.gwu_script.gwu_controller.ext">
+<code class="descclassname">skspec.scripts.gwu_script.gwu_controller.</code><code class="descname">ext</code><span class="sig-paren">(</span><em>afile</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/scripts/gwu_script/gwu_controller.html#ext"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.ext" title="Permalink to this definition">¶</a></dt>
+<dd><p>get file extension</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.scripts.gwu_script.gwu_controller.hideuser">
+<code class="descclassname">skspec.scripts.gwu_script.gwu_controller.</code><code class="descname">hideuser</code><span class="sig-paren">(</span><em>abspath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/scripts/gwu_script/gwu_controller.html#hideuser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.hideuser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replace user home directory with ~.  Inverse operation for
+op.expanduser().  Must pass absolute path that starts with user.
+User is home/glue but on FD harddrive, it&#8217;s media/backup, so hack
+to just replace</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.scripts.gwu_script.gwu_controller.latex_multicols">
+<code class="descclassname">skspec.scripts.gwu_script.gwu_controller.</code><code class="descname">latex_multicols</code><span class="sig-paren">(</span><em>dic</em>, <em>title=''</em>, <em>cols=2</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/scripts/gwu_script/gwu_controller.html#latex_multicols"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.latex_multicols" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hacky: given a list of items, wraps a multicol iterable so that the list
+will be output as columns.  Title will be added in bold/large</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.scripts.gwu_script.gwu_controller.latex_string">
+<code class="descclassname">skspec.scripts.gwu_script.gwu_controller.</code><code class="descname">latex_string</code><span class="sig-paren">(</span><em>string</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/scripts/gwu_script/gwu_controller.html#latex_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.latex_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replace underscore, newline, tabs to fit latex.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.scripts.gwu_script.gwu_controller.logmkdir">
+<code class="descclassname">skspec.scripts.gwu_script.gwu_controller.</code><code class="descname">logmkdir</code><span class="sig-paren">(</span><em>fullpath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/scripts/gwu_script/gwu_controller.html#logmkdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.logmkdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Makes directory path/folder, and logs.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.scripts.gwu_script.gwu_controller.removeEmptyFolders">
+<code class="descclassname">skspec.scripts.gwu_script.gwu_controller.</code><code class="descname">removeEmptyFolders</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/scripts/gwu_script/gwu_controller.html#removeEmptyFolders"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.removeEmptyFolders" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes any empty folders in path.  Useful because recursive mode
+of script makes every directory it finds, even if they are empty.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skspec.scripts.gwu_script.gwu_controller.timenow">
+<code class="descclassname">skspec.scripts.gwu_script.gwu_controller.</code><code class="descname">timenow</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/scripts/gwu_script/gwu_controller.html#timenow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_controller.timenow" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-skspec.scripts.gwu_script.gwu_reporter">
+<span id="gwu-reporter-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">gwu_reporter</span></code> Module<a class="headerlink" href="#module-skspec.scripts.gwu_script.gwu_reporter" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="skspec.scripts.gwu_script.gwu_reporter.Reporter">
+<em class="property">class </em><code class="descclassname">skspec.scripts.gwu_script.gwu_reporter.</code><code class="descname">Reporter</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/scripts/gwu_script/gwu_reporter.html#Reporter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_reporter.Reporter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>Report is stored as an ordered dict.  Main is followed by sections.</p>
+<dl class="method">
+<dt id="skspec.scripts.gwu_script.gwu_reporter.Reporter.add_section">
+<code class="descname">add_section</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_reporter.Reporter.add_section" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.gwu_reporter.Reporter.author">
+<code class="descname">author</code><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_reporter.Reporter.author" title="Permalink to this definition">¶</a></dt>
+<dd><p>(First, Last) name of author</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="skspec.scripts.gwu_script.gwu_reporter.Reporter.make_report">
+<code class="descname">make_report</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_reporter.Reporter.make_report" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skspec.scripts.gwu_script.gwu_reporter.Reporter.output_template">
+<code class="descname">output_template</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_reporter.Reporter.output_template" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skspec.scripts.gwu_script.gwu_reporter.Reporter.parse_path">
+<code class="descname">parse_path</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_reporter.Reporter.parse_path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skspec.scripts.gwu_script.gwu_reporter.Reporter.parse_sections">
+<code class="descname">parse_sections</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_reporter.Reporter.parse_sections" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skspec.scripts.gwu_script.gwu_reporter.Reporter.remove_section">
+<code class="descname">remove_section</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_reporter.Reporter.remove_section" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.gwu_reporter.Reporter.report">
+<code class="descname">report</code><a class="headerlink" href="#skspec.scripts.gwu_script.gwu_reporter.Reporter.report" title="Permalink to this definition">¶</a></dt>
+<dd><p>Concatenates main_tamplate body and self.sections.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-skspec.scripts.gwu_script.gwureport">
+<span id="gwureport-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">gwureport</span></code> Module<a class="headerlink" href="#module-skspec.scripts.gwu_script.gwureport" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="skspec.scripts.gwu_script.gwureport.main">
+<code class="descclassname">skspec.scripts.gwu_script.gwureport.</code><code class="descname">main</code><span class="sig-paren">(</span><em>args=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/scripts/gwu_script/gwureport.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.scripts.gwu_script.gwureport.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-skspec.scripts.gwu_script.gwuspec">
+<span id="gwuspec-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">gwuspec</span></code> Module<a class="headerlink" href="#module-skspec.scripts.gwu_script.gwuspec" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="skspec.scripts.gwu_script.gwuspec.main">
+<code class="descclassname">skspec.scripts.gwu_script.gwuspec.</code><code class="descname">main</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/scripts/gwu_script/gwuspec.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.scripts.gwu_script.gwuspec.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-skspec.scripts.gwu_script.parameters_model">
+<span id="parameters-model-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">parameters_model</span></code> Module<a class="headerlink" href="#module-skspec.scripts.gwu_script.parameters_model" title="Permalink to this headline">¶</a></h2>
+<p>Model for building correct parameters that will be assigned to timespectra
+in gwu_spec script.</p>
+<dl class="class">
+<dt id="skspec.scripts.gwu_script.parameters_model.Parameters">
+<em class="property">class </em><code class="descclassname">skspec.scripts.gwu_script.parameters_model.</code><code class="descname">Parameters</code><span class="sig-paren">(</span><em>**params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/scripts/gwu_script/parameters_model.html#Parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.scripts.gwu_script.parameters_model.Parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>Defines timespectra scripting parameters.</p>
+<dl class="method">
+<dt id="skspec.scripts.gwu_script.parameters_model.Parameters.as_markdownlist">
+<code class="descname">as_markdownlist</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/scripts/gwu_script/parameters_model.html#Parameters.as_markdownlist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.scripts.gwu_script.parameters_model.Parameters.as_markdownlist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return parameters for markdown list for .ipynb use:
+- foo = bar
+- baz = ing</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.parameters_model.Parameters.bline_fit_default">
+<code class="descname">bline_fit_default</code><em class="property"> = False</em><a class="headerlink" href="#skspec.scripts.gwu_script.parameters_model.Parameters.bline_fit_default" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.parameters_model.Parameters.fit_regions">
+<code class="descname">fit_regions</code><a class="headerlink" href="#skspec.scripts.gwu_script.parameters_model.Parameters.fit_regions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.parameters_model.Parameters.fit_regions_default">
+<code class="descname">fit_regions_default</code><em class="property"> = None</em><a class="headerlink" href="#skspec.scripts.gwu_script.parameters_model.Parameters.fit_regions_default" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.parameters_model.Parameters.git">
+<code class="descname">git</code><em class="property"> = True</em><a class="headerlink" href="#skspec.scripts.gwu_script.parameters_model.Parameters.git" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.parameters_model.Parameters.intvlunit_default">
+<code class="descname">intvlunit_default</code><em class="property"> = 'm'</em><a class="headerlink" href="#skspec.scripts.gwu_script.parameters_model.Parameters.intvlunit_default" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skspec.scripts.gwu_script.parameters_model.Parameters.items">
+<code class="descname">items</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/scripts/gwu_script/parameters_model.html#Parameters.items"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.scripts.gwu_script.parameters_model.Parameters.items" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skspec.scripts.gwu_script.parameters_model.Parameters.loud_apply">
+<code class="descname">loud_apply</code><span class="sig-paren">(</span><em>attr</em>, <em>default</em>, <em>boolean=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/scripts/gwu_script/parameters_model.html#Parameters.loud_apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.scripts.gwu_script.parameters_model.Parameters.loud_apply" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.parameters_model.Parameters.norm_default">
+<code class="descname">norm_default</code><em class="property"> = [None, 'r', 'a']</em><a class="headerlink" href="#skspec.scripts.gwu_script.parameters_model.Parameters.norm_default" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.parameters_model.Parameters.norms">
+<code class="descname">norms</code><a class="headerlink" href="#skspec.scripts.gwu_script.parameters_model.Parameters.norms" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.parameters_model.Parameters.reference_default">
+<code class="descname">reference_default</code><em class="property"> = 0</em><a class="headerlink" href="#skspec.scripts.gwu_script.parameters_model.Parameters.reference_default" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.parameters_model.Parameters.specunit_default">
+<code class="descname">specunit_default</code><em class="property"> = 'nm'</em><a class="headerlink" href="#skspec.scripts.gwu_script.parameters_model.Parameters.specunit_default" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.parameters_model.Parameters.sub_base_default">
+<code class="descname">sub_base_default</code><em class="property"> = False</em><a class="headerlink" href="#skspec.scripts.gwu_script.parameters_model.Parameters.sub_base_default" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.parameters_model.Parameters.t_end_default">
+<code class="descname">t_end_default</code><em class="property"> = None</em><a class="headerlink" href="#skspec.scripts.gwu_script.parameters_model.Parameters.t_end_default" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.parameters_model.Parameters.t_start_default">
+<code class="descname">t_start_default</code><em class="property"> = None</em><a class="headerlink" href="#skspec.scripts.gwu_script.parameters_model.Parameters.t_start_default" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.parameters_model.Parameters.uv_ranges_default">
+<code class="descname">uv_ranges_default</code><em class="property"> = 8</em><a class="headerlink" href="#skspec.scripts.gwu_script.parameters_model.Parameters.uv_ranges_default" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.parameters_model.Parameters.valid_minmax">
+<code class="descname">valid_minmax</code><a class="headerlink" href="#skspec.scripts.gwu_script.parameters_model.Parameters.valid_minmax" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.parameters_model.Parameters.valid_minmax_default">
+<code class="descname">valid_minmax_default</code><em class="property"> = None</em><a class="headerlink" href="#skspec.scripts.gwu_script.parameters_model.Parameters.valid_minmax_default" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.parameters_model.Parameters.xmax_default">
+<code class="descname">xmax_default</code><em class="property"> = None</em><a class="headerlink" href="#skspec.scripts.gwu_script.parameters_model.Parameters.xmax_default" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.parameters_model.Parameters.xmin_default">
+<code class="descname">xmin_default</code><em class="property"> = None</em><a class="headerlink" href="#skspec.scripts.gwu_script.parameters_model.Parameters.xmin_default" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skspec.scripts.gwu_script.parameters_model.USB2000">
+<em class="property">class </em><code class="descclassname">skspec.scripts.gwu_script.parameters_model.</code><code class="descname">USB2000</code><span class="sig-paren">(</span><em>**params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/scripts/gwu_script/parameters_model.html#USB2000"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.scripts.gwu_script.parameters_model.USB2000" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#skspec.scripts.gwu_script.parameters_model.Parameters" title="skspec.scripts.gwu_script.parameters_model.Parameters"><code class="xref py py-class docutils literal"><span class="pre">skspec.scripts.gwu_script.parameters_model.Parameters</span></code></a></p>
+<p>Define some shared parameters between ocean optics spectrometers.</p>
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.parameters_model.USB2000.bline_fit_default">
+<code class="descname">bline_fit_default</code><em class="property"> = True</em><a class="headerlink" href="#skspec.scripts.gwu_script.parameters_model.USB2000.bline_fit_default" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.parameters_model.USB2000.fit_regions_default">
+<code class="descname">fit_regions_default</code><em class="property"> = ((345.0, 395.0), (900.0, 1000.0))</em><a class="headerlink" href="#skspec.scripts.gwu_script.parameters_model.USB2000.fit_regions_default" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.parameters_model.USB2000.sub_base_default">
+<code class="descname">sub_base_default</code><em class="property"> = True</em><a class="headerlink" href="#skspec.scripts.gwu_script.parameters_model.USB2000.sub_base_default" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.parameters_model.USB2000.valid_minmax_default">
+<code class="descname">valid_minmax_default</code><em class="property"> = (339.0, 1024.0)</em><a class="headerlink" href="#skspec.scripts.gwu_script.parameters_model.USB2000.valid_minmax_default" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.parameters_model.USB2000.xmax_default">
+<code class="descname">xmax_default</code><em class="property"> = 680.0</em><a class="headerlink" href="#skspec.scripts.gwu_script.parameters_model.USB2000.xmax_default" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.parameters_model.USB2000.xmin_default">
+<code class="descname">xmin_default</code><em class="property"> = 430.0</em><a class="headerlink" href="#skspec.scripts.gwu_script.parameters_model.USB2000.xmin_default" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skspec.scripts.gwu_script.parameters_model.USB650">
+<em class="property">class </em><code class="descclassname">skspec.scripts.gwu_script.parameters_model.</code><code class="descname">USB650</code><span class="sig-paren">(</span><em>**params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/scripts/gwu_script/parameters_model.html#USB650"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.scripts.gwu_script.parameters_model.USB650" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#skspec.scripts.gwu_script.parameters_model.Parameters" title="skspec.scripts.gwu_script.parameters_model.Parameters"><code class="xref py py-class docutils literal"><span class="pre">skspec.scripts.gwu_script.parameters_model.Parameters</span></code></a></p>
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.parameters_model.USB650.bline_fit_default">
+<code class="descname">bline_fit_default</code><em class="property"> = False</em><a class="headerlink" href="#skspec.scripts.gwu_script.parameters_model.USB650.bline_fit_default" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.parameters_model.USB650.sub_base_default">
+<code class="descname">sub_base_default</code><em class="property"> = True</em><a class="headerlink" href="#skspec.scripts.gwu_script.parameters_model.USB650.sub_base_default" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.scripts.gwu_script.parameters_model.USB650.valid_minmax_default">
+<code class="descname">valid_minmax_default</code><em class="property"> = (200.0, 850.0)</em><a class="headerlink" href="#skspec.scripts.gwu_script.parameters_model.USB650.valid_minmax_default" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="skspec.scripts.gwu_script.mlab_templates.html">mlab_templates Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="skspec.scripts.gwu_script.mlab_templates.html#id1"><code class="docutils literal"><span class="pre">mlab_templates</span></code> Package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="skspec.scripts.gwu_script.tex_templates.html">tex_templates Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="skspec.scripts.gwu_script.tex_templates.html#id1"><code class="docutils literal"><span class="pre">tex_templates</span></code> Package</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="../Tutorial/installation_dependencies.html">Dependencies/Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Tutorial/getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Tutorial/plotting.html">Plotting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="skspec.html">Full API by Module</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+            <p class="searchtip" style="font-size: 90%">
+                Enter search terms or a module, class or function name.
+            </p>
+          </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="skspec.scripts.html" title="scripts Package"
+              >previous</a> |
+            <a href="skspec.scripts.gwu_script.mlab_templates.html" title="mlab_templates Package"
+              >next</a> |
+            <a href="../py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+              <br/>
+              <a href="../_sources/API/skspec.scripts.gwu_script.txt"
+                rel="nofollow">Show Source</a>
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, Adam Hughes, ReevesLab Dept. Physics, George Washington University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3b2.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

@@ -1,0 +1,40 @@
+API
+===
+
+Core Objects
+------------
+.. currentmodule:: skspec.core
+
+.. autosummary::
+   :toctree: generated/
+       
+   anyspectra.AnySpectra
+   spectra.Spectrum
+   spectra.Spectra
+   timespectra.TimeSpectra
+   ...
+
+Index Objects
+-------------
+
+All Modules
+-----------
+
+.. toctree::
+    skspec.config
+    skspec.exampledata
+    skspec.exceptions
+    skspec.logger
+    skspec.IO
+    skspec.bundled
+    skspec.chaco_interface
+    skspec.core
+    skspec.correlation
+    skspec.data
+    skspec.interact
+    skspec.nptools
+    skspec.pandas_utils
+    skspec.plotting
+    skspec.scripts
+    skspec.tests
+    skspec.units

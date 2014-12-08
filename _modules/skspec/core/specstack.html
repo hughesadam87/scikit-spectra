@@ -1,0 +1,577 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>skspec.core.specstack &mdash; scikit-spectra 0.3.1-2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.3.1-2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="scikit-spectra 0.3.1-2 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../../../index.html">scikit-spectra 0.3.1-2 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../../../index.html"><img src="../../../_static/new_logo.png" border="100" alt="sampledoc"/></a>
+</div>
+
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for skspec.core.specstack</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot; Storage class for sets of pandas object.  Similar to a panel, </span>
+<span class="sd">    but does inherently store 3d data.  Data can be converted to 3d through</span>
+<span class="sd">    methods, but otherwise is just a container.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span><span class="p">,</span> <span class="n">Iterable</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">skspec.logger</span> <span class="kn">import</span> <span class="n">logclass</span>
+<span class="kn">from</span> <span class="nn">skspec.plotting.multiplots</span> <span class="kn">import</span> <span class="n">slice_plot</span>
+<span class="kn">import</span> <span class="nn">skspec.core.utilities</span> <span class="kn">as</span> <span class="nn">put</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span> 
+
+
+<div class="viewcode-block" id="MultiError"><a class="viewcode-back" href="../../../API/skspec.core.html#skspec.core.specstack.MultiError">[docs]</a><span class="k">class</span> <span class="nc">MultiError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
+</div>
+<div class="viewcode-block" id="mem_address"><a class="viewcode-back" href="../../../API/skspec.core.html#skspec.core.specstack.mem_address">[docs]</a><span class="k">def</span> <span class="nf">mem_address</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Return memory address string for a python object.  Object must have</span>
+<span class="sd">    default python object __repr__ (ie it would look something like:</span>
+<span class="sd">        &lt;pyparty.tools.grids.CartesianGrid object at 0x3ba2fb0&gt;</span>
+<span class="sd">    The address is merely returned by string parsing. &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">__repr__</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">E</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Failed to return memory address by string parsing.  &quot;</span>
+                         <span class="s">&quot;Recieved following message: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">E</span><span class="o">.</span><span class="n">message</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">out</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s">&quot;&#39;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s">&#39;&gt;&#39;</span><span class="p">)</span>
+    
+</div>
+<span class="nd">@logclass</span><span class="p">(</span><span class="n">log_name</span><span class="o">=</span><span class="n">__name__</span><span class="p">,</span> <span class="n">public_lvl</span><span class="o">=</span><span class="s">&#39;debug&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="Stack"><a class="viewcode-back" href="../../../API/skspec.core.html#skspec.core.specstack.Stack">[docs]</a><span class="k">class</span> <span class="nc">Stack</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Base class to store pandas objects, with special operations to</span>
+<span class="sd">    return as 3d data (eg panel) and to apply functions itemwise.  Items are</span>
+<span class="sd">    stored in an ordered dict.&quot;&quot;&quot;</span>
+    
+    <span class="n">itemlabel</span> <span class="o">=</span> <span class="s">&#39;Item&#39;</span>
+    
+    <span class="n">_magic</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;__len__&#39;</span><span class="p">,</span> 
+            <span class="s">&#39;__iter__&#39;</span><span class="p">,</span> 
+            <span class="s">&#39;__reversed__&#39;</span><span class="p">,</span>
+            <span class="s">&#39;__contains__&#39;</span><span class="p">,</span> 
+            <span class="p">]</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">sort_items</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+                                
+        <span class="c"># Dictionary input</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Initializing &quot;</span><span class="si">%s</span><span class="s">&quot; from dictionary.&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">full_name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">sort_items</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Sorting keys&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">=</span><span class="n">OrderedDict</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">=</span><span class="n">OrderedDict</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> constructed from non-iterable... converting &#39;</span>
+                            <span class="s">&#39;data to an iterable&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">full_name</span><span class="p">)</span>
+                <span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="n">data</span><span class="p">]</span>
+                
+            <span class="k">if</span> <span class="n">keys</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> constructed from non-iterable... converting &#39;</span>
+                                <span class="s">&#39;keys to an iterable&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">full_name</span><span class="p">)</span>
+                    <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">keys</span><span class="p">]</span>
+
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Length mistmatch: keys and data (</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">)&#39;</span>\
+                        <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)))</span>
+                
+            <span class="c"># If keys not passed, generate them    </span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c"># Zipped data ((key, df), (key, df))               </span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">keys</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">data</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>                
+                    <span class="n">keys</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_gen_keys</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Generating keys </span><span class="si">%s</span><span class="s">-</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">keys</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Generating key </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                        
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">=</span><span class="n">OrderedDict</span><span class="p">(</span> <span class="p">[</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> 
+                                      <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span> <span class="p">])</span>
+
+        
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_address</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Property to make easily accesible by multicanvas &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">mem_address</span><span class="p">(</span><span class="nb">super</span><span class="p">(</span><span class="n">Stack</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__repr__</span><span class="p">())</span>
+        
+      
+    <span class="k">def</span> <span class="nf">_gen_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">length</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return a list of itemlables (item0, item1 etc...) using</span>
+<span class="sd">            self.itemlabel and a length&quot;&quot;&quot;</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Items not found on </span><span class="si">%s</span><span class="s">: generating item list&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">full_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">itemlabel</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">length</span><span class="p">)]</span>                  
+                
+    <span class="c"># --------------------</span>
+    <span class="c"># Dictionary Interface  </span>
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keyslice</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; If single name, used dict interface.  If slice or integer, uses </span>
+<span class="sd">        list interface.  All results parameterized to key, data pairs, passed</span>
+<span class="sd">        directly into a new Stack.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Slice as list of strings or int [0, &#39;foo&#39;, 2, &#39;bar&#39;]</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">keyslice</span><span class="p">,</span> <span class="s">&#39;__iter__&#39;</span><span class="p">):</span>
+
+            <span class="n">tuples_out</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">keyslice</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                    <span class="n">item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+                <span class="n">tuples_out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">items</span><span class="p">()[</span><span class="n">item</span><span class="p">])</span>
+                        
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">keyslice</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">keyslice</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+                <span class="n">tuples_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">items</span><span class="p">()[</span><span class="n">keyslice</span><span class="p">]</span> 
+            <span class="k">else</span><span class="p">:</span> 
+                <span class="n">tuples_out</span> <span class="o">=</span> <span class="p">[(</span><span class="n">keyslice</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">keyslice</span><span class="p">])]</span>  <span class="c">#keyslice is name              </span>
+        
+        <span class="c"># If single item, return TimeSpectra, else, return new Stack</span>
+        <span class="c"># Canonical slicing implementaiton; don&#39;t change unless good reason</span>
+        <span class="c"># Because len() wonky with nested tuples (eg (x,y) and [(x1,y1),(x2,y2)]</span>
+        <span class="c"># are both length two, this will work:</span>
+        
+        <span class="k">if</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">tuples_out</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">tuples_out</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="c">#Return timespectra</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">(</span><span class="n">tuples_out</span><span class="p">)</span>                
+
+
+    <span class="k">def</span> <span class="nf">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keyslice</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Delete a single name, or a keyslice from names/canvas &quot;&quot;&quot;</span>        
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">keyslice</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">keyslice</span><span class="p">)</span>        
+            <span class="bp">self</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&quot;Deletion only supports single entry&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">canvas</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> 
+            <span class="bp">self</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">canvas</span><span class="p">)</span>
+            
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>  
+                
+    <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; If attribute not found, try attribute lookup in dictionary.  If</span>
+<span class="sd">        that is not found, try finding attribute on self._data.</span>
+<span class="sd">        </span>
+<span class="sd">        For example, self.keys() will first look for self[&#39;keys&#39;].  Since</span>
+<span class="sd">        this isn&#39;t found, it calls self._data.keys().  But if I do </span>
+<span class="sd">        self.Item1, then it returns self[&#39;Item1&#39;].  The very rare conflict</span>
+<span class="sd">        case that a user has named the items a method that may already exist</span>
+<span class="sd">        in the dictionary (eg items=[&#39;a&#39;,&#39;b&#39;,&#39;keys&#39;] is addressed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">if</span> <span class="n">attr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s">&#39;&quot;</span><span class="si">%s</span><span class="s"> attribute&quot; found in both the items</span><span class="se">\</span>
+<span class="s">                and as a method of the underlying dictionary object.&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">attr</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">attr</span><span class="p">]</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+        
+
+    <span class="c"># Attributes deferred to self.data /dictionary</span>
+    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">__len__</span><span class="p">()</span>
+    
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">__iter__</span><span class="p">()</span>
+    
+    <span class="k">def</span> <span class="nf">__reversed__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">__reversed__</span><span class="p">()</span>
+    
+    <span class="k">def</span> <span class="nf">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">__contains__</span><span class="p">()</span>
+
+        
+        
+    <span class="k">def</span> <span class="nf">as_3d</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return 3d structure of data.  Default is panel.&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="n">Panel</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">)</span>
+                 
+        <span class="c">### Data types without labels    </span>
+
+    
+    <span class="c">#Is this realy necessary?  See pyparty.ParticleManger for possibly more consistent implementation</span>
+    <span class="k">def</span> <span class="nf">get_all</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">astype</span><span class="o">=</span><span class="nb">tuple</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Generator/tuple etc.. of (item, attribute) pairs. &quot;&quot;&quot;</span>
+        
+        <span class="k">return</span> <span class="n">put</span><span class="o">.</span><span class="n">_parse_generator</span><span class="p">(</span>
+            <span class="p">((</span><span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">attr</span><span class="p">))</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()),</span> <span class="n">astype</span><span class="p">)</span>
+    
+                
+    <span class="k">def</span> <span class="nf">_get_unique</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Inspects Stack itemwise for an attribute for unique values.</span>
+<span class="sd">        If non-unique value for the attributes are found, returns</span>
+<span class="sd">        &quot;mixed&quot;. </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">unique</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_all</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">astype</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&#39;mixed&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">unique</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="c">#set doesn&#39;t support indexing         </span>
+        
+        
+    <span class="k">def</span> <span class="nf">set_all</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Set attributes itemwise.  </span>
+<span class="sd">            If not inplace, returns new instance of self&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">inplace</span><span class="p">:</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">try</span><span class="p">:</span>           
+                    <span class="nb">setattr</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>    
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">E</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;Could not set </span><span class="si">%s</span><span class="s"> in &quot;</span><span class="si">%s</span><span class="s">&quot;.  Received the following </span><span class="se">\</span>
+<span class="s">                     exception:</span><span class="se">\n</span><span class="s"> &quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">E</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">=</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">)</span> <span class="c">#DEEPCOPY            </span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">out</span><span class="p">:</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="n">item</span><span class="p">],</span> <span class="n">attr</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>                
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Applies a user-passed function, or calls an instance method itemwise.</span>
+<span class="sd">        </span>
+<span class="sd">        </span>
+<span class="sd">        Parameters:</span>
+<span class="sd">        -----------</span>
+<span class="sd">        func: str or function</span>
+<span class="sd">            If string, must correspond to a method on the object stored </span>
+<span class="sd">            itemwise in the stack.  If a function, appliked itemwise to</span>
+<span class="sd">            objects stored.  </span>
+<span class="sd">              </span>
+<span class="sd">        inplace: False </span>
+<span class="sd">            Special kwarg.  If true, self._data modified inplace, </span>
+<span class="sd">            otherwise new specstack is returned.</span>
+<span class="sd">                         </span>
+<span class="sd">        *args, **kwargs: </span>
+<span class="sd">            func arguments.</span>
+<span class="sd">          </span>
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        If not inplace, returns SpecStack after itemwise application.</span>
+<span class="sd">            </span>
+<span class="sd">        &quot;&quot;&quot;</span>   
+
+        <span class="n">inplace</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;inplace&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">inplace</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">item</span><span class="p">],</span> <span class="n">func</span><span class="p">)(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>      
+
+            <span class="k">else</span><span class="p">:</span>                
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">(</span><span class="n">OrderedDict</span><span class="p">([(</span><span class="n">k</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">func</span><span class="p">)(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> \
+                                 <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()]))</span>                
+             
+        <span class="c"># function, numpyfunction etc...   </span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">inplace</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">item</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">func</span><span class="p">)(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                    
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">(</span><span class="n">OrderedDict</span><span class="p">([(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> \
+                                 <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()]))</span>                  
+                
+        
+
+    <span class="nd">@property</span>  
+    <span class="k">def</span> <span class="nf">full_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Timespectra:name or Timespectra:unnamed.  Useful for scripts mostly &quot;&quot;&quot;</span>
+        <span class="n">outname</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;unnamed&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>           
+    
+    <span class="c">#def __repr__(self):</span>
+        <span class="c">#&quot;&quot;&quot; &quot;&quot;&quot;</span>
+
+
+</div>
+<span class="nd">@logclass</span><span class="p">(</span><span class="n">log_name</span><span class="o">=</span><span class="n">__name__</span><span class="p">)</span>               
+<div class="viewcode-block" id="SpecStack"><a class="viewcode-back" href="../../../API/skspec.core.html#skspec.core.specstack.SpecStack">[docs]</a><span class="k">class</span> <span class="nc">SpecStack</span><span class="p">(</span><span class="n">Stack</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Stack for just storing timespectra objects.&quot;&quot;&quot;</span>        
+
+    <span class="n">itemlabel</span><span class="o">=</span><span class="s">&#39;spec_&#39;</span>
+
+    <span class="k">def</span> <span class="nf">as_3d</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns a 3d stack (SpecPanel) of the currently stored items.</span>
+<span class="sd">            Additional kwargs can be passed directly to SpecPanel constructor.&quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">specpanel</span> <span class="kn">import</span> <span class="n">SpecPanel</span>      
+        <span class="k">return</span> <span class="n">SpecPanel</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>        
+    
+    
+    <span class="c">### Special properties for swift, in-place attribute overwrites of most </span>
+    <span class="c">### common itemwise operation.  Getter only tests for uniqueness</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">specunit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_unique</span><span class="p">(</span><span class="s">&#39;specunit&#39;</span><span class="p">)</span>
+
+                
+    <span class="c">### Do I want to make as a _set method to avoid accidental overwrite?</span>
+    <span class="nd">@specunit.setter</span>
+    <span class="k">def</span> <span class="nf">specunit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unit</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Sets specunit for every stored TimeSpectra.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_all</span><span class="p">(</span><span class="s">&#39;specunit&#39;</span><span class="p">,</span> <span class="n">unit</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">iunit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_unique</span><span class="p">(</span><span class="s">&#39;iunit&#39;</span><span class="p">)</span>    
+    
+    <span class="nd">@iunit.setter</span>
+    <span class="k">def</span> <span class="nf">iunit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unit</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Sets iunit for every stored TimeSpectra.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_all</span><span class="p">(</span><span class="s">&#39;iunit&#39;</span><span class="p">,</span> <span class="n">unit</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>    
+        
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">reference</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_unique</span><span class="p">(</span><span class="s">&#39;reference&#39;</span><span class="p">)</span>
+    
+    <span class="nd">@reference.setter</span>
+    <span class="k">def</span> <span class="nf">reference</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Set reference itemwise.  No getter, use get_all() instead.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_all</span><span class="p">(</span><span class="s">&#39;reference&#39;</span><span class="p">,</span> <span class="n">ref</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="c">### This shouldn&#39;t have a setter</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">varunit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_unique</span><span class="p">(</span><span class="s">&#39;varunit&#39;</span><span class="p">)</span>   
+    
+    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">plotargs</span><span class="p">,</span> <span class="o">**</span><span class="n">plotkwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns multiplot of current stack.  </span>
+<span class="sd">        </span>
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        Wraps skspec.plotting.multiplots.slice_plot()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">plotkwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;title&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>        
+        <span class="k">if</span> <span class="s">&#39;cbar&#39;</span> <span class="ow">in</span> <span class="n">plotkwargs</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&quot;Colorbar on stack plot not yet supported&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">slice_plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="o">*</span><span class="n">plotargs</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="o">**</span><span class="n">plotkwargs</span><span class="p">)</span>
+
+
+
+    <span class="c">#def __repr__(self):</span>
+        <span class="c">#outstring = &quot;%s (%s) %s: &quot; % \</span>
+            <span class="c">#(self.__class__.__name__, self._address, &#39;what goes here&#39;)     </span>
+        <span class="c">#Ln = len(self)</span>
+        
+        <span class="c">#if Ln == 0:                </span>
+            <span class="c">#outstring += &#39;EMPTY&#39;</span>
+
+        <span class="c">#elif Ln &gt;= MAXOUT:</span>
+            <span class="c">#outstring +=  &#39;%s canvii (%s ... %s)&#39; % \</span>
+                <span class="c">#(Ln, self.names[0], self.names[-1])                        </span>
+            
+        <span class="c">#else:</span>
+            <span class="c">#SEP_CHARACTER = &#39;-&#39;</span>
+            <span class="c">#_NEWPAD =  (PADDING-1) * &#39; &#39;  # REduce CONFIG PADDING by one space</span>
+            <span class="c">#just_fcn = {</span>
+                <span class="c">#&#39;l&#39;: str.ljust,</span>
+                <span class="c">#&#39;r&#39;: str.rjust,</span>
+                <span class="c">#&#39;c&#39;: str.center}[ALIGN]            </span>
+            
+            <span class="c">#outstring += &#39;\n&#39;</span>
+            <span class="c">#outrows=[]</span>
+            <span class="c">#for idx, name in enumerate(self.names):</span>
+                <span class="c">#c = self.canvii[idx]</span>
+                <span class="c">#cx, cy = c.rez</span>
+                
+                <span class="c">#col1 = &#39;%s%s&#39; % (_NEWPAD, name)</span>
+                <span class="c">#col2 = &#39;Canvas (%s) : %s X %s : %s particles&#39; % \</span>
+                    <span class="c">#(c._address, cx, cy, len(c))</span>
+                <span class="c">#outrows.append([col1, SEP_CHARACTER, col2])</span>
+         
+            <span class="c">#widths = [max(map(len, col)) for col in zip(*outrows)]</span>
+            <span class="c">#outstring = outstring + &#39;\n&#39;.join( [ _NEWPAD.join((just_fcn(val,width) </span>
+                <span class="c">#for val, width in zip(row, widths))) for row in outrows] )</span>
+
+        <span class="c">#return outstring</span>
+
+
+        
+   
+</div>
+<span class="k">if</span> <span class="n">__name__</span><span class="o">==</span><span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="c">### For testing.</span>
+    <span class="kn">from</span> <span class="nn">skspec.core.specindex</span> <span class="kn">import</span> <span class="n">SpecIndex</span>
+    <span class="kn">from</span> <span class="nn">skspec.core.timespectra</span> <span class="kn">import</span> <span class="n">TimeSpectra</span>
+    <span class="kn">from</span> <span class="nn">pandas</span> <span class="kn">import</span> <span class="n">date_range</span><span class="p">,</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">Index</span>
+
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>       
+    <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+    <span class="kn">from</span> <span class="nn">skspec.data</span> <span class="kn">import</span> <span class="n">aunps_glass</span>
+
+    <span class="n">spec</span> <span class="o">=</span> <span class="n">SpecIndex</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="mi">700</span><span class="p">,</span><span class="mi">10</span><span class="p">),</span> <span class="n">unit</span><span class="o">=</span><span class="s">&#39;nm&#39;</span> <span class="p">)</span>
+    <span class="n">spec2</span> <span class="o">=</span> <span class="n">SpecIndex</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="mi">700</span><span class="p">,</span><span class="mi">10</span><span class="p">),</span> <span class="n">unit</span><span class="o">=</span><span class="s">&#39;m&#39;</span> <span class="p">)</span>
+    
+    <span class="n">testdates</span> <span class="o">=</span> <span class="n">date_range</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="s">&#39;3/3/12&#39;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="s">&#39;h&#39;</span><span class="p">)</span>
+    <span class="n">testdates2</span> <span class="o">=</span> <span class="n">date_range</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="s">&#39;3/3/12&#39;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="s">&#39;h&#39;</span><span class="p">)</span>
+    
+    <span class="c">#ts = TimeSpectra(abs(np.random.randn(30,30)), columns=testdates, index=spec)  </span>
+    <span class="c">#t2 = TimeSpectra(abs(np.random.randn(30,30)), columns=testdates2, index=spec2) </span>
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">aunps_glass</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">t2</span> <span class="o">=</span> <span class="n">aunps_glass</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="p">((</span><span class="s">&#39;d1&#39;</span><span class="p">,</span> <span class="n">ts</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;d2&#39;</span><span class="p">,</span> <span class="n">t2</span><span class="p">))</span>
+
+    <span class="c">##x = Panel(d)</span>
+    <span class="n">stack</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">as_iunit</span><span class="p">(</span><span class="s">&#39;r&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split_by</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+    <span class="n">stack</span><span class="o">.</span><span class="n">reference</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c">#stack.plot(figsize=(8,8), colormap=&#39;RdBu&#39;)   </span>
+    
+    <span class="c">#raise SyntaxError</span>
+
+    <span class="c">#def random_noise(curve):</span>
+        <span class="c">#from random import randint</span>
+        <span class="c">#if randint(1,5) == 5:     #20% chance of choosing 5</span>
+            <span class="c">#curve = curve + 25 * np.random.randn(len(curve))</span>
+        <span class="c">#return curve</span>
+
+    <span class="c">#out = y.apply(random_noise)</span>
+    <span class="c">#len(out)</span>
+    <span class="c">#print out</span>
+    <span class="c">#out.plot()</span>
+    <span class="c">#plt.show</span>
+
+    <span class="c">#y.reference = 0</span>
+    <span class="c">#y.iunit=&#39;a&#39;</span>
+    <span class="c">#y.plot()</span>
+    <span class="c">#plt.show()</span>
+<span class="c">##    sys.exit()</span>
+    <span class="c">##y[0:1]</span>
+    <span class="c">##y[&#39;d1&#39;,1]</span>
+    <span class="c">##x = y.set_all(&#39;specunit&#39;, &#39;cm&#39;)</span>
+    <span class="c">##y._get_unique(&#39;specunit&#39;)</span>
+    <span class="c">##y.apply(&#39;wavelength_slices&#39;, 8)</span>
+    <span class="c">##y[&#39;d1&#39;]</span>
+    
+    <span class="c">#x=y.apply(np.sqrt, axis=1)</span>
+    <span class="c">#print &#39;hi&#39;</span>
+    <span class="c">##y.applynew(&#39;boxcar&#39;, binwidth=10)</span>
+    <span class="c">##y.applynew(boxcar, binwidth=10)</span>
+    <span class="c">###print y.specunit</span>
+    <span class="c">###y.specunit=&#39;f&#39;</span>
+    <span class="c">##print &#39;hi&#39;</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/installation_dependencies.html">Dependencies/Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/plotting.html">Plotting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../API/skspec.html">API</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../../../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+            <p class="searchtip" style="font-size: 90%">
+                Enter search terms or a module, class or function name.
+            </p>
+          </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="../../../py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="../../../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, Adam Hughes, ReevesLab Dept. Physics, George Washington University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3b2.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

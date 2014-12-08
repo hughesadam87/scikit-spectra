@@ -1,0 +1,371 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>skspec.chaco_interface.pandasplots &mdash; scikit-spectra 0.3.1-2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.3.1-2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="scikit-spectra 0.3.1-2 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../../../index.html">scikit-spectra 0.3.1-2 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../../../index.html"><img src="../../../_static/new_logo.png" border="100" alt="sampledoc"/></a>
+</div>
+
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for skspec.chaco_interface.pandasplots</h1><div class="highlight"><pre>
+<span class="c">### Enthought tool suite imports </span>
+<span class="kn">from</span> <span class="nn">traits.api</span> <span class="kn">import</span> <span class="n">Instance</span><span class="p">,</span> <span class="n">Str</span><span class="p">,</span> <span class="n">Enum</span><span class="p">,</span> <span class="n">Range</span><span class="p">,</span> <span class="n">HasTraits</span><span class="p">,</span> <span class="n">Button</span><span class="p">,</span> <span class="n">Enum</span><span class="p">,</span> <span class="n">Property</span><span class="p">,</span> <span class="n">Bool</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">from</span> <span class="nn">traitsui.api</span> <span class="kn">import</span> <span class="n">Item</span><span class="p">,</span> <span class="n">View</span><span class="p">,</span> <span class="n">HGroup</span><span class="p">,</span> <span class="n">VGroup</span><span class="p">,</span> <span class="n">Group</span><span class="p">,</span> <span class="n">Include</span><span class="p">,</span> <span class="n">ShellEditor</span>
+<span class="kn">from</span> <span class="nn">enable.api</span> <span class="kn">import</span> <span class="n">ComponentEditor</span>
+<span class="kn">from</span> <span class="nn">chaco.api</span> <span class="kn">import</span> <span class="n">LabelAxis</span><span class="p">,</span> <span class="n">Plot</span><span class="p">,</span> <span class="n">ToolbarPlot</span>
+<span class="kn">from</span> <span class="nn">chaco.tools.api</span> <span class="kn">import</span> <span class="n">BetterSelectingZoom</span><span class="p">,</span> <span class="n">PanTool</span>
+<span class="kn">from</span> <span class="nn">random</span> <span class="kn">import</span> <span class="n">randint</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">pandas</span> <span class="kn">import</span> <span class="n">DataFrame</span>
+
+<span class="kn">from</span> <span class="nn">chaco.tools.api</span> <span class="kn">import</span> <span class="n">RangeSelection</span><span class="p">,</span> <span class="n">RangeSelectionOverlay</span>
+
+<span class="c">### For testing </span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
+
+<span class="c">### For skspec imports</span>
+<span class="c">#from skspec import get_csvdataframe</span>
+<span class="c">#from skspec import wavelength_slices</span>
+<span class="c">#from skspec import datetime_convert</span>
+<span class="kn">from</span> <span class="nn">pandas.stats.moments</span> <span class="kn">import</span> <span class="n">rolling_mean</span>
+
+<span class="c">### Local import </span>
+<span class="kn">from</span> <span class="nn">pandasplotdatav2</span> <span class="kn">import</span> <span class="n">PandasPlotData</span>
+   
+    
+
+<span class="c">### Add a method to relable rows/columns in place?</span>
+<div class="viewcode-block" id="PandasPlot"><a class="viewcode-back" href="../../../API/skspec.chaco_interface.html#skspec.chaco_interface.pandasplots.PandasPlot">[docs]</a><span class="k">class</span> <span class="nc">PandasPlot</span><span class="p">(</span><span class="n">HasTraits</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Plot to interface a pandas dataframe&#39;&#39;&#39;</span>
+    <span class="c">### Actually   </span>
+    <span class="n">originaldata</span><span class="o">=</span><span class="n">Instance</span><span class="p">(</span><span class="n">DataFrame</span><span class="p">)</span>
+    <span class="n">dataframe</span><span class="o">=</span><span class="n">Instance</span><span class="p">(</span><span class="n">DataFrame</span><span class="p">)</span>  
+    <span class="n">primaryaxis</span><span class="o">=</span><span class="n">Enum</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="s">&#39;index&#39;</span><span class="p">,</span><span class="s">&#39;columns&#39;</span><span class="p">)</span> <span class="c">#Integer or string, defaults to 0</span>
+    <span class="n">_primaryaxis</span><span class="o">=</span><span class="n">Property</span><span class="p">(</span><span class="n">Enum</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="n">depends_on</span><span class="o">=</span><span class="s">&#39;primaryaxis&#39;</span><span class="p">)</span> <span class="c">#0,1</span>
+    <span class="n">indexname</span><span class="o">=</span><span class="n">Str</span><span class="p">(</span><span class="s">&#39;Index&#39;</span><span class="p">)</span>
+    <span class="n">columnname</span><span class="o">=</span><span class="n">Str</span><span class="p">(</span><span class="s">&#39;Column&#39;</span><span class="p">)</span>
+
+    <span class="c">### Traits of the actual plot and plotdatasource handler ###</span>
+    <span class="n">plot</span><span class="o">=</span><span class="n">Instance</span><span class="p">(</span><span class="n">Plot</span><span class="p">)</span>  
+    <span class="n">plotdata</span><span class="o">=</span><span class="n">Instance</span><span class="p">(</span><span class="n">PandasPlotData</span><span class="p">)</span> <span class="c">#Data stored at any given time in the plot</span>
+
+    <span class="c">### Aesthetic traits</span>
+    <span class="n">plot_title</span><span class="o">=</span><span class="n">Str</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span> <span class="c">#Defaults from dataframe name</span>
+    <span class="n">linecolor</span><span class="o">=</span><span class="n">Str</span><span class="p">(</span><span class="s">&#39;black&#39;</span><span class="p">)</span>
+    <span class="n">pointcolor</span><span class="o">=</span><span class="n">Str</span><span class="p">(</span><span class="s">&#39;red&#39;</span><span class="p">)</span>
+    <span class="n">linestyle</span><span class="o">=</span><span class="n">Enum</span><span class="p">(</span><span class="s">&#39;line&#39;</span><span class="p">,</span> <span class="s">&#39;scatter&#39;</span><span class="p">,</span> <span class="s">&#39;both&#39;</span><span class="p">)</span>
+    <span class="n">markersize</span><span class="o">=</span><span class="n">Range</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+    <span class="c">### Traits for testing    </span>
+    <span class="n">df_new</span><span class="o">=</span><span class="n">Button</span>
+    <span class="n">df_change</span><span class="o">=</span><span class="n">Button</span>    
+    <span class="n">re_bin</span><span class="o">=</span><span class="n">Range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_dataframe_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Handles how updates occur when dataframe changes.  Evaluates if columns or columnlabels</span>
+<span class="sd">        have been changed.  Provides entry condition as well.</span>
+
+<span class="sd">        Note: New automatically sets self.dataframe, so when I refer to new, I am actually</span>
+<span class="sd">        referring to self.dataframe.  Using &quot;new&quot; instead of self.dataframe is just for readability&#39;&#39;&#39;</span>
+
+        <span class="c">### Initialize plot first time dataframe is passed into the class.  Boolean listeners</span>
+        <span class="c">### for dataframe behave oddly, so uses self.plotdata for entry condition.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotdata</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">plotdata</span><span class="o">=</span><span class="n">PandasPlotData</span><span class="p">(</span><span class="n">df</span><span class="o">=</span><span class="n">new</span><span class="p">)</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">originaldata</span><span class="o">=</span><span class="n">new</span>
+
+            <span class="c">### Try to infer plot title from dataframe name ###	    </span>
+            <span class="k">try</span><span class="p">:</span> 
+                <span class="bp">self</span><span class="o">.</span><span class="n">plot_title</span><span class="o">=</span><span class="n">new</span><span class="o">.</span><span class="n">name</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="k">pass</span>
+
+            <span class="c">### Draw barebones of plot</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">draw_plot</span><span class="p">()</span>
+            <span class="c">### Draw lines</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_draw_lines</span><span class="p">()</span> 
+
+            <span class="k">return</span>
+        
+        
+        <span class="c">### Decide to update columns or completely redraw dataframe.  </span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">labelold</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_getlabelarray</span><span class="p">(</span><span class="n">old</span><span class="p">)</span>	    
+            <span class="n">labelnew</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_getlabelarray</span><span class="p">(</span><span class="n">new</span><span class="p">)</span>
+
+            <span class="c">### Have columns been added or removed?	    </span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">labelold</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">labelnew</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_overwrite_plotdata</span>
+
+            <span class="c">### Has index along primaryaxis changed any?</span>
+            <span class="c">### Pandas index comparison is a bit tricky so just list conver</span>
+            <span class="k">elif</span> <span class="nb">list</span><span class="p">(</span><span class="n">labelold</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">list</span><span class="p">(</span><span class="n">labelnew</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_overwrite_plotdata</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">&#39;updating frame&#39;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">plotdata</span><span class="o">.</span><span class="n">set_df</span><span class="p">(</span><span class="n">new</span><span class="p">)</span>
+
+    <span class="c">### Properties ###	</span>
+    <span class="k">def</span> <span class="nf">_get__primaryaxis</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Converts &#39;columns&#39; or &#39;index&#39; to 0,1.  Mask basically&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">primaryaxis</span><span class="o">==</span><span class="s">&#39;columns&#39;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">primaryaxis</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">_getlabelarray</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataframe</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Conveience method to get label along working dimension of a dataframe.&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_primaryaxis</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">dataframe</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">dataframe</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_df_change_fired</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; set data iteratively column by column&#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataframe</span><span class="o">=</span><span class="n">DataFrame</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">)))</span>
+
+    <span class="k">def</span> <span class="nf">_df_new_fired</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">df2</span><span class="o">=</span><span class="n">DataFrame</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">)),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">5</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">)],</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">50</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">)])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataframe</span><span class="o">=</span><span class="n">df2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_draw_lines</span><span class="p">()</span>
+        
+    <span class="k">def</span> <span class="nf">_re_bin_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c">## Fix, squashing indicies</span>
+        <span class="c">#self.dataframe=rebin(self.dataframe, self.re_bin, axis=0, avg_fcn=&#39;mean&#39;)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataframe</span><span class="o">=</span><span class="n">rolling_mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">originaldata</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">re_bin</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_draw_lines</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Recasts plotdata and ties it to the plot object.&#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plotdata</span><span class="o">.</span><span class="n">list_data</span><span class="p">(</span><span class="n">as_strings</span><span class="o">=</span><span class="bp">True</span><span class="p">)):</span>
+<span class="c">#            if idx % 50==0:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">plot</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">indexname</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>        
+
+<div class="viewcode-block" id="PandasPlot.draw_plot"><a class="viewcode-back" href="../../../API/skspec.chaco_interface.html#skspec.chaco_interface.pandasplots.PandasPlot.draw_plot">[docs]</a>    <span class="k">def</span> <span class="nf">draw_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">toolbar</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">pltkws</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Draw bare plot, including main plotting area, toolbar, etc...</span>
+<span class="sd">         either at initialization or global redo&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">toolbar</span><span class="p">:</span>
+            <span class="n">plot</span><span class="o">=</span><span class="n">ToolbarPlot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plotdata</span><span class="p">,</span> <span class="o">**</span><span class="n">pltkws</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">plot</span><span class="o">=</span><span class="n">Plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plotdata</span><span class="p">,</span> <span class="o">**</span><span class="n">pltkws</span><span class="p">)</span>
+            
+ <span class="c">#       plot.active_tool = RangeSelection(plot)</span>
+ <span class="c">#       plot.overlays.append(RangeSelectionOverlay(component=plot))    </span>
+        
+        <span class="n">plot</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_title</span>
+        <span class="n">plot</span><span class="o">.</span><span class="n">padding</span> <span class="o">=</span> <span class="mi">50</span>
+        <span class="n">plot</span><span class="o">.</span><span class="n">legend</span><span class="o">.</span><span class="n">visible</span><span class="o">=</span><span class="bp">False</span>
+
+        <span class="n">plot</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PanTool</span><span class="p">(</span><span class="n">plot</span><span class="p">))</span>
+        <span class="n">zoom</span><span class="o">=</span><span class="n">BetterSelectingZoom</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="n">plot</span><span class="p">,</span> <span class="n">tool_mode</span><span class="o">=</span><span class="s">&quot;box&quot;</span><span class="p">,</span> <span class="n">always_on</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">plot</span><span class="o">.</span><span class="n">overlays</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">zoom</span><span class="p">)</span>
+        
+        <span class="c">#indexlabels=[str(round(i,1)) for i in self.dataframe.index]</span>
+
+        <span class="c">#### If I do plot.index_axis, it actually removes the default values.</span>
+    
+        <span class="c">#index_axis=LabelAxis(plot, orientation=&#39;top&#39;, </span>
+                    <span class="c">##              positions=range(int(float(indexlabels[0])),</span>
+                     <span class="c">##                             int(float(indexlabels[-1]))), </span>
+                                   <span class="c">#positions=range(0,1000,100),</span>
+                                <span class="c">#labels=indexlabels,#, resizable=&#39;hv&#39;,</span>
+                                <span class="c">#title=self.indexname)</span>
+        <span class="c">#plot.underlays.append(index_axis)</span>
+
+        <span class="c">#plot.value_axis= LabelAxis(plot, orientation=&#39;left&#39;,  positions=range(self.t_axis_samples),</span>
+                                    <span class="c">#mainlabels=[&#39;t1&#39;, &#39;t2&#39;, &#39;t3&#39;, &#39;t4&#39;,&#39;t5&#39;, &#39;t6&#39;], resizable=&#39;hv&#39;, </span>
+                                    <span class="c">#title=self.t_axis_title)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plot</span><span class="o">=</span><span class="n">plot</span>
+        <span class="k">return</span>
+</div>
+    <span class="k">def</span> <span class="nf">_overwrite_plotdata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;When a new instance of PandasPlotData is created, this overwrites the</span>
+<span class="sd">        data source and updates the axis values.&#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plotdata</span><span class="o">=</span><span class="n">PandasPlotData</span><span class="p">(</span><span class="n">dataframe</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dataframe</span><span class="p">)</span>
+        <span class="c">#self.plot.index_axis=LabelAxis(self.plot, orientation=&#39;bottom&#39;, positions=[0,4,42], </span>
+                                <span class="c">#labels=self.plotdata._rowmasks.keys(), resizable=&#39;hv&#39;,</span>
+                                <span class="c">#title=self.indexname)</span>
+
+        <span class="c">#plot.value_axis= LabelAxis(plot, orientation=&#39;left&#39;,  positions=range(self.t_axis_samples),</span>
+                                    <span class="c">#mainlabels=[&#39;t1&#39;, &#39;t2&#39;, &#39;t3&#39;, &#39;t4&#39;,&#39;t5&#39;, &#39;t6&#39;], resizable=&#39;hv&#39;, </span>
+                                    <span class="c">#title=self.t_axis_title)	</span>
+
+
+    <span class="c">#axis_traits_group=VGroup(</span>
+                            <span class="c">#HGroup(</span>
+                                    <span class="c">#Item(&#39;x_axis_title&#39;), Item(&#39;t_axis_title&#39;), Item(&#39;plot_title&#39;), </span>
+                                    <span class="c">#),</span>
+                            <span class="c">#HGroup(</span>
+                                    <span class="c">#Item(&#39;markersize&#39;),Item(&#39;linestyle&#39;),</span>
+                                    <span class="c">#),</span>
+                            <span class="c">#)</span>
+
+    <span class="c">#sample_group=Group(</span>
+                        <span class="c">#HGroup(Item(&#39;spacing&#39;), Item(&#39;samp_style&#39;) )</span>
+                        <span class="c">#)</span>
+
+    <span class="n">main_group</span><span class="o">=</span><span class="n">Group</span><span class="p">(</span>
+        <span class="n">Item</span><span class="p">(</span><span class="s">&#39;plot&#39;</span><span class="p">,</span> <span class="n">editor</span><span class="o">=</span><span class="n">ComponentEditor</span><span class="p">(),</span> <span class="n">show_label</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>
+     <span class="c">#   Item(&#39;df_new&#39;), Item(&#39;df_change&#39;), </span>
+        <span class="n">Item</span><span class="p">(</span><span class="s">&#39;re_bin&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s">&#39;simple&#39;</span><span class="p">),</span>
+        <span class="c">#Include(&#39;sample_group&#39;),</span>
+        <span class="c">#Include(&#39;axis_traits_group&#39;)</span>
+    <span class="p">)</span>
+
+    <span class="n">traits_view</span><span class="o">=</span><span class="n">View</span><span class="p">(</span> <span class="n">Include</span><span class="p">(</span><span class="s">&#39;main_group&#39;</span><span class="p">)</span> <span class="p">)</span>
+    
+    
+</div>
+<div class="viewcode-block" id="WithShell"><a class="viewcode-back" href="../../../API/skspec.chaco_interface.html#skspec.chaco_interface.pandasplots.WithShell">[docs]</a><span class="k">class</span> <span class="nc">WithShell</span><span class="p">(</span><span class="n">HasTraits</span><span class="p">):</span>
+    <span class="n">df</span><span class="o">=</span><span class="n">Instance</span><span class="p">(</span><span class="n">DataFrame</span><span class="p">)</span>
+    <span class="n">shell</span><span class="o">=</span><span class="n">Any</span><span class="p">()</span>
+    <span class="n">plot</span><span class="o">=</span><span class="n">Instance</span><span class="p">(</span><span class="n">PandasPlot</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">=</span><span class="n">DataFrame</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plot</span><span class="o">=</span><span class="n">PandasPlot</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">df</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span>
+        
+    <span class="k">def</span> <span class="nf">_df_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">df</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span>
+        
+        
+    <span class="n">main_group</span><span class="o">=</span><span class="n">Group</span><span class="p">(</span>
+        <span class="n">Item</span><span class="p">(</span><span class="s">&#39;plot&#39;</span><span class="p">,</span> <span class="n">show_label</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s">&#39;custom&#39;</span><span class="p">),</span>
+     <span class="c">#   Item(&#39;df_new&#39;), Item(&#39;df_change&#39;), </span>
+        <span class="n">Item</span><span class="p">(</span><span class="s">&#39;shell&#39;</span><span class="p">,</span> <span class="n">editor</span><span class="o">=</span><span class="n">ShellEditor</span><span class="p">(),</span> <span class="n">style</span><span class="o">=</span><span class="s">&#39;simple&#39;</span><span class="p">),</span>
+        <span class="c">#Include(&#39;sample_group&#39;),</span>
+        <span class="c">#Include(&#39;axis_traits_group&#39;)</span>
+    <span class="p">)</span>
+
+    <span class="n">traits_view</span><span class="o">=</span><span class="n">View</span><span class="p">(</span> <span class="n">Include</span><span class="p">(</span><span class="s">&#39;main_group&#39;</span><span class="p">),</span> <span class="n">resizable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span><span class="o">==</span><span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    
+  <span class="c">#  df=get_csvdataframe(&#39;spectra.pickle&#39;)</span>
+    <span class="n">df</span><span class="o">=</span><span class="n">DataFrame</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">])</span>
+
+
+    <span class="c">### THIS WILL INDUCE A FAILURE IN THE PLOT.PLOT call</span>
+ <span class="c">#   df=wavelength_slices(df, ranges=((350.0,370.0), (450.0,500.0), (550.0,570.0), (650.0,680.0), (680.0,700.0)),\</span>
+ <span class="c">#                           apply_fcn=&#39;simps&#39;)</span>
+
+    <span class="c">### resample dataframe to be a bit less dense, makes plot changes more fluid ###</span>
+    
+<span class="c">#    df=df.ix[300.0:800.0:5.0, 0:150:5]</span>
+ 
+    <span class="n">theplot</span><span class="o">=</span><span class="n">PandasPlot</span><span class="p">()</span>   
+    <span class="n">theplot</span><span class="o">.</span><span class="n">df</span><span class="o">=</span><span class="n">df</span>   
+    <span class="n">theplot</span><span class="o">.</span><span class="n">configure_traits</span><span class="p">()</span>
+    
+<span class="c">#    test=WithShell()</span>
+<span class="c">#    test.df=df</span>
+<span class="c">#    test.configure_traits()</span>
+    
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/installation_dependencies.html">Dependencies/Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/plotting.html">Plotting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../API/skspec.html">API</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../../../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+            <p class="searchtip" style="font-size: 90%">
+                Enter search terms or a module, class or function name.
+            </p>
+          </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="../../../py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="../../../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, Adam Hughes, ReevesLab Dept. Physics, George Washington University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3b2.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

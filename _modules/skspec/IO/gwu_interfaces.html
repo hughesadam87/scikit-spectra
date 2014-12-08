@@ -1,0 +1,528 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>skspec.IO.gwu_interfaces &mdash; scikit-spectra 0.3.1-2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.3.1-2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="scikit-spectra 0.3.1-2 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../../../index.html">scikit-spectra 0.3.1-2 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../../../index.html"><img src="../../../_static/new_logo.png" border="100" alt="sampledoc"/></a>
+</div>
+
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for skspec.IO.gwu_interfaces</h1><div class="highlight"><pre>
+<span class="sd">&#39;&#39;&#39; Utilities for converting various file formats to a skspec TimeSpectra.</span>
+<span class="sd"> To convert a list of raw files, use from_spec_files()</span>
+<span class="sd"> To convert old-style timefile/spectral data file, use from_timefile_datafile()</span>
+<span class="sd"> To convert spectral datafiles from Ocean Optics USB2000 and USB650, pas file list in </span>
+<span class="sd"> from_spec_files.</span>
+<span class="sd"> </span>
+<span class="sd"> Returns a skspec TimeSpectra with custom attributes &quot;metadata&quot;, &quot;filedict&quot;, &quot;baseline&quot;.</span>
+<span class="sd"> &#39;&#39;&#39;</span>
+
+<span class="n">__author__</span> <span class="o">=</span> <span class="s">&quot;Adam Hughes, Zhaowen Liu&quot;</span>
+<span class="n">__copyright__</span> <span class="o">=</span> <span class="s">&quot;Copyright 2012, GWU Physics&quot;</span>
+<span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;Free BSD&quot;</span>
+<span class="n">__maintainer__</span> <span class="o">=</span> <span class="s">&quot;Adam Hughes&quot;</span>
+<span class="n">__email__</span> <span class="o">=</span> <span class="s">&quot;hugadams@gwmail.gwu.edu&quot;</span>
+<span class="n">__status__</span> <span class="o">=</span> <span class="s">&quot;Development&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="c"># 3RD Party Imports</span>
+<span class="kn">from</span> <span class="nn">pandas</span> <span class="kn">import</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">Series</span><span class="p">,</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">read_csv</span><span class="p">,</span> <span class="n">concat</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+<span class="c"># skspec imports</span>
+<span class="kn">from</span> <span class="nn">skspec.core.timespectra</span> <span class="kn">import</span> <span class="n">TimeSpectra</span>
+<span class="kn">from</span> <span class="nn">skspec.core.specindex</span> <span class="kn">import</span> <span class="n">SpecIndex</span>
+<span class="kn">from</span> <span class="nn">skspec.core.file_utils</span> <span class="kn">import</span> <span class="n">get_files_in_dir</span><span class="p">,</span> <span class="n">get_shortname</span>
+
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<span class="c">### Verified OCean Optics month naming conventions (Actually it capitalizes but this call with month.lower() ###</span>
+<span class="n">spec_suite_months</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;jan&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;feb&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s">&#39;mar&#39;</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="s">&#39;apr&#39;</span><span class="p">:</span><span class="mi">4</span><span class="p">,</span> <span class="s">&#39;may&#39;</span><span class="p">:</span><span class="mi">5</span><span class="p">,</span> <span class="s">&#39;jun&#39;</span><span class="p">:</span><span class="mi">6</span><span class="p">,</span> <span class="s">&#39;jul&#39;</span><span class="p">:</span><span class="mi">7</span><span class="p">,</span>
+                   <span class="s">&#39;aug&#39;</span><span class="p">:</span><span class="mi">8</span><span class="p">,</span> <span class="s">&#39;sep&#39;</span><span class="p">:</span><span class="mi">9</span><span class="p">,</span> <span class="s">&#39;oct&#39;</span><span class="p">:</span><span class="mi">10</span><span class="p">,</span> <span class="s">&#39;nov&#39;</span><span class="p">:</span><span class="mi">11</span><span class="p">,</span> <span class="s">&#39;dec&#39;</span><span class="p">:</span><span class="mi">12</span><span class="p">}</span>  
+
+<span class="n">spec_dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">([</span> <span class="p">(</span><span class="s">&#39;wavelength&#39;</span><span class="p">,</span> <span class="nb">float</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;intensity&#39;</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="p">])</span>
+
+
+<div class="viewcode-block" id="get_shortname"><a class="viewcode-back" href="../../../API/skspec.IO.html#skspec.IO.gwu_interfaces.get_shortname">[docs]</a><span class="k">def</span> <span class="nf">get_shortname</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">cut_extension</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; simply get the filename of fullpath.  Cut extension will remove file extension&#39;&#39;&#39;</span>
+    <span class="n">shortname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span> 
+    <span class="k">if</span> <span class="n">cut_extension</span><span class="p">:</span>
+        <span class="n">shortname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">shortname</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">shortname</span>
+
+
+<span class="c">### Following two functions are utilized by both data interfacing functions. ###</span></div>
+<div class="viewcode-block" id="extract_darkfile"><a class="viewcode-back" href="../../../API/skspec.IO.html#skspec.IO.gwu_interfaces.extract_darkfile">[docs]</a><span class="k">def</span> <span class="nf">extract_darkfile</span><span class="p">(</span><span class="n">filelist</span><span class="p">,</span> <span class="n">return_null</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Attempts to pick out a dark file from a list using string matching.  Handling of darkfile</span>
+<span class="sd">    is done by other functions.  Opted to raise errors and warnings here, instead of downstream.</span>
+
+<span class="sd">    If return_null: it will return none if no dark file is found.  Otherwise it will raise an error.&#39;&#39;&#39;</span>
+
+    <span class="n">darkfiles</span><span class="o">=</span><span class="p">[]</span>
+    <span class="k">for</span> <span class="n">infile</span> <span class="ow">in</span> <span class="n">filelist</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s">&quot;dark&quot;</span> <span class="ow">in</span> <span class="n">infile</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">or</span> <span class="s">&quot;drk&quot;</span> <span class="ow">in</span> <span class="n">infile</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+            <span class="n">darkfiles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">infile</span><span class="p">)</span>
+
+    <span class="c">### If not darkfiles found, return null or raise ###       </span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">darkfiles</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">return_null</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Warning</span><span class="p">(</span><span class="s">&quot;WARNING: Darkfile not found in filelist:  </span><span class="se">\</span>
+<span class="s">         startfile </span><span class="si">%s</span><span class="s"> - endfile </span><span class="si">%s</span><span class="s">&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">filelist</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">filelist</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+
+    <span class="c">### If multiple darkfiles found, RAISE a warning ###</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">darkfiles</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Warning</span><span class="p">(</span><span class="s">&quot;Multiple darkfiles founds in filelist:  </span><span class="se">\</span>
+<span class="s">      startfile </span><span class="si">%s</span><span class="s"> - endfile </span><span class="si">%s</span><span class="s">&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">filelist</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">filelist</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">darkfiles</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="get_headermetadata_dataframe"><a class="viewcode-back" href="../../../API/skspec.IO.html#skspec.IO.gwu_interfaces.get_headermetadata_dataframe">[docs]</a><span class="k">def</span> <span class="nf">get_headermetadata_dataframe</span><span class="p">(</span><span class="n">dataframe</span><span class="p">,</span> <span class="n">time_file_dict</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; After creation of the dataframe and datetime-to-file dic, various metadata attributes </span>
+<span class="sd">    come together like filecount, filestart, filend etc...</span>
+<span class="sd">    **run title becomes name of dataframe and can be adopted by plots&#39;&#39;&#39;</span>
+    <span class="n">filecount</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">dataframe</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+    <span class="n">timestart</span><span class="p">,</span> <span class="n">timeend</span><span class="o">=</span><span class="n">dataframe</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dataframe</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">filestart</span><span class="p">,</span> <span class="n">fileend</span><span class="o">=</span><span class="n">time_file_dict</span><span class="p">[</span><span class="n">timestart</span><span class="p">],</span> <span class="n">time_file_dict</span><span class="p">[</span><span class="n">timeend</span><span class="p">]</span>
+    <span class="n">specstart</span><span class="p">,</span> <span class="n">specend</span><span class="o">=</span><span class="n">dataframe</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dataframe</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="p">{</span><span class="s">&#39;filecount&#39;</span><span class="p">:</span><span class="n">filecount</span><span class="p">,</span> 
+            <span class="s">&#39;timestart&#39;</span><span class="p">:</span><span class="n">timestart</span><span class="p">,</span> 
+            <span class="s">&#39;timeend&#39;</span><span class="p">:</span><span class="n">timeend</span><span class="p">,</span> 
+            <span class="s">&#39;filestart&#39;</span><span class="p">:</span><span class="n">filestart</span><span class="p">,</span> 
+            <span class="s">&#39;fileend&#39;</span><span class="p">:</span><span class="n">fileend</span><span class="p">,</span> 
+            <span class="s">&#39;specstart&#39;</span><span class="p">:</span><span class="n">specstart</span><span class="p">,</span> 
+            <span class="s">&#39;specend&#39;</span><span class="p">:</span><span class="n">specend</span><span class="p">}</span>
+
+<span class="c">##########################################################</span>
+<span class="c">### Below are the 2 main functions to extract the data ###</span>
+<span class="c">##########################################################</span>
+</div>
+<div class="viewcode-block" id="from_spec_files"><a class="viewcode-back" href="../../../API/skspec.IO.html#skspec.IO.gwu_interfaces.from_spec_files">[docs]</a><span class="k">def</span> <span class="nf">from_spec_files</span><span class="p">(</span><span class="n">file_list</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">skiphead</span><span class="o">=</span><span class="mi">17</span><span class="p">,</span> <span class="n">skipfoot</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">check_for_overlapping_time</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">extract_dark</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Takes in raw files directly from Ocean optics USB2000 and USB650 spectrometers and returns a</span>
+<span class="sd">    skspec TimeSpectra. If spectral data stored without header, can be called with skiphead=0.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">       name: Set name of returned TimeSpectra.</span>
+<span class="sd">       </span>
+<span class="sd">       check_for_overlapping_time: will raise errors if any files have identical times. Otherwise, time</span>
+<span class="sd">                                   is overwritten.  Really only useful for testing or otherwise cornercase instances.</span>
+<span class="sd">       </span>
+<span class="sd">       extract_dark: Attempt to find a filename with caseinsenstive string match to &quot;dark&quot;.  If dark spectrum</span>
+<span class="sd">                     not found, will print warning.  If multiple darks found, will raise error.</span>
+<span class="sd">      </span>
+<span class="sd">       skiphead/skipfoot: Mostly for reminder that this filetype has a 17 line header and a 1 line footer.</span>
+<span class="sd">       </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">        Built to work with 2-column data only!!!</span>
+
+<span class="sd">        Dataframe is constructed from a list of dictionaries.</span>
+<span class="sd">        Each dataframe gets an appended headerdata attribute (dataframe.headerdata) which is a dictionary,</span>
+<span class="sd">        keyed by columns and stores (infile, header, footer) data so no info is lost between files.</span>
+
+<span class="sd">        Constructed to work for non-equally spaced datafiles, or non-identical data (aka wavelengths can have nans).</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">dict_of_series</span><span class="o">=</span><span class="p">{}</span> <span class="c">#Dict of series eventually merged to dataframe   </span>
+    <span class="n">time_file_dict</span><span class="o">=</span><span class="p">{}</span> <span class="c">#Dict of time:filename (darkfile intentionally excluded)</span>
+    
+    <span class="n">_overlap_count</span> <span class="o">=</span> <span class="mi">0</span> <span class="c"># Tracks if overlapping occurs</span>
+
+    <span class="c">### If looking for a darkfile, this will find it.  Bit redundant but I&#39;m lazy..###</span>
+    <span class="k">if</span> <span class="n">extract_dark</span><span class="p">:</span>
+        <span class="n">darkfile</span><span class="o">=</span><span class="n">extract_darkfile</span><span class="p">(</span><span class="n">file_list</span><span class="p">,</span> <span class="n">return_null</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">darkfile</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">darkfile</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">header</span><span class="o">=</span><span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">next</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">skiphead</span><span class="p">)]</span>
+
+            <span class="n">wavedata</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="n">darkfile</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">spec_dtype</span><span class="p">,</span> <span class="n">skip_header</span><span class="o">=</span><span class="n">skiphead</span><span class="p">,</span> <span class="n">skip_footer</span><span class="o">=</span><span class="n">skipfoot</span><span class="p">)</span> 
+            <span class="n">darktime</span><span class="o">=</span><span class="n">_get_datetime_specsuite</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>        
+            <span class="n">baseline</span><span class="o">=</span><span class="n">Series</span><span class="p">(</span><span class="n">wavedata</span><span class="p">[</span><span class="s">&#39;intensity&#39;</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="n">wavedata</span><span class="p">[</span><span class="s">&#39;wavelength&#39;</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="n">darkfile</span><span class="p">)</span>
+
+            <span class="n">file_list</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">darkfile</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">baseline</span><span class="o">=</span><span class="bp">None</span>
+            
+    <span class="n">file_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">file_list</span> 
+                 <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="o">!=</span> <span class="s">&#39;.gitignore&#39;</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">infile</span> <span class="ow">in</span> <span class="n">file_list</span><span class="p">:</span>
+
+        <span class="c">###Read in only the header lines, not all the lines of the file</span>
+        <span class="c">###Strips and splits in one go</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">infile</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">header</span><span class="o">=</span><span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">next</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">skiphead</span><span class="p">)]</span>
+
+        <span class="c">#Store wavelength, intensity data in a 2-column datatime for easy itemlookup </span>
+        <span class="c">#Eg wavedata[&#39;wavelength&#39;]</span>
+        <span class="n">wavedata</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">spec_dtype</span><span class="p">,</span> <span class="n">skip_header</span><span class="o">=</span><span class="n">skiphead</span><span class="p">,</span> <span class="n">skip_footer</span><span class="o">=</span><span class="n">skipfoot</span><span class="p">)</span> 
+
+        <span class="c"># Extract time data from header</span>
+        <span class="n">datetime</span><span class="o">=</span><span class="n">_get_datetime_specsuite</span><span class="p">(</span><span class="n">header</span><span class="p">)</span> 
+        
+        <span class="k">if</span> <span class="n">datetime</span> <span class="ow">in</span> <span class="n">time_file_dict</span><span class="p">:</span>
+            <span class="n">_overlap_count</span> <span class="o">+=</span> <span class="mi">1</span>        
+
+        <span class="c"># Make sure timepoints aren&#39;t overlapping with any others</span>
+        <span class="k">if</span> <span class="n">check_for_overlapping_time</span> <span class="ow">and</span> <span class="n">_overlap_count</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s">&#39;Duplicate time </span><span class="si">%s</span><span class="s"> found in between files </span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">.&#39;</span>
+                          <span class="s">&#39; To overwrite, set check_for_overlapping_time = False.&#39;</span>
+                           <span class="o">%</span><span class="p">(</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">infile</span><span class="p">,</span> <span class="n">time_file_dict</span><span class="p">[</span><span class="n">datetime</span><span class="p">]</span> <span class="p">))</span>            
+            
+
+        <span class="n">time_file_dict</span><span class="p">[</span><span class="n">datetime</span><span class="p">]</span><span class="o">=</span><span class="n">infile</span>
+        <span class="n">dict_of_series</span><span class="p">[</span><span class="n">datetime</span><span class="p">]</span><span class="o">=</span><span class="n">Series</span><span class="p">(</span><span class="n">wavedata</span><span class="p">[</span><span class="s">&#39;intensity&#39;</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="n">wavedata</span><span class="p">[</span><span class="s">&#39;wavelength&#39;</span><span class="p">])</span>
+
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="c">### Make timespec, add filenames, baseline and metadata attributes (note, DateTimeIndex auto sorts!!)</span>
+    <span class="n">timespec</span><span class="o">=</span><span class="n">TimeSpectra</span><span class="p">(</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">dict_of_series</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span> <span class="c">#Dataframe beacuse TS doesn&#39;t handle dict of series</span>
+    <span class="n">timespec</span><span class="o">.</span><span class="n">specunit</span><span class="o">=</span><span class="s">&#39;nm&#39;</span>
+    <span class="n">timespec</span><span class="o">.</span><span class="n">filedict</span><span class="o">=</span><span class="n">time_file_dict</span>
+    <span class="n">timespec</span><span class="o">.</span><span class="n">baseline</span><span class="o">=</span><span class="n">baseline</span>  <span class="c">#KEEP THIS AS DARK SERIES RECALL IT IS SEPARATE FROM reference OR REFERENCE..  </span>
+
+    <span class="c">### Take metadata from first file in filelist that isn&#39;t darkfile</span>
+    <span class="k">for</span> <span class="n">infile</span> <span class="ow">in</span> <span class="n">file_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">infile</span> <span class="o">!=</span> <span class="n">darkfile</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">infile</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">header</span><span class="o">=</span><span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">next</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">skiphead</span><span class="p">)]</span>         
+            <span class="n">meta_partial</span><span class="o">=</span><span class="n">_get_metadata_fromheader</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>
+            <span class="k">break</span>      
+
+    <span class="n">meta_general</span><span class="o">=</span><span class="n">get_headermetadata_dataframe</span><span class="p">(</span><span class="n">timespec</span><span class="p">,</span> <span class="n">time_file_dict</span><span class="p">)</span> 
+    <span class="n">meta_general</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">meta_partial</span><span class="p">)</span>
+    <span class="n">timespec</span><span class="o">.</span><span class="n">metadata</span><span class="o">=</span><span class="n">meta_general</span>   
+
+    <span class="k">if</span> <span class="n">_overlap_count</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&#39;Time duplication found in </span><span class="si">%s</span><span class="s"> of </span><span class="si">%s</span><span class="s"> files.  Duplicates were &#39;</span>
+            <span class="s">&#39;removed!&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_overlap_count</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">file_list</span><span class="p">)))</span>
+            
+    <span class="k">return</span> <span class="n">timespec</span>
+
+</div>
+<span class="k">def</span> <span class="nf">_get_datetime_specsuite</span><span class="p">(</span><span class="n">specsuiteheader</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Special, Ocean-optics specific function to get date information from a their customized header.&#39;&#39;&#39;</span>
+    <span class="n">dateline</span><span class="o">=</span><span class="n">specsuiteheader</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+    <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">dateline</span><span class="p">[</span><span class="mi">6</span><span class="p">]),</span> <span class="n">dateline</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="nb">int</span><span class="p">(</span><span class="n">dateline</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> 
+
+    <span class="n">month</span><span class="o">=</span><span class="n">spec_suite_months</span><span class="p">[</span><span class="n">month</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span>
+
+    <span class="n">hrs</span><span class="p">,</span> <span class="n">mins</span><span class="p">,</span> <span class="n">secs</span><span class="o">=</span><span class="n">dateline</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">)</span>
+    <span class="n">hrs</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">hrs</span><span class="p">)</span> <span class="p">;</span> <span class="n">mins</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">mins</span><span class="p">)</span> <span class="p">;</span> <span class="n">secs</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">secs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">datetime</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">hrs</span><span class="p">,</span> <span class="n">mins</span><span class="p">,</span> <span class="n">secs</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_get_metadata_fromheader</span><span class="p">(</span><span class="n">specsuiteheader</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Populates metadata attributes from the speactrasuite datafile header&#39;&#39;&#39;</span>
+    <span class="n">sh</span><span class="o">=</span><span class="n">specsuiteheader</span> <span class="c">#for ease in calling</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s">&#39;dark_spec_pres&#39;</span><span class="p">:</span><span class="n">sh</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">3</span><span class="p">],</span> <span class="s">&#39;spectrometer&#39;</span><span class="p">:</span><span class="n">sh</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">],</span>  
+            <span class="s">&#39;int_unit&#39;</span><span class="p">:</span><span class="n">sh</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">2</span><span class="p">],</span> <span class="s">&#39;int_time&#39;</span><span class="p">:</span><span class="nb">int</span><span class="p">(</span><span class="n">sh</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">3</span><span class="p">]),</span> 
+            <span class="s">&#39;spec_avg&#39;</span><span class="p">:</span><span class="nb">int</span><span class="p">(</span><span class="n">sh</span><span class="p">[</span><span class="mi">9</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">2</span><span class="p">]),</span> <span class="s">&#39;boxcar&#39;</span><span class="p">:</span><span class="nb">int</span><span class="p">(</span><span class="n">sh</span><span class="p">[</span><span class="mi">10</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">2</span><span class="p">]),</span> 
+            <span class="s">&#39;ref_spec_pres&#39;</span><span class="p">:</span><span class="n">sh</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">3</span><span class="p">],</span> <span class="s">&#39;electric_dark_correct&#39;</span><span class="p">:</span><span class="n">sh</span><span class="p">[</span><span class="mi">11</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">4</span><span class="p">],</span> 
+            <span class="s">&#39;strobe_lamp&#39;</span><span class="p">:</span><span class="n">sh</span><span class="p">[</span><span class="mi">12</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">2</span><span class="p">],</span><span class="s">&#39;detector_nonlin_correct&#39;</span><span class="p">:</span><span class="n">sh</span><span class="p">[</span><span class="mi">13</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">4</span><span class="p">],</span> 
+            <span class="s">&#39;stray_light_correct&#39;</span><span class="p">:</span><span class="n">sh</span><span class="p">[</span><span class="mi">14</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">4</span><span class="p">],</span> <span class="s">&#39;pix_in_spec&#39;</span><span class="p">:</span><span class="nb">int</span><span class="p">(</span><span class="n">sh</span><span class="p">[</span><span class="mi">15</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">6</span><span class="p">])}</span>
+
+
+<span class="c">######### Get dataframe from timefile / datafile #####</span>
+<span class="c"># Authors Zhaowen Liu/Adam Hughes, 10/15/12</span>
+
+<div class="viewcode-block" id="from_timefile_datafile"><a class="viewcode-back" href="../../../API/skspec.IO.html#skspec.IO.gwu_interfaces.from_timefile_datafile">[docs]</a><span class="k">def</span> <span class="nf">from_timefile_datafile</span><span class="p">(</span><span class="n">datafile</span><span class="p">,</span> <span class="n">timefile</span><span class="p">,</span> <span class="n">extract_dark</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span> 
+    <span class="sd">&#39;&#39;&#39; Converts old-style spectral data from GWU phys lab into  </span>
+<span class="sd">    a dataframe with timestamp column index and wavelength row indicies.</span>
+
+<span class="sd">    Creates the DataFrame from a dictionary of Series, keyed by datetime.</span>
+<span class="sd">    **name becomes name of dataframe&#39;&#39;&#39;</span> 
+
+    <span class="n">tlines</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">timefile</span><span class="p">,</span><span class="s">&#39;r&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+    <span class="n">tlines</span><span class="o">=</span><span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">tlines</span><span class="p">]</span>           
+    <span class="n">tlines</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">time_file_dict</span><span class="o">=</span><span class="nb">dict</span><span class="p">((</span><span class="n">_get_datetime_timefile</span><span class="p">(</span><span class="n">tline</span><span class="p">),</span><span class="n">tline</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">tline</span> <span class="ow">in</span> <span class="n">tlines</span><span class="p">)</span>
+
+    <span class="c">### Read in data matrix, separate first row (wavelengths) from the rest of the data</span>
+    <span class="n">wavedata</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="n">datafile</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s">&#39;float&#39;</span><span class="p">,</span> <span class="n">skip_header</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">data</span><span class="p">,</span> <span class="n">wavelengths</span><span class="o">=</span><span class="n">wavedata</span><span class="p">[:,</span><span class="mi">1</span><span class="p">::],</span> <span class="n">wavedata</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="c">#Separate wavelength column</span>
+
+    <span class="c">### Sort datetimes here before assigning/removing dark spec etc...</span>
+    <span class="n">sorted_tfd</span><span class="o">=</span><span class="nb">sorted</span><span class="p">(</span><span class="n">time_file_dict</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+    <span class="n">sorted_times</span><span class="p">,</span> <span class="n">sorted_files</span><span class="o">=</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="p">(</span> <span class="p">(((</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sorted_tfd</span><span class="p">)))</span>
+
+    <span class="c">### Seek darkfile.  If found, take it out of dataframe. ###</span>
+    <span class="k">if</span> <span class="n">extract_dark</span><span class="p">:</span>
+        <span class="n">darkfile</span><span class="o">=</span><span class="n">extract_darkfile</span><span class="p">(</span><span class="n">sorted_files</span><span class="p">,</span> <span class="n">return_null</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>   
+
+    <span class="k">if</span> <span class="n">darkfile</span><span class="p">:</span>    
+        <span class="c">####Find baseline by reverse lookup (lookup by value) and get index position</span>
+
+        <span class="c">#darkindex, darktime=[(idx, time) for idx, (time, afile) in enumerate(sorted_tfd) if afile == darkfile][0]</span>
+        <span class="n">darkindex</span><span class="o">=</span><span class="n">sorted_files</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">darkfile</span><span class="p">)</span>
+        <span class="n">darktime</span><span class="o">=</span><span class="n">sorted_times</span><span class="p">[</span><span class="n">darkindex</span><span class="p">]</span>
+        <span class="n">baseline</span><span class="o">=</span><span class="n">Series</span><span class="p">(</span><span class="n">data</span><span class="p">[:,</span><span class="n">darkindex</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="n">wavelengths</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">darkfile</span><span class="p">)</span> 
+
+
+        <span class="k">del</span> <span class="n">time_file_dict</span><span class="p">[</span><span class="n">darktime</span><span class="p">]</span> <span class="c">#Intentionally remove</span>
+        <span class="n">sorted_times</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">sorted_times</span><span class="p">)</span> <span class="c">#Need to do in two steps</span>
+        <span class="n">sorted_times</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">darktime</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">darkindex</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>  <span class="c">#Delete dark column from numpy data           </span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">baseline</span><span class="o">=</span><span class="bp">None</span>
+
+    <span class="n">dataframe</span><span class="o">=</span><span class="n">TimeSpectra</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">sorted_times</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">wavelengths</span><span class="p">)</span>      
+    
+
+    <span class="c">### Add field attributes to dataframe</span>
+    <span class="n">dataframe</span><span class="o">.</span><span class="n">baseline</span><span class="o">=</span><span class="n">baseline</span> 
+    <span class="n">dataframe</span><span class="o">.</span><span class="n">filedict</span><span class="o">=</span><span class="n">time_file_dict</span>
+    <span class="k">if</span> <span class="n">name</span><span class="p">:</span>
+        <span class="n">dataframe</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="n">name</span>
+
+    <span class="c">### Get headermeta data from first line in timefile that isn&#39;t darkfile.  Only checks one line</span>
+    <span class="c">### Does not check for consistency</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">tlines</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="n">darkfile</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">meta_partial</span><span class="o">=</span><span class="n">_get_headermetadata_timefile</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>  <span class="c">#DOUBLE CHECK THIS WORKS</span>
+            <span class="k">break</span>   
+
+    <span class="c">### Extract remaining metadata (file/time info) and return ###</span>
+    <span class="n">meta_general</span><span class="o">=</span><span class="n">get_headermetadata_dataframe</span><span class="p">(</span><span class="n">dataframe</span><span class="p">,</span> <span class="n">time_file_dict</span><span class="p">)</span> 
+    <span class="n">meta_general</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">meta_partial</span><span class="p">)</span>
+    <span class="n">dataframe</span><span class="o">.</span><span class="n">metadata</span><span class="o">=</span><span class="n">meta_general</span>
+    <span class="n">dataframe</span><span class="o">.</span><span class="n">specunit</span><span class="o">=</span><span class="s">&#39;nm&#39;</span>  <span class="c">#This autodetected in plots    </span>
+
+    <span class="c">### Sort dataframe by ascending time (could also sort spectral data) ###</span>
+    <span class="n">dataframe</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="c">#axis1=columns</span>
+
+    <span class="k">return</span> <span class="n">dataframe</span>
+</div>
+<div class="viewcode-block" id="from_gwu_chem_UVVIS"><a class="viewcode-back" href="../../../API/skspec.IO.html#skspec.IO.gwu_interfaces.from_gwu_chem_UVVIS">[docs]</a><span class="k">def</span> <span class="nf">from_gwu_chem_UVVIS</span><span class="p">(</span><span class="n">filelist</span><span class="p">,</span> <span class="n">sortnames</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">shortname</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">cut_extension</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Format for comma delimited two column data from GWU chemistry&#39;s UVVis.  These have no useful metadata</span>
+<span class="sd">    or dark data and so it is important that users either pass in a correctly sorted filelist.  Once the </span>
+<span class="sd">    dataframe is created, on can do df=df.reindex(columns=[correct order]).  </span>
+<span class="sd">    </span>
+<span class="sd">    It uses read_csv() to and creates a list of dataframes.  Afterwards, concat() merges these.</span>
+<span class="sd">    </span>
+<span class="sd">    Kwds:</span>
+<span class="sd">       sortnames- Will attempt to autosort the filelist. Otherwise, order of files passed in is</span>
+<span class="sd">                  directly used as columns.</span>
+<span class="sd">       shortname- If false, full file path is used as the column name.  If true, only the filename is used. </span>
+<span class="sd">       </span>
+<span class="sd">       cut_extension- If using the shortname, this will determine if the file extension is saved or cut from the data.&#39;&#39;&#39;</span>
+
+    <span class="k">if</span> <span class="n">shortname</span><span class="p">:</span>
+        <span class="n">fget</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span><span class="n">get_shortname</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">cut_extension</span><span class="o">=</span><span class="n">cut_extension</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">fget</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span>
+    
+    <span class="c">### Either full names or short names of filelist    </span>
+    <span class="n">working_names</span><span class="o">=</span><span class="p">[</span><span class="n">fget</span><span class="p">(</span><span class="n">afile</span><span class="p">)</span> <span class="k">for</span> <span class="n">afile</span> <span class="ow">in</span> <span class="n">filelist</span><span class="p">]</span>
+        
+
+    <span class="n">dflist</span><span class="o">=</span><span class="p">[</span><span class="n">read_csv</span><span class="p">(</span><span class="n">afile</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s">&#39;,&#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">na_values</span><span class="o">=</span><span class="s">&#39; &#39;</span><span class="p">,</span>  <span class="c">#Used to be &#39; \r&#39;, or is this from IR?</span>
+                               <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="n">fget</span><span class="p">(</span><span class="n">afile</span><span class="p">)])</span> <span class="k">for</span> <span class="n">afile</span> <span class="ow">in</span> <span class="n">filelist</span><span class="p">]</span>
+    
+    <span class="c">### THIS IS BUSTED, PUTTING NANS EVERYWHERE EXCEPT ONE FILE, but dflist itself ws nice.</span>
+    <span class="n">dataframe</span><span class="o">=</span><span class="n">concat</span><span class="p">(</span><span class="n">dflist</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                        
+    <span class="c">### concat tries to sort these, so this will preserve the sort order</span>
+    <span class="k">if</span> <span class="n">sortnames</span><span class="p">:</span>
+        <span class="n">dataframe</span><span class="o">=</span><span class="n">dataframe</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="nb">sorted</span><span class="p">(</span><span class="n">working_names</span><span class="p">))</span>
+
+    <span class="n">dataframe</span><span class="o">=</span><span class="n">TimeSpectra</span><span class="p">(</span><span class="n">dataframe</span><span class="p">)</span> <span class="c">#this is fine</span>
+
+    <span class="n">dataframe</span><span class="o">.</span><span class="n">metadata</span><span class="o">=</span><span class="bp">None</span>
+    <span class="n">dataframe</span><span class="o">.</span><span class="n">filedict</span><span class="o">=</span><span class="bp">None</span>
+    <span class="n">dataframe</span><span class="o">.</span><span class="n">baseline</span><span class="o">=</span><span class="bp">None</span>
+    <span class="n">dataframe</span><span class="o">.</span><span class="n">specunit</span><span class="o">=</span><span class="s">&#39;nm&#39;</span> <span class="c">#This autodetected in plots    </span>
+    <span class="k">if</span> <span class="n">name</span><span class="p">:</span>
+        <span class="n">dataframe</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="n">name</span>
+    
+    <span class="k">return</span> <span class="n">dataframe</span>
+            
+</div>
+<span class="k">def</span> <span class="nf">_get_datetime_timefile</span><span class="p">(</span><span class="n">splitline</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Takes in SPLIT line of timefile (aka a list), returns datetime object &#39;&#39;&#39;</span>
+    <span class="n">hrs</span><span class="p">,</span> <span class="n">mins</span><span class="p">,</span> <span class="n">secs</span><span class="o">=</span><span class="n">splitline</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">)</span>
+    <span class="n">hrs</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">hrs</span><span class="p">)</span> <span class="p">;</span> <span class="n">mins</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">mins</span><span class="p">)</span> <span class="p">;</span> <span class="n">secs</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">secs</span><span class="p">)</span>
+    <span class="n">day</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">year</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">splitline</span><span class="p">[</span><span class="mi">3</span><span class="p">]),</span> <span class="n">spec_suite_months</span><span class="p">[</span><span class="n">splitline</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()],</span> <span class="nb">int</span><span class="p">(</span><span class="n">splitline</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">datetime</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">hrs</span><span class="p">,</span> <span class="n">mins</span><span class="p">,</span> <span class="n">secs</span><span class="p">)</span>   
+
+<span class="k">def</span> <span class="nf">_get_headermetadata_timefile</span><span class="p">(</span><span class="n">splitline</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Return the reduced, available components of headermetadata from timefile (missing data).&#39;&#39;&#39;</span> 
+    <span class="c">### Take items that are present ###</span>
+    <span class="n">filldic</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">([</span><span class="s">&#39;int_time&#39;</span><span class="p">,</span> <span class="s">&#39;int_unit&#39;</span><span class="p">,</span> <span class="s">&#39;spec_avg&#39;</span><span class="p">,</span> <span class="s">&#39;boxcar&#39;</span><span class="p">],</span> <span class="n">splitline</span><span class="p">[</span><span class="mi">5</span><span class="p">:]))</span>
+
+    <span class="c">### Append null for items that are missing ###</span>
+    <span class="n">missing</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;spectrometer&#39;</span><span class="p">,</span><span class="s">&#39;dark_spec_pres&#39;</span><span class="p">,</span> <span class="s">&#39;ref_spec_pres&#39;</span><span class="p">,</span> <span class="s">&#39;electric_dark_correct&#39;</span><span class="p">,</span> 
+             <span class="s">&#39;strobe_lamp&#39;</span><span class="p">,</span> <span class="s">&#39;detector_nonlin_correct&#39;</span><span class="p">,</span> <span class="s">&#39;stray_light_correct&#39;</span><span class="p">,</span> <span class="s">&#39;pix_in_spec&#39;</span><span class="p">)</span>
+    <span class="n">missingdic</span><span class="o">=</span><span class="nb">dict</span><span class="p">((</span><span class="n">item</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">missing</span><span class="p">)</span>
+
+    <span class="c">### MANUALLY ADDING SPECTROMETER FOR THIS DATATYPE! COULD BE PROBLEMATIC IF I CHANGE SPECTROMETERS</span>
+    <span class="c">### OR USE THIS PROGRAM TO OPEN OTHER DATAFILES (UNLIKELY)</span>
+    <span class="n">missingdic</span><span class="p">[</span><span class="s">&#39;spectrometer&#39;</span><span class="p">]</span><span class="o">=</span><span class="s">&#39;USB2E7196&#39;</span>  
+
+    <span class="k">return</span> <span class="n">missingdic</span>
+
+<div class="viewcode-block" id="from_oceanoptics"><a class="viewcode-back" href="../../../API/skspec.IO.html#skspec.IO.gwu_interfaces.from_oceanoptics">[docs]</a><span class="k">def</span> <span class="nf">from_oceanoptics</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">sample_by</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">from_spec_files_kwds</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Wrapper to from_spec_files to both generate a file list from a directory and read files into time spectra.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters:</span>
+<span class="sd">        -----------</span>
+<span class="sd">            directory: directory with raw spectral files.</span>
+<span class="sd">            sample_by: Sample every X files.  (Useful for reducing large datsets prior to readin)</span>
+<span class="sd">            **from_spec_files_kwds: All kwds passed to from_spec_files().</span>
+<span class="sd">            </span>
+<span class="sd">        Notes:</span>
+<span class="sd">        ------</span>
+<span class="sd">            Slice works by taking the 0 file every time and counting from there.  So if you enter sample_by=3,</span>
+<span class="sd">            expect to get files 0, 3, 6 etc... but if sample_by_10, you get files 0,10,20</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    
+    <span class="n">files</span><span class="o">=</span><span class="n">get_files_in_dir</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="n">sort</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">sample_by</span><span class="p">:</span>    
+        <span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">[</span><span class="mi">0</span><span class="p">::</span><span class="n">sample_by</span><span class="p">]</span>  <span class="c">#Slice already takes cares of most errors</span>
+    
+    <span class="k">return</span> <span class="n">from_spec_files</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="o">**</span><span class="n">from_spec_files_kwds</span><span class="p">)</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span><span class="o">==</span><span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="c"># Assumes datapath is ../data/gwuspecdata...</span>
+    
+    <span class="c">### Test of raw fiber spectral data</span>
+    
+    <span class="n">ts</span><span class="o">=</span><span class="n">from_oceanoptics</span><span class="p">(</span><span class="s">&#39;../data/gwuspecdata/fiber1&#39;</span><span class="p">,</span> <span class="n">sample_by</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;oceanopticstest&#39;</span><span class="p">)</span>
+
+    <span class="n">files</span><span class="o">=</span><span class="n">get_files_in_dir</span><span class="p">(</span><span class="s">&#39;../data/gwuspecdata/fiber1&#39;</span><span class="p">)</span>
+    <span class="n">ts</span><span class="o">=</span><span class="n">from_spec_files</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;Test Spectra&#39;</span><span class="p">)</span>
+    <span class="c">#print ts, type(ts)</span>
+    
+    <span class="c">### Test of timefile/datafile</span>
+    <span class="c">#dfile=&#39;../data/gwuspecdata/ex_tf_df/11_data.txt&#39;</span>
+    <span class="c">#tfile=&#39;../data/gwuspecdata/ex_tf_df/11_tfile.txt&#39;</span>
+    <span class="c">#ts2=from_timefile_datafile(dfile, tfile, extract_dark=True, name=&#39;Test Spec 2&#39;)</span>
+    <span class="c">#print ts2, type(ts2)</span>
+    
+    <span class="c">### Test of chem UVVIS data</span>
+    <span class="n">files</span><span class="o">=</span><span class="n">get_files_in_dir</span><span class="p">(</span><span class="s">&#39;../data/gwuspecdata/IRData&#39;</span><span class="p">)</span>
+    <span class="n">ts3</span><span class="o">=</span><span class="n">from_gwu_chem_UVVIS</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;IR Spec&#39;</span><span class="p">)</span>
+    <span class="k">print</span> <span class="n">ts3</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">ts3</span><span class="p">),</span> <span class="n">ts3</span><span class="p">[</span><span class="n">ts3</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+    
+    <span class="c">### ADD CHEM IR DATA (Did it in a notebook at one point actually)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/installation_dependencies.html">Dependencies/Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/plotting.html">Plotting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../API/skspec.html">API</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../../../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+            <p class="searchtip" style="font-size: 90%">
+                Enter search terms or a module, class or function name.
+            </p>
+          </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="../../../py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="../../../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, Adam Hughes, ReevesLab Dept. Physics, George Washington University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3b2.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

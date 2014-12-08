@@ -1,0 +1,874 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>skspec.plotting.advanced_plots &mdash; scikit-spectra 0.3.1-2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.3.1-2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="scikit-spectra 0.3.1-2 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../../../index.html">scikit-spectra 0.3.1-2 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../../../index.html"><img src="../../../_static/new_logo.png" border="100" alt="sampledoc"/></a>
+</div>
+
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for skspec.plotting.advanced_plots</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot; 2d and 3d wrappers for plotting 2d and 3d data in dataframes &quot;&quot;&quot;</span>
+<span class="n">__author__</span> <span class="o">=</span> <span class="s">&quot;Adam Hughes&quot;</span>
+<span class="n">__copyright__</span> <span class="o">=</span> <span class="s">&quot;Copyright 2012, GWU Physics&quot;</span>
+<span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;Free BSD&quot;</span>
+<span class="n">__maintainer__</span> <span class="o">=</span> <span class="s">&quot;Adam Hughes&quot;</span>
+<span class="n">__email__</span> <span class="o">=</span> <span class="s">&quot;hugadams@gwmail.gwu.edu&quot;</span>
+<span class="n">__status__</span> <span class="o">=</span> <span class="s">&quot;Development&quot;</span>
+
+<span class="kn">import</span> <span class="nn">datetime</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">matplotlib.ticker</span> <span class="kn">as</span> <span class="nn">mplticker</span>
+<span class="kn">import</span> <span class="nn">matplotlib.dates</span> <span class="kn">as</span> <span class="nn">dates</span>
+<span class="kn">from</span> <span class="nn">mpl_toolkits.mplot3d</span> <span class="kn">import</span> <span class="n">Axes3D</span><span class="p">,</span> <span class="n">axes3d</span><span class="p">,</span> <span class="n">art3d</span> <span class="c">#Need Axes3d for 3d projection!</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.cm</span> <span class="kn">as</span> <span class="nn">cm</span>
+<span class="kn">from</span> <span class="nn">matplotlib.collections</span> <span class="kn">import</span> <span class="n">PolyCollection</span>
+<span class="kn">from</span> <span class="nn">basic_plots</span> <span class="kn">import</span> <span class="n">PlotError</span>
+<span class="kn">from</span> <span class="nn">skspec.core.abcspectra</span> <span class="kn">import</span> <span class="n">SpecError</span>
+
+<span class="kn">import</span> <span class="nn">plot_utils</span> <span class="kn">as</span> <span class="nn">pu</span>
+<span class="kn">import</span> <span class="nn">skspec.config</span> <span class="kn">as</span> <span class="nn">pvconfig</span>
+
+<span class="kn">from</span> <span class="nn">skspec.exceptions</span> <span class="kn">import</span> <span class="n">badvalue_error</span>
+
+<span class="c"># Smart float to int conversion</span>
+<span class="n">_ir</span><span class="o">=</span><span class="k">lambda</span><span class="p">(</span><span class="n">x</span><span class="p">):</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+
+<span class="kn">from</span> <span class="nn">skspec.plotting.basic_plots</span> <span class="kn">import</span> <span class="n">range_timeplot</span><span class="p">,</span> <span class="n">areaplot</span><span class="p">,</span> <span class="n">_genplot</span>    
+<span class="kn">from</span> <span class="nn">skspec.plotting.plot_registry</span> <span class="kn">import</span> <span class="n">PlotRegister</span>
+
+<span class="n">_TIMESTAMPPADDING</span> <span class="o">=</span> <span class="mf">2.9</span> <span class="c">#Padding for timestamp labels</span>
+<span class="n">_TIMESTAMPFORMAT</span> <span class="o">=</span> <span class="s">&#39;%H:%M:%S&#39;</span>
+
+<span class="c"># Colormap of wire plot: hack and only works on a square mesh (eg 100x100)</span>
+<span class="c"># https://github.com/matplotlib/matplotlib/issues/3562</span>
+<div class="viewcode-block" id="wire_cmap"><a class="viewcode-back" href="../../../API/skspec.plotting.html#skspec.plotting.advanced_plots.wire_cmap">[docs]</a><span class="k">def</span> <span class="nf">wire_cmap</span><span class="p">(</span><span class="n">wires</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s">&#39;hsv&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Add a colormap to a set of wires (returned form ax.plot_wireframe)&quot;&quot;&quot;</span>
+    <span class="c"># Retrive data from internal storage of plot_wireframe, then delete it</span>
+
+    <span class="k">if</span> <span class="n">wires</span><span class="o">.</span><span class="n">_segments3d</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">PlotError</span><span class="p">(</span><span class="s">&#39;Wireframe colormapping for non-squre data (ie same &#39;</span>
+                        <span class="s">&#39;number rows and columns) is not supported.&#39;</span><span class="p">)</span>
+
+    <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">_</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">wires</span><span class="o">.</span><span class="n">_segments3d</span><span class="p">)</span>
+               
+    <span class="n">wire_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">wires</span><span class="o">.</span><span class="n">_segments3d</span><span class="p">)[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">wire_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">wires</span><span class="o">.</span><span class="n">_segments3d</span><span class="p">)[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">wire_z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">wires</span><span class="o">.</span><span class="n">_segments3d</span><span class="p">)[:,</span> <span class="p">:,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">wires</span><span class="o">.</span><span class="n">remove</span><span class="p">()</span>        
+    
+    <span class="c"># create data for a LineCollection</span>
+    <span class="n">wire_x1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">wire_x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">wire_x</span><span class="p">,</span> <span class="mi">1</span><span class="p">)])</span>
+    <span class="n">wire_y1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">wire_y</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">wire_y</span><span class="p">,</span> <span class="mi">1</span><span class="p">)])</span>
+    <span class="n">wire_z1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">wire_z</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">wire_z</span><span class="p">,</span> <span class="mi">1</span><span class="p">)])</span>
+    <span class="n">to_delete</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nx</span><span class="o">*</span><span class="n">ny</span><span class="p">,</span> <span class="n">ny</span><span class="p">)</span>
+    <span class="n">wire_x1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">wire_x1</span><span class="p">,</span> <span class="n">to_delete</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">wire_y1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">wire_y1</span><span class="p">,</span> <span class="n">to_delete</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">wire_z1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">wire_z1</span><span class="p">,</span> <span class="n">to_delete</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">scalars</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">wire_z</span><span class="p">,</span> <span class="n">to_delete</span><span class="p">)</span>
+        
+    <span class="n">segs</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">xl</span><span class="p">,</span> <span class="n">yl</span><span class="p">,</span> <span class="n">zl</span><span class="p">))</span> <span class="k">for</span> <span class="n">xl</span><span class="p">,</span> <span class="n">yl</span><span class="p">,</span> <span class="n">zl</span> <span class="ow">in</span> \
+                     <span class="nb">zip</span><span class="p">(</span><span class="n">wire_x1</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">wire_y1</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">wire_z1</span><span class="o">.</span><span class="n">T</span><span class="p">)]</span>
+    
+    <span class="c"># Plots the wireframe by a  a line3DCollection</span>
+    <span class="n">new_wires</span> <span class="o">=</span> <span class="n">art3d</span><span class="o">.</span><span class="n">Line3DCollection</span><span class="p">(</span><span class="n">segs</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">)</span>
+    <span class="n">new_wires</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="n">scalars</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">add_collection</span><span class="p">(</span><span class="n">new_wires</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_wires</span>
+</div>
+<div class="viewcode-block" id="custom_wireframe"><a class="viewcode-back" href="../../../API/skspec.plotting.html#skspec.plotting.advanced_plots.custom_wireframe">[docs]</a><span class="k">def</span> <span class="nf">custom_wireframe</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overoad matplotlib&#39;s plot_wireframe for a special use case that we want</span>
+<span class="sd">    to plot a wireframe over a surface with customizability of those</span>
+<span class="sd">    lines.</span>
+<span class="sd">    In future versions, this may be incorporated into matplotlib natively.</span>
+<span class="sd">    This would still be required for backwards compatibility.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">rstride</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&quot;rstride&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">cstride</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&quot;cstride&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">Z</span>
+
+    <span class="n">had_data</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">has_data</span><span class="p">()</span>
+    <span class="n">Z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span>
+    <span class="c"># FIXME: Support masked arrays</span>
+    <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">broadcast_arrays</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="p">)</span>
+    <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span> <span class="o">=</span> <span class="n">Z</span><span class="o">.</span><span class="n">shape</span>
+
+    <span class="c"># We want two sets of lines, one running along the &quot;rows&quot; of</span>
+    <span class="c"># Z and another set of lines running along the &quot;columns&quot; of Z.</span>
+    <span class="c"># This transpose will make it easy to obtain the columns.</span>
+    <span class="n">tX</span><span class="p">,</span> <span class="n">tY</span><span class="p">,</span> <span class="n">tZ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">X</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">Y</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">rstride</span><span class="p">:</span>
+        <span class="n">rii</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">xrange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">rstride</span><span class="p">))</span>
+        <span class="c"># Add the last index only if needed</span>
+        <span class="k">if</span> <span class="n">rows</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">rii</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="p">(</span><span class="n">rows</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="p">:</span>
+            <span class="n">rii</span> <span class="o">+=</span> <span class="p">[</span><span class="n">rows</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>        
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">rii</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">if</span> <span class="n">cstride</span><span class="p">:</span>                
+        <span class="n">cii</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">xrange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">cstride</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">cols</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">cii</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="p">(</span><span class="n">cols</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="p">:</span>
+            <span class="n">cii</span> <span class="o">+=</span> <span class="p">[</span><span class="n">cols</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>        
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cii</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c"># If the inputs were empty, then just</span>
+    <span class="c"># reset everything.</span>
+    <span class="k">if</span> <span class="n">Z</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">:</span>
+        <span class="n">rii</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">cii</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">xlines</span> <span class="o">=</span> <span class="p">[</span><span class="n">X</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">rii</span><span class="p">]</span>
+    <span class="n">ylines</span> <span class="o">=</span> <span class="p">[</span><span class="n">Y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">rii</span><span class="p">]</span>
+    <span class="n">zlines</span> <span class="o">=</span> <span class="p">[</span><span class="n">Z</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">rii</span><span class="p">]</span>
+
+    <span class="n">txlines</span> <span class="o">=</span> <span class="p">[</span><span class="n">tX</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">cii</span><span class="p">]</span>
+    <span class="n">tylines</span> <span class="o">=</span> <span class="p">[</span><span class="n">tY</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">cii</span><span class="p">]</span>
+    <span class="n">tzlines</span> <span class="o">=</span> <span class="p">[</span><span class="n">tZ</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">cii</span><span class="p">]</span>
+
+    <span class="c"># Row lines from rowstrides</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">xl</span><span class="p">,</span> <span class="n">yl</span><span class="p">,</span> <span class="n">zl</span><span class="p">))</span> <span class="k">for</span> <span class="n">xl</span><span class="p">,</span> <span class="n">yl</span><span class="p">,</span> <span class="n">zl</span> <span class="ow">in</span> \
+             <span class="nb">zip</span><span class="p">(</span><span class="n">xlines</span><span class="p">,</span> <span class="n">ylines</span><span class="p">,</span> <span class="n">zlines</span><span class="p">)]</span>
+
+    <span class="c"># Col lines form colstrides</span>
+    <span class="n">lines</span> <span class="o">+=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">xl</span><span class="p">,</span> <span class="n">yl</span><span class="p">,</span> <span class="n">zl</span><span class="p">))</span> <span class="k">for</span> <span class="n">xl</span><span class="p">,</span> <span class="n">yl</span><span class="p">,</span> <span class="n">zl</span> <span class="ow">in</span> \
+              <span class="nb">zip</span><span class="p">(</span><span class="n">txlines</span><span class="p">,</span> <span class="n">tylines</span><span class="p">,</span> <span class="n">tzlines</span><span class="p">)]</span>
+
+    <span class="n">linec</span> <span class="o">=</span> <span class="n">art3d</span><span class="o">.</span><span class="n">Line3DCollection</span><span class="p">(</span><span class="n">lines</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">add_collection</span><span class="p">(</span><span class="n">linec</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">auto_scale_xyz</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">had_data</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s">&#39;cmap&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">linec</span> <span class="o">=</span> <span class="n">wire_cmap</span><span class="p">(</span><span class="n">linec</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;cmap&#39;</span><span class="p">])</span>    
+    
+    <span class="k">return</span> <span class="n">linec</span>
+
+</div>
+<div class="viewcode-block" id="format_date"><a class="viewcode-back" href="../../../API/skspec.plotting.html#skspec.plotting.advanced_plots.format_date">[docs]</a><span class="k">def</span> <span class="nf">format_date</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">dates</span><span class="o">.</span><span class="n">num2date</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="n">_TIMESTAMPFORMAT</span><span class="p">)</span> 
+
+
+<span class="c"># Rename</span></div>
+<span class="k">def</span> <span class="nf">_gen2d3d</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">pltkwargs</span><span class="p">):</span>
+    <span class="c"># UPDATE</span>
+    <span class="sd">&quot;&quot;&quot; Abstract layout for 2d plot.</span>
+<span class="sd">    For convienence, a few special labels, colorbar and background keywords </span>
+<span class="sd">    have been implemented.  If these are not adequate, it one can add </span>
+<span class="sd">    custom colorbars, linelabels background images etc... easily just by </span>
+<span class="sd">    using respecitve calls to plot (plt.colorbar(), plt.imshow(), </span>
+<span class="sd">    plt.clabel() ); my implementations are only for convienences and</span>
+<span class="sd">    some predefined, cool styles.</span>
+<span class="sd">        </span>
+<span class="sd">    countours: Number of desired contours from output.</span>
+<span class="sd">    </span>
+<span class="sd">    label: Predefined label types.  For now, only integer values 1,2.  Use plt.clabel to add a custom label.</span>
+<span class="sd">    </span>
+<span class="sd">    background: Integers 1,2 will add gray or autumn colormap under contour plot.  Use plt.imgshow() to generate</span>
+<span class="sd">                custom background, or pass a PIL-opened image (note, proper image scaling not yet implemented).</span>
+
+<span class="sd">    c_mesh, r_mesh: These control how man column and row iso lines will be projected onto the 3d plot.</span>
+<span class="sd">                    For example, if c_mesh=10, then 10 isolines will be plotted as columns, despite the actual length of the</span>
+<span class="sd">                    columns.  Alternatively, one can pass in c_stride directly, which is a column step size rather than</span>
+<span class="sd">                    an absolute number, and c_mesh will be disregarded.</span>
+<span class="sd">                    </span>
+<span class="sd">                </span>
+<span class="sd">    fill: bool (False)</span>
+<span class="sd">        Fill between contour lines.</span>
+
+<span class="sd">    **pltkwargs: Will be passed directly to plt.contour().</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple: (Axes, SurfaceFunction)</span>
+<span class="sd">        Returns axes object and the surface function (e.g. contours for</span>
+<span class="sd">        contour plot.  Surface for surface plot.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c"># Use a label mapper to allow for datetimes in any plot x/y axis</span>
+    <span class="n">_x_dti</span> <span class="o">=</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_y_dti</span> <span class="o">=</span> <span class="bp">False</span>
+
+    <span class="c"># Passed Spectra</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">ts</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">dates</span><span class="o">.</span><span class="n">date2num</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="p">])</span>
+            <span class="n">_x_dti</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span> <span class="c">#VALUES NECESSARY FOR POLY CMAP</span>
+            
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cols</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">dates</span><span class="o">.</span><span class="n">date2num</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">ts</span><span class="o">.</span><span class="n">columns</span><span class="p">])</span>
+            <span class="n">_y_dti</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="n">cols</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span> <span class="c">#VALUES NECESSARY FOR POLY CMAP</span>
+                
+        <span class="n">yy</span><span class="p">,</span> <span class="n">xx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">cols</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+
+    <span class="c"># Passed xx, yy, ts/zz</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">xx</span><span class="p">,</span> <span class="n">yy</span><span class="p">,</span> <span class="n">ts</span> <span class="o">=</span> <span class="n">args</span>
+        <span class="n">cols</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span>
+        
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">PlotError</span><span class="p">(</span><span class="s">&quot;Please pass a single spectra, or xx, yy, zz.  Got </span><span class="si">%s</span><span class="s"> args&quot;</span>
+                        <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+             
+    <span class="c"># Boilerplate from basic_plots._genplot(); could refactor as decorator</span>
+    <span class="n">xlabel</span> <span class="o">=</span> <span class="n">pltkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;xlabel&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">ylabel</span> <span class="o">=</span> <span class="n">pltkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;ylabel&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">zlabel</span> <span class="o">=</span> <span class="n">pltkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;zlabel&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>    
+    <span class="n">title</span> <span class="o">=</span> <span class="n">pltkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;title&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+
+    <span class="n">labelsize</span> <span class="o">=</span> <span class="n">pltkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;labelsize&#39;</span><span class="p">,</span> <span class="n">pvconfig</span><span class="o">.</span><span class="n">LABELSIZE</span><span class="p">)</span> <span class="c">#Can also be ints</span>
+    <span class="n">titlesize</span> <span class="o">=</span> <span class="n">pltkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;titlesize&#39;</span><span class="p">,</span> <span class="n">pvconfig</span><span class="o">.</span><span class="n">TITLESIZE</span><span class="p">)</span>
+
+    <span class="c"># Choose plot kind</span>
+    <span class="n">kind</span> <span class="o">=</span> <span class="n">pltkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;kind&#39;</span><span class="p">,</span> <span class="s">&#39;contour&#39;</span><span class="p">)</span>
+    <span class="n">grid</span> <span class="o">=</span> <span class="n">pltkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;grid&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+<span class="c">#    pltkwargs.setdefault(&#39;legend&#39;, False) #(any purpose in 2d?)</span>
+<span class="c">#   LEGEND FOR 2D PLOT: http://stackoverflow.com/questions/10490302/how-do-you-create-a-legend-for-a-contour-plot-in-matplotlib</span>
+    <span class="n">pltkwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;linewidth&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>    
+    
+    <span class="n">cbar</span> <span class="o">=</span> <span class="n">pltkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;cbar&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+    
+    <span class="n">outline</span> <span class="o">=</span> <span class="n">pltkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;outline&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">outline</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">kind</span> <span class="o">!=</span> <span class="s">&#39;surf&#39;</span> <span class="ow">and</span> <span class="n">kind</span> <span class="o">!=</span> <span class="s">&#39;waterfall&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">PlotError</span><span class="p">(</span><span class="s">&#39;&quot;outline&quot; is only valid for &quot;surf&quot; and &quot;waterfall&quot;&#39;</span>
+                        <span class="s">&#39; plots.  Please use color/cmap for all other color&#39;</span>
+                        <span class="s">&#39; designations.&#39;</span><span class="p">)</span>
+    
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">pltkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;fig&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">pltkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;ax&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>  
+    <span class="n">fill</span> <span class="o">=</span> <span class="n">pltkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;fill&#39;</span><span class="p">,</span> <span class="n">pvconfig</span><span class="o">.</span><span class="n">FILL_CONTOUR</span><span class="p">)</span>  
+    
+    <span class="n">xlim</span> <span class="o">=</span> <span class="n">pltkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;xlim&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="n">ylim</span> <span class="o">=</span> <span class="n">pltkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;ylim&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="n">zlim</span> <span class="o">=</span> <span class="n">pltkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;zlim&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    
+    <span class="c">#Private attributes</span>
+    <span class="n">_modifyax</span> <span class="o">=</span> <span class="n">pltkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;_modifyax&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+    <span class="n">contours</span> <span class="o">=</span> <span class="n">pltkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;contours&#39;</span><span class="p">,</span> <span class="n">pvconfig</span><span class="o">.</span><span class="n">NUM_CONTOURS</span><span class="p">)</span>
+    <span class="n">label</span> <span class="o">=</span> <span class="n">pltkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;label&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    
+    <span class="n">projection</span> <span class="o">=</span> <span class="bp">None</span>
+        
+    <span class="k">if</span> <span class="n">kind</span> <span class="ow">in</span> <span class="n">PLOTPARSER</span><span class="o">.</span><span class="n">plots_3d</span><span class="p">:</span>
+        <span class="n">projection</span> <span class="o">=</span> <span class="s">&#39;3d&#39;</span>
+
+        <span class="n">elev</span> <span class="o">=</span> <span class="n">pltkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;elev&#39;</span><span class="p">,</span> <span class="mi">35</span><span class="p">)</span>
+        <span class="n">azim</span> <span class="o">=</span> <span class="n">pltkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;azim&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">135</span><span class="p">)</span>        
+        
+        <span class="n">view</span> <span class="o">=</span> <span class="n">pltkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;view&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">view</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">view</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">elev</span><span class="p">,</span> <span class="n">azim</span> <span class="o">=</span> <span class="mi">35</span><span class="p">,</span> <span class="o">-</span><span class="mi">135</span>
+            <span class="k">elif</span> <span class="n">view</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">elev</span><span class="p">,</span> <span class="n">azim</span> <span class="o">=</span> <span class="mi">35</span><span class="p">,</span> <span class="o">-</span><span class="mi">45</span> 
+            <span class="k">elif</span> <span class="n">view</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">elev</span><span class="p">,</span> <span class="n">azim</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span> <span class="o">-</span><span class="mi">10</span>  <span class="c"># Side view</span>
+            <span class="k">elif</span> <span class="n">view</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+                <span class="n">elev</span><span class="p">,</span> <span class="n">azim</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span> <span class="o">-</span><span class="mi">170</span>
+            <span class="k">elif</span> <span class="n">view</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
+                <span class="n">elev</span><span class="p">,</span> <span class="n">azim</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span><span class="o">-</span><span class="mi">90</span>          
+            <span class="k">elif</span> <span class="n">view</span> <span class="o">==</span> <span class="mi">6</span><span class="p">:</span>
+                <span class="n">elev</span><span class="p">,</span> <span class="n">azim</span> <span class="o">=</span> <span class="mi">65</span><span class="p">,</span> <span class="o">-</span><span class="mi">90</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">PlotError</span><span class="p">(</span><span class="s">&#39;View must be between 1 and 6; otherwise set&#39;</span>
+                                <span class="s">&#39; &quot;elev&quot; and &quot;azim&quot; keywords.&#39;</span><span class="p">)</span>
+
+        <span class="c"># Orientation of zlabel (doesn&#39;t work...)</span>
+        <span class="n">_zlabel_rotation</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">if</span> <span class="n">azim</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">_zlabel_rotation</span> <span class="o">=</span> <span class="mf">90.0</span>
+
+        <span class="k">if</span> <span class="s">&#39;mesh&#39;</span> <span class="ow">in</span> <span class="n">pltkwargs</span><span class="p">:</span>
+            <span class="n">pltkwargs</span><span class="p">[</span><span class="s">&#39;c_mesh&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pltkwargs</span><span class="p">[</span><span class="s">&#39;r_mesh&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pltkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;mesh&#39;</span><span class="p">)</span>
+
+
+        <span class="c"># Defaults will be ignored if mesh or ciso in kwargs</span>
+        <span class="n">ciso_default</span> <span class="o">=</span> <span class="n">pvconfig</span><span class="o">.</span><span class="n">C_MESH</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">ciso_default</span><span class="p">:</span>
+            <span class="n">ciso_default</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+            
+        <span class="n">riso_default</span> <span class="o">=</span> <span class="n">pvconfig</span><span class="o">.</span><span class="n">R_MESH</span>  
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">riso_default</span><span class="p">:</span>
+            <span class="n">riso_default</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>       
+        
+        
+        <span class="n">c_mesh</span> <span class="o">=</span> <span class="n">pltkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;c_mesh&#39;</span><span class="p">,</span> <span class="n">ciso_default</span><span class="p">)</span>
+        <span class="n">r_mesh</span> <span class="o">=</span> <span class="n">pltkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;r_mesh&#39;</span><span class="p">,</span> <span class="n">riso_default</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">c_mesh</span> <span class="o">&gt;</span> <span class="n">ts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">or</span> <span class="n">c_mesh</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">PlotError</span><span class="p">(</span><span class="s">&#39;&quot;c_mesh/column mesh&quot; must be between 0 and </span><span class="si">%s</span><span class="s">, got &quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span>
+                            <span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">c_mesh</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">r_mesh</span> <span class="o">&gt;</span> <span class="n">ts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="n">r_mesh</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">PlotError</span><span class="p">(</span><span class="s">&#39;&quot;r_mesh/row mesh&quot; must be between 0 and </span><span class="si">%s</span><span class="s">, got &quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> 
+                            <span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">r_mesh</span><span class="p">))</span>
+        
+
+        <span class="k">if</span> <span class="n">c_mesh</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">cstride</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cstride</span> <span class="o">=</span> <span class="n">_ir</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">c_mesh</span><span class="p">)</span> <span class="p">)</span> 
+            
+        <span class="k">if</span> <span class="n">r_mesh</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">rstride</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rstride</span> <span class="o">=</span> <span class="n">_ir</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">r_mesh</span><span class="p">)</span> <span class="p">)</span>   
+    
+                        
+        <span class="n">pltkwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;cstride&#39;</span><span class="p">,</span> <span class="n">cstride</span><span class="p">)</span>
+        <span class="n">pltkwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;rstride&#39;</span><span class="p">,</span> <span class="n">rstride</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s">&#39;contour&#39;</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">PlotError</span><span class="p">(</span><span class="s">&#39;_gen2d3d invalid kind: &quot;</span><span class="si">%s</span><span class="s">&quot;.  &#39;</span>
+               <span class="s">&#39;Choose from </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">kind</span><span class="p">,</span> <span class="n">PLOTPARSER</span><span class="o">.</span><span class="n">plots_2d_3d</span><span class="p">))</span>
+
+    <span class="c"># Is this the best logic for 2d/3d fig?</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ax</span><span class="p">:</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="c">#        ax = f.gca(projection=projection)       </span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="n">projection</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">fig</span><span class="p">:</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">f</span>
+        
+    
+    
+    <span class="c"># PLT.CONTOUR() doesn&#39;t take &#39;color&#39;; rather, takes &#39;colors&#39; for now</span>
+    <span class="k">if</span> <span class="s">&#39;color&#39;</span> <span class="ow">in</span> <span class="n">pltkwargs</span><span class="p">:</span>       
+        <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s">&#39;contour&#39;</span> <span class="ow">or</span> <span class="n">kind</span> <span class="o">==</span> <span class="s">&#39;contour3d&#39;</span><span class="p">:</span>
+            <span class="n">pltkwargs</span><span class="p">[</span><span class="s">&#39;colors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pltkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;color&#39;</span><span class="p">)</span>
+        
+    <span class="c"># Convienence method to pass in string colors</span>
+    <span class="k">if</span> <span class="s">&#39;colormap&#39;</span> <span class="ow">in</span> <span class="n">pltkwargs</span><span class="p">:</span>
+        <span class="n">pltkwargs</span><span class="p">[</span><span class="s">&#39;cmap&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pltkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;colormap&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s">&#39;cmap&#39;</span> <span class="ow">in</span> <span class="n">pltkwargs</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pltkwargs</span><span class="p">[</span><span class="s">&#39;cmap&#39;</span><span class="p">],</span> <span class="nb">basestring</span><span class="p">):</span>
+            <span class="n">pltkwargs</span><span class="p">[</span><span class="s">&#39;cmap&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pu</span><span class="o">.</span><span class="n">cmget</span><span class="p">(</span><span class="n">pltkwargs</span><span class="p">[</span><span class="s">&#39;cmap&#39;</span><span class="p">])</span>
+    
+    <span class="c"># Contour Plots    </span>
+    <span class="c"># -------------</span>
+
+        <span class="c"># Broken background image</span>
+        <span class="c">### More here http://matplotlib.org/examples/pylab_examples/image_demo3.html ###</span>
+        <span class="c"># Refactored with xx, yy instead of df.columns/index UNTESTED</span>
+        <span class="c">#if background:</span>
+            <span class="c">#xmin, xmax, ymin, ymax = xx.min(), xx.max(), yy.min(), yy.max()</span>
+            
+            <span class="c">## Could try rescaling contour rather than image:</span>
+            <span class="c">##http://stackoverflow.com/questions/10850882/pyqt-matplotlib-plot-contour-data-on-top-of-picture-scaling-issue</span>
+            <span class="c">#if background==1:</span>
+                <span class="c">#im = ax.imshow(ts, interpolation=&#39;bilinear&#39;, origin=&#39;lower&#39;,</span>
+                            <span class="c">#cmap=cm.gray, extent=(xmin, xmax, ymin, ymax))             </span>
+    
+        <span class="c">#### This will take a custom image opened in PIL or it will take plt.imshow() returned from somewhere else</span>
+            <span class="c">#else:</span>
+                <span class="c">#try:</span>
+                    <span class="c">#im = ax.imshow(background) </span>
+                <span class="c">#### Perhaps image was not correctly opened    </span>
+                <span class="c">#except Exception:</span>
+                    <span class="c">#raise badvalue_error(background, &#39;integer 1,2 or a PIL-opened image&#39;)</span>
+
+
+    <span class="c"># Note this overwrites the &#39;contours&#39; variable from an int to array</span>
+    <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s">&#39;contour&#39;</span> <span class="ow">or</span> <span class="n">kind</span> <span class="o">==</span> <span class="s">&#39;contour3d&#39;</span><span class="p">:</span>
+
+        <span class="c"># Cornercase datetimeindex and offest from add projection hack</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">pltkwargs</span><span class="p">[</span><span class="s">&#39;offset&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dates</span><span class="o">.</span><span class="n">date2num</span><span class="p">(</span><span class="n">pltkwargs</span><span class="p">[</span><span class="s">&#39;offset&#39;</span><span class="p">])</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="k">if</span> <span class="n">fill</span><span class="p">:</span>                           <span class="c">#Values of DTI doesn&#39;t work</span>
+            <span class="n">mappable</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">contourf</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">yy</span><span class="p">,</span> <span class="n">ts</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">contours</span><span class="p">,</span> <span class="o">**</span><span class="n">pltkwargs</span><span class="p">)</span>    <span class="c">#linewidths is a pltkwargs arg</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mappable</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">contour</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">yy</span><span class="p">,</span> <span class="n">ts</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">contours</span><span class="p">,</span> <span class="o">**</span><span class="n">pltkwargs</span><span class="p">)</span>    
+
+
+        <span class="c">### Pick a few label styles to choose from.</span>
+        <span class="k">if</span> <span class="n">label</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">label</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">clabel</span><span class="p">(</span><span class="n">inline</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">label</span><span class="o">==</span><span class="mi">2</span><span class="p">:</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">clabel</span><span class="p">(</span><span class="n">levels</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">],</span> <span class="n">inline</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>   <span class="c">#label every second line      </span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">PlotError</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="s">&#39;integer of value 1 or 2&#39;</span><span class="p">)</span>
+
+ 
+    <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s">&#39;surf&#39;</span><span class="p">:</span> 
+        <span class="n">mappable</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">plot_surface</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">yy</span><span class="p">,</span> <span class="n">ts</span><span class="p">,</span> <span class="o">**</span><span class="n">pltkwargs</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">outline</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">pltkwargs</span><span class="p">[</span><span class="s">&#39;cmap&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pu</span><span class="o">.</span><span class="n">cmget</span><span class="p">(</span><span class="n">outline</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span> <span class="c">#Don&#39;t change; attribute error fails when outline=None</span>
+                <span class="n">pltkwargs</span><span class="p">[</span><span class="s">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">outline</span>     
+                <span class="n">pltkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;cmap&#39;</span><span class="p">)</span> 
+
+        <span class="n">custom_wireframe</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">xx</span><span class="p">,</span> <span class="n">yy</span><span class="p">,</span> <span class="n">ts</span><span class="p">,</span> <span class="o">**</span><span class="n">pltkwargs</span><span class="p">)</span>
+        <span class="c"># Wires are thrown out, since mappable is the surface, and only mappable returned</span>
+
+    <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s">&#39;wire&#39;</span><span class="p">:</span>
+        <span class="n">pltkwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;color&#39;</span><span class="p">,</span> <span class="s">&#39;black&#39;</span><span class="p">)</span>        
+        <span class="n">mappable</span> <span class="o">=</span> <span class="n">custom_wireframe</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">xx</span><span class="p">,</span> <span class="n">yy</span><span class="p">,</span> <span class="n">ts</span><span class="p">,</span> <span class="o">**</span><span class="n">pltkwargs</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s">&#39;waterfall&#39;</span><span class="p">:</span>
+        
+        <span class="c"># Parse outline color (if colormap, error!)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">pu</span><span class="o">.</span><span class="n">cmget</span><span class="p">(</span><span class="n">outline</span><span class="p">)</span> 
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">pltkwargs</span><span class="p">[</span><span class="s">&#39;edgecolors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">outline</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">PlotError</span><span class="p">(</span><span class="s">&#39;Waterfall &quot;outline&quot; must be a solid color, not colormap.&#39;</span><span class="p">)</span>
+        
+        <span class="n">pltkwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;closed&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="n">alpha</span> <span class="o">=</span> <span class="n">pltkwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;alpha&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+        <span class="c"># Need to handle cmap/colors a bit differently for PolyCollection API</span>
+        <span class="k">if</span> <span class="s">&#39;color&#39;</span> <span class="ow">in</span> <span class="n">pltkwargs</span><span class="p">:</span>
+            <span class="n">pltkwargs</span><span class="p">[</span><span class="s">&#39;facecolors&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">pltkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;color&#39;</span><span class="p">)</span>
+        <span class="n">cmap</span> <span class="o">=</span> <span class="n">pltkwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;cmap&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">alpha</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="c">#as opposed to 0</span>
+            <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.6</span> <span class="o">*</span> <span class="p">(</span><span class="mf">13.0</span><span class="o">/</span><span class="n">ts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">alpha</span> <span class="o">&gt;</span> <span class="mf">0.6</span><span class="p">:</span>
+                <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.6</span>        
+        
+        <span class="c">#Delete stride keywords (waterfall doesn&#39;t have strides: not a surface!)</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;cstride&#39;</span><span class="p">,</span> <span class="s">&#39;rstride&#39;</span><span class="p">]:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">del</span> <span class="n">pltkwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="k">pass</span>
+        
+        <span class="c"># Verts are index dotted with data</span>
+        <span class="n">verts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">ts</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>  
+            <span class="n">values</span> <span class="o">=</span> <span class="n">ts</span><span class="p">[</span><span class="n">col</span><span class="p">]</span>
+            <span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">values</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">values</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+            <span class="n">verts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">values</span><span class="p">)))</span>
+    
+        <span class="n">mappable</span> <span class="o">=</span> <span class="n">PolyCollection</span><span class="p">(</span><span class="n">verts</span><span class="p">,</span> <span class="o">**</span><span class="n">pltkwargs</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">cmap</span><span class="p">:</span>
+            <span class="n">mappable</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span> <span class="c">#If set array in __init__, autogens a cmap!</span>
+            <span class="n">mappable</span><span class="o">.</span><span class="n">set_cmap</span><span class="p">(</span><span class="n">pltkwargs</span><span class="p">[</span><span class="s">&#39;cmap&#39;</span><span class="p">])</span>
+
+        <span class="n">mappable</span><span class="o">.</span><span class="n">set_alpha</span><span class="p">(</span><span class="n">alpha</span><span class="p">)</span>      
+                    
+        <span class="c">#zdir is the direction used to plot; dont&#39; fully understand</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">add_collection3d</span><span class="p">(</span><span class="n">mappable</span><span class="p">,</span> <span class="n">zs</span><span class="o">=</span><span class="n">cols</span><span class="p">,</span> <span class="n">zdir</span><span class="o">=</span><span class="s">&#39;x&#39;</span> <span class="p">)</span>      
+
+        <span class="c"># custom limits/labels polygon plot (reverse x,y)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ylim</span><span class="p">:</span>
+            <span class="n">ylim</span> <span class="o">=</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">index</span><span class="p">),</span> <span class="nb">min</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>  <span class="c">#REVERSE AXIS FOR VIEWING PURPOSES</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">xlim</span><span class="p">:</span>
+            <span class="n">xlim</span> <span class="o">=</span> <span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">cols</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">cols</span><span class="p">))</span>    <span class="c">#x </span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">zlim</span><span class="p">:</span>
+            <span class="n">zlim</span> <span class="o">=</span> <span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">min</span><span class="p">()),</span> <span class="nb">max</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">max</span><span class="p">()))</span>  <span class="c">#How to get absolute min/max of ts values</span>
+            
+        <span class="c"># Reverse labels/DTI call for correct orientaion HACK HACK HACK</span>
+        <span class="n">xlabel</span><span class="p">,</span> <span class="n">ylabel</span> <span class="o">=</span> <span class="n">ylabel</span><span class="p">,</span> <span class="n">xlabel</span>    
+        <span class="n">_x_dti</span><span class="p">,</span> <span class="n">_y_dti</span> <span class="o">=</span> <span class="n">_y_dti</span><span class="p">,</span> <span class="n">_x_dti</span>
+        <span class="n">azim</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">azim</span>
+
+    <span class="c"># General Features</span>
+    <span class="c"># ----------------</span>
+    
+    <span class="c"># Some applications (like add_projection) shouldn&#39;t alther axes features</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">_modifyax</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">mappable</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">cbar</span><span class="p">:</span>
+        <span class="c"># Do I want colorbar outside of fig?  Wouldn&#39;t be better on axes?</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cb</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">mappable</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+            <span class="c"># Label colorbar on contour since no 3d-zlabel</span>
+            <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s">&#39;contour&#39;</span><span class="p">:</span>
+                <span class="n">cb</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="n">zlabel</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">PlotError</span><span class="p">(</span><span class="s">&quot;Colorbar failed; did you pass a colormap?&quot;</span><span class="p">)</span>
+               
+    <span class="k">if</span> <span class="n">grid</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">grid</span> <span class="o">==</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="n">grid</span><span class="p">)</span> <span class="c">#Let&#39;s any supported color in     </span>
+          
+
+    <span class="c"># Format datetime axis</span>
+    <span class="c"># -------------------</span>
+    <span class="k">if</span> <span class="n">_x_dti</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="n">mplticker</span><span class="o">.</span><span class="n">FuncFormatter</span><span class="p">(</span><span class="n">format_date</span><span class="p">))</span>
+            
+        <span class="c"># Uncomment for custom 3d timestamp orientation</span>
+ <span class="c">#       if projection:</span>
+ <span class="c">#           for t1 in ax.yaxis.get_ticklabels():</span>
+ <span class="c">#               t1.set_ha(&#39;right&#39;)</span>
+ <span class="c">#               t1.set_rotation(30)        </span>
+ <span class="c">#           ax.yaxis._axinfo[&#39;label&#39;][&#39;space_factor&#39;] = _TIMESTAMPPADDING</span>
+
+    <span class="k">if</span> <span class="n">_y_dti</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="n">mplticker</span><span class="o">.</span><span class="n">FuncFormatter</span><span class="p">(</span><span class="n">format_date</span><span class="p">))</span>
+
+        <span class="c"># Uncomment for custom 3d timestamp orientation</span>
+  <span class="c">#      if projection:</span>
+  <span class="c">#          for t1 in ax.yaxis.get_ticklabels():</span>
+  <span class="c">#              t1.set_ha(&#39;right&#39;)</span>
+  <span class="c">#              t1.set_rotation(30)        </span>
+  <span class="c">#          ax.yaxis._axinfo[&#39;label&#39;][&#39;space_factor&#39;] = _TIMESTAMPPADDING</span>
+
+    <span class="k">if</span> <span class="n">xlim</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim3d</span><span class="p">(</span><span class="n">xlim</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">ylim</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim3d</span><span class="p">(</span><span class="n">ylim</span><span class="p">)</span>        
+     
+    <span class="k">if</span> <span class="n">zlim</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_zlim3d</span><span class="p">(</span><span class="n">zlim</span><span class="p">)</span>    
+                
+    <span class="c"># Set elevation/azimuth for 3d plots</span>
+    <span class="k">if</span> <span class="n">projection</span><span class="p">:</span>        
+        <span class="n">ax</span><span class="o">.</span><span class="n">view_init</span><span class="p">(</span><span class="n">elev</span><span class="p">,</span> <span class="n">azim</span><span class="p">)</span>                 
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_zlabel</span><span class="p">(</span><span class="n">zlabel</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">labelsize</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span> <span class="n">_zlabel_rotation</span><span class="p">)</span>  
+    
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">xlabel</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">labelsize</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">ylabel</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">labelsize</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">titlesize</span><span class="p">)</span> 
+        
+    <span class="c"># Return Ax, contours/surface/polygons etc...</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">mappable</span><span class="p">)</span>  
+
+
+<span class="c"># Support images or any other 2d plot besides contours?</span>
+<div class="viewcode-block" id="add_projection"><a class="viewcode-back" href="../../../API/skspec.plotting.html#skspec.plotting.advanced_plots.add_projection">[docs]</a><span class="k">def</span> <span class="nf">add_projection</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">plane</span><span class="o">=</span><span class="s">&#39;xz&#39;</span><span class="p">,</span> <span class="n">flip</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">contourkwds</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Add a contour plot/projection onto the xy, xz, or yz plane of a 3d</span>
+<span class="sd">    plot.</span>
+<span class="sd">    </span>
+<span class="sd">    args: 2D Arrays or Contour Set</span>
+<span class="sd">        xx, yy, zz : 2D mesh arrays, or contour set.</span>
+<span class="sd">    </span>
+<span class="sd">        </span>
+<span class="sd">    plane: str (&#39;xz&#39;)</span>
+<span class="sd">        &#39;xz&#39;, &#39;yz&#39;, &#39;xy&#39;, choose the plane on which to project the contours.</span>
+<span class="sd">        </span>
+<span class="sd">    flip : bool (False)</span>
+<span class="sd">        The 3d plot is a square of 6 sides.  Flip will change the projeciton</span>
+<span class="sd">        from the left wall to right wall, or from floor to ceiling in the </span>
+<span class="sd">        same plane.</span>
+<span class="sd">        </span>
+<span class="sd">    fill : bool (False)</span>
+<span class="sd">        Fill the contours</span>
+
+<span class="sd">    **contourkwds</span>
+<span class="sd">        Keywords passed directly to ax.contour.  </span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple: Axes</span>
+<span class="sd">        Returns axes object.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+                
+    <span class="n">plane</span> <span class="o">=</span> <span class="n">plane</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">plane</span> <span class="o">==</span> <span class="s">&#39;zx&#39;</span><span class="p">:</span> <span class="n">plane</span> <span class="o">=</span> <span class="s">&#39;xz&#39;</span>
+    <span class="k">if</span> <span class="n">plane</span> <span class="o">==</span> <span class="s">&#39;zy&#39;</span><span class="p">:</span> <span class="n">plane</span> <span class="o">=</span> <span class="s">&#39;yz&#39;</span>
+    <span class="k">if</span> <span class="n">plane</span> <span class="o">==</span> <span class="s">&#39;yx&#39;</span><span class="p">:</span> <span class="n">plane</span> <span class="o">=</span> <span class="s">&#39;xy&#39;</span>
+    
+    <span class="k">if</span> <span class="n">plane</span> <span class="o">==</span> <span class="s">&#39;xy&#39;</span><span class="p">:</span>
+        <span class="n">offset</span><span class="o">=</span><span class="n">ts</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">flip</span><span class="p">:</span>
+            <span class="n">offset</span><span class="o">=</span><span class="n">ts</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="n">zdir</span> <span class="o">=</span> <span class="s">&#39;z&#39;</span>
+      
+    <span class="k">elif</span> <span class="n">plane</span> <span class="o">==</span> <span class="s">&#39;yz&#39;</span><span class="p">:</span>
+        <span class="n">offset</span><span class="o">=</span><span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">flip</span><span class="p">:</span>
+            <span class="n">offset</span><span class="o">=</span><span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="n">zdir</span> <span class="o">=</span> <span class="s">&#39;x&#39;</span>        
+
+    <span class="k">elif</span> <span class="n">plane</span> <span class="o">==</span> <span class="s">&#39;xz&#39;</span><span class="p">:</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">flip</span><span class="p">:</span>
+            <span class="n">offset</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+        <span class="n">zdir</span> <span class="o">=</span> <span class="s">&#39;y&#39;</span>           
+    
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">PlotError</span><span class="p">(</span><span class="s">&#39;Invalid plane &quot;</span><span class="si">%s</span><span class="s">&quot;: must be &quot;xy, xz or yz&quot;.&#39;</span> <span class="o">%</span> <span class="n">plane</span><span class="p">)</span>
+    
+          
+    <span class="n">ax</span><span class="p">,</span> <span class="n">cset</span> <span class="o">=</span> <span class="n">_gen2d3d</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> 
+                        <span class="n">zdir</span><span class="o">=</span><span class="n">zdir</span><span class="p">,</span> 
+                        <span class="n">kind</span><span class="o">=</span><span class="s">&#39;contour&#39;</span><span class="p">,</span> 
+                        <span class="n">offset</span><span class="o">=</span><span class="n">offset</span><span class="p">,</span> 
+                        <span class="n">fill</span><span class="o">=</span><span class="n">fill</span><span class="p">,</span>
+                        <span class="n">_modifyax</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                        <span class="o">**</span><span class="n">contourkwds</span><span class="p">)</span>  
+   
+    <span class="c"># Return axes only as this is public</span>
+    <span class="k">return</span> <span class="n">ax</span> 
+   
+   </div>
+<div class="viewcode-block" id="spec3d"><a class="viewcode-back" href="../../../API/skspec.plotting.html#skspec.plotting.advanced_plots.spec3d">[docs]</a><span class="k">def</span> <span class="nf">spec3d</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">samples</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">contourkwds</span><span class="o">=</span><span class="p">{},</span> <span class="o">**</span><span class="n">pltkwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Wireframe plot with no connected clines.  By default, adds an xz </span>
+<span class="sd">    projection. </span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    projection : color/colormap</span>
+<span class="sd">        Valid colormap or solid color of contour projection.</span>
+<span class="sd">        </span>
+<span class="sd">    samples : int</span>
+<span class="sd">        Number of samples to take from dataset.  Defaults to 5.  Must</span>
+<span class="sd">        be within 0 and the number of columns in Spectra.</span>
+<span class="sd">        </span>
+<span class="sd">    contourkwds: {}</span>
+<span class="sd">        Dictionary that holds arguments specific to the projection.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple: (Axes, SurfaceFunction)</span>
+<span class="sd">        Returns axes object and the surface function (e.g. contours for</span>
+<span class="sd">        contour plot.  Surface for surface plot.)</span>
+<span class="sd">    </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Mostly a shortcut for a very useful 3d look at data. Thus, did not add</span>
+<span class="sd">    much customizability as this plot can be assembled from _gen2d3d2d and</span>
+<span class="sd">    add_projeciton.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+    <span class="k">for</span> <span class="n">invalid</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;c_mesh&#39;</span><span class="p">,</span> <span class="s">&#39;r_mesh&#39;</span><span class="p">,</span> <span class="s">&#39;cstride&#39;</span><span class="p">,</span> <span class="s">&#39;rstride&#39;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">invalid</span> <span class="ow">in</span> <span class="n">pltkwargs</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">PlotError</span><span class="p">(</span><span class="s">&#39;Unsupported Keyword </span><span class="si">%s</span><span class="s">.&#39;</span>
+                            <span class="s">&#39;Please use the samples argument&#39;</span> <span class="o">%</span> <span class="n">invalid</span><span class="p">)</span>
+    <span class="c">#3d Plot</span>
+    <span class="n">pltkwargs</span><span class="p">[</span><span class="s">&#39;kind&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;wire&#39;</span>
+    <span class="n">pltkwargs</span><span class="p">[</span><span class="s">&#39;r_mesh&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">pltkwargs</span><span class="p">[</span><span class="s">&#39;c_mesh&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">samples</span>
+    <span class="n">ax</span><span class="p">,</span> <span class="n">mappable</span> <span class="o">=</span> <span class="n">_gen2d3d</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="o">**</span><span class="n">pltkwargs</span><span class="p">)</span>
+    
+    <span class="c"># Projection</span>
+    <span class="k">if</span> <span class="s">&#39;alpha&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">contourkwds</span><span class="p">:</span>
+        <span class="n">contourkwds</span><span class="p">[</span><span class="s">&#39;alpha&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.3</span>
+        
+    <span class="k">if</span> <span class="n">projection</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">projection</span> <span class="o">==</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="n">projection</span> <span class="o">=</span> <span class="n">pvconfig</span><span class="o">.</span><span class="n">PROJECTION_CMAP</span>
+
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">add_projection</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="n">fill</span><span class="p">,</span> <span class="o">**</span><span class="n">contourkwds</span><span class="p">)</span>
+   
+    <span class="k">return</span> <span class="n">ax</span><span class="p">,</span> <span class="n">mappable</span>
+    
+   
+<span class="c"># SET REGISTER HERE!  HAS TO BE HERE BECAUSE GEN2D USES IT, SO GET CIRCULAR IMPORT ISSUES</span>
+<span class="c"># IF PUT THIS IN A SEPARATE MODULE.  STRICTLY SPEAKING, GEND2D IS MANY PLOTS SO IT HAS</span>
+<span class="c"># TO INSPECT ITS OWN KIND ARGUMENT.  THIS IS ONE HEADACHE OF SUCH A DESIGN PATTERN!</span></div>
+<span class="n">PLOTPARSER</span> <span class="o">=</span> <span class="n">PlotRegister</span><span class="p">()</span>
+
+<span class="c">#Basic plots</span>
+<span class="n">PLOTPARSER</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;spec&#39;</span><span class="p">,</span> <span class="n">_genplot</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&#39;Spec vs. Variation&#39;</span> <span class="p">)</span>
+<span class="n">PLOTPARSER</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;area&#39;</span><span class="p">,</span> <span class="n">areaplot</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&#39;Area vs. Variation&#39;</span> <span class="p">)</span>
+<span class="n">PLOTPARSER</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;range_timeplot&#39;</span><span class="p">,</span> <span class="n">range_timeplot</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&#39;Slice Ranges vs. Variation&#39;</span> <span class="p">)</span>
+
+<span class="c">#Advanced plots</span>
+<span class="n">PLOTPARSER</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;contour&#39;</span><span class="p">,</span> <span class="n">_gen2d3d</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&#39;Contour Plot&#39;</span> <span class="p">)</span>
+<span class="n">PLOTPARSER</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;contour3d&#39;</span><span class="p">,</span><span class="n">_gen2d3d</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="s">&#39;3D Contour Plot&#39;</span><span class="p">)</span>
+<span class="n">PLOTPARSER</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;wire&#39;</span><span class="p">,</span> <span class="n">_gen2d3d</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="s">&#39;3D Wireframe&#39;</span><span class="p">)</span>
+<span class="n">PLOTPARSER</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;surf&#39;</span><span class="p">,</span> <span class="n">_gen2d3d</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="s">&#39;3D Surface&#39;</span> <span class="p">)</span>
+<span class="n">PLOTPARSER</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;waterfall&#39;</span><span class="p">,</span> <span class="n">_gen2d3d</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="s">&#39;3D Waterfall&#39;</span> <span class="p">)</span>
+<span class="n">PLOTPARSER</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;spec3d&#39;</span><span class="p">,</span> <span class="n">spec3d</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="s">&#39;3D Wire + Projection&#39;</span> <span class="p">)</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+
+    <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">rc</span>
+    <span class="kn">from</span> <span class="nn">skspec.data</span> <span class="kn">import</span> <span class="n">aunps_glass</span><span class="p">,</span> <span class="n">aunps_water</span><span class="p">,</span> <span class="n">solvent_evap</span>
+    
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">aunps_glass</span><span class="p">()</span>
+<span class="c">#    ts = ts.nearby[400:700]</span>
+<span class="c">#    ts = ts.nearby[1520:1320]</span>
+<span class="c">#    ts=ts.iloc[450:500, 50:100]</span>
+<span class="c">#    xx,yy = ts.meshgrid()</span>
+    
+    
+    <span class="k">print</span> <span class="n">PLOTPARSER</span>
+    
+    <span class="c">##---- First subplot</span>
+    <span class="c">#ax2 = fig.add_subplot(1, 2, 1, projection=&#39;3d&#39;)</span>
+    <span class="c">#_gencorr2d(xx, yy, ts, </span>
+               <span class="c">#fill=True,</span>
+               <span class="c">#title=&#39;My baller plot&#39;,</span>
+               <span class="c">#xlabel=ts.full_varunit,</span>
+               <span class="c">#ylabel=ts.full_specunit,</span>
+               <span class="c">#contours=20,</span>
+               <span class="c">#cbar = True,</span>
+               <span class="c">#background=False)</span>
+               <span class="c"># Is this the best logic for 2d/3d fig?</span>
+               
+     
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">100</span><span class="p">,</span> <span class="p">:]</span><span class="c">#.as_varunit(&#39;m&#39;)</span>
+
+    <span class="n">ts</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s">&#39;spec3d&#39;</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>    
+        
+        
+        
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+                <span class="n">kind</span><span class="o">=</span><span class="s">&#39;spec3d&#39;</span><span class="p">,</span>
+                <span class="n">cmap</span> <span class="o">=</span> <span class="s">&#39;hot&#39;</span><span class="p">,</span>
+                <span class="n">outline</span><span class="o">=</span><span class="s">&#39;cool&#39;</span><span class="p">,</span>
+    
+<span class="c">#                outline=&#39;je&#39;,</span>
+<span class="c">#                outline = &#39;r&#39;,</span>
+                
+<span class="c">#                cmap=&#39;jet&#39;,</span>
+                <span class="n">cbar</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+<span class="c">#                c_mesh=5,</span>
+<span class="c">#                r_mesh=5,</span>
+<span class="c">#                edgecolors=&#39;r&#39;,</span>
+    
+<span class="c">#edgecolors=&#39;jet&#39;,</span>
+                <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                <span class="n">alpha</span><span class="o">=.</span><span class="mi">5</span><span class="p">,</span>
+                <span class="n">contours</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                <span class="n">xlabel</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">full_specunit</span><span class="p">,</span>
+                <span class="n">ylabel</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">full_varunit</span><span class="p">,</span>
+                <span class="n">zlabel</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">full_iunit</span><span class="p">)</span> 
+    
+    <span class="c">## Done automatically by spec.plot</span>
+<span class="c">#    if ts.index[0] &gt; ts.index[-1]:</span>
+<span class="c">#       ax2.set_xlim(ax2.get_xlim()[::-1]) </span>
+    
+
+
+<span class="c">#    add_projection(ts, ax=ax2, cmap=&#39;cool&#39;)</span>
+
+    <span class="n">rc</span><span class="p">(</span><span class="s">&#39;text&#39;</span><span class="p">,</span> <span class="n">usetex</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>    
+    
+    <span class="k">print</span> <span class="n">ts</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/installation_dependencies.html">Dependencies/Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Tutorial/plotting.html">Plotting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../API/skspec.html">API</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../../../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+            <p class="searchtip" style="font-size: 90%">
+                Enter search terms or a module, class or function name.
+            </p>
+          </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="../../../py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="../../../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, Adam Hughes, ReevesLab Dept. Physics, George Washington University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3b2.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>
