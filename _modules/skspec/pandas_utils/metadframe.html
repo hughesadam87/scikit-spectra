@@ -23,17 +23,17 @@
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="author" title="About these documents" href="../../../about.html" />
     <link rel="top" title="scikit-spectra 0.3.1-2 documentation" href="../../../index.html" />
     <link rel="up" title="Module code" href="../../index.html" /> 
   </head>
-  <body role="document">
-    <div class="header-wrapper" role="banner">
+  <body>
+    <div class="header-wrapper">
       <div class="header">
         <div class="headertitle"><a
           href="../../../index.html">scikit-spectra 0.3.1-2 documentation</a></div>
-        <div class="rel" role="navigation" aria-label="related navigation">
+        <div class="rel">
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |
           <a href="../../../genindex.html" title="General Index"
@@ -42,6 +42,8 @@
        </div>
     </div>
 
+
+<a href="https://github.com/hugadams/scikit-spectra"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"></a>
 
 <div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
 <a href="../../../index.html"><img src="../../../_static/new_logo.png" border="100" alt="sampledoc"/></a>
@@ -54,7 +56,7 @@
             
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body" role="main">
+          <div class="body">
             
   <h1>Source code for skspec.pandas_utils.metadframe</h1><div class="highlight"><pre>
 <span class="sd">&#39;&#39;&#39; Provides composition class, MetaPandasObject, which is an ordinary python object that stores a Dataframe and </span>
@@ -328,28 +330,28 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transfer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
 </div>
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="MetaPandasObject.data"><a class="viewcode-back" href="../../../API/skspec.pandas_utils.html#skspec.pandas_utils.metadframe.MetaPandasObject.data">[docs]</a>    <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Accesses self._frame.  RETURNS COPY SO USER DOESNT OVERWRITE IN PLACE&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deep</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>    
-
+</div>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">index</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">index</span>
     
     <span class="c">#To avoid accidentally setting index ie ts.index()</span>
     <span class="nd">@index.setter</span>
-    <span class="k">def</span> <span class="nf">index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+<div class="viewcode-block" id="MetaPandasObject.index"><a class="viewcode-back" href="../../../API/skspec.pandas_utils.html#skspec.pandas_utils.metadframe.MetaPandasObject.index">[docs]</a>    <span class="k">def</span> <span class="nf">index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">index</span>
         
 
-    <span class="c">## Fancy indexing</span>
+    <span class="c">## Fancy indexing</span></div>
     <span class="n">_ix</span><span class="o">=</span><span class="bp">None</span>     
     <span class="n">_iloc</span><span class="o">=</span><span class="bp">None</span>
     <span class="n">_loc</span><span class="o">=</span><span class="bp">None</span>
 
         
     <span class="nd">@property</span>	  	
-    <span class="k">def</span> <span class="nf">ix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>      	
+<div class="viewcode-block" id="MetaPandasObject.ix"><a class="viewcode-back" href="../../../API/skspec.pandas_utils.html#skspec.pandas_utils.metadframe.MetaPandasObject.ix">[docs]</a>    <span class="k">def</span> <span class="nf">ix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>      	
         <span class="sd">&#39;&#39;&#39; Pandas Indexing.  Note, this has been modified to ensure that series returns (eg ix[3])</span>
 <span class="sd">        still maintain attributes.  To remove this behavior, replace the following:</span>
 <span class="sd">        </span>
@@ -364,9 +366,9 @@
             <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">TE</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_ix</span><span class="o">=</span><span class="n">_IXIndexer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;ix&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ix</span>   
-
+</div>
     <span class="nd">@property</span>	  	
-    <span class="k">def</span> <span class="nf">iloc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>      	
+<div class="viewcode-block" id="MetaPandasObject.iloc"><a class="viewcode-back" href="../../../API/skspec.pandas_utils.html#skspec.pandas_utils.metadframe.MetaPandasObject.iloc">[docs]</a>    <span class="k">def</span> <span class="nf">iloc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>      	
         <span class="sd">&quot;&quot;&quot; See pandas.Index.iloc; preserves metadata&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iloc</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
@@ -376,9 +378,9 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_iloc</span><span class="o">=</span><span class="n">_iLocIndexer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;iloc&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iloc</span>   
     
-
+</div>
     <span class="nd">@property</span>	  	
-    <span class="k">def</span> <span class="nf">loc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>      	
+<div class="viewcode-block" id="MetaPandasObject.loc"><a class="viewcode-back" href="../../../API/skspec.pandas_utils.html#skspec.pandas_utils.metadframe.MetaPandasObject.loc">[docs]</a>    <span class="k">def</span> <span class="nf">loc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>      	
         <span class="sd">&quot;&quot;&quot;See pandas.Index.loc; preserves metadata&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loc</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
@@ -391,7 +393,7 @@
             
 
 
-<span class="c">#@logclass(public_lvl=&#39;debug&#39;, log_name=__name__, skip=[&#39;_transfer&#39;])</span></div>
+<span class="c">#@logclass(public_lvl=&#39;debug&#39;, log_name=__name__, skip=[&#39;_transfer&#39;])</span></div></div>
 <div class="viewcode-block" id="MetaDataFrame"><a class="viewcode-back" href="../../../API/skspec.pandas_utils.html#skspec.pandas_utils.metadframe.MetaDataFrame">[docs]</a><span class="k">class</span> <span class="nc">MetaDataFrame</span><span class="p">(</span><span class="n">MetaPandasObject</span><span class="p">):</span>
 
     <span class="c"># Repeated for clarity</span>
@@ -402,11 +404,11 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">columns</span>
 
     <span class="nd">@columns.setter</span>
-    <span class="k">def</span> <span class="nf">columns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">columns</span><span class="p">):</span>
+<div class="viewcode-block" id="MetaDataFrame.columns"><a class="viewcode-back" href="../../../API/skspec.pandas_utils.html#skspec.pandas_utils.metadframe.MetaDataFrame.columns">[docs]</a>    <span class="k">def</span> <span class="nf">columns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">columns</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">columns</span>
 
         
-<span class="c">#@logclass(public_lvl=&#39;debug&#39;, log_name=__name__, skip=[&#39;_transfer&#39;])</span></div>
+<span class="c">#@logclass(public_lvl=&#39;debug&#39;, log_name=__name__, skip=[&#39;_transfer&#39;])</span></div></div>
 <div class="viewcode-block" id="MetaSeries"><a class="viewcode-back" href="../../../API/skspec.pandas_utils.html#skspec.pandas_utils.metadframe.MetaSeries">[docs]</a><span class="k">class</span> <span class="nc">MetaSeries</span><span class="p">(</span><span class="n">MetaPandasObject</span><span class="p">):</span>
     
     <span class="n">cousin</span> <span class="o">=</span> <span class="n">Series</span>
@@ -502,23 +504,23 @@
         <div class="sidebar">
           <h3>Table Of Contents</h3>
           <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../API/skspec.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../API/APIMAIN.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../support.html">Support</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorials.html">Tutorials</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../about.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../about.html">History and Background</a></li>
 </ul>
 
-          <div role="search">
-            <h3 style="margin-top: 1.5em;">Search</h3>
-            <form class="search" action="../../../search.html" method="get">
-                <input type="text" name="q" />
-                <input type="submit" value="Go" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-            </form>
-            <p class="searchtip" style="font-size: 90%">
-                Enter search terms or a module, class or function name.
-            </p>
-          </div>
+          <h3 style="margin-top: 1.5em;">Search</h3>
+          <form class="search" action="../../../search.html" method="get">
+            <input type="text" name="q" />
+            <input type="submit" value="Go" />
+            <input type="hidden" name="check_keywords" value="yes" />
+            <input type="hidden" name="area" value="default" />
+          </form>
+          <p class="searchtip" style="font-size: 90%">
+            Enter search terms or a module, class or function name.
+          </p>
         </div>
         <div class="clearer"></div>
       </div>
@@ -527,21 +529,17 @@
     <div class="footer-wrapper">
       <div class="footer">
         <div class="left">
-          <div role="navigation" aria-label="related navigaton">
-            <a href="../../../py-modindex.html" title="Python Module Index"
-              >modules</a> |
-            <a href="../../../genindex.html" title="General Index"
-              >index</a>
-          </div>
-          <div role="note" aria-label="source link">
-          </div>
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../../../genindex.html" title="General Index"
+             >index</a>
         </div>
 
         <div class="right">
           
-    <div class="footer" role="contentinfo">
+    <div class="footer">
         &copy; Copyright 2014, Adam Hughes, ReevesLab Dept. Physics, George Washington University.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3b2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
         </div>
         <div class="clearer"></div>

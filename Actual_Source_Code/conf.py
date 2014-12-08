@@ -36,9 +36,10 @@ extensions = ['sphinx.ext.autodoc',
  'sphinx.ext.pngmath', 
  'sphinx.ext.mathjax', 
  'sphinx.ext.ifconfig',
- 'sphinx.ext.viewcode']
+ 'sphinx.ext.viewcode',
+]
 
-custom_extensions=['ipython_console_highlighting']
+custom_extensions=['ipython_console_highlighting', 'rstvideo']
 
 extensions.extend(custom_extensions)
 

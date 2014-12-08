@@ -23,19 +23,19 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="author" title="About these documents" href="../about.html" />
     <link rel="top" title="scikit-spectra 0.3.1-2 documentation" href="../index.html" />
-    <link rel="up" title="API" href="skspec.html" />
+    <link rel="up" title="API" href="APIMAIN.html" />
     <link rel="next" title="correlation Package" href="skspec.correlation.html" />
     <link rel="prev" title="chaco_interface Package" href="skspec.chaco_interface.html" /> 
   </head>
-  <body role="document">
-    <div class="header-wrapper" role="banner">
+  <body>
+    <div class="header-wrapper">
       <div class="header">
         <div class="headertitle"><a
           href="../index.html">scikit-spectra 0.3.1-2 documentation</a></div>
-        <div class="rel" role="navigation" aria-label="related navigation">
+        <div class="rel">
           <a href="skspec.chaco_interface.html" title="chaco_interface Package"
              accesskey="P">previous</a> |
           <a href="skspec.correlation.html" title="correlation Package"
@@ -49,6 +49,8 @@
     </div>
 
 
+<a href="https://github.com/hugadams/scikit-spectra"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"></a>
+
 <div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
 <a href="../index.html"><img src="../_static/new_logo.png" border="100" alt="sampledoc"/></a>
 </div>
@@ -60,16 +62,16 @@
             
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body" role="main">
+          <div class="body">
             
   <div class="section" id="core-package">
 <h1>core Package<a class="headerlink" href="#core-package" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="module-skspec.core.abcindex">
-<span id="abcindex-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">abcindex</span></code> Module<a class="headerlink" href="#module-skspec.core.abcindex" title="Permalink to this headline">¶</a></h2>
+<span id="abcindex-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">abcindex</span></tt> Module<a class="headerlink" href="#module-skspec.core.abcindex" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="skspec.core.abcindex.ConversionFloat64Index">
-<em class="property">class </em><code class="descclassname">skspec.core.abcindex.</code><code class="descname">ConversionFloat64Index</code><a class="reference internal" href="../_modules/skspec/core/abcindex.html#ConversionFloat64Index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.abcindex.ConversionFloat64Index" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#skspec.core.abcindex.ConversionIndex" title="skspec.core.abcindex.ConversionIndex"><code class="xref py py-class docutils literal"><span class="pre">skspec.core.abcindex.ConversionIndex</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">pandas.core.index.Float64Index</span></code></p>
+<em class="property">class </em><tt class="descclassname">skspec.core.abcindex.</tt><tt class="descname">ConversionFloat64Index</tt><a class="reference internal" href="../_modules/skspec/core/abcindex.html#ConversionFloat64Index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.abcindex.ConversionFloat64Index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#skspec.core.abcindex.ConversionIndex" title="skspec.core.abcindex.ConversionIndex"><tt class="xref py py-class docutils literal"><span class="pre">skspec.core.abcindex.ConversionIndex</span></tt></a>, <tt class="xref py py-class docutils literal"><span class="pre">pandas.core.index.Float64Index</span></tt></p>
 <p>Float64 conversion index.  Main difference is that Float64Index
 has several properties like &#8220;is_all_dates&#8221; and &#8220;is_unique&#8221; that are 
 critical for slicing and other Dataframe operations.  Therefore, we 
@@ -83,8 +85,8 @@ they should not overwrite anything define don conversion index.</p>
 
 <dl class="class">
 <dt id="skspec.core.abcindex.ConversionIndex">
-<em class="property">class </em><code class="descclassname">skspec.core.abcindex.</code><code class="descname">ConversionIndex</code><a class="reference internal" href="../_modules/skspec/core/abcindex.html#ConversionIndex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.abcindex.ConversionIndex" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">pandas.core.index.Index</span></code></p>
+<em class="property">class </em><tt class="descclassname">skspec.core.abcindex.</tt><tt class="descname">ConversionIndex</tt><a class="reference internal" href="../_modules/skspec/core/abcindex.html#ConversionIndex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.abcindex.ConversionIndex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">pandas.core.index.Index</span></tt></p>
 <dl class="docutils">
 <dt>Base class for skspec.  To overwrite, requires:</dt>
 <dd><ul class="first last simple">
@@ -101,12 +103,12 @@ from float64index, found that passing an Int64Index to SpecIndex() resulted
 in integer indicies.</p>
 <dl class="attribute">
 <dt id="skspec.core.abcindex.ConversionIndex.addnullunit">
-<code class="descname">addnullunit</code><em class="property"> = True</em><a class="headerlink" href="#skspec.core.abcindex.ConversionIndex.addnullunit" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">addnullunit</tt><em class="property"> = True</em><a class="headerlink" href="#skspec.core.abcindex.ConversionIndex.addnullunit" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.abcindex.ConversionIndex.convert">
-<code class="descname">convert</code><span class="sig-paren">(</span><em>outunit</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/abcindex.html#ConversionIndex.convert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.abcindex.ConversionIndex.convert" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">convert</tt><big>(</big><em>outunit</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/abcindex.html#ConversionIndex.convert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.abcindex.ConversionIndex.convert" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert spectral values based on string outunit.  First converts
 the current unit to the canonical unit (eg, nanometers goes to meters)
 then to the outunit (eg, meters to eV).  This is done through the unit
@@ -116,17 +118,17 @@ spectral units, canonical refers to meters.</p>
 
 <dl class="attribute">
 <dt id="skspec.core.abcindex.ConversionIndex.unit">
-<code class="descname">unit</code><a class="headerlink" href="#skspec.core.abcindex.ConversionIndex.unit" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">unit</tt><a class="reference internal" href="../_modules/skspec/core/abcindex.html#ConversionIndex.unit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.abcindex.ConversionIndex.unit" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="skspec.core.abcindex.ConversionIndex.unitdict">
-<code class="descname">unitdict</code><em class="property"> = None</em><a class="headerlink" href="#skspec.core.abcindex.ConversionIndex.unitdict" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">unitdict</tt><em class="property"> = None</em><a class="headerlink" href="#skspec.core.abcindex.ConversionIndex.unitdict" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="skspec.core.abcindex.ConversionIndex.unitshortdict">
-<code class="descname">unitshortdict</code><a class="headerlink" href="#skspec.core.abcindex.ConversionIndex.unitshortdict" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">unitshortdict</tt><a class="reference internal" href="../_modules/skspec/core/abcindex.html#ConversionIndex.unitshortdict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.abcindex.ConversionIndex.unitshortdict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return key:shortname; used by TimeSpectra to list output units.</p>
 </dd></dl>
 
@@ -134,28 +136,28 @@ spectral units, canonical refers to meters.</p>
 
 <dl class="class">
 <dt id="skspec.core.abcindex.CustomIndex">
-<em class="property">class </em><code class="descclassname">skspec.core.abcindex.</code><code class="descname">CustomIndex</code><a class="reference internal" href="../_modules/skspec/core/abcindex.html#CustomIndex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.abcindex.CustomIndex" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">pandas.core.index.Float64Index</span></code></p>
+<em class="property">class </em><tt class="descclassname">skspec.core.abcindex.</tt><tt class="descname">CustomIndex</tt><a class="reference internal" href="../_modules/skspec/core/abcindex.html#CustomIndex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.abcindex.CustomIndex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">pandas.core.index.Float64Index</span></tt></p>
 <p>Custom index used in skspec to interface to Unit.</p>
 <dl class="method">
 <dt id="skspec.core.abcindex.CustomIndex.convert">
-<code class="descname">convert</code><span class="sig-paren">(</span><em>outunit</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/abcindex.html#CustomIndex.convert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.abcindex.CustomIndex.convert" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">convert</tt><big>(</big><em>outunit</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/abcindex.html#CustomIndex.convert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.abcindex.CustomIndex.convert" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="skspec.core.abcindex.CustomIndex.unit">
-<code class="descname">unit</code><a class="headerlink" href="#skspec.core.abcindex.CustomIndex.unit" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">unit</tt><a class="reference internal" href="../_modules/skspec/core/abcindex.html#CustomIndex.unit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.abcindex.CustomIndex.unit" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 </div>
 <div class="section" id="module-skspec.core.abcspectra">
-<span id="abcspectra-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">abcspectra</span></code> Module<a class="headerlink" href="#module-skspec.core.abcspectra" title="Permalink to this headline">¶</a></h2>
+<span id="abcspectra-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">abcspectra</span></tt> Module<a class="headerlink" href="#module-skspec.core.abcspectra" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="skspec.core.abcspectra.ABCSpectra">
-<em class="property">class </em><code class="descclassname">skspec.core.abcspectra.</code><code class="descname">ABCSpectra</code><a class="reference internal" href="../_modules/skspec/core/abcspectra.html#ABCSpectra"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.abcspectra.ABCSpectra" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<em class="property">class </em><tt class="descclassname">skspec.core.abcspectra.</tt><tt class="descname">ABCSpectra</tt><a class="reference internal" href="../_modules/skspec/core/abcspectra.html#ABCSpectra"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.abcspectra.ABCSpectra" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/functions.html#object" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></a></p>
 <p>Generic methods shared by all skspec spectra objects.  INCLUDING
 SPECTRUM. 
 For example,
@@ -164,23 +166,23 @@ is to separate out methods that are intended to be customized, but might
 be buried on the already heavy Spectra object.</p>
 <dl class="attribute">
 <dt id="skspec.core.abcspectra.ABCSpectra.full_iunit">
-<code class="descname">full_iunit</code><a class="headerlink" href="#skspec.core.abcspectra.ABCSpectra.full_iunit" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">full_iunit</tt><a class="reference internal" href="../_modules/skspec/core/abcspectra.html#ABCSpectra.full_iunit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.abcspectra.ABCSpectra.full_iunit" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="skspec.core.abcspectra.ABCSpectra.full_name">
-<code class="descname">full_name</code><a class="headerlink" href="#skspec.core.abcspectra.ABCSpectra.full_name" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">full_name</tt><a class="reference internal" href="../_modules/skspec/core/abcspectra.html#ABCSpectra.full_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.abcspectra.ABCSpectra.full_name" title="Permalink to this definition">¶</a></dt>
 <dd><p>Timespectra:name or Timespectra:unnamed.  Useful for scripts mostly</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="skspec.core.abcspectra.ABCSpectra.iunit">
-<code class="descname">iunit</code><a class="headerlink" href="#skspec.core.abcspectra.ABCSpectra.iunit" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">iunit</tt><a class="reference internal" href="../_modules/skspec/core/abcspectra.html#ABCSpectra.iunit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.abcspectra.ABCSpectra.iunit" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="skspec.core.abcspectra.ABCSpectra.nearby">
-<code class="descname">nearby</code><a class="headerlink" href="#skspec.core.abcspectra.ABCSpectra.nearby" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">nearby</tt><a class="reference internal" href="../_modules/skspec/core/abcspectra.html#ABCSpectra.nearby"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.abcspectra.ABCSpectra.nearby" title="Permalink to this definition">¶</a></dt>
 <dd><p>Slicers similiar to loc that allows for nearby value slicing.
 It also would be posslbe to define operations on this through bool
 logic like df[(x&lt;50) &amp; (X&gt;50), but that requires creating a new
@@ -191,34 +193,34 @@ indexer]</p>
 
 <dl class="exception">
 <dt id="skspec.core.abcspectra.SpecError">
-<em class="property">exception </em><code class="descclassname">skspec.core.abcspectra.</code><code class="descname">SpecError</code><a class="reference internal" href="../_modules/skspec/core/abcspectra.html#SpecError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.abcspectra.SpecError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
+<em class="property">exception </em><tt class="descclassname">skspec.core.abcspectra.</tt><tt class="descname">SpecError</tt><a class="reference internal" href="../_modules/skspec/core/abcspectra.html#SpecError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.abcspectra.SpecError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></a></p>
 </dd></dl>
 
 <dl class="exception">
 <dt id="skspec.core.abcspectra.SpecIndexError">
-<em class="property">exception </em><code class="descclassname">skspec.core.abcspectra.</code><code class="descname">SpecIndexError</code><a class="reference internal" href="../_modules/skspec/core/abcspectra.html#SpecIndexError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.abcspectra.SpecIndexError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#skspec.core.abcspectra.SpecError" title="skspec.core.abcspectra.SpecError"><code class="xref py py-class docutils literal"><span class="pre">skspec.core.abcspectra.SpecError</span></code></a></p>
+<em class="property">exception </em><tt class="descclassname">skspec.core.abcspectra.</tt><tt class="descname">SpecIndexError</tt><a class="reference internal" href="../_modules/skspec/core/abcspectra.html#SpecIndexError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.abcspectra.SpecIndexError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#skspec.core.abcspectra.SpecError" title="skspec.core.abcspectra.SpecError"><tt class="xref py py-class docutils literal"><span class="pre">skspec.core.abcspectra.SpecError</span></tt></a></p>
 <p>For indexing operations in particular.</p>
 </dd></dl>
 
 </div>
 <div class="section" id="module-skspec.core.anyspectra">
-<span id="anyspectra-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">anyspectra</span></code> Module<a class="headerlink" href="#module-skspec.core.anyspectra" title="Permalink to this headline">¶</a></h2>
+<span id="anyspectra-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">anyspectra</span></tt> Module<a class="headerlink" href="#module-skspec.core.anyspectra" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="skspec.core.anyspectra.AnyFrame">
-<em class="property">class </em><code class="descclassname">skspec.core.anyspectra.</code><code class="descname">AnyFrame</code><span class="sig-paren">(</span><em>*dfargs</em>, <em>**dfkwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/anyspectra.html#AnyFrame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.anyspectra.AnyFrame" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#skspec.core.spectra.Spectra" title="skspec.core.spectra.Spectra"><code class="xref py py-class docutils literal"><span class="pre">skspec.core.spectra.Spectra</span></code></a></p>
+<em class="property">class </em><tt class="descclassname">skspec.core.anyspectra.</tt><tt class="descname">AnyFrame</tt><big>(</big><em>*dfargs</em>, <em>**dfkwargs</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/anyspectra.html#AnyFrame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.anyspectra.AnyFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#skspec.core.spectra.Spectra" title="skspec.core.spectra.Spectra"><tt class="xref py py-class docutils literal"><span class="pre">skspec.core.spectra.Spectra</span></tt></a></p>
 <p>Spectra with default non-strict columns or index</p>
 </dd></dl>
 
 </div>
 <div class="section" id="module-skspec.core.baseline">
-<span id="baseline-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">baseline</span></code> Module<a class="headerlink" href="#module-skspec.core.baseline" title="Permalink to this headline">¶</a></h2>
+<span id="baseline-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">baseline</span></tt> Module<a class="headerlink" href="#module-skspec.core.baseline" title="Permalink to this headline">¶</a></h2>
 <p>Various dataframe-compatible reference utilities.</p>
 <dl class="function">
 <dt id="skspec.core.baseline.dynamic_baseline">
-<code class="descclassname">skspec.core.baseline.</code><code class="descname">dynamic_baseline</code><span class="sig-paren">(</span><em>df</em>, <em>slices</em>, <em>style='linear'</em>, <em>weightstyle=None</em>, <em>axis=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/baseline.html#dynamic_baseline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.baseline.dynamic_baseline" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">skspec.core.baseline.</tt><tt class="descname">dynamic_baseline</tt><big>(</big><em>df</em>, <em>slices</em>, <em>style='linear'</em>, <em>weightstyle=None</em>, <em>axis=1</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/baseline.html#dynamic_baseline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.baseline.dynamic_baseline" title="Permalink to this definition">¶</a></dt>
 <dd><p>Applies a dynamically calculated reference correction to a dataframe.  User passes in index values, either ranges
 or points, then a linear fit is applied through these points.  Each column in the dataframe is scaled its corresponding
 curve, which is then subracted off.  Essentially, this subracts a reference that can be lopsided- useful for assymetric data, and
@@ -247,175 +249,175 @@ mean of the data along that axis anyway.</dd>
 
 </div>
 <div class="section" id="module-skspec.core.file_utils">
-<span id="file-utils-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">file_utils</span></code> Module<a class="headerlink" href="#module-skspec.core.file_utils" title="Permalink to this headline">¶</a></h2>
+<span id="file-utils-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">file_utils</span></tt> Module<a class="headerlink" href="#module-skspec.core.file_utils" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="skspec.core.file_utils.get_files_in_dir">
-<code class="descclassname">skspec.core.file_utils.</code><code class="descname">get_files_in_dir</code><span class="sig-paren">(</span><em>directory</em>, <em>sort=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/file_utils.html#get_files_in_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.file_utils.get_files_in_dir" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">skspec.core.file_utils.</tt><tt class="descname">get_files_in_dir</tt><big>(</big><em>directory</em>, <em>sort=True</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/file_utils.html#get_files_in_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.file_utils.get_files_in_dir" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a directory, returns just the files; ignores directories</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="skspec.core.file_utils.get_shortname">
-<code class="descclassname">skspec.core.file_utils.</code><code class="descname">get_shortname</code><span class="sig-paren">(</span><em>filepath</em>, <em>cut_extension=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/file_utils.html#get_shortname"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.file_utils.get_shortname" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">skspec.core.file_utils.</tt><tt class="descname">get_shortname</tt><big>(</big><em>filepath</em>, <em>cut_extension=False</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/file_utils.html#get_shortname"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.file_utils.get_shortname" title="Permalink to this definition">¶</a></dt>
 <dd><p>simply get the filename of fullpath.  Cut extension will remove file extension</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="skspec.core.file_utils.make_root_dir">
-<code class="descclassname">skspec.core.file_utils.</code><code class="descname">make_root_dir</code><span class="sig-paren">(</span><em>rootout</em>, <em>overwrite=False</em>, <em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/file_utils.html#make_root_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.file_utils.make_root_dir" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">skspec.core.file_utils.</tt><tt class="descname">make_root_dir</tt><big>(</big><em>rootout</em>, <em>overwrite=False</em>, <em>verbose=True</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/file_utils.html#make_root_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.file_utils.make_root_dir" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates directory structure for program results output.  Warning, if overwriting, all files and subfolders
 in the root out directory will be destroyed, not just ones pertaining to the relevant infiles.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="skspec.core.file_utils.out_getter">
-<code class="descclassname">skspec.core.file_utils.</code><code class="descname">out_getter</code><span class="sig-paren">(</span><em>imjobject</em>, <em>with_header=True</em>, <em>delim='\t'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/file_utils.html#out_getter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.file_utils.out_getter" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">skspec.core.file_utils.</tt><tt class="descname">out_getter</tt><big>(</big><em>imjobject</em>, <em>with_header=True</em>, <em>delim='\t'</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/file_utils.html#out_getter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.file_utils.out_getter" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is a special getter which takes in attribute fields as well as corresponding mapping functions
 to format return in a sexy way.  Couldn&#8217;t quite rig it up properly so this is not in use!</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="skspec.core.file_utils.sort_summary">
-<code class="descclassname">skspec.core.file_utils.</code><code class="descname">sort_summary</code><span class="sig-paren">(</span><em>summary_file</em>, <em>delim='\t'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/file_utils.html#sort_summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.file_utils.sort_summary" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">skspec.core.file_utils.</tt><tt class="descname">sort_summary</tt><big>(</big><em>summary_file</em>, <em>delim='\t'</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/file_utils.html#sort_summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.file_utils.sort_summary" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
 <div class="section" id="module-skspec.core.specindex">
-<span id="specindex-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">specindex</span></code> Module<a class="headerlink" href="#module-skspec.core.specindex" title="Permalink to this headline">¶</a></h2>
+<span id="specindex-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">specindex</span></tt> Module<a class="headerlink" href="#module-skspec.core.specindex" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="skspec.core.specindex.SpecIndex">
-<em class="property">class </em><code class="descclassname">skspec.core.specindex.</code><code class="descname">SpecIndex</code><a class="reference internal" href="../_modules/skspec/core/specindex.html#SpecIndex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.specindex.SpecIndex" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#skspec.core.abcindex.ConversionFloat64Index" title="skspec.core.abcindex.ConversionFloat64Index"><code class="xref py py-class docutils literal"><span class="pre">skspec.core.abcindex.ConversionFloat64Index</span></code></a></p>
+<em class="property">class </em><tt class="descclassname">skspec.core.specindex.</tt><tt class="descname">SpecIndex</tt><a class="reference internal" href="../_modules/skspec/core/specindex.html#SpecIndex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.specindex.SpecIndex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#skspec.core.abcindex.ConversionFloat64Index" title="skspec.core.abcindex.ConversionFloat64Index"><tt class="xref py py-class docutils literal"><span class="pre">skspec.core.abcindex.ConversionFloat64Index</span></tt></a></p>
 <dl class="attribute">
 <dt id="skspec.core.specindex.SpecIndex.unitdict">
-<code class="descname">unitdict</code><em class="property"> = {'um-1': &lt;skspec.units.specunits.Micrometersinverse object at 0xaa9694c&gt;, 'nm': &lt;skspec.units.specunits.Nanometers object at 0xaa968cc&gt;, 'cm': &lt;skspec.units.specunits.Centimeters object at 0xaa968ec&gt;, 'f': &lt;skspec.units.specunits.Frequency object at 0xaa9698c&gt;, 'k': &lt;skspec.units.specunits.Metersinverse object at 0xaa968ac&gt;, 'm': &lt;skspec.units.specunits.Meters object at 0xaa9688c&gt;, 'um': &lt;skspec.units.specunits.Micrometers object at 0xaa9692c&gt;, 'w': &lt;skspec.units.specunits.Angularfrequency object at 0xaa969ac&gt;, 'cm-1': &lt;skspec.units.specunits.Centimetersinverse object at 0xaa9690c&gt;, 'ev': &lt;skspec.units.specunits.Electronvolts object at 0xaa9696c&gt;}</em><a class="headerlink" href="#skspec.core.specindex.SpecIndex.unitdict" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">unitdict</tt><em class="property"> = {'um-1': &lt;skspec.units.specunits.Micrometersinverse object at 0x4168610&gt;, 'nm': &lt;skspec.units.specunits.Nanometers object at 0x4168510&gt;, 'cm': &lt;skspec.units.specunits.Centimeters object at 0x4168550&gt;, 'f': &lt;skspec.units.specunits.Frequency object at 0x4168690&gt;, 'k': &lt;skspec.units.specunits.Metersinverse object at 0x41684d0&gt;, 'm': &lt;skspec.units.specunits.Meters object at 0x4168490&gt;, 'um': &lt;skspec.units.specunits.Micrometers object at 0x41685d0&gt;, 'w': &lt;skspec.units.specunits.Angularfrequency object at 0x41686d0&gt;, 'cm-1': &lt;skspec.units.specunits.Centimetersinverse object at 0x4168590&gt;, 'ev': &lt;skspec.units.specunits.Electronvolts object at 0x4168650&gt;}</em><a class="headerlink" href="#skspec.core.specindex.SpecIndex.unitdict" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 </div>
 <div class="section" id="specpanel-module">
-<h2><code class="xref py py-mod docutils literal"><span class="pre">specpanel</span></code> Module<a class="headerlink" href="#specpanel-module" title="Permalink to this headline">¶</a></h2>
+<h2><tt class="xref py py-mod docutils literal"><span class="pre">specpanel</span></tt> Module<a class="headerlink" href="#specpanel-module" title="Permalink to this headline">¶</a></h2>
 <span class="target" id="module-skspec.core.specpanel"></span><p>Interface to make a panel-type object for storing timespectra.  Allows for
 axis aliases like &#8220;spectral&#8221; and &#8220;temporal&#8221; slicers.</p>
 <dl class="class">
 <dt id="skspec.core.specpanel.SpecPanel">
-<em class="property">class </em><code class="descclassname">skspec.core.specpanel.</code><code class="descname">SpecPanel</code><span class="sig-paren">(</span><em>data=None</em>, <em>items=None</em>, <em>spectral=None</em>, <em>temporal=None</em>, <em>copy=False</em>, <em>dtype=None</em>, <em>name=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/specpanel.html#SpecPanel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.specpanel.SpecPanel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">pandas.core.panel.Panel</span></code></p>
+<em class="property">class </em><tt class="descclassname">skspec.core.specpanel.</tt><tt class="descname">SpecPanel</tt><big>(</big><em>data=None</em>, <em>items=None</em>, <em>spectral=None</em>, <em>temporal=None</em>, <em>copy=False</em>, <em>dtype=None</em>, <em>name=None</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/specpanel.html#SpecPanel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.specpanel.SpecPanel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">pandas.core.panel.Panel</span></tt></p>
 </dd></dl>
 
 </div>
 <div class="section" id="module-skspec.core.specstack">
-<span id="specstack-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">specstack</span></code> Module<a class="headerlink" href="#module-skspec.core.specstack" title="Permalink to this headline">¶</a></h2>
+<span id="specstack-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">specstack</span></tt> Module<a class="headerlink" href="#module-skspec.core.specstack" title="Permalink to this headline">¶</a></h2>
 <p>Storage class for sets of pandas object.  Similar to a panel, 
 but does inherently store 3d data.  Data can be converted to 3d through
 methods, but otherwise is just a container.</p>
 <dl class="exception">
 <dt id="skspec.core.specstack.MultiError">
-<em class="property">exception </em><code class="descclassname">skspec.core.specstack.</code><code class="descname">MultiError</code><a class="reference internal" href="../_modules/skspec/core/specstack.html#MultiError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.specstack.MultiError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
+<em class="property">exception </em><tt class="descclassname">skspec.core.specstack.</tt><tt class="descname">MultiError</tt><a class="reference internal" href="../_modules/skspec/core/specstack.html#MultiError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.specstack.MultiError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></a></p>
 </dd></dl>
 
 <dl class="class">
 <dt id="skspec.core.specstack.SpecStack">
-<em class="property">class </em><code class="descclassname">skspec.core.specstack.</code><code class="descname">SpecStack</code><span class="sig-paren">(</span><em>data</em>, <em>keys=None</em>, <em>name=''</em>, <em>sort_items=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/specstack.html#SpecStack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.specstack.SpecStack" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#skspec.core.specstack.Stack" title="skspec.core.specstack.Stack"><code class="xref py py-class docutils literal"><span class="pre">skspec.core.specstack.Stack</span></code></a></p>
+<em class="property">class </em><tt class="descclassname">skspec.core.specstack.</tt><tt class="descname">SpecStack</tt><big>(</big><em>data</em>, <em>keys=None</em>, <em>name=''</em>, <em>sort_items=False</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/specstack.html#SpecStack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.specstack.SpecStack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#skspec.core.specstack.Stack" title="skspec.core.specstack.Stack"><tt class="xref py py-class docutils literal"><span class="pre">skspec.core.specstack.Stack</span></tt></a></p>
 <p>Stack for just storing timespectra objects.</p>
 <dl class="method">
 <dt id="skspec.core.specstack.SpecStack.apply">
-<code class="descname">apply</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.core.specstack.SpecStack.apply" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">apply</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#skspec.core.specstack.SpecStack.apply" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.specstack.SpecStack.as_3d">
-<code class="descname">as_3d</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.core.specstack.SpecStack.as_3d" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">as_3d</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/specstack.html#SpecStack.as_3d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.specstack.SpecStack.as_3d" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.specstack.SpecStack.get_all">
-<code class="descname">get_all</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.core.specstack.SpecStack.get_all" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_all</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#skspec.core.specstack.SpecStack.get_all" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="skspec.core.specstack.SpecStack.itemlabel">
-<code class="descname">itemlabel</code><em class="property"> = 'spec_'</em><a class="headerlink" href="#skspec.core.specstack.SpecStack.itemlabel" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">itemlabel</tt><em class="property"> = 'spec_'</em><a class="headerlink" href="#skspec.core.specstack.SpecStack.itemlabel" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="skspec.core.specstack.SpecStack.iunit">
-<code class="descname">iunit</code><a class="headerlink" href="#skspec.core.specstack.SpecStack.iunit" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">iunit</tt><a class="reference internal" href="../_modules/skspec/core/specstack.html#SpecStack.iunit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.specstack.SpecStack.iunit" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.specstack.SpecStack.plot">
-<code class="descname">plot</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.core.specstack.SpecStack.plot" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">plot</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/specstack.html#SpecStack.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.specstack.SpecStack.plot" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="skspec.core.specstack.SpecStack.reference">
-<code class="descname">reference</code><a class="headerlink" href="#skspec.core.specstack.SpecStack.reference" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">reference</tt><a class="reference internal" href="../_modules/skspec/core/specstack.html#SpecStack.reference"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.specstack.SpecStack.reference" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.specstack.SpecStack.set_all">
-<code class="descname">set_all</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.core.specstack.SpecStack.set_all" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">set_all</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#skspec.core.specstack.SpecStack.set_all" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="skspec.core.specstack.SpecStack.specunit">
-<code class="descname">specunit</code><a class="headerlink" href="#skspec.core.specstack.SpecStack.specunit" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">specunit</tt><a class="reference internal" href="../_modules/skspec/core/specstack.html#SpecStack.specunit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.specstack.SpecStack.specunit" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="skspec.core.specstack.SpecStack.varunit">
-<code class="descname">varunit</code><a class="headerlink" href="#skspec.core.specstack.SpecStack.varunit" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">varunit</tt><a class="reference internal" href="../_modules/skspec/core/specstack.html#SpecStack.varunit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.specstack.SpecStack.varunit" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="skspec.core.specstack.Stack">
-<em class="property">class </em><code class="descclassname">skspec.core.specstack.</code><code class="descname">Stack</code><span class="sig-paren">(</span><em>data</em>, <em>keys=None</em>, <em>name=''</em>, <em>sort_items=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/specstack.html#Stack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.specstack.Stack" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<em class="property">class </em><tt class="descclassname">skspec.core.specstack.</tt><tt class="descname">Stack</tt><big>(</big><em>data</em>, <em>keys=None</em>, <em>name=''</em>, <em>sort_items=False</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/specstack.html#Stack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.specstack.Stack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/functions.html#object" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></a></p>
 <p>Base class to store pandas objects, with special operations to
 return as 3d data (eg panel) and to apply functions itemwise.  Items are
 stored in an ordered dict.</p>
 <dl class="method">
 <dt id="skspec.core.specstack.Stack.apply">
-<code class="descname">apply</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.core.specstack.Stack.apply" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">apply</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/specstack.html#Stack.apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.specstack.Stack.apply" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.specstack.Stack.as_3d">
-<code class="descname">as_3d</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.core.specstack.Stack.as_3d" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">as_3d</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/specstack.html#Stack.as_3d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.specstack.Stack.as_3d" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="skspec.core.specstack.Stack.full_name">
-<code class="descname">full_name</code><a class="headerlink" href="#skspec.core.specstack.Stack.full_name" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">full_name</tt><a class="reference internal" href="../_modules/skspec/core/specstack.html#Stack.full_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.specstack.Stack.full_name" title="Permalink to this definition">¶</a></dt>
 <dd><p>Timespectra:name or Timespectra:unnamed.  Useful for scripts mostly</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.specstack.Stack.get_all">
-<code class="descname">get_all</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.core.specstack.Stack.get_all" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_all</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/specstack.html#Stack.get_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.specstack.Stack.get_all" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="skspec.core.specstack.Stack.itemlabel">
-<code class="descname">itemlabel</code><em class="property"> = 'Item'</em><a class="headerlink" href="#skspec.core.specstack.Stack.itemlabel" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">itemlabel</tt><em class="property"> = 'Item'</em><a class="headerlink" href="#skspec.core.specstack.Stack.itemlabel" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.specstack.Stack.set_all">
-<code class="descname">set_all</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.core.specstack.Stack.set_all" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">set_all</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/specstack.html#Stack.set_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.specstack.Stack.set_all" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="function">
 <dt id="skspec.core.specstack.mem_address">
-<code class="descclassname">skspec.core.specstack.</code><code class="descname">mem_address</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/specstack.html#mem_address"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.specstack.mem_address" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">skspec.core.specstack.</tt><tt class="descname">mem_address</tt><big>(</big><em>obj</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/specstack.html#mem_address"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.specstack.mem_address" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return memory address string for a python object.  Object must have
 default python object __repr__ (ie it would look something like:</p>
 <blockquote>
@@ -425,12 +427,12 @@ default python object __repr__ (ie it would look something like:</p>
 
 </div>
 <div class="section" id="module-skspec.core.spectra">
-<span id="spectra-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">spectra</span></code> Module<a class="headerlink" href="#module-skspec.core.spectra" title="Permalink to this headline">¶</a></h2>
+<span id="spectra-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">spectra</span></tt> Module<a class="headerlink" href="#module-skspec.core.spectra" title="Permalink to this headline">¶</a></h2>
 <p>Provides core &#8220;Spectra&#8221; class and associated utilities.</p>
 <dl class="class">
 <dt id="skspec.core.spectra.Spectra">
-<em class="property">class </em><code class="descclassname">skspec.core.spectra.</code><code class="descname">Spectra</code><span class="sig-paren">(</span><em>*dfargs</em>, <em>**dfkwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#skspec.core.abcspectra.ABCSpectra" title="skspec.core.abcspectra.ABCSpectra"><code class="xref py py-class docutils literal"><span class="pre">skspec.core.abcspectra.ABCSpectra</span></code></a>, <a class="reference internal" href="skspec.pandas_utils.html#skspec.pandas_utils.metadframe.MetaDataFrame" title="skspec.pandas_utils.metadframe.MetaDataFrame"><code class="xref py py-class docutils literal"><span class="pre">skspec.pandas_utils.metadframe.MetaDataFrame</span></code></a></p>
+<em class="property">class </em><tt class="descclassname">skspec.core.spectra.</tt><tt class="descname">Spectra</tt><big>(</big><em>*dfargs</em>, <em>**dfkwargs</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#skspec.core.abcspectra.ABCSpectra" title="skspec.core.abcspectra.ABCSpectra"><tt class="xref py py-class docutils literal"><span class="pre">skspec.core.abcspectra.ABCSpectra</span></tt></a>, <a class="reference internal" href="skspec.pandas_utils.html#skspec.pandas_utils.metadframe.MetaDataFrame" title="skspec.pandas_utils.metadframe.MetaDataFrame"><tt class="xref py py-class docutils literal"><span class="pre">skspec.pandas_utils.metadframe.MetaDataFrame</span></tt></a></p>
 <p>Provides core Spectra composite pandas DataFrame to represent a set 
 of spectral data.  Enforces spectral data along the index and temporal 
 data as columns.  The spectral index is controlled from the specindex module, 
@@ -446,20 +448,20 @@ It does this by generating one or the other on the fly, and never relies on
 the current label object to generate teh next object.</p>
 <dl class="method">
 <dt id="skspec.core.spectra.Spectra.add_base">
-<code class="descname">add_base</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.add_base"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.add_base" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">add_base</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.add_base"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.add_base" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds baseline to data that currently has it subtracted.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.spectra.Spectra.apply">
-<code class="descname">apply</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.apply" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">apply</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.apply" title="Permalink to this definition">¶</a></dt>
 <dd><p>Raw=True seems to produce correct results more often from some
 #deep issue that is not fully tracked.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.spectra.Spectra.area">
-<code class="descname">area</code><span class="sig-paren">(</span><em>apply_fcn='simps'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.area"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.area" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">area</tt><big>(</big><em>apply_fcn='simps'</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.area"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.area" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="docutils">
 <dt>Returns total area under the spectra vs. time curve.  To choose a slice of the spectrum,</dt>
 <dd>call wavelength_slices with appropriate ranges and an apply_fcn appropriate to style of integration.</dd>
@@ -475,37 +477,37 @@ it should work.</p>
 
 <dl class="method">
 <dt id="skspec.core.spectra.Spectra.as_norm">
-<code class="descname">as_norm</code><span class="sig-paren">(</span><em>unit</em>, <em>reference=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.as_norm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.as_norm" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">as_norm</tt><big>(</big><em>unit</em>, <em>reference=None</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.as_norm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.as_norm" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns new Spectra of modified norm.  Useful if in-place operation not desirable.  
 Also has the option of manually passing a new reference for on-the-fly rereferencing.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.spectra.Spectra.as_specunit">
-<code class="descname">as_specunit</code><span class="sig-paren">(</span><em>unit</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.as_specunit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.as_specunit" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">as_specunit</tt><big>(</big><em>unit</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.as_specunit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.as_specunit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns new dataframe with different spectral unit on the index.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.spectra.Spectra.as_varunit">
-<code class="descname">as_varunit</code><span class="sig-paren">(</span><em>unit</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.as_varunit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.as_varunit" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">as_varunit</tt><big>(</big><em>unit</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.as_varunit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.as_varunit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns new dataframe with different spectral unit on the index.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="skspec.core.spectra.Spectra.base_sub">
-<code class="descname">base_sub</code><a class="headerlink" href="#skspec.core.spectra.Spectra.base_sub" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">base_sub</tt><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.base_sub"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.base_sub" title="Permalink to this definition">¶</a></dt>
 <dd><p>Is baseline currently subtracted from spectral data.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="skspec.core.spectra.Spectra.baseline">
-<code class="descname">baseline</code><a class="headerlink" href="#skspec.core.spectra.Spectra.baseline" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">baseline</tt><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.baseline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.baseline" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.spectra.Spectra.boxcar">
-<code class="descname">boxcar</code><span class="sig-paren">(</span><em>binwidth</em>, <em>axis=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.boxcar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.boxcar" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">boxcar</tt><big>(</big><em>binwidth</em>, <em>axis=1</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.boxcar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.boxcar" title="Permalink to this definition">¶</a></dt>
 <dd><p>Performs pvutils.boxcar averaging by binning data.</p>
 <dl class="docutils">
 <dt>binwidth: int or float</dt>
@@ -517,23 +519,23 @@ Also has the option of manually passing a new reference for on-the-fly rereferen
 
 <dl class="attribute">
 <dt id="skspec.core.spectra.Spectra.cnsvdattr">
-<code class="descname">cnsvdattr</code><a class="headerlink" href="#skspec.core.spectra.Spectra.cnsvdattr" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">cnsvdattr</tt><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.cnsvdattr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.cnsvdattr" title="Permalink to this definition">¶</a></dt>
 <dd><p>attr:value of conserved attributes</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="skspec.core.spectra.Spectra.cnsvdmeth">
-<code class="descname">cnsvdmeth</code><a class="headerlink" href="#skspec.core.spectra.Spectra.cnsvdmeth" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">cnsvdmeth</tt><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.cnsvdmeth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.cnsvdmeth" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="skspec.core.spectra.Spectra.columns">
-<code class="descname">columns</code><a class="headerlink" href="#skspec.core.spectra.Spectra.columns" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">columns</tt><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.columns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.columns" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="classmethod">
 <dt id="skspec.core.spectra.Spectra.from_csv">
-<em class="property">classmethod </em><code class="descname">from_csv</code><span class="sig-paren">(</span><em>filepath_or_buffer</em>, <em>header_datetime=False</em>, <em>index_datetime=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.from_csv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.from_csv" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><tt class="descname">from_csv</tt><big>(</big><em>filepath_or_buffer</em>, <em>header_datetime=False</em>, <em>index_datetime=False</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.from_csv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.from_csv" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read from CSV file.  Wrapping pandas read_csv:
 <a class="reference external" href="http://pandas.pydata.org/pandas-docs/version/0.13.1/">http://pandas.pydata.org/pandas-docs/version/0.13.1/</a>        generated/pandas.io.parsers.read_csv.html</p>
 <p>filepath_or_buffer: (from pandas API) string or file handle / StringIO. 
@@ -560,7 +562,7 @@ as None.</dd>
 
 <dl class="classmethod">
 <dt id="skspec.core.spectra.Spectra.from_series">
-<em class="property">classmethod </em><code class="descname">from_series</code><span class="sig-paren">(</span><em>pandas_object</em>, <em>**dfkwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.from_series"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.from_series" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><tt class="descname">from_series</tt><big>(</big><em>pandas_object</em>, <em>**dfkwargs</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.from_series"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.from_series" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a Spectra from a similiar object, either a pandas DataFrame
 or a skspec Spectra subclass.  Useful for type-casting, for example
 have a DataFrame and want it as a TimeSpectra, which will do its
@@ -569,27 +571,27 @@ own index conversions.</p>
 
 <dl class="attribute">
 <dt id="skspec.core.spectra.Spectra.full_norm">
-<code class="descname">full_norm</code><a class="headerlink" href="#skspec.core.spectra.Spectra.full_norm" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">full_norm</tt><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.full_norm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.full_norm" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="skspec.core.spectra.Spectra.full_specunit">
-<code class="descname">full_specunit</code><a class="headerlink" href="#skspec.core.spectra.Spectra.full_specunit" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">full_specunit</tt><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.full_specunit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.full_specunit" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="skspec.core.spectra.Spectra.full_varunit">
-<code class="descname">full_varunit</code><a class="headerlink" href="#skspec.core.spectra.Spectra.full_varunit" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">full_varunit</tt><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.full_varunit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.full_varunit" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="skspec.core.spectra.Spectra.index">
-<code class="descname">index</code><a class="headerlink" href="#skspec.core.spectra.Spectra.index" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">index</tt><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.index" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.spectra.Spectra.list_attr">
-<code class="descname">list_attr</code><span class="sig-paren">(</span><em>privattr=False</em>, <em>dfattr=False</em>, <em>methods=False</em>, <em>types=False</em>, <em>delim='\t'</em>, <em>sortby='name'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.list_attr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.list_attr" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">list_attr</tt><big>(</big><em>privattr=False</em>, <em>dfattr=False</em>, <em>methods=False</em>, <em>types=False</em>, <em>delim='\t'</em>, <em>sortby='name'</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.list_attr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.list_attr" title="Permalink to this definition">¶</a></dt>
 <dd><p>Outputs various attributes in the namespace, as well as their types.</p>
 <blockquote>
 <div>privattr: Should private attributes be listed.
@@ -607,37 +609,37 @@ Refer to label_stats() for more detailed information on certain attributes.</div
 
 <dl class="attribute">
 <dt id="skspec.core.spectra.Spectra.norm">
-<code class="descname">norm</code><a class="headerlink" href="#skspec.core.spectra.Spectra.norm" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">norm</tt><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.norm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.norm" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.spectra.Spectra.norms">
-<code class="descname">norms</code><span class="sig-paren">(</span><em>delim='\t'</em>, <em>pprint=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.norms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.norms" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">norms</tt><big>(</big><em>delim='\t'</em>, <em>pprint=False</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.norms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.norms" title="Permalink to this definition">¶</a></dt>
 <dd><p>Intensity units of dateframe.  Eg %Transmittance vs. Absorbance</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.spectra.Spectra.plot">
-<code class="descname">plot</code><span class="sig-paren">(</span><em>*args</em>, <em>**pltkwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.plot" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">plot</tt><big>(</big><em>*args</em>, <em>**pltkwargs</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plotting interface.  Use kind=&#8217;surf, wire etc...&#8217; to go through 
 various plot types.  Will append correct x and y labels.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="skspec.core.spectra.Spectra.plot_kinds">
-<code class="descname">plot_kinds</code><a class="headerlink" href="#skspec.core.spectra.Spectra.plot_kinds" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">plot_kinds</tt><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.plot_kinds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.plot_kinds" title="Permalink to this definition">¶</a></dt>
 <dd><p>List available plot kinds</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="skspec.core.spectra.Spectra.reference">
-<code class="descname">reference</code><a class="headerlink" href="#skspec.core.spectra.Spectra.reference" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">reference</tt><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.reference"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.reference" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is stored as a Series unless user has set it otherwise.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.spectra.Spectra.set_specindex">
-<code class="descname">set_specindex</code><span class="sig-paren">(</span><em>start=None</em>, <em>stop=None</em>, <em>spacing=None</em>, <em>unit=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.set_specindex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.set_specindex" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">set_specindex</tt><big>(</big><em>start=None</em>, <em>stop=None</em>, <em>spacing=None</em>, <em>unit=None</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.set_specindex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.set_specindex" title="Permalink to this definition">¶</a></dt>
 <dd><p>Helper method to generate a spectral index.  Works similarly to
 pandas.daterange().  Takes in start, stop and spacing.  Users can use
 either start and stop, start and spacing or stop and spacing (but not 
@@ -664,18 +666,18 @@ np.linspace().</p>
 
 <dl class="attribute">
 <dt id="skspec.core.spectra.Spectra.specunit">
-<code class="descname">specunit</code><a class="headerlink" href="#skspec.core.spectra.Spectra.specunit" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">specunit</tt><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.specunit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.specunit" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.spectra.Spectra.specunits">
-<code class="descname">specunits</code><span class="sig-paren">(</span><em>delim='\t'</em>, <em>pprint=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.specunits"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.specunits" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">specunits</tt><big>(</big><em>delim='\t'</em>, <em>pprint=False</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.specunits"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.specunits" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print out all available units in a nice format</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.spectra.Spectra.split_by">
-<code class="descname">split_by</code><span class="sig-paren">(</span><em>n</em>, <em>axis=1</em>, <em>stack=True</em>, <em>**stackkwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.split_by"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.split_by" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">split_by</tt><big>(</big><em>n</em>, <em>axis=1</em>, <em>stack=True</em>, <em>**stackkwargs</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.split_by"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.split_by" title="Permalink to this definition">¶</a></dt>
 <dd><p>Slice data into n subsets.</p>
 <p>If n does not evenly divide the axis, the final element returned tends
 to be larger than the others (culmination of rounding down iteratively)
@@ -684,7 +686,7 @@ and a warning is raised.</p>
 
 <dl class="method">
 <dt id="skspec.core.spectra.Spectra.sub_base">
-<code class="descname">sub_base</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.sub_base"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.sub_base" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">sub_base</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.sub_base"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.sub_base" title="Permalink to this definition">¶</a></dt>
 <dd><p>Subtracts baseline from entire dataset.</p>
 <blockquote>
 <div>Does have to call self._frame.  Just doing self.sub will not work, even though
@@ -694,13 +696,13 @@ to way in which python classes deal with overwrites of self.</div></blockquote>
 
 <dl class="method">
 <dt id="skspec.core.spectra.Spectra.to_R_df">
-<code class="descname">to_R_df</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.to_R_df"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.to_R_df" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">to_R_df</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.to_R_df"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.to_R_df" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wraps pandas.rpy.common import convert_to_r_dataframe.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.spectra.Spectra.to_csv">
-<code class="descname">to_csv</code><span class="sig-paren">(</span><em>path_or_buff</em>, <em>meta_separate=None</em>, <em>**csv_kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.to_csv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.to_csv" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">to_csv</tt><big>(</big><em>path_or_buff</em>, <em>meta_separate=None</em>, <em>**csv_kwargs</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.to_csv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.to_csv" title="Permalink to this definition">¶</a></dt>
 <dd><p>Output to CSV file.</p>
 <blockquote>
 <div><p>path_or_buff: string path to outfile destination.</p>
@@ -720,18 +722,18 @@ output is separated (eg meta_separate=True)</div></blockquote>
 
 <dl class="attribute">
 <dt id="skspec.core.spectra.Spectra.varunit">
-<code class="descname">varunit</code><a class="headerlink" href="#skspec.core.spectra.Spectra.varunit" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">varunit</tt><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.varunit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.varunit" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.spectra.Spectra.varunits">
-<code class="descname">varunits</code><span class="sig-paren">(</span><em>delim='\t'</em>, <em>pprint=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.varunits"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.varunits" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">varunits</tt><big>(</big><em>delim='\t'</em>, <em>pprint=False</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.varunits"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.varunits" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print out all available variable units in a nice format</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.spectra.Spectra.wavelength_slices">
-<code class="descname">wavelength_slices</code><span class="sig-paren">(</span><em>ranges</em>, <em>apply_fcn='mean'</em>, <em>**applyfcn_kwds</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.wavelength_slices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.wavelength_slices" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">wavelength_slices</tt><big>(</big><em>ranges</em>, <em>apply_fcn='mean'</em>, <em>**applyfcn_kwds</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.wavelength_slices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.wavelength_slices" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns sliced averages/sums of wavelength regions. Composite dataframe will nicely
 plot when piped into spec aesthetics timeplot.</p>
 <dl class="docutils">
@@ -756,37 +758,37 @@ For easy plotting, plot the transpose of the returned timespectra.</p>
 
 <dl class="class">
 <dt id="skspec.core.spectra.Spectrum">
-<em class="property">class </em><code class="descclassname">skspec.core.spectra.</code><code class="descname">Spectrum</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectrum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectrum" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#skspec.core.abcspectra.ABCSpectra" title="skspec.core.abcspectra.ABCSpectra"><code class="xref py py-class docutils literal"><span class="pre">skspec.core.abcspectra.ABCSpectra</span></code></a>, <a class="reference internal" href="skspec.pandas_utils.html#skspec.pandas_utils.metadframe.MetaSeries" title="skspec.pandas_utils.metadframe.MetaSeries"><code class="xref py py-class docutils literal"><span class="pre">skspec.pandas_utils.metadframe.MetaSeries</span></code></a></p>
+<em class="property">class </em><tt class="descclassname">skspec.core.spectra.</tt><tt class="descname">Spectrum</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectrum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectrum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#skspec.core.abcspectra.ABCSpectra" title="skspec.core.abcspectra.ABCSpectra"><tt class="xref py py-class docutils literal"><span class="pre">skspec.core.abcspectra.ABCSpectra</span></tt></a>, <a class="reference internal" href="skspec.pandas_utils.html#skspec.pandas_utils.metadframe.MetaSeries" title="skspec.pandas_utils.metadframe.MetaSeries"><tt class="xref py py-class docutils literal"><span class="pre">skspec.pandas_utils.metadframe.MetaSeries</span></tt></a></p>
 <p>Compliment to pandas Series: single array of spectral values with
 spectral Index.</p>
 <dl class="classmethod">
 <dt id="skspec.core.spectra.Spectrum.from_series">
-<em class="property">classmethod </em><code class="descname">from_series</code><span class="sig-paren">(</span><em>spectra</em>, <em>series</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectrum.from_series"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectrum.from_series" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><tt class="descname">from_series</tt><big>(</big><em>spectra</em>, <em>series</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectrum.from_series"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectrum.from_series" title="Permalink to this definition">¶</a></dt>
 <dd><p>When Spectra methods need to return a Spectrum, this is called
 so that metadata is properly transferred.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="skspec.core.spectra.Spectrum.full_unit">
-<code class="descname">full_unit</code><a class="headerlink" href="#skspec.core.spectra.Spectrum.full_unit" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">full_unit</tt><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectrum.full_unit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectrum.full_unit" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.spectra.Spectrum.plot">
-<code class="descname">plot</code><span class="sig-paren">(</span><em>*args</em>, <em>**pltkwds</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectrum.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectrum.plot" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">plot</tt><big>(</big><em>*args</em>, <em>**pltkwds</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectrum.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectrum.plot" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="skspec.core.spectra.Spectrum.unit">
-<code class="descname">unit</code><a class="headerlink" href="#skspec.core.spectra.Spectrum.unit" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">unit</tt><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectrum.unit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectrum.unit" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="function">
 <dt id="skspec.core.spectra.spec_from_dir">
-<code class="descclassname">skspec.core.spectra.</code><code class="descname">spec_from_dir</code><span class="sig-paren">(</span><em>directory</em>, <em>csvargs</em>, <em>sortnames=False</em>, <em>concat_axis=1</em>, <em>shortname=True</em>, <em>cut_extension=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/spectra.html#spec_from_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.spec_from_dir" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">skspec.core.spectra.</tt><tt class="descname">spec_from_dir</tt><big>(</big><em>directory</em>, <em>csvargs</em>, <em>sortnames=False</em>, <em>concat_axis=1</em>, <em>shortname=True</em>, <em>cut_extension=False</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/spectra.html#spec_from_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.spec_from_dir" title="Permalink to this definition">¶</a></dt>
 <dd><p>Takes files from a directory, presuming they are identically formatted, and reads them into
 a dataframe by iterating over read_csv().  All arguments that read_csv() would take are passed
 in.  These kwargs are in regard the files themselves, for example, skiprows, skipfooter and header.</p>
@@ -815,7 +817,7 @@ column is my dataframe index.</dd>
 
 <dl class="function">
 <dt id="skspec.core.spectra.spec_slice">
-<code class="descclassname">skspec.core.spectra.</code><code class="descname">spec_slice</code><span class="sig-paren">(</span><em>spectral_array</em>, <em>bins</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/spectra.html#spec_slice"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.spec_slice" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">skspec.core.spectra.</tt><tt class="descname">spec_slice</tt><big>(</big><em>spectral_array</em>, <em>bins</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/spectra.html#spec_slice"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.spec_slice" title="Permalink to this definition">¶</a></dt>
 <dd><p>Simple method that will divide a spectral index into n evenly sliced
 bins and return as nested tuples. Useful for generating wavelength slices 
 with even spacing.  Simply a wrapper around np.histogram.</p>
@@ -823,7 +825,7 @@ with even spacing.  Simply a wrapper around np.histogram.</p>
 
 <dl class="function">
 <dt id="skspec.core.spectra.specplot">
-<code class="descclassname">skspec.core.spectra.</code><code class="descname">specplot</code><span class="sig-paren">(</span><em>ts</em>, <em>*args</em>, <em>**pltkwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/spectra.html#specplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.specplot" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">skspec.core.spectra.</tt><tt class="descname">specplot</tt><big>(</big><em>ts</em>, <em>*args</em>, <em>**pltkwargs</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/spectra.html#specplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.specplot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plotting interface.  Use kind=&#8217;surf, wire etc...&#8217; to go through 
 various plot types.  Will append correct x and y labels.</p>
 <dl class="docutils">
@@ -835,154 +837,154 @@ without changing the Spectra.</dd>
 
 </div>
 <div class="section" id="module-skspec.core.tempspectra">
-<span id="tempspectra-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">tempspectra</span></code> Module<a class="headerlink" href="#module-skspec.core.tempspectra" title="Permalink to this headline">¶</a></h2>
+<span id="tempspectra-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">tempspectra</span></tt> Module<a class="headerlink" href="#module-skspec.core.tempspectra" title="Permalink to this headline">¶</a></h2>
 <p>Provides core &#8220;TempSpectra&#8221; class and associated utilities.</p>
 <dl class="class">
 <dt id="skspec.core.tempspectra.TempIndex">
-<em class="property">class </em><code class="descclassname">skspec.core.tempspectra.</code><code class="descname">TempIndex</code><a class="reference internal" href="../_modules/skspec/core/tempspectra.html#TempIndex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.tempspectra.TempIndex" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#skspec.core.abcindex.ConversionIndex" title="skspec.core.abcindex.ConversionIndex"><code class="xref py py-class docutils literal"><span class="pre">skspec.core.abcindex.ConversionIndex</span></code></a></p>
+<em class="property">class </em><tt class="descclassname">skspec.core.tempspectra.</tt><tt class="descname">TempIndex</tt><a class="reference internal" href="../_modules/skspec/core/tempspectra.html#TempIndex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.tempspectra.TempIndex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#skspec.core.abcindex.ConversionIndex" title="skspec.core.abcindex.ConversionIndex"><tt class="xref py py-class docutils literal"><span class="pre">skspec.core.abcindex.ConversionIndex</span></tt></a></p>
 <p>Temperature Index</p>
 <dl class="attribute">
 <dt id="skspec.core.tempspectra.TempIndex.unitdict">
-<code class="descname">unitdict</code><em class="property"> = {'K': &lt;skspec.units.tempunits.Kelvin object at 0xaa92a8c&gt;, 'C': &lt;skspec.units.tempunits.Celsius object at 0xaa92aac&gt;, None: &lt;skspec.units.abcunits.ConversionUnit object at 0xaa92aec&gt;, 'F': &lt;skspec.units.tempunits.Farenheiht object at 0xaa92acc&gt;}</em><a class="headerlink" href="#skspec.core.tempspectra.TempIndex.unitdict" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">unitdict</tt><em class="property"> = {'K': &lt;skspec.units.tempunits.Kelvin object at 0x4161750&gt;, None: &lt;skspec.units.abcunits.ConversionUnit object at 0x4161810&gt;, 'C': &lt;skspec.units.tempunits.Celsius object at 0x4161790&gt;, 'F': &lt;skspec.units.tempunits.Farenheiht object at 0x41617d0&gt;}</em><a class="headerlink" href="#skspec.core.tempspectra.TempIndex.unitdict" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="skspec.core.tempspectra.TempSpectra">
-<em class="property">class </em><code class="descclassname">skspec.core.tempspectra.</code><code class="descname">TempSpectra</code><span class="sig-paren">(</span><em>*dfargs</em>, <em>**dfkwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/tempspectra.html#TempSpectra"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#skspec.core.spectra.Spectra" title="skspec.core.spectra.Spectra"><code class="xref py py-class docutils literal"><span class="pre">skspec.core.spectra.Spectra</span></code></a></p>
+<em class="property">class </em><tt class="descclassname">skspec.core.tempspectra.</tt><tt class="descname">TempSpectra</tt><big>(</big><em>*dfargs</em>, <em>**dfkwargs</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/tempspectra.html#TempSpectra"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#skspec.core.spectra.Spectra" title="skspec.core.spectra.Spectra"><tt class="xref py py-class docutils literal"><span class="pre">skspec.core.spectra.Spectra</span></tt></a></p>
 <p>Spectral Index (rows) with Temperature Variation (columns)</p>
 <dl class="method">
 <dt id="skspec.core.tempspectra.TempSpectra.add_base">
-<code class="descname">add_base</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.add_base" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">add_base</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.add_base" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.tempspectra.TempSpectra.apply">
-<code class="descname">apply</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.apply" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">apply</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.apply" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.tempspectra.TempSpectra.area">
-<code class="descname">area</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.area" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">area</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.area" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.tempspectra.TempSpectra.as_norm">
-<code class="descname">as_norm</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.as_norm" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">as_norm</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.as_norm" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.tempspectra.TempSpectra.as_specunit">
-<code class="descname">as_specunit</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.as_specunit" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">as_specunit</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.as_specunit" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.tempspectra.TempSpectra.as_varunit">
-<code class="descname">as_varunit</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.as_varunit" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">as_varunit</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.as_varunit" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.tempspectra.TempSpectra.boxcar">
-<code class="descname">boxcar</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.boxcar" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">boxcar</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.boxcar" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.tempspectra.TempSpectra.cousin">
-<code class="descname">cousin</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.cousin" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">cousin</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.cousin" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.tempspectra.TempSpectra.deepcopy">
-<code class="descname">deepcopy</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.deepcopy" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">deepcopy</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.deepcopy" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.tempspectra.TempSpectra.dumps">
-<code class="descname">dumps</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.dumps" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">dumps</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.dumps" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.tempspectra.TempSpectra.from_series">
-<code class="descname">from_series</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.from_series" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">from_series</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.from_series" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.tempspectra.TempSpectra.list_attr">
-<code class="descname">list_attr</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.list_attr" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">list_attr</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.list_attr" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.tempspectra.TempSpectra.norms">
-<code class="descname">norms</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.norms" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">norms</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.norms" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.tempspectra.TempSpectra.plot">
-<code class="descname">plot</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.plot" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">plot</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.plot" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.tempspectra.TempSpectra.save">
-<code class="descname">save</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.save" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">save</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.save" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.tempspectra.TempSpectra.set_specindex">
-<code class="descname">set_specindex</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.set_specindex" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">set_specindex</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.set_specindex" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.tempspectra.TempSpectra.specunits">
-<code class="descname">specunits</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.specunits" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">specunits</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.specunits" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.tempspectra.TempSpectra.split_by">
-<code class="descname">split_by</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.split_by" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">split_by</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.split_by" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.tempspectra.TempSpectra.sub_base">
-<code class="descname">sub_base</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.sub_base" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">sub_base</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.sub_base" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.tempspectra.TempSpectra.subtract">
-<code class="descname">subtract</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.subtract" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">subtract</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.subtract" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.tempspectra.TempSpectra.to_R_df">
-<code class="descname">to_R_df</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.to_R_df" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">to_R_df</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.to_R_df" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.tempspectra.TempSpectra.to_csv">
-<code class="descname">to_csv</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.to_csv" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">to_csv</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.to_csv" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.tempspectra.TempSpectra.varunits">
-<code class="descname">varunits</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.varunits" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">varunits</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.varunits" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="skspec.core.tempspectra.TempSpectra.wavelength_slices">
-<code class="descname">wavelength_slices</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.wavelength_slices" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">wavelength_slices</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#skspec.core.tempspectra.TempSpectra.wavelength_slices" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 </div>
 <div class="section" id="module-skspec.core.timeindex">
-<span id="timeindex-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">timeindex</span></code> Module<a class="headerlink" href="#module-skspec.core.timeindex" title="Permalink to this headline">¶</a></h2>
+<span id="timeindex-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">timeindex</span></tt> Module<a class="headerlink" href="#module-skspec.core.timeindex" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="skspec.core.timeindex.TimeIndex">
-<em class="property">class </em><code class="descclassname">skspec.core.timeindex.</code><code class="descname">TimeIndex</code><a class="reference internal" href="../_modules/skspec/core/timeindex.html#TimeIndex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.timeindex.TimeIndex" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#skspec.core.abcindex.ConversionIndex" title="skspec.core.abcindex.ConversionIndex"><code class="xref py py-class docutils literal"><span class="pre">skspec.core.abcindex.ConversionIndex</span></code></a></p>
+<em class="property">class </em><tt class="descclassname">skspec.core.timeindex.</tt><tt class="descname">TimeIndex</tt><a class="reference internal" href="../_modules/skspec/core/timeindex.html#TimeIndex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.timeindex.TimeIndex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#skspec.core.abcindex.ConversionIndex" title="skspec.core.abcindex.ConversionIndex"><tt class="xref py py-class docutils literal"><span class="pre">skspec.core.abcindex.ConversionIndex</span></tt></a></p>
 <p>Stores time labels as Timestamps, Time Deltas or cumulative intervals
 ie seconds, minutes, days from t=0.  Timestamps (e.g. datetimes) are 
 stored as objects, while seconds, minutes etc.. are stored as floats.  
@@ -991,7 +993,7 @@ dtype would otherwise cause errors, mostly the case when dataframe does
 slicing or indexing.</p>
 <dl class="method">
 <dt id="skspec.core.timeindex.TimeIndex.convert">
-<code class="descname">convert</code><span class="sig-paren">(</span><em>outunit</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/timeindex.html#TimeIndex.convert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.timeindex.TimeIndex.convert" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">convert</tt><big>(</big><em>outunit</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/timeindex.html#TimeIndex.convert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.timeindex.TimeIndex.convert" title="Permalink to this definition">¶</a></dt>
 <dd><p>Converts spectral units (see abcindex.convert()).  Handles special
 case of converting to datetimeindex, since the DateTime unit does
 not have conversions; instead the datetimeindex is stored in this
@@ -1000,7 +1002,7 @@ TimeIndex class and needs to be handled separately.</p>
 
 <dl class="method">
 <dt id="skspec.core.timeindex.TimeIndex.copy">
-<code class="descname">copy</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/timeindex.html#TimeIndex.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.timeindex.TimeIndex.copy" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">copy</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/timeindex.html#TimeIndex.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.timeindex.TimeIndex.copy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Datetimeindex not properly stored when running various copy routines
 either from dataframe.copy or import copy, so manually overriding.</p>
 <p>Args kwargs passed to copy (e.g. deep =True)</p>
@@ -1008,17 +1010,17 @@ either from dataframe.copy or import copy, so manually overriding.</p>
 
 <dl class="attribute">
 <dt id="skspec.core.timeindex.TimeIndex.cumsum">
-<code class="descname">cumsum</code><em class="property"> = True</em><a class="headerlink" href="#skspec.core.timeindex.TimeIndex.cumsum" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">cumsum</tt><em class="property"> = True</em><a class="headerlink" href="#skspec.core.timeindex.TimeIndex.cumsum" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="skspec.core.timeindex.TimeIndex.datetimeindex">
-<code class="descname">datetimeindex</code><a class="headerlink" href="#skspec.core.timeindex.TimeIndex.datetimeindex" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">datetimeindex</tt><a class="reference internal" href="../_modules/skspec/core/timeindex.html#TimeIndex.datetimeindex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.timeindex.TimeIndex.datetimeindex" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="skspec.core.timeindex.TimeIndex.is_all_dates">
-<code class="descname">is_all_dates</code><a class="headerlink" href="#skspec.core.timeindex.TimeIndex.is_all_dates" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">is_all_dates</tt><a class="reference internal" href="../_modules/skspec/core/timeindex.html#TimeIndex.is_all_dates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.timeindex.TimeIndex.is_all_dates" title="Permalink to this definition">¶</a></dt>
 <dd><p>Overwirte this Index method because it&#8217;s source of many issues
 deep in cython level.  Basically, only should be called if python
 objects.  Otherwise, get ValueError:</p>
@@ -1028,19 +1030,19 @@ objects.  Otherwise, get ValueError:</p>
 
 <dl class="attribute">
 <dt id="skspec.core.timeindex.TimeIndex.unitdict">
-<code class="descname">unitdict</code><em class="property"> = {'dti': &lt;skspec.units.intvlunit.DateTime object at 0xb5de40c&gt;, 'd': &lt;skspec.units.intvlunit.Days object at 0xb5de4ec&gt;, 'h': &lt;skspec.units.intvlunit.Hours object at 0xb5de4cc&gt;, 'm': &lt;skspec.units.intvlunit.Minutes object at 0xb5de4ac&gt;, 'us': &lt;skspec.units.intvlunit.Microseconds object at 0xb5de44c&gt;, 's': &lt;skspec.units.intvlunit.Seconds object at 0xb5de48c&gt;, 'ms': &lt;skspec.units.intvlunit.Milliseconds object at 0xb5de46c&gt;, 'intvl': &lt;skspec.units.intvlunit.TimeDelta object at 0xb5de50c&gt;, 'ns': &lt;skspec.units.intvlunit.Nanoseconds object at 0xb5de42c&gt;}</em><a class="headerlink" href="#skspec.core.timeindex.TimeIndex.unitdict" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">unitdict</tt><em class="property"> = {'dti': &lt;skspec.units.intvlunit.DateTime object at 0x550db90&gt;, 'd': &lt;skspec.units.intvlunit.Days object at 0x550dd50&gt;, 'h': &lt;skspec.units.intvlunit.Hours object at 0x550dd10&gt;, 'm': &lt;skspec.units.intvlunit.Minutes object at 0x550dcd0&gt;, 'us': &lt;skspec.units.intvlunit.Microseconds object at 0x550dc10&gt;, 's': &lt;skspec.units.intvlunit.Seconds object at 0x550dc90&gt;, 'ms': &lt;skspec.units.intvlunit.Milliseconds object at 0x550dc50&gt;, 'intvl': &lt;skspec.units.intvlunit.TimeDelta object at 0x550dd90&gt;, 'ns': &lt;skspec.units.intvlunit.Nanoseconds object at 0x550dbd0&gt;}</em><a class="headerlink" href="#skspec.core.timeindex.TimeIndex.unitdict" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 </div>
 <div class="section" id="module-skspec.core.timespectra">
-<span id="timespectra-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">timespectra</span></code> Module<a class="headerlink" href="#module-skspec.core.timespectra" title="Permalink to this headline">¶</a></h2>
+<span id="timespectra-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">timespectra</span></tt> Module<a class="headerlink" href="#module-skspec.core.timespectra" title="Permalink to this headline">¶</a></h2>
 <p>Provides core &#8220;TimeSpectra&#8221; class and associated utilities.</p>
 <dl class="class">
 <dt id="skspec.core.timespectra.TimeSpectra">
-<em class="property">class </em><code class="descclassname">skspec.core.timespectra.</code><code class="descname">TimeSpectra</code><span class="sig-paren">(</span><em>*dfargs</em>, <em>**dfkwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/timespectra.html#TimeSpectra"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.timespectra.TimeSpectra" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#skspec.core.spectra.Spectra" title="skspec.core.spectra.Spectra"><code class="xref py py-class docutils literal"><span class="pre">skspec.core.spectra.Spectra</span></code></a></p>
+<em class="property">class </em><tt class="descclassname">skspec.core.timespectra.</tt><tt class="descname">TimeSpectra</tt><big>(</big><em>*dfargs</em>, <em>**dfkwargs</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/timespectra.html#TimeSpectra"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.timespectra.TimeSpectra" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#skspec.core.spectra.Spectra" title="skspec.core.spectra.Spectra"><tt class="xref py py-class docutils literal"><span class="pre">skspec.core.spectra.Spectra</span></tt></a></p>
 <p>Spectra that enforces a TimeIndex.  TimeIndex converts representations
 between DatetimeIndex and Intervals.</p>
 <dl class="docutils">
@@ -1053,40 +1055,40 @@ trying to parse CSV files; the datetimes are a list of strings and</dd>
 
 </div>
 <div class="section" id="module-skspec.core.utilities">
-<span id="utilities-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">utilities</span></code> Module<a class="headerlink" href="#module-skspec.core.utilities" title="Permalink to this headline">¶</a></h2>
+<span id="utilities-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">utilities</span></tt> Module<a class="headerlink" href="#module-skspec.core.utilities" title="Permalink to this headline">¶</a></h2>
 <p>Various utilities used for manipultating custom spectral dataframe objects.
 Some of these may work for any dataframe, but others require special attributes
 such as &#8220;baseline&#8221; and &#8220;filedict&#8221;.  For serialization operations, import 
 from spec_serial.py</p>
 <dl class="exception">
 <dt id="skspec.core.utilities.UtilsError">
-<em class="property">exception </em><code class="descclassname">skspec.core.utilities.</code><code class="descname">UtilsError</code><a class="reference internal" href="../_modules/skspec/core/utilities.html#UtilsError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.utilities.UtilsError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
+<em class="property">exception </em><tt class="descclassname">skspec.core.utilities.</tt><tt class="descname">UtilsError</tt><a class="reference internal" href="../_modules/skspec/core/utilities.html#UtilsError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.utilities.UtilsError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></a></p>
 </dd></dl>
 
 <dl class="function">
 <dt id="skspec.core.utilities.boxcar">
-<code class="descclassname">skspec.core.utilities.</code><code class="descname">boxcar</code><span class="sig-paren">(</span><em>df</em>, <em>binwidth</em>, <em>axis=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/utilities.html#boxcar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.utilities.boxcar" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">skspec.core.utilities.</tt><tt class="descname">boxcar</tt><big>(</big><em>df</em>, <em>binwidth</em>, <em>axis=0</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/utilities.html#boxcar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.utilities.boxcar" title="Permalink to this definition">¶</a></dt>
 <dd><p>Only works on boxcar for now.  Also, want binwidth and/or binnumber
 to be inputs but not both.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="skspec.core.utilities.countNaN">
-<code class="descclassname">skspec.core.utilities.</code><code class="descname">countNaN</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/utilities.html#countNaN"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.utilities.countNaN" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">skspec.core.utilities.</tt><tt class="descname">countNaN</tt><big>(</big><em>obj</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/utilities.html#countNaN"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.utilities.countNaN" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns counts of nans in an object</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="skspec.core.utilities.digitize_by">
-<code class="descclassname">skspec.core.utilities.</code><code class="descname">digitize_by</code><span class="sig-paren">(</span><em>df</em>, <em>digitized_bins</em>, <em>binarray</em>, <em>axis=0</em>, <em>avg_fcn='mean'</em>, <em>weight_max=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/utilities.html#digitize_by"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.utilities.digitize_by" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">skspec.core.utilities.</tt><tt class="descname">digitize_by</tt><big>(</big><em>df</em>, <em>digitized_bins</em>, <em>binarray</em>, <em>axis=0</em>, <em>avg_fcn='mean'</em>, <em>weight_max=None</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/utilities.html#digitize_by"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.utilities.digitize_by" title="Permalink to this definition">¶</a></dt>
 <dd><p>Takes in an array of digitized bins, and then restructures a dataframe
 based on the bin array</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="skspec.core.utilities.divby">
-<code class="descclassname">skspec.core.utilities.</code><code class="descname">divby</code><span class="sig-paren">(</span><em>df</em>, <em>divisor=0</em>, <em>axis=0</em>, <em>sameshape=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/utilities.html#divby"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.utilities.divby" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">skspec.core.utilities.</tt><tt class="descname">divby</tt><big>(</big><em>df</em>, <em>divisor=0</em>, <em>axis=0</em>, <em>sameshape=True</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/utilities.html#divby"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.utilities.divby" title="Permalink to this definition">¶</a></dt>
 <dd><p>Small wrapper around pandas.divide() that takes in either column integers, names,
 or entire arrays as the divisor.  Note, pandas.divide by default is rowwise, but here
 it defaults to column-wise.</p>
@@ -1110,18 +1112,18 @@ without too much type checking.</div></blockquote>
 
 <dl class="function">
 <dt id="skspec.core.utilities.find_nearest">
-<code class="descclassname">skspec.core.utilities.</code><code class="descname">find_nearest</code><span class="sig-paren">(</span><em>obj</em>, <em>value</em>, <em>arg=False</em>, <em>idx=True</em>, <em>val=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/utilities.html#find_nearest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.utilities.find_nearest" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">skspec.core.utilities.</tt><tt class="descname">find_nearest</tt><big>(</big><em>obj</em>, <em>value</em>, <em>arg=False</em>, <em>idx=True</em>, <em>val=True</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/utilities.html#find_nearest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.utilities.find_nearest" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="skspec.core.utilities.hasgetattr">
-<code class="descclassname">skspec.core.utilities.</code><code class="descname">hasgetattr</code><span class="sig-paren">(</span><em>obj</em>, <em>attr</em>, <em>default=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/utilities.html#hasgetattr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.utilities.hasgetattr" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">skspec.core.utilities.</tt><tt class="descname">hasgetattr</tt><big>(</big><em>obj</em>, <em>attr</em>, <em>default=None</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/utilities.html#hasgetattr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.utilities.hasgetattr" title="Permalink to this definition">¶</a></dt>
 <dd><p>Combines hasattr/getattr to return a default if hasattr fail.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="skspec.core.utilities.maxmin_xy">
-<code class="descclassname">skspec.core.utilities.</code><code class="descname">maxmin_xy</code><span class="sig-paren">(</span><em>obj</em>, <em>style='max'</em>, <em>arg=False</em>, <em>idx=True</em>, <em>val=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/utilities.html#maxmin_xy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.utilities.maxmin_xy" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">skspec.core.utilities.</tt><tt class="descname">maxmin_xy</tt><big>(</big><em>obj</em>, <em>style='max'</em>, <em>arg=False</em>, <em>idx=True</em>, <em>val=True</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/utilities.html#maxmin_xy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.utilities.maxmin_xy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return arg (eg integer index position), index val, and object val
 at the data maximum.  Works on series or dataframes.</p>
 <blockquote>
@@ -1134,7 +1136,7 @@ val: Return the data val at this point.</div></blockquote>
 
 <dl class="function">
 <dt id="skspec.core.utilities.rebin">
-<code class="descclassname">skspec.core.utilities.</code><code class="descname">rebin</code><span class="sig-paren">(</span><em>df</em>, <em>binwidth</em>, <em>axis=0</em>, <em>avg_fcn='weighted'</em>, <em>weight_max=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/utilities.html#rebin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.utilities.rebin" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">skspec.core.utilities.</tt><tt class="descname">rebin</tt><big>(</big><em>df</em>, <em>binwidth</em>, <em>axis=0</em>, <em>avg_fcn='weighted'</em>, <em>weight_max=None</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/utilities.html#rebin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.utilities.rebin" title="Permalink to this definition">¶</a></dt>
 <dd><p>Pass in an array, this slices and averages it along some spacing increment (bins).
 Axis=0 means averages are computed along row.  axis=1 means averages are computed along column.
 Dataframe already handles most issues, such as if binning in unequal and/or binning is larger than 
@@ -1154,14 +1156,14 @@ This is not the statistical normaization, which should be added later (X-u / sig
 
 <dl class="function">
 <dt id="skspec.core.utilities.safe_lookup">
-<code class="descclassname">skspec.core.utilities.</code><code class="descname">safe_lookup</code><span class="sig-paren">(</span><em>obj</em>, <em>attr</em>, <em>missing='??'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/utilities.html#safe_lookup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.utilities.safe_lookup" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">skspec.core.utilities.</tt><tt class="descname">safe_lookup</tt><big>(</big><em>obj</em>, <em>attr</em>, <em>missing='??'</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/utilities.html#safe_lookup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.utilities.safe_lookup" title="Permalink to this definition">¶</a></dt>
 <dd><p>Look up attribute on object.  If not found, or set to None,
 will return a missing value defaulting to pvconfig.MISSING.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="skspec.core.utilities.split_by">
-<code class="descclassname">skspec.core.utilities.</code><code class="descname">split_by</code><span class="sig-paren">(</span><em>df</em>, <em>n</em>, <em>axis=1</em>, <em>astype=&lt;type 'list'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/skspec/core/utilities.html#split_by"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.utilities.split_by" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">skspec.core.utilities.</tt><tt class="descname">split_by</tt><big>(</big><em>df</em>, <em>n</em>, <em>axis=1</em>, <em>astype=&lt;type 'list'&gt;</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/utilities.html#split_by"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.utilities.split_by" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a list of dataframes sampled by n.  For example, a datframe
 of 20 columns, sampled by n=4, will return 5 evenly spaced dataframes.
 If uneven samples, will raise warning.  axis=1 for column sampling, axis=0
@@ -1178,24 +1180,30 @@ for row sampling.</p>
         </div>
         <div class="sidebar">
           <h3>Table Of Contents</h3>
-          <ul>
-<li class="toctree-l1"><a class="reference internal" href="skspec.html">API</a></li>
+          <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="APIMAIN.html">API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="APIMAIN.html#primary-structures-spectrum-spectra-specstack">Primary Structures: Spectrum, Spectra, SpecStack</a></li>
+<li class="toctree-l2"><a class="reference internal" href="APIMAIN.html#index-objects">Index Objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="APIMAIN.html#builtin-datasets">Builtin Datasets</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="APIMAIN.html#full-modules-documentation-messy">Full Modules Documentation (messy)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../support.html">Support</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials.html">Tutorials</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../about.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about.html">History and Background</a></li>
 </ul>
 
-          <div role="search">
-            <h3 style="margin-top: 1.5em;">Search</h3>
-            <form class="search" action="../search.html" method="get">
-                <input type="text" name="q" />
-                <input type="submit" value="Go" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-            </form>
-            <p class="searchtip" style="font-size: 90%">
-                Enter search terms or a module, class or function name.
-            </p>
-          </div>
+          <h3 style="margin-top: 1.5em;">Search</h3>
+          <form class="search" action="../search.html" method="get">
+            <input type="text" name="q" />
+            <input type="submit" value="Go" />
+            <input type="hidden" name="check_keywords" value="yes" />
+            <input type="hidden" name="area" value="default" />
+          </form>
+          <p class="searchtip" style="font-size: 90%">
+            Enter search terms or a module, class or function name.
+          </p>
         </div>
         <div class="clearer"></div>
       </div>
@@ -1204,28 +1212,24 @@ for row sampling.</p>
     <div class="footer-wrapper">
       <div class="footer">
         <div class="left">
-          <div role="navigation" aria-label="related navigaton">
-            <a href="skspec.chaco_interface.html" title="chaco_interface Package"
-              >previous</a> |
-            <a href="skspec.correlation.html" title="correlation Package"
-              >next</a> |
-            <a href="../py-modindex.html" title="Python Module Index"
-              >modules</a> |
-            <a href="../genindex.html" title="General Index"
-              >index</a>
-          </div>
-          <div role="note" aria-label="source link">
-              <br/>
-              <a href="../_sources/API/skspec.core.txt"
-                rel="nofollow">Show Source</a>
-          </div>
+          <a href="skspec.chaco_interface.html" title="chaco_interface Package"
+             >previous</a> |
+          <a href="skspec.correlation.html" title="correlation Package"
+             >next</a> |
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../genindex.html" title="General Index"
+             >index</a>
+            <br/>
+            <a href="../_sources/API/skspec.core.txt"
+               rel="nofollow">Show Source</a>
         </div>
 
         <div class="right">
           
-    <div class="footer" role="contentinfo">
+    <div class="footer">
         &copy; Copyright 2014, Adam Hughes, ReevesLab Dept. Physics, George Washington University.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3b2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
         </div>
         <div class="clearer"></div>

@@ -50,8 +50,8 @@ SpecStack
 Index Objects
 -------------
 
-All Modules
------------
+Full Modules Documentation (messy)
+==================================
 
 .. toctree::
     skspec.config

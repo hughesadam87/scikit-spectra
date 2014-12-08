@@ -1,0 +1,195 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>skspec.bundled.nbstyles &mdash; scikit-spectra 0.3.1-2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.3.1-2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../../../about.html" />
+    <link rel="top" title="scikit-spectra 0.3.1-2 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="header-wrapper">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../../../index.html">scikit-spectra 0.3.1-2 documentation</a></div>
+        <div class="rel">
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+
+<a href="https://github.com/hugadams/scikit-spectra"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"></a>
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../../../index.html"><img src="../../../_static/new_logo.png" border="100" alt="sampledoc"/></a>
+</div>
+
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for skspec.bundled.nbstyles</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot; Define various notebook styles that may be launched easily in-line in an </span>
+<span class="sd">active notebook.  Same IO API as pyparty.data&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os.path</span> <span class="kn">as</span> <span class="nn">op</span>
+<span class="kn">from</span> <span class="nn">skspec</span> <span class="kn">import</span> <span class="n">bundled_dir</span>
+<span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">display</span><span class="p">,</span> <span class="n">HTML</span>
+
+<span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">((</span><span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">bundled_dir</span><span class="p">,</span> <span class="n">path</span><span class="p">)),</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+<div class="viewcode-block" id="gwu"><a class="viewcode-back" href="../../../API/skspec.bundled.html#skspec.bundled.nbstyles.gwu">[docs]</a><span class="k">def</span> <span class="nf">gwu</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; Ivory background; Computer Modern Roman for text &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">load</span><span class="p">(</span><span class="s">&#39;gwu.css&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="plain"><a class="viewcode-back" href="../../../API/skspec.bundled.html#skspec.bundled.nbstyles.plain">[docs]</a><span class="k">def</span> <span class="nf">plain</span><span class="p">():</span>
+    <span class="k">return</span> <span class="s">&#39;&#39;</span>
+
+</div>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">{</span>
+           <span class="s">&#39;gwu&#39;</span><span class="p">:</span> <span class="n">gwu</span><span class="p">(),</span>
+           <span class="s">&#39;plain&#39;</span> <span class="p">:</span> <span class="n">plain</span><span class="p">()</span>
+           <span class="p">}</span>
+
+<span class="c"># In-line function called in the notebook to update the style.  This is the</span>
+<span class="c"># work of Brian Granger; all credit to him for this and his help in general</span>
+<span class="c"># discussions of notebooks styling.</span>
+<span class="c"># https://github.com/ellisonbg/talk-cplug2013/blob/master/load_style.py</span>
+<span class="k">def</span> <span class="nf">load_style</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">loghide</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Load a CSS stylesheet in the notebook either by builtin styles, or</span>
+<span class="sd">    from a file, or from a URL.</span>
+
+<span class="sd">    Examples::</span>
+<span class="sd">        %load_style </span>
+<span class="sd">        %load_style mystyle.css</span>
+<span class="sd">        %load_style http://ipynbstyles.com/otherstyle.css</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">__all__</span><span class="p">:</span>
+        <span class="n">style</span> <span class="o">=</span> <span class="n">__all__</span><span class="p">[</span><span class="n">s</span><span class="p">]</span>
+    
+    <span class="k">elif</span> <span class="n">s</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;http&#39;</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">requests</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s">&#39;Failed to import python &quot;requests&quot; library;&#39;</span>
+                              <span class="s">&#39;please install to use load_style(url)&#39;</span><span class="p">)</span>
+        <span class="n">r</span> <span class="o">=</span><span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="n">style</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">style</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s">&#39;Failed to load style as a url, file or builtin type.&#39;</span>
+               <span class="s">&#39; Valid builtins are &quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="s">&#39;&quot;,&quot;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">__all__</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="p">))</span>
+
+    <span class="n">out</span> <span class="o">=</span> <span class="s">&#39;&lt;style&gt;</span><span class="se">\n</span><span class="s">{style}</span><span class="se">\n</span><span class="s">&lt;/style&gt;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">figsize</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">figsize</span> <span class="o">==</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="n">figsize</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span> <span class="mf">5.5</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">fx</span><span class="p">,</span> <span class="n">fy</span> <span class="o">=</span> <span class="n">figsize</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="n">fx</span><span class="p">,</span> <span class="n">fy</span> <span class="o">=</span> <span class="n">figsize</span><span class="p">,</span> <span class="n">figsize</span>
+            
+        <span class="n">fstring</span> <span class="o">=</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">input:pylab.rcParams[&#39;figure.figsize&#39;] = </span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> \
+            <span class="o">%</span> <span class="p">(</span><span class="n">fx</span><span class="p">,</span><span class="n">fy</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">+=</span> <span class="n">fstring</span>
+
+    <span class="n">display</span><span class="p">(</span><span class="n">HTML</span><span class="p">(</span><span class="n">out</span><span class="p">))</span>
+    
+    <span class="k">if</span> <span class="n">loghide</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">warnings</span> <span class="c">#supress non-skspec log msgs</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s">&#39;ignore&#39;</span><span class="p">)</span>             
+    
+<span class="k">def</span> <span class="nf">load_ipython_extension</span><span class="p">(</span><span class="n">ip</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Load the extension in IPython.&quot;&quot;&quot;</span>
+    <span class="n">ip</span><span class="o">.</span><span class="n">register_magic_function</span><span class="p">(</span><span class="n">load_style</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../API/APIMAIN.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../support.html">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../about.html">History and Background</a></li>
+</ul>
+
+          <h3 style="margin-top: 1.5em;">Search</h3>
+          <form class="search" action="../../../search.html" method="get">
+            <input type="text" name="q" />
+            <input type="submit" value="Go" />
+            <input type="hidden" name="check_keywords" value="yes" />
+            <input type="hidden" name="area" value="default" />
+          </form>
+          <p class="searchtip" style="font-size: 90%">
+            Enter search terms or a module, class or function name.
+          </p>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../../../genindex.html" title="General Index"
+             >index</a>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer">
+        &copy; Copyright 2014, Adam Hughes, ReevesLab Dept. Physics, George Washington University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

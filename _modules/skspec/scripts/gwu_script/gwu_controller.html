@@ -23,17 +23,17 @@
     <script type="text/javascript" src="../../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="author" title="About these documents" href="../../../../about.html" />
     <link rel="top" title="scikit-spectra 0.3.1-2 documentation" href="../../../../index.html" />
     <link rel="up" title="Module code" href="../../../index.html" /> 
   </head>
-  <body role="document">
-    <div class="header-wrapper" role="banner">
+  <body>
+    <div class="header-wrapper">
       <div class="header">
         <div class="headertitle"><a
           href="../../../../index.html">scikit-spectra 0.3.1-2 documentation</a></div>
-        <div class="rel" role="navigation" aria-label="related navigation">
+        <div class="rel">
           <a href="../../../../py-modindex.html" title="Python Module Index"
              >modules</a> |
           <a href="../../../../genindex.html" title="General Index"
@@ -42,6 +42,8 @@
        </div>
     </div>
 
+
+<a href="https://github.com/hugadams/scikit-spectra"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"></a>
 
 <div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
 <a href="../../../../index.html"><img src="../../../../_static/new_logo.png" border="100" alt="sampledoc"/></a>
@@ -54,7 +56,7 @@
             
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body" role="main">
+          <div class="body">
             
   <h1>Source code for skspec.scripts.gwu_script.gwu_controller</h1><div class="highlight"><pre>
 <span class="sd">&quot;&quot;&quot; GWU in-house script for dataanalysis of fiberoptic probe data.&quot;&quot;&quot;</span>
@@ -286,7 +288,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span>
 
     <span class="nd">@analysis.setter</span>
-    <span class="k">def</span> <span class="nf">analysis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+<div class="viewcode-block" id="Controller.analysis"><a class="viewcode-back" href="../../../../API/skspec.scripts.gwu_script.html#skspec.scripts.gwu_script.gwu_controller.Controller.analysis">[docs]</a>    <span class="k">def</span> <span class="nf">analysis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Values must be an iterable. &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">values</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span> <span class="o">=</span> <span class="n">ANAL_DEFAULT</span>
@@ -305,12 +307,12 @@
                     <span class="s">&#39;</span><span class="si">%s</span><span class="s">.  Choices are </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">invalid</span><span class="p">,</span> <span class="n">ALL_ANAL</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span> <span class="o">=</span> <span class="n">values</span>
             
-                
+                </div>
     <span class="nd">@inroot.setter</span>
-    <span class="k">def</span> <span class="nf">inroot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<div class="viewcode-block" id="Controller.inroot"><a class="viewcode-back" href="../../../../API/skspec.scripts.gwu_script.html#skspec.scripts.gwu_script.gwu_controller.Controller.inroot">[docs]</a>    <span class="k">def</span> <span class="nf">inroot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Ensure inpath exists before setting&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_inroot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_valid_inpath</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-
+</div>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">inpath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inpath</span><span class="p">:</span>
@@ -319,12 +321,12 @@
 
     
     <span class="nd">@inpath.setter</span>
-    <span class="k">def</span> <span class="nf">inpath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<div class="viewcode-block" id="Controller.inpath"><a class="viewcode-back" href="../../../../API/skspec.scripts.gwu_script.html#skspec.scripts.gwu_script.gwu_controller.Controller.inpath">[docs]</a>    <span class="k">def</span> <span class="nf">inpath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Ensure inpath exists before setting&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_inpath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_valid_inpath</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>        
         
         
-        
+        </div>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">outroot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outroot</span><span class="p">:</span>
@@ -333,13 +335,13 @@
         
 
     <span class="nd">@outroot.setter</span>
-    <span class="k">def</span> <span class="nf">outroot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<div class="viewcode-block" id="Controller.outroot"><a class="viewcode-back" href="../../../../API/skspec.scripts.gwu_script.html#skspec.scripts.gwu_script.gwu_controller.Controller.outroot">[docs]</a>    <span class="k">def</span> <span class="nf">outroot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_outroot</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_outroot</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
             
- 
+ </div>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">outpath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outpath</span><span class="p">:</span>
@@ -348,25 +350,25 @@
         
 
     <span class="nd">@outpath.setter</span>
-    <span class="k">def</span> <span class="nf">outpath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<div class="viewcode-block" id="Controller.outpath"><a class="viewcode-back" href="../../../../API/skspec.scripts.gwu_script.html#skspec.scripts.gwu_script.gwu_controller.Controller.outpath">[docs]</a>    <span class="k">def</span> <span class="nf">outpath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_outpath</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_outpath</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>           
             
-        
+        </div>
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">infolder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Controller.infolder"><a class="viewcode-back" href="../../../../API/skspec.scripts.gwu_script.html#skspec.scripts.gwu_script.gwu_controller.Controller.infolder">[docs]</a>    <span class="k">def</span> <span class="nf">infolder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">op</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inpath</span><span class="p">)</span>
 
-
+</div>
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">outfolder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Controller.outfolder"><a class="viewcode-back" href="../../../../API/skspec.scripts.gwu_script.html#skspec.scripts.gwu_script.gwu_controller.Controller.outfolder">[docs]</a>    <span class="k">def</span> <span class="nf">outfolder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">outpath</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s">&#39;outfolder not found - outpath not set!&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">op</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outpath</span><span class="p">)</span>
 
-
+</div>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">:</span>
@@ -375,7 +377,7 @@
     
     
     <span class="nd">@params.setter</span>
-    <span class="k">def</span> <span class="nf">params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+<div class="viewcode-block" id="Controller.params"><a class="viewcode-back" href="../../../../API/skspec.scripts.gwu_script.html#skspec.scripts.gwu_script.gwu_controller.Controller.params">[docs]</a>    <span class="k">def</span> <span class="nf">params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Can be None, a dict, or an instance of Parameters. &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">params</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_params</span> <span class="o">=</span> <span class="n">params</span>
@@ -392,8 +394,8 @@
                        <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">params</span><span class="p">))</span>
             
         
-            
-    <span class="k">def</span> <span class="nf">start_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            </div>
+<div class="viewcode-block" id="Controller.start_run"><a class="viewcode-back" href="../../../../API/skspec.scripts.gwu_script.html#skspec.scripts.gwu_script.gwu_controller.Controller.start_run">[docs]</a>    <span class="k">def</span> <span class="nf">start_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Analyzes the root directory.  If sweep mode, subdirectories</span>
 <span class="sd">            will be analyzed as well.&quot;&quot;&quot;</span>
         
@@ -429,8 +431,8 @@
 
 
 
-
-    <span class="k">def</span> <span class="nf">save_csv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ts</span><span class="p">,</span> <span class="n">csv_path</span><span class="p">,</span> <span class="n">meta_separate</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="Controller.save_csv"><a class="viewcode-back" href="../../../../API/skspec.scripts.gwu_script.html#skspec.scripts.gwu_script.gwu_controller.Controller.save_csv">[docs]</a>    <span class="k">def</span> <span class="nf">save_csv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ts</span><span class="p">,</span> <span class="n">csv_path</span><span class="p">,</span> <span class="n">meta_separate</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Save timespectra to self.infolder (boilerplate reduction).  Saves</span>
 <span class="sd">        csv, pickle and metadata.  This is called at least twice, once for </span>
 <span class="sd">        full unadalterated data, once for baseline/cropped data. &quot;&quot;&quot;</span>
@@ -440,8 +442,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_csv_paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">csv_path</span><span class="p">)</span>
         
         
-        
-    <span class="k">def</span> <span class="nf">make_matlab</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outpath</span><span class="p">):</span>
+        </div>
+<div class="viewcode-block" id="Controller.make_matlab"><a class="viewcode-back" href="../../../../API/skspec.scripts.gwu_script.html#skspec.scripts.gwu_script.gwu_controller.Controller.make_matlab">[docs]</a>    <span class="k">def</span> <span class="nf">make_matlab</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outpath</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Fills simple.m template from mlab_templates with outpath, using</span>
 <span class="sd">            self._csv_paths.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">op</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">outpath</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;.m&#39;</span><span class="p">:</span>
@@ -463,8 +465,8 @@
         <span class="n">mfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span> <span class="n">SIMPLE_M</span> <span class="o">%</span> <span class="n">m_dic</span> <span class="p">)</span>                        
         <span class="n">mfile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>        
         
-
-    <span class="k">def</span> <span class="nf">main_walk</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="Controller.main_walk"><a class="viewcode-back" href="../../../../API/skspec.scripts.gwu_script.html#skspec.scripts.gwu_script.gwu_controller.Controller.main_walk">[docs]</a>    <span class="k">def</span> <span class="nf">main_walk</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Walks all the subdirectories of self.inroot; runs analyze_dir()&quot;&quot;&quot;</span>
         
         <span class="n">walker</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inroot</span><span class="p">,</span> <span class="n">topdown</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">onerror</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">followlinks</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
@@ -509,8 +511,8 @@
                     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Reached end of directory tree.&#39;</span><span class="p">)</span>
                     <span class="k">break</span>
 
-
-    <span class="k">def</span> <span class="nf">analyze_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="Controller.analyze_dir"><a class="viewcode-back" href="../../../../API/skspec.scripts.gwu_script.html#skspec.scripts.gwu_script.gwu_controller.Controller.analyze_dir">[docs]</a>    <span class="k">def</span> <span class="nf">analyze_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Wraps loging to self._analyze_dir &quot;&quot;&quot;</span>
         
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;inpath is: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inpath</span><span class="p">)</span>
@@ -524,8 +526,8 @@
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;SUCCESS: &quot;</span><span class="si">%s</span><span class="s">&quot; data analysis complete&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">infolder</span><span class="p">)</span>       
             <span class="bp">self</span><span class="o">.</span><span class="n">section_report</span><span class="p">()</span>
                         
-
-    <span class="k">def</span> <span class="nf">section_report</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="Controller.section_report"><a class="viewcode-back" href="../../../../API/skspec.scripts.gwu_script.html#skspec.scripts.gwu_script.gwu_controller.Controller.section_report">[docs]</a>    <span class="k">def</span> <span class="nf">section_report</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Writes a section report for the current inpath.</span>
 <span class="sd">            These are tracked via the treefile, for compatability</span>
 <span class="sd">            with specreport.py&quot;&quot;&quot;</span>
@@ -559,7 +561,7 @@
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Adding </span><span class="si">%s</span><span class="s"> to tree dic.&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">infolder</span> <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_treedic</span><span class="p">[</span><span class="n">latex_string</span><span class="p">(</span><span class="n">secname</span><span class="p">)]</span> <span class="o">=</span> <span class="n">report_path</span>
 
-
+</div>
     <span class="k">def</span> <span class="nf">_analyze_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Analyze a single directory, creates timespectra; performs analysis.</span>
 <span class="sd">            Very much the main method in the whole class.&quot;&quot;&quot;</span>
@@ -733,7 +735,7 @@
                           
             
 
-    <span class="k">def</span> <span class="nf">apply_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ts</span><span class="p">):</span>
+<div class="viewcode-block" id="Controller.apply_parameters"><a class="viewcode-back" href="../../../../API/skspec.scripts.gwu_script.html#skspec.scripts.gwu_script.gwu_controller.Controller.apply_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">apply_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ts</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Performs several timespectr manipulations such as slicing, baseline </span>
 <span class="sd">            subtraction etc..  similar to self.validate_ts(), but is performed</span>
 <span class="sd">            after the full timespectra object has been changed. &quot;&quot;&quot;</span>
@@ -785,8 +787,8 @@
         <span class="n">ts</span><span class="o">.</span><span class="n">reference</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">reference</span>
                         
         <span class="k">return</span> <span class="n">ts</span>    
-
-    <span class="k">def</span> <span class="nf">build_outroot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="Controller.build_outroot"><a class="viewcode-back" href="../../../../API/skspec.scripts.gwu_script.html#skspec.scripts.gwu_script.gwu_controller.Controller.build_outroot">[docs]</a>    <span class="k">def</span> <span class="nf">build_outroot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">outroot</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">inroot</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">ParameterError</span><span class="p">(</span><span class="s">&#39;Inroot and outroot cannot be the same! &#39;</span>
                 <span class="s">&#39;Input data would be lost...&#39;</span><span class="p">)</span>
@@ -799,8 +801,8 @@
                 <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outroot</span><span class="p">)</span>
         <span class="n">logmkdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outroot</span><span class="p">)</span>
 
-        
-    <span class="k">def</span> <span class="nf">validate_ts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ts</span><span class="p">):</span>
+        </div>
+<div class="viewcode-block" id="Controller.validate_ts"><a class="viewcode-back" href="../../../../API/skspec.scripts.gwu_script.html#skspec.scripts.gwu_script.gwu_controller.Controller.validate_ts">[docs]</a>    <span class="k">def</span> <span class="nf">validate_ts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ts</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Tries to catch errors in index, as well as sets some defaults.  &quot;&quot;&quot;</span> 
         
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Testing spectral index bounds against parameters min/max&#39;</span><span class="p">)</span>
@@ -820,8 +822,8 @@
                     <span class="s">&#39; Cannot proceed with analysis.&#39;</span> <span class="o">%</span> <span class="n">ts</span><span class="o">.</span><span class="n">full_name</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">ts</span>
 
-
-    <span class="k">def</span> <span class="nf">build_timespectra</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="Controller.build_timespectra"><a class="viewcode-back" href="../../../../API/skspec.scripts.gwu_script.html#skspec.scripts.gwu_script.gwu_controller.Controller.build_timespectra">[docs]</a>    <span class="k">def</span> <span class="nf">build_timespectra</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Attempts to build timespectra form picklefile, legacy and finally</span>
 <span class="sd">            from the raw datafiles.&quot;&quot;&quot;</span>
                 
@@ -853,7 +855,7 @@
             <span class="s">&#39; from_spec_files()&#39;</span><span class="p">)</span>
             <span class="k">raise</span>
         
-        
+        </div>
     <span class="k">def</span> <span class="nf">_ts_from_legacy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">infiles</span><span class="p">):</span>
         
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">infiles</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
@@ -897,7 +899,7 @@
                        <span class="s">&#39;file, </span><span class="si">%s</span><span class="s">.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">op</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">picklefile</span><span class="p">)))</span>            
             <span class="k">return</span> <span class="n">mload</span><span class="p">(</span><span class="n">picklefile</span><span class="p">)</span>     
  
-    <span class="k">def</span> <span class="nf">plots_1d</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ts</span><span class="p">,</span> <span class="n">outpath</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="Controller.plots_1d"><a class="viewcode-back" href="../../../../API/skspec.scripts.gwu_script.html#skspec.scripts.gwu_script.gwu_controller.Controller.plots_1d">[docs]</a>    <span class="k">def</span> <span class="nf">plots_1d</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ts</span><span class="p">,</span> <span class="n">outpath</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Plots several 1D plots.  User passes in ts w/ proper norm.</span>
 <span class="sd">            outpath: filepath (str)</span>
 <span class="sd">            prefix: str</span>
@@ -986,8 +988,8 @@
         <span class="n">range_timeplot</span><span class="p">(</span><span class="n">tssliced</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s">&#39;Average Intensity&#39;</span><span class="p">,</span> <span class="n">xlabel</span> <span class="o">=</span> 
                        <span class="s">&#39;Time (&#39;</span><span class="o">+</span><span class="n">ts</span><span class="o">.</span><span class="n">varunit</span><span class="o">+</span><span class="s">&#39;)&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">sizeargs</span> <span class="p">)</span> <span class="c">#legstyle =1 for upper left</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">plt_clrsave</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outpath</span><span class="p">,</span> <span class="n">prefix</span> <span class="o">+</span><span class="s">&#39;_strip&#39;</span><span class="p">))</span>        
-        
-    <span class="k">def</span> <span class="nf">area_thirds_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ts</span><span class="p">):</span>
+        </div>
+<div class="viewcode-block" id="Controller.area_thirds_plot"><a class="viewcode-back" href="../../../../API/skspec.scripts.gwu_script.html#skspec.scripts.gwu_script.gwu_controller.Controller.area_thirds_plot">[docs]</a>    <span class="k">def</span> <span class="nf">area_thirds_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ts</span><span class="p">):</span>
         <span class="c"># Special areaplot of normalized raw area in thirds</span>
         <span class="c"># Should work on USB650, but untested.  Slices data into thirds to </span>
         <span class="c"># find limits, so should be independent.</span>
@@ -1017,8 +1019,8 @@
                     <span class="n">ncol</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> 
                     <span class="n">fontsize</span><span class="o">=</span><span class="s">&#39;10&#39;</span><span class="p">)</span>        
 
-        
-    <span class="k">def</span> <span class="nf">corr_analysis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ts</span><span class="p">,</span> <span class="n">outpath</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+        </div>
+<div class="viewcode-block" id="Controller.corr_analysis"><a class="viewcode-back" href="../../../../API/skspec.scripts.gwu_script.html#skspec.scripts.gwu_script.gwu_controller.Controller.corr_analysis">[docs]</a>    <span class="k">def</span> <span class="nf">corr_analysis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ts</span><span class="p">,</span> <span class="n">outpath</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
         
         <span class="c"># Make a 2dCorrAnal Directory</span>
         <span class="n">corr_out</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outpath</span><span class="p">,</span> <span class="s">&#39;2dCorrAnal&#39;</span><span class="p">)</span>
@@ -1033,15 +1035,15 @@
                  <span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">ts</span><span class="p">),</span> <span class="mi">1</span><span class="p">),</span> <span class="nb">round</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">ts</span><span class="p">),</span><span class="mi">1</span><span class="p">),</span> <span class="n">ts</span><span class="o">.</span><span class="n">full_varunit</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">plt_clrsave</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">corr_out</span><span class="p">,</span> <span class="n">prefix</span> <span class="o">+</span><span class="s">&#39;_async&#39;</span><span class="p">))</span>        
 
-        
-    <span class="k">def</span> <span class="nf">plots_2d</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ts</span><span class="p">,</span> <span class="n">outpath</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+        </div>
+<div class="viewcode-block" id="Controller.plots_2d"><a class="viewcode-back" href="../../../../API/skspec.scripts.gwu_script.html#skspec.scripts.gwu_script.gwu_controller.Controller.plots_2d">[docs]</a>    <span class="k">def</span> <span class="nf">plots_2d</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ts</span><span class="p">,</span> <span class="n">outpath</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
         
         <span class="n">plot2d</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s">&#39;Full Contour&#39;</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s">&#39;autumn&#39;</span><span class="p">,</span> <span class="n">contours</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                <span class="n">colorbar</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">background</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">plt_clrsave</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outpath</span><span class="p">,</span> <span class="n">prefix</span> <span class="o">+</span><span class="s">&#39;_contour&#39;</span><span class="p">))</span>    
         
-        
-    <span class="k">def</span> <span class="nf">plots_3d</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ts</span><span class="p">,</span> <span class="n">outpath</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+        </div>
+<div class="viewcode-block" id="Controller.plots_3d"><a class="viewcode-back" href="../../../../API/skspec.scripts.gwu_script.html#skspec.scripts.gwu_script.gwu_controller.Controller.plots_3d">[docs]</a>    <span class="k">def</span> <span class="nf">plots_3d</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ts</span><span class="p">,</span> <span class="n">outpath</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
         <span class="n">c_iso</span> <span class="o">=</span> <span class="mi">10</span> <span class="p">;</span> <span class="n">r_iso</span><span class="o">=</span><span class="mi">10</span>
         <span class="n">kinds</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;contourf&#39;</span><span class="p">,</span> <span class="s">&#39;contour&#39;</span><span class="p">]</span>
         <span class="n">views</span> <span class="o">=</span> <span class="p">(</span> <span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="o">-</span><span class="mi">21</span><span class="p">),</span> <span class="p">(</span><span class="mi">28</span><span class="p">,</span> <span class="mi">17</span><span class="p">),</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="o">-</span><span class="mi">13</span><span class="p">),</span> <span class="p">(</span><span class="mi">48</span><span class="p">,</span> <span class="o">-</span><span class="mi">14</span><span class="p">),</span> <span class="p">(</span><span class="mi">14</span><span class="p">,</span><span class="o">-</span><span class="mi">155</span><span class="p">)</span> <span class="p">)</span>  <span class="c">#elev, aziumuth</span>
@@ -1056,12 +1058,12 @@
                               <span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">plt_clrsave</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">out3d</span><span class="p">,</span> <span class="n">prefix</span> <span class="o">+</span> <span class="s">&#39;elev:azi_</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span>
                                          <span class="p">(</span><span class="n">view</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">view</span><span class="p">[</span><span class="mi">1</span><span class="p">])))</span>         
-   
-    <span class="k">def</span> <span class="nf">plt_clrsave</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outpath</span><span class="p">):</span>
+   </div>
+<div class="viewcode-block" id="Controller.plt_clrsave"><a class="viewcode-back" href="../../../../API/skspec.scripts.gwu_script.html#skspec.scripts.gwu_script.gwu_controller.Controller.plt_clrsave">[docs]</a>    <span class="k">def</span> <span class="nf">plt_clrsave</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outpath</span><span class="p">):</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Saving plot: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">outpath</span><span class="p">)</span>                
         <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">outpath</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_plot_dpi</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>       
-
+</div>
     <span class="nd">@classmethod</span>
 <div class="viewcode-block" id="Controller.from_namespace"><a class="viewcode-back" href="../../../../API/skspec.scripts.gwu_script.html#skspec.scripts.gwu_script.gwu_controller.Controller.from_namespace">[docs]</a>    <span class="k">def</span> <span class="nf">from_namespace</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Create Controller from argparse-generated namespace. &quot;&quot;&quot;</span>
@@ -1186,23 +1188,23 @@
         <div class="sidebar">
           <h3>Table Of Contents</h3>
           <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../API/skspec.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../API/APIMAIN.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../support.html">Support</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../tutorials.html">Tutorials</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../about.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../about.html">History and Background</a></li>
 </ul>
 
-          <div role="search">
-            <h3 style="margin-top: 1.5em;">Search</h3>
-            <form class="search" action="../../../../search.html" method="get">
-                <input type="text" name="q" />
-                <input type="submit" value="Go" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-            </form>
-            <p class="searchtip" style="font-size: 90%">
-                Enter search terms or a module, class or function name.
-            </p>
-          </div>
+          <h3 style="margin-top: 1.5em;">Search</h3>
+          <form class="search" action="../../../../search.html" method="get">
+            <input type="text" name="q" />
+            <input type="submit" value="Go" />
+            <input type="hidden" name="check_keywords" value="yes" />
+            <input type="hidden" name="area" value="default" />
+          </form>
+          <p class="searchtip" style="font-size: 90%">
+            Enter search terms or a module, class or function name.
+          </p>
         </div>
         <div class="clearer"></div>
       </div>
@@ -1211,21 +1213,17 @@
     <div class="footer-wrapper">
       <div class="footer">
         <div class="left">
-          <div role="navigation" aria-label="related navigaton">
-            <a href="../../../../py-modindex.html" title="Python Module Index"
-              >modules</a> |
-            <a href="../../../../genindex.html" title="General Index"
-              >index</a>
-          </div>
-          <div role="note" aria-label="source link">
-          </div>
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a>
         </div>
 
         <div class="right">
           
-    <div class="footer" role="contentinfo">
+    <div class="footer">
         &copy; Copyright 2014, Adam Hughes, ReevesLab Dept. Physics, George Washington University.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3b2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
         </div>
         <div class="clearer"></div>

@@ -1,19 +1,23 @@
 Tutorials
 =========
 
+
+IPython Notebooks
+-----------------
+
 The current documentation (and in-a-pinch test suite) is a series of example notebooks 
-(`iPython Notebook`_), which cover most of the basics. These have been linked below:
+(`IPython Notebook`_), which cover most of the basics. These have been linked below:
 
-   .. _`iPython Notebook`: http://ipython.org/notebook.html?utm_content=buffer83c2c&utm_source=buffer&utm_medium=twitter&utm_campaign=Buffer
+   .. _`IPython Notebook`: http://ipython.org/notebook.html?utm_content=buffer83c2c&utm_source=buffer&utm_medium=twitter&utm_campaign=Buffer
 
-Getting Started:
-~~~~~~~~~~~~~~~~
+Getting Started
+~~~~~~~~~~~~~~~
    - `TimeSpectra tutorial (part 1)`_
    - `TimeSpectra tutorial (part 2)`_
    - `Sampling and Selecting Data`_
 
-PLOTTING:
-~~~~~~~~~
+Plotting
+~~~~~~~~
    - `Intro to Plotting`_
    - `Intro to 2D and 3D Plots`_
    - `Interactive Plots with Plotly`_
@@ -23,8 +27,8 @@ PLOTTING:
 
    .. _`pandas itself has a rich plotting api` : http://pandas.pydata.org/pandas-docs/version/0.15.0/visualization.html#visualization-scatter
 
-IO AND DATASETS:
-~~~~~~~~~~~~~~~~
+IO and Datasets
+~~~~~~~~~~~~~~~
    - `Bundled Datasets`_
    - `IO: Importing and Exporting`_
    - `Intro to Multiple Datasets (StackSpec)`_
@@ -40,15 +44,13 @@ IO AND DATASETS:
    .. _`TimeSpectra tutorial (part 2)` :   http://nbviewer.ipython.org/github/hugadams/scikit-spectra/blob/master/examples/Notebooks/tutorial_2.ipynb?create=1
 
 
-
-
-RESEARCH APPLICATIONS:
-~~~~~~~~~~~~~~~~~~~~~~
+Research Applications
+~~~~~~~~~~~~~~~~~~~~~
    - Correlation spectral data with electron microscopy
    -
 
-CUSTOMIZATION:
-~~~~~~~~~~~~~~
+Customization
+~~~~~~~~~~~~~
    - `Custom units`_
    - `Custom units with convertable representations (inch --> foot --> meter)`_
 
@@ -56,14 +58,14 @@ CUSTOMIZATION:
    .. _`Custom units with convertable representations (inch --> foot --> meter)` : http://nbviewer.ipython.org/github/hugadams/scikit-spectra/blob/master/examples/Notebooks/basic_units.ipynb
 
 
-SPECIAL TOPICS:
-~~~~~~~~~~~~~~~
+Special Topics
+~~~~~~~~~~~~~~
    - Two Dimensional Correlation Spectroscopy (see `Noda/Ozaki`_)
    - Sizing Gold Nanoparticles through UVVis Spectra 
 
 
-MISCELLANEOUS:
-~~~~~~~~~~~~~~
+Miscellaneous
+~~~~~~~~~~~~~
    - `Matplotlib Color Maps`_
 
 

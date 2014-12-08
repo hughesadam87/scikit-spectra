@@ -1,0 +1,274 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>skspec.plotting.plotlywrapper &mdash; scikit-spectra 0.3.1-2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.3.1-2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../../../about.html" />
+    <link rel="top" title="scikit-spectra 0.3.1-2 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="header-wrapper">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../../../index.html">scikit-spectra 0.3.1-2 documentation</a></div>
+        <div class="rel">
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+
+<a href="https://github.com/hugadams/scikit-spectra"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"></a>
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../../../index.html"><img src="../../../_static/new_logo.png" border="100" alt="sampledoc"/></a>
+</div>
+
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for skspec.plotting.plotlywrapper</h1><div class="highlight"><pre>
+<span class="c"># skspec intefrace to plotly:</span>
+<span class="c"># http://nbviewer.ipython.org/github/plotly/python-user-guide/blob/master/s00_homepage/s00_homepage.ipyn</span>
+
+<span class="kn">import</span> <span class="nn">plotly.graph_objs</span> <span class="kn">as</span> <span class="nn">grobs</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">plot_utils</span> <span class="kn">as</span> <span class="nn">put</span>
+
+<div class="viewcode-block" id="make_linetrace"><a class="viewcode-back" href="../../../API/skspec.plotting.html#skspec.plotting.plotlywrapper.make_linetrace">[docs]</a><span class="k">def</span> <span class="nf">make_linetrace</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="o">**</span><span class="n">tracekwargs</span><span class="p">):</span><span class="c">#, linecolor):  </span>
+    <span class="sd">&quot;&quot;&quot;Trace-generating function (returns a Scatter object) from timespectra&quot;&quot;&quot;</span>
+    <span class="c"># good example of trace options http://plot.ly/python/bubblecharts</span>
+    
+    <span class="n">name</span> <span class="o">=</span> <span class="n">tracekwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">tracekwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;color&#39;</span><span class="p">,</span> <span class="s">&#39;rgb(255,0,0)&#39;</span><span class="p">)</span> <span class="c">#markercolor</span>
+    <span class="c">#tracekwargs.setdefault(&#39;opacity&#39;, 1.0) </span>
+    <span class="c">#tracekwargs.setdefault(&#39;width&#39;, 1.0) </span>
+        
+    <span class="k">return</span> <span class="n">grobs</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
+                         <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span>          
+                         <span class="n">mode</span><span class="o">=</span><span class="s">&#39;lines&#39;</span><span class="p">,</span>          
+                         <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>          
+                         <span class="n">marker</span><span class="o">=</span> <span class="n">grobs</span><span class="o">.</span><span class="n">Line</span><span class="p">(</span><span class="o">**</span><span class="n">tracekwargs</span><span class="p">)</span> 
+                         <span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="make_pointtrace"><a class="viewcode-back" href="../../../API/skspec.plotting.html#skspec.plotting.plotlywrapper.make_pointtrace">[docs]</a><span class="k">def</span> <span class="nf">make_pointtrace</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="o">**</span><span class="n">tracekwargs</span><span class="p">):</span>  
+    <span class="sd">&quot;&quot;&quot;Trace-generating function (returns a Scatter object) from timespectra&quot;&quot;&quot;</span>
+    <span class="c"># good example of trace options http://plot.ly/python/bubblecharts</span>
+    
+    <span class="n">name</span> <span class="o">=</span> <span class="n">tracekwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>    
+    <span class="n">tracekwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;color&#39;</span><span class="p">,</span> <span class="s">&#39;rgb(255,0,0)&#39;</span><span class="p">)</span> <span class="c">#markercolor</span>
+    <span class="n">tracekwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;symbol&#39;</span><span class="p">,</span> <span class="s">&#39;circle&#39;</span><span class="p">)</span>
+    <span class="c">#tracekwargs.setdefault(&#39;opacity&#39;, 1.0)</span>
+    <span class="n">tracekwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;size&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+
+
+    <span class="k">return</span> <span class="n">grobs</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
+                         <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span>
+                         <span class="n">mode</span><span class="o">=</span><span class="s">&#39;markers&#39;</span><span class="p">,</span>
+                         <span class="n">marker</span><span class="o">=</span><span class="n">grobs</span><span class="o">.</span><span class="n">Marker</span><span class="p">(</span><span class="o">**</span><span class="n">tracekwargs</span><span class="p">)</span>
+                         <span class="p">)</span>
+
+</div>
+<span class="k">def</span> <span class="nf">_parsenull</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; 1.0.22 plotly will error if gets axis titles of None (turns into null)</span>
+<span class="sd">    in the json.  Therefore, this replaced values of None with an empty string.</span>
+<span class="sd">    This may be fixed in later version of plotly.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">value</span>
+
+
+<div class="viewcode-block" id="layout"><a class="viewcode-back" href="../../../API/skspec.plotting.html#skspec.plotting.plotlywrapper.layout">[docs]</a><span class="k">def</span> <span class="nf">layout</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Make a plotly layout from timespectra attributes &quot;&quot;&quot;</span>    
+    
+    <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;title&#39;</span><span class="p">,</span> <span class="n">_parsenull</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+    <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;plot_bgcolor&#39;</span><span class="p">,</span> <span class="s">&#39;#EFECEA&#39;</span><span class="p">)</span> <span class="c">#gray</span>
+    <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;showlegend&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+
+    <span class="c"># Map x,y title into grobs.XAxis and grobs.YAxis</span>
+    <span class="n">xtitle</span> <span class="o">=</span> <span class="n">_parsenull</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;xtitle&#39;</span><span class="p">,</span> <span class="n">ts</span><span class="o">.</span><span class="n">specunit</span><span class="p">))</span>
+    <span class="n">ytitle</span> <span class="o">=</span> <span class="n">_parsenull</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;ytitle&#39;</span><span class="p">,</span> <span class="n">ts</span><span class="o">.</span><span class="n">iunit</span><span class="p">))</span>    
+
+   
+    <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;xaxis&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">grobs</span><span class="o">.</span><span class="n">XAxis</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">xtitle</span><span class="p">)</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;yaxis&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">grobs</span><span class="o">.</span><span class="n">YAxis</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">ytitle</span><span class="p">)</span>
+    
+    <span class="n">layout</span> <span class="o">=</span> <span class="n">grobs</span><span class="o">.</span><span class="n">Layout</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="n">axis_style</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">zeroline</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>       <span class="c"># remove thick zero line</span>
+                     <span class="n">gridcolor</span><span class="o">=</span><span class="s">&#39;#FFFFFF&#39;</span><span class="p">,</span>  <span class="c"># white grid lines</span>
+                     <span class="n">ticks</span><span class="o">=</span><span class="s">&#39;outside&#39;</span><span class="p">,</span>      <span class="c"># draw ticks outside axes </span>
+                     <span class="n">ticklen</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>            <span class="c"># tick length</span>
+                     <span class="n">tickwidth</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>        <span class="c">#   and width</span>
+
+    <span class="c"># Can I just set these in XAxis and YAxis __init__?</span>
+    <span class="n">layout</span><span class="p">[</span><span class="s">&#39;xaxis&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">axis_style</span><span class="p">)</span>
+    <span class="n">layout</span><span class="p">[</span><span class="s">&#39;yaxis&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">axis_style</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">layout</span>
+    
+</div>
+<div class="viewcode-block" id="ply_fig"><a class="viewcode-back" href="../../../API/skspec.plotting.html#skspec.plotting.plotlywrapper.ply_fig">[docs]</a><span class="k">def</span> <span class="nf">ply_fig</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">points</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;jet&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Convert a timespectra to plotly Figure.  Figures can be then directly</span>
+<span class="sd">    plotted with plotly.iplot(figure) in the notebook.  Use the layout keyword</span>
+<span class="sd">    to specify layout parameters; all other keywords are interpreted as line style</span>
+<span class="sd">    keywords (color</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    </span>
+<span class="sd">    points: bool</span>
+<span class="sd">        If true, scatter plot; else, lineplots</span>
+<span class="sd">        </span>
+<span class="sd">    color: str</span>
+<span class="sd">        Any valid matplotlib color or colormap.</span>
+<span class="sd">    </span>
+<span class="sd">    layout: dict</span>
+<span class="sd">        Dictionary of keywords that go into layout.  </span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">data</span> <span class="o">=</span> <span class="n">grobs</span><span class="o">.</span><span class="n">Data</span><span class="p">()</span>
+    <span class="n">layoutkwds</span> <span class="o">=</span> <span class="n">kwds</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;layout&#39;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="n">lout</span> <span class="o">=</span> <span class="n">layout</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="o">**</span><span class="n">layoutkwds</span><span class="p">)</span>    
+    
+    <span class="c"># List of colors, either single color or color map</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">cmapper</span> <span class="o">=</span> <span class="n">put</span><span class="o">.</span><span class="n">cmget</span><span class="p">(</span><span class="n">color</span><span class="p">)</span> <span class="c">#Validate color map</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="n">cmapper</span> <span class="o">=</span> <span class="p">[</span><span class="n">color</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">columns</span><span class="p">))]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cmapper</span> <span class="o">=</span> <span class="n">put</span><span class="o">.</span><span class="n">_df_colormapper</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>        
+        
+    <span class="c"># Map colors to rgb</span>
+    <span class="n">cmapper</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">put</span><span class="o">.</span><span class="n">to_normrgb</span><span class="p">,</span> <span class="n">cmapper</span><span class="p">)</span>    
+    
+    <span class="c"># Scale by 255 and string format for plotly</span>
+    <span class="k">def</span> <span class="nf">_rgbplotlycolor</span><span class="p">(</span><span class="n">rgb</span><span class="p">):</span>
+        <span class="n">r</span><span class="p">,</span><span class="n">g</span><span class="p">,</span><span class="n">b</span> <span class="o">=</span> <span class="n">rgb</span>
+        <span class="k">return</span> <span class="s">&#39;rgb(</span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mf">255.0</span><span class="o">*</span><span class="n">r</span><span class="p">,</span> <span class="mf">255.0</span><span class="o">*</span><span class="n">g</span><span class="p">,</span> <span class="mf">255.0</span><span class="o">*</span><span class="n">b</span><span class="p">)</span>
+    
+    <span class="n">cmapper</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">_rgbplotlycolor</span><span class="p">,</span> <span class="n">cmapper</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">points</span><span class="p">:</span>
+        <span class="n">tracefcn</span> <span class="o">=</span> <span class="n">make_pointtrace</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">tracefcn</span> <span class="o">=</span> <span class="n">make_linetrace</span>
+
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">clabel</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ts</span><span class="p">):</span>            
+        <span class="n">trace</span> <span class="o">=</span> <span class="n">tracefcn</span><span class="p">(</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="p">),</span>               <span class="c"># Not necessary to force to np.array.dtype(float)</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ts</span><span class="p">[</span><span class="n">ts</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">idx</span><span class="p">]]),</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">clabel</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="n">cmapper</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="c">#marker color</span>
+            <span class="o">**</span><span class="n">kwds</span>
+            <span class="p">)</span> 
+        <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">grobs</span><span class="o">.</span><span class="n">Figure</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="n">lout</span><span class="p">)</span>
+
+
+<span class="c">#def ply_multifig(*figargs):</span>
+    <span class="c">#&quot;&quot;&quot; &quot;&quot;&quot;</span>
+    <span class="c">#for fig in figargs:</span>
+        <span class="c">#ts,  </span>
+    
+    </div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">skspec.data</span> <span class="kn">import</span> <span class="n">test_spectra</span>
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">test_spectra</span><span class="p">()</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">ply_figure</span><span class="p">(</span><span class="n">ts</span><span class="p">)</span>
+
+    <span class="k">print</span> <span class="n">tls</span><span class="o">.</span><span class="n">get_subplots</span><span class="p">(</span><span class="n">rows</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">print_grid</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    
+    <span class="kn">import</span> <span class="nn">plotly.plotly</span> <span class="kn">as</span> <span class="nn">py</span>
+    <span class="n">py</span><span class="o">.</span><span class="n">sign_in</span><span class="p">(</span><span class="s">&#39;reeveslab&#39;</span><span class="p">,</span> <span class="s">&#39;hfpi35mejw&#39;</span><span class="p">)</span>
+    
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">ply_figure</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;black&#39;</span><span class="p">,</span> <span class="n">points</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">py</span><span class="o">.</span><span class="n">iplot</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s">&#39;foo&#39;</span><span class="p">,</span> <span class="n">fileopt</span><span class="o">=</span><span class="s">&#39;new&#39;</span><span class="p">)</span>    
+    <span class="k">print</span> <span class="s">&#39;FINISHED PLOT 1&#39;</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../API/APIMAIN.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../support.html">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../about.html">History and Background</a></li>
+</ul>
+
+          <h3 style="margin-top: 1.5em;">Search</h3>
+          <form class="search" action="../../../search.html" method="get">
+            <input type="text" name="q" />
+            <input type="submit" value="Go" />
+            <input type="hidden" name="check_keywords" value="yes" />
+            <input type="hidden" name="area" value="default" />
+          </form>
+          <p class="searchtip" style="font-size: 90%">
+            Enter search terms or a module, class or function name.
+          </p>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../../../genindex.html" title="General Index"
+             >index</a>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer">
+        &copy; Copyright 2014, Adam Hughes, ReevesLab Dept. Physics, George Washington University.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

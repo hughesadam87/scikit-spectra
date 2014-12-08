@@ -5,9 +5,14 @@ Dependencies
 ------------
 In its current state, scikit-spectra requires following dependencies:
 
-**pandas (0.14 or greater)**, **scipy**
+**pandas (0.14)**, **scipy**, **IPython Notebook 0.2 or higher**
 
 .. _scipy: http://www.scipy.org
+
+To use the newer features if scikit-spectra such as the IPython notebook GUIs, please instal:
+
+   - `IPython Notebook 3.0.0 Dev. Version <https://github.com/ipython/ipython>`_
+   - `MPLD3 <https://github.com/jakevdp/mpld3>`_
 
 I would recommend using `Enthought Canopy`_ and its excellent
 the package manager.  ``scikit-spectra`` is also 
