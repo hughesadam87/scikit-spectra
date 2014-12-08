@@ -104,8 +104,8 @@ class SpectraGui(Box):
 
         return panels
 
-    def set_style(self):
-	return ipdisplay.HTML('specstyle.html')
+    def set_layout(self):
+	return ipdisplay.HTML(open('style1.html','r').read())
 
     def load_panel(self):
         # create correlation controls. NOTE: should only be called once.
@@ -270,7 +270,7 @@ class SpectraGui(Box):
     def save_load_panel(self):
         """ All Save/Load IO of GUI in this panel. """
         saveplot = Button(description='Save Plot')
-        savets = Button(description='Save New Spectra')
+        savets = Button(description='Export as NB Variable')
         #link((self.model,"save_spec"),(savets,'value'))
         savets.on_click(lambda x: self.model.save_to_ns())
         savetsas = Text(description='Save as:')
