@@ -5,7 +5,7 @@ scikit-spectra: Tools for explorative spectroscopy
 Whats New
 =========
 
-.. youtube:: anwy2MPT5RE
+.. youtube:: RhMHgQbP__A
     :height: 315
     :width: 560
     :align: left

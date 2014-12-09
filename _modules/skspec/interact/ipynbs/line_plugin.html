@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>skspec.interact.ipynbs.line_plugin &mdash; scikit-spectra 0.3.1-2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/bootswatch-3.2.0/united/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/bootstrap-sphinx.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '0.3.1-2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../../../_static/bootstrap-3.2.0/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../../../_static/bootstrap-sphinx.js"></script>
+    <link rel="author" title="About these documents" href="../../../../about.html" />
+    <link rel="top" title="scikit-spectra 0.3.1-2 documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+<a href="https://github.com/hugadams/scikit-spectra"
+class="visible-desktop hidden-xs"><img
+id="gh-banner"
+style="position: absolute; top: 50px; right: 0; border: 0;"
+src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"
+alt="Fork me on GitHub"></a>
+<script>
+// Adjust banner height.
+$(function () {
+var navHeight = $(".navbar .container").css("height");
+$("#gh-banner").css("top", navHeight);
+});
+</script>
+
+
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../../../../index.html"><img src="../../../../_static/logo.png" border="100" alt="sampledoc"/></a>
+</div>
+
+
+
+
+<a href="https://github.com/hugadams/scikit-spectra"
+class="visible-desktop hidden-xs"><img
+id="gh-banner"
+style="position: absolute; top: 50px; right: 0; border: 0;"
+src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"
+alt="Fork me on GitHub"></a>
+<script>
+// Adjust banner height.
+$(function () {
+var navHeight = $(".navbar .container").css("height");
+$("#gh-banner").css("top", navHeight);
+});
+</script>
+
+
+
+
+
+  <div id="navbar" class="navbar navbar-inverse navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../../../index.html">
+          skspec</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.3</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../../../index.html">Jump to <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../API/APIMAIN.html">API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../API/APIMAIN.html#primary-structures-spectrum-spectra-specstack">Primary Structures: Spectrum, Spectra, SpecStack</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../API/APIMAIN.html#index-objects">Index Objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../API/APIMAIN.html#builtin-datasets">Builtin Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../API/APIMAIN.html#io">IO</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../API/APIMAIN.html#plotting">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../API/APIMAIN.html#graphical-user-interface-gui">Graphical User Interface (GUI)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../API/APIMAIN.html#two-dimensional-correlation-spectroscopy">Two-Dimensional Correlation Spectroscopy</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../support.html">Support</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../support.html#mailing-list">Mailing List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../support.html#contribute">Contribute</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorials.html">Tutorials</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../tutorials.html#videos">Videos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../tutorials.html#minutes-to-scikit-spectra">10 Minutes to scikit-spectra</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../tutorials.html#ipython-notebooks">IPython Notebooks</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../install.html#dependencies">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../install.html#pip-install">Pip Install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../install.html#installation-from-source">Installation from source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../install.html#testing-installation">Testing Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../about.html">About</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../about.html#history-and-background">History and Background</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../about.html#related-scipy-libraries">Related Scipy Libraries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../about.html#other-spectroscopy-libraries-tools-in-python">Other Spectroscopy Libraries/Tools in Python</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../about.html#about-the-author">About the Author</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../about.html#acknowledgements">Acknowledgements</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../auto_examples/index.html">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../auto_examples/index.html#general-examples">General examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../auto_examples/index.html#longer-examples">Longer examples</a></li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">This Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+            
+            
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<form action="../../../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+        </div>
+      </div>
+    <div class="col-md-12">
+      
+  <h1>Source code for skspec.interact.ipynbs.line_plugin</h1><div class="highlight"><pre>
+<span class="c"># CREDIT TO JAKE VANDERPLAUS MPLD3 FOR THIS EXAMPLE</span>
+
+<span class="kn">import</span> <span class="nn">mpld3</span>
+<span class="kn">from</span> <span class="nn">mpld3</span> <span class="kn">import</span> <span class="n">plugins</span><span class="p">,</span> <span class="n">utils</span>
+
+<span class="c"># for color.  &quot;stroke&quot;, &quot;red&quot; instead of &quot;stroke-opacity&quot;, alpha-fg</span>
+
+<span class="c">#http://www.d3noob.org/2014/02/styles-in-d3js.html</span>
+<div class="viewcode-block" id="HighlightLines"><a class="viewcode-back" href="../../../../API/skspec.interact.ipynbs.html#skspec.interact.ipynbs.line_plugin.HighlightLines">[docs]</a><span class="k">class</span> <span class="nc">HighlightLines</span><span class="p">(</span><span class="n">plugins</span><span class="o">.</span><span class="n">PluginBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A plugin to highlight lines on hover&quot;&quot;&quot;</span>
+
+    <span class="n">JAVASCRIPT</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">    mpld3.register_plugin(&quot;linehighlight&quot;, LineHighlightPlugin);</span>
+<span class="s">    LineHighlightPlugin.prototype = Object.create(mpld3.Plugin.prototype);</span>
+<span class="s">    LineHighlightPlugin.prototype.constructor = LineHighlightPlugin;</span>
+<span class="s">    LineHighlightPlugin.prototype.requiredProps = [&quot;line_ids&quot;];</span>
+<span class="s">    LineHighlightPlugin.prototype.defaultProps = {alpha_bg:1.0, alpha_fg:0.1}</span>
+<span class="s">    function LineHighlightPlugin(fig, props){</span>
+<span class="s">        mpld3.Plugin.call(this, fig, props);</span>
+<span class="s">    };</span>
+
+<span class="s">    LineHighlightPlugin.prototype.draw = function(){</span>
+<span class="s">      for(var i=0; i&lt;this.props.line_ids.length; i++){</span>
+<span class="s">         var obj = mpld3.get_element(this.props.line_ids[i], this.fig),</span>
+<span class="s">             alpha_fg = this.props.alpha_fg;</span>
+<span class="s">             alpha_bg = this.props.alpha_bg;</span>
+<span class="s">         obj.elements()</span>
+<span class="s">             .on(&quot;mouseover&quot;, function(d, i){</span>
+<span class="s">                            d3.select(this).transition().duration(50)</span>
+<span class="s">                              .style(&quot;stroke-opacity&quot;, alpha_fg); })</span>
+<span class="s">             .on(&quot;mouseout&quot;, function(d, i){</span>
+<span class="s">                            d3.select(this).transition().duration(200)</span>
+<span class="s">                              .style(&quot;stroke-opacity&quot;, alpha_bg); });</span>
+<span class="s">      }</span>
+<span class="s">    };</span>
+<span class="s">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lines</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lines</span> <span class="o">=</span> <span class="n">lines</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dict_</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;linehighlight&quot;</span><span class="p">,</span>
+                      <span class="s">&quot;line_ids&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">utils</span><span class="o">.</span><span class="n">get_id</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">],</span>
+                      <span class="s">&quot;alpha_bg&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="c">#How light to make highlighted line (can also set to alpha of original mpl plot this way)</span>
+                      <span class="s">&quot;alpha_fg&quot;</span><span class="p">:</span> <span class="mf">0.15</span><span class="p">}</span> <span class="c">#How dark to make non-highlighted line</span></div>
+</pre></div>
+
+    </div>
+    
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+        <br/>
+        
+      
+    </p>
+    <p>
+        &copy; Copyright 2014, Adam Hughes, ReevesLab, George Washington University.<br/>
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.3.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

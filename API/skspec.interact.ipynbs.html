@@ -163,10 +163,10 @@ $("#gh-banner").css("top", navHeight);
       role="menu"
       aria-labelledby="dLabelLocalToc"><ul>
 <li><a class="reference internal" href="#">ipynbs Package</a><ul>
-<li><a class="reference internal" href="#line-plugin-module"><tt class="docutils literal"><span class="pre">line_plugin</span></tt> Module</a></li>
-<li><a class="reference internal" href="#nbtools-module"><tt class="docutils literal"><span class="pre">nbtools</span></tt> Module</a></li>
-<li><a class="reference internal" href="#specgram-module"><tt class="docutils literal"><span class="pre">specgram</span></tt> Module</a></li>
-<li><a class="reference internal" href="#specgui-module"><tt class="docutils literal"><span class="pre">specgui</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-skspec.interact.ipynbs.line_plugin"><tt class="docutils literal"><span class="pre">line_plugin</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-skspec.interact.ipynbs.nbtools"><tt class="docutils literal"><span class="pre">nbtools</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-skspec.interact.ipynbs.specgram"><tt class="docutils literal"><span class="pre">specgram</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-skspec.interact.ipynbs.specgui"><tt class="docutils literal"><span class="pre">specgui</span></tt> Module</a></li>
 </ul>
 </li>
 </ul>
@@ -199,10 +199,10 @@ $("#gh-banner").css("top", navHeight);
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper"><ul>
 <li><a class="reference internal" href="#">ipynbs Package</a><ul>
-<li><a class="reference internal" href="#line-plugin-module"><tt class="docutils literal"><span class="pre">line_plugin</span></tt> Module</a></li>
-<li><a class="reference internal" href="#nbtools-module"><tt class="docutils literal"><span class="pre">nbtools</span></tt> Module</a></li>
-<li><a class="reference internal" href="#specgram-module"><tt class="docutils literal"><span class="pre">specgram</span></tt> Module</a></li>
-<li><a class="reference internal" href="#specgui-module"><tt class="docutils literal"><span class="pre">specgui</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-skspec.interact.ipynbs.line_plugin"><tt class="docutils literal"><span class="pre">line_plugin</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-skspec.interact.ipynbs.nbtools"><tt class="docutils literal"><span class="pre">nbtools</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-skspec.interact.ipynbs.specgram"><tt class="docutils literal"><span class="pre">specgram</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-skspec.interact.ipynbs.specgui"><tt class="docutils literal"><span class="pre">specgui</span></tt> Module</a></li>
 </ul>
 </li>
 </ul>
@@ -220,17 +220,489 @@ $("#gh-banner").css("top", navHeight);
       
   <div class="section" id="ipynbs-package">
 <h1>ipynbs Package<a class="headerlink" href="#ipynbs-package" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="line-plugin-module">
-<h2><tt class="xref py py-mod docutils literal"><span class="pre">line_plugin</span></tt> Module<a class="headerlink" href="#line-plugin-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-skspec.interact.ipynbs.line_plugin">
+<span id="line-plugin-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">line_plugin</span></tt> Module<a class="headerlink" href="#module-skspec.interact.ipynbs.line_plugin" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="skspec.interact.ipynbs.line_plugin.HighlightLines">
+<em class="property">class </em><tt class="descclassname">skspec.interact.ipynbs.line_plugin.</tt><tt class="descname">HighlightLines</tt><big>(</big><em>lines</em><big>)</big><a class="reference internal" href="../_modules/skspec/interact/ipynbs/line_plugin.html#HighlightLines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.interact.ipynbs.line_plugin.HighlightLines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">mpld3.plugins.PluginBase</span></tt></p>
+<p>A plugin to highlight lines on hover</p>
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.line_plugin.HighlightLines.JAVASCRIPT">
+<tt class="descname">JAVASCRIPT</tt><em class="property"> = '\n    mpld3.register_plugin(&quot;linehighlight&quot;, LineHighlightPlugin);\n    LineHighlightPlugin.prototype = Object.create(mpld3.Plugin.prototype);\n    LineHighlightPlugin.prototype.constructor = LineHighlightPlugin;\n    LineHighlightPlugin.prototype.requiredProps = [&quot;line_ids&quot;];\n    LineHighlightPlugin.prototype.defaultProps = {alpha_bg:1.0, alpha_fg:0.1}\n    function LineHighlightPlugin(fig, props){\n        mpld3.Plugin.call(this, fig, props);\n    };\n\n    LineHighlightPlugin.prototype.draw = function(){\n      for(var i=0; i&lt;this.props.line_ids.length; i++){\n         var obj = mpld3.get_element(this.props.line_ids[i], this.fig),\n             alpha_fg = this.props.alpha_fg;\n             alpha_bg = this.props.alpha_bg;\n         obj.elements()\n             .on(&quot;mouseover&quot;, function(d, i){\n                            d3.select(this).transition().duration(50)\n                              .style(&quot;stroke-opacity&quot;, alpha_fg); })\n             .on(&quot;mouseout&quot;, function(d, i){\n                            d3.select(this).transition().duration(200)\n                              .style(&quot;stroke-opacity&quot;, alpha_bg); });\n      }\n    };\n    '</em><a class="headerlink" href="#skspec.interact.ipynbs.line_plugin.HighlightLines.JAVASCRIPT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </div>
-<div class="section" id="nbtools-module">
-<h2><tt class="xref py py-mod docutils literal"><span class="pre">nbtools</span></tt> Module<a class="headerlink" href="#nbtools-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-skspec.interact.ipynbs.nbtools">
+<span id="nbtools-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">nbtools</span></tt> Module<a class="headerlink" href="#module-skspec.interact.ipynbs.nbtools" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="skspec.interact.ipynbs.nbtools.log_message">
+<tt class="descclassname">skspec.interact.ipynbs.nbtools.</tt><tt class="descname">log_message</tt><big>(</big><em>f</em><big>)</big><a class="reference internal" href="../_modules/skspec/interact/ipynbs/nbtools.html#log_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.interact.ipynbs.nbtools.log_message" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="skspec.interact.ipynbs.nbtools.mpl2html">
+<tt class="descclassname">skspec.interact.ipynbs.nbtools.</tt><tt class="descname">mpl2html</tt><big>(</big><em>fig</em>, <em>title='Figure'</em><big>)</big><a class="reference internal" href="../_modules/skspec/interact/ipynbs/nbtools.html#mpl2html"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.interact.ipynbs.nbtools.mpl2html" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a matplotlib fig into an IPython HTML Core object for display 
+compatibility in widgets.</p>
+</dd></dl>
+
 </div>
-<div class="section" id="specgram-module">
-<h2><tt class="xref py py-mod docutils literal"><span class="pre">specgram</span></tt> Module<a class="headerlink" href="#specgram-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-skspec.interact.ipynbs.specgram">
+<span id="specgram-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">specgram</span></tt> Module<a class="headerlink" href="#module-skspec.interact.ipynbs.specgram" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel">
+<em class="property">class </em><tt class="descclassname">skspec.interact.ipynbs.specgram.</tt><tt class="descname">SpectraModel</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/skspec/interact/ipynbs/specgram.html#SpectraModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">IPython.html.widgets.widget_string.HTML</span></tt>, <tt class="xref py py-class docutils literal"><span class="pre">IPython.html.widgets.widget_box.Box</span></tt></p>
+<p>A notional &#8220;complex widget&#8221; that knows how to redraw itself when key
+properties change.</p>
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.COLORMAPS">
+<tt class="descname">COLORMAPS</tt><em class="property"> = [u'Accent', u'Blues', u'BrBG', u'BuGn', u'BuPu', u'CMRmap', u'Dark2', u'GnBu', u'Greens', u'Greys', u'OrRd', u'Oranges', u'PRGn', u'Paired', u'Pastel1', u'Pastel2', u'PiYG', u'PuBu', u'PuBuGn', u'PuOr', u'PuRd', u'Purples', u'RdBu', u'RdGy', u'RdPu', u'RdYlBu', u'RdYlGn', u'Reds', u'Set1', u'Set2', u'Set3', u'Spectral', u'Wistia', u'YlGn', u'YlGnBu', u'YlOrBr', u'YlOrRd', u'afmhot', u'autumn', u'binary', u'bone', u'brg', u'bwr', u'cool', u'coolwarm', u'copper', u'cubehelix', u'flag', u'gist_earth', u'gist_gray', u'gist_heat', u'gist_ncar', u'gist_rainbow', u'gist_stern', u'gist_yarg', u'gnuplot', u'gnuplot2', u'gray', u'hot', u'hsv', u'jet', u'nipy_spectral', u'ocean', u'pink', u'prism', u'rainbow', u'seismic', u'spectral', u'spring', u'summer', u'terrain', u'winter']</em><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.COLORMAPS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.COLORS">
+<tt class="descname">COLORS</tt><em class="property"> = ['b', 'g', 'r', 'y', 'k']</em><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.COLORS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.CONTENT">
+<tt class="descname">CONTENT</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.CONTENT" title="Permalink to this definition">¶</a></dt>
+<dd><p>A trait for unicode strings.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.DONT_DRAW">
+<tt class="descname">DONT_DRAW</tt><em class="property"> = &lt;_sre.SRE_Pattern object at 0x7af8fe0&gt;</em><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.DONT_DRAW" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.NORMUNITS">
+<tt class="descname">NORMUNITS</tt><em class="property"> = {'a': 'Absorbance (base 10)', 'r': 'Inverse Transmittance (1/T)', 't': 'Transmittance', 'a(ln)': 'Absorbance (base e)', '%t': '(%)Transmittance', None: 'No Normalization'}</em><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.NORMUNITS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.NORMUNITS_REV">
+<tt class="descname">NORMUNITS_REV</tt><em class="property"> = OrderedDict([('Absorbance (base 10)', 'a'), ('Inverse Transmittance (1/T)', 'r'), ('Transmittance', 't'), ('Absorbance (base e)', 'a(ln)'), ('(%)Transmittance', '%t'), ('No Normalization', None)])</em><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.NORMUNITS_REV" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.SLIDER_STEPS">
+<tt class="descname">SLIDER_STEPS</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.SLIDER_STEPS" title="Permalink to this definition">¶</a></dt>
+<dd><p>A float trait.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.SPECUNITS">
+<tt class="descname">SPECUNITS</tt><em class="property"> = {'um-1': 'inverse microns', 'nm': 'nanometers', 'cm': 'centimeters', 'f': 'hertz', 'k': 'inverse meters', 'm': 'meters', 'cm-1': 'inverse centimeters', 'um': 'microns', 'w': 'radians per second', 'ev': 'electron volts', None: 'No unit'}</em><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.SPECUNITS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.SPECUNITS_REV">
+<tt class="descname">SPECUNITS_REV</tt><em class="property"> = OrderedDict([('inverse microns', 'um-1'), ('nanometers', 'nm'), ('centimeters', 'cm'), ('hertz', 'f'), ('inverse meters', 'k'), ('meters', 'm'), ('inverse centimeters', 'cm-1'), ('microns', 'um'), ('radians per second', 'w'), ('electron volts', 'ev'), ('No unit', None)])</em><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.SPECUNITS_REV" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.VARUNITS">
+<tt class="descname">VARUNITS</tt><em class="property"> = {'dti': 'timestamp', 'd': 'days', 'h': 'hours', 'm': 'minutes', 'us': 'microseconds', 's': 'seconds', 'ms': 'milliseconds', 'intvl': 'interval', 'ns': 'nanoseconds', None: 'No unit'}</em><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.VARUNITS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.VARUNITS_REV">
+<tt class="descname">VARUNITS_REV</tt><em class="property"> = OrderedDict([('timestamp', 'dti'), ('days', 'd'), ('hours', 'h'), ('minutes', 'm'), ('microseconds', 'us'), ('seconds', 's'), ('milliseconds', 'ms'), ('interval', 'intvl'), ('nanoseconds', 'ns'), ('No unit', None)])</em><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.VARUNITS_REV" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.advancedbox">
+<tt class="descname">advancedbox</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.advancedbox" title="Permalink to this definition">¶</a></dt>
+<dd><p>A boolean (True, False) trait.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.apply_userf">
+<tt class="descname">apply_userf</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/skspec/interact/ipynbs/specgram.html#SpectraModel.apply_userf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.apply_userf" title="Permalink to this definition">¶</a></dt>
+<dd><p>args[0] is Spectrogram; args[1] is name of calling function</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.autoupdate">
+<tt class="descname">autoupdate</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.autoupdate" title="Permalink to this definition">¶</a></dt>
+<dd><p>A boolean (True, False) trait.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.classname">
+<tt class="descname">classname</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.classname" title="Permalink to this definition">¶</a></dt>
+<dd><p>A trait for unicode strings.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.cmapbox">
+<tt class="descname">cmapbox</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.cmapbox" title="Permalink to this definition">¶</a></dt>
+<dd><p>A boolean (True, False) trait.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.color">
+<tt class="descname">color</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.color" title="Permalink to this definition">¶</a></dt>
+<dd><p>An enum that whose value must be in a given sequence.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.colorbar">
+<tt class="descname">colorbar</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.colorbar" title="Permalink to this definition">¶</a></dt>
+<dd><p>A boolean (True, False) trait.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.colorbox">
+<tt class="descname">colorbox</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.colorbox" title="Permalink to this definition">¶</a></dt>
+<dd><p>A boolean (True, False) trait.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.colormap">
+<tt class="descname">colormap</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.colormap" title="Permalink to this definition">¶</a></dt>
+<dd><p>An enum that whose value must be in a given sequence.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.draw">
+<tt class="descname">draw</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/skspec/interact/ipynbs/specgram.html#SpectraModel.draw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.draw" title="Permalink to this definition">¶</a></dt>
+<dd><p>args[0] is Spectrogram; args[1] is name of calling function</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.figheight">
+<tt class="descname">figheight</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.figheight" title="Permalink to this definition">¶</a></dt>
+<dd><p>A float trait.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.figwidth">
+<tt class="descname">figwidth</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.figwidth" title="Permalink to this definition">¶</a></dt>
+<dd><p>A float trait.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.file_name">
+<tt class="descname">file_name</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.file_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>A trait for unicode strings.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.html">
+<tt class="descname">html</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.html" title="Permalink to this definition">¶</a></dt>
+<dd><p>A boolean (True, False) trait.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.inbox">
+<tt class="descname">inbox</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.inbox" title="Permalink to this definition">¶</a></dt>
+<dd><p>A boolean (True, False) trait.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.interactive">
+<tt class="descname">interactive</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.interactive" title="Permalink to this definition">¶</a></dt>
+<dd><p>A boolean (True, False) trait.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.iunit">
+<tt class="descname">iunit</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.iunit" title="Permalink to this definition">¶</a></dt>
+<dd><p>A trait for unicode strings.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.kind">
+<tt class="descname">kind</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.kind" title="Permalink to this definition">¶</a></dt>
+<dd><p>An enum that whose value must be in a given sequence.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.load_file">
+<tt class="descname">load_file</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.load_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>A boolean (True, False) trait.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.load_from_ns">
+<tt class="descname">load_from_ns</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/skspec/interact/ipynbs/specgram.html#SpectraModel.load_from_ns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.load_from_ns" title="Permalink to this definition">¶</a></dt>
+<dd><p>args[0] is Spectrogram; args[1] is name of calling function</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.load_spec">
+<tt class="descname">load_spec</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.load_spec" title="Permalink to this definition">¶</a></dt>
+<dd><p>A boolean (True, False) trait.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.message">
+<tt class="descname">message</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.message" title="Permalink to this definition">¶</a></dt>
+<dd><p>A trait for unicode strings.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.norm_unit">
+<tt class="descname">norm_unit</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.norm_unit" title="Permalink to this definition">¶</a></dt>
+<dd><p>An enum that whose value must be in a given sequence.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.outbox">
+<tt class="descname">outbox</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.outbox" title="Permalink to this definition">¶</a></dt>
+<dd><p>A boolean (True, False) trait.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.save_plot">
+<tt class="descname">save_plot</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/skspec/interact/ipynbs/specgram.html#SpectraModel.save_plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.save_plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>args[0] is Spectrogram; args[1] is name of calling function</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.save_spec">
+<tt class="descname">save_spec</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.save_spec" title="Permalink to this definition">¶</a></dt>
+<dd><p>A boolean (True, False) trait.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.save_spec_as">
+<tt class="descname">save_spec_as</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.save_spec_as" title="Permalink to this definition">¶</a></dt>
+<dd><p>A trait for unicode strings.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.save_to_ns">
+<tt class="descname">save_to_ns</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/skspec/interact/ipynbs/specgram.html#SpectraModel.save_to_ns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.save_to_ns" title="Permalink to this definition">¶</a></dt>
+<dd><p>args[0] is Spectrogram; args[1] is name of calling function</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.selectlines">
+<tt class="descname">selectlines</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.selectlines" title="Permalink to this definition">¶</a></dt>
+<dd><p>A boolean (True, False) trait.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.slice_spectrum">
+<tt class="descname">slice_spectrum</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/skspec/interact/ipynbs/specgram.html#SpectraModel.slice_spectrum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.slice_spectrum" title="Permalink to this definition">¶</a></dt>
+<dd><p>args[0] is Spectrogram; args[1] is name of calling function</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.spec">
+<tt class="descname">spec</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.spec" title="Permalink to this definition">¶</a></dt>
+<dd><p>A trait whose value must be an instance of a specified class.</p>
+<p>The value can also be an instance of a subclass of the specified class.</p>
+<p>Subclasses can declare default classes by overriding the klass attribute</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.spec_modified">
+<tt class="descname">spec_modified</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.spec_modified" title="Permalink to this definition">¶</a></dt>
+<dd><p>A trait whose value must be an instance of a specified class.</p>
+<p>The value can also be an instance of a subclass of the specified class.</p>
+<p>Subclasses can declare default classes by overriding the klass attribute</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.spec_unit">
+<tt class="descname">spec_unit</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.spec_unit" title="Permalink to this definition">¶</a></dt>
+<dd><p>An enum that whose value must be in a given sequence.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.specbox">
+<tt class="descname">specbox</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.specbox" title="Permalink to this definition">¶</a></dt>
+<dd><p>A boolean (True, False) trait.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.specslice_position_end">
+<tt class="descname">specslice_position_end</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.specslice_position_end" title="Permalink to this definition">¶</a></dt>
+<dd><p>A float trait.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.specslice_position_start">
+<tt class="descname">specslice_position_start</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.specslice_position_start" title="Permalink to this definition">¶</a></dt>
+<dd><p>A float trait.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.specslider_end">
+<tt class="descname">specslider_end</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.specslider_end" title="Permalink to this definition">¶</a></dt>
+<dd><p>A float trait.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.specslider_start">
+<tt class="descname">specslider_start</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.specslider_start" title="Permalink to this definition">¶</a></dt>
+<dd><p>A float trait.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.specspacing">
+<tt class="descname">specspacing</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.specspacing" title="Permalink to this definition">¶</a></dt>
+<dd><p>An int trait.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.specstep">
+<tt class="descname">specstep</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.specstep" title="Permalink to this definition">¶</a></dt>
+<dd><p>A float trait.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.testdataset">
+<tt class="descname">testdataset</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.testdataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>A trait for unicode strings.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.timebox">
+<tt class="descname">timebox</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.timebox" title="Permalink to this definition">¶</a></dt>
+<dd><p>A boolean (True, False) trait.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.timeslice_position_end">
+<tt class="descname">timeslice_position_end</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.timeslice_position_end" title="Permalink to this definition">¶</a></dt>
+<dd><p>A float trait.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.timeslice_position_start">
+<tt class="descname">timeslice_position_start</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.timeslice_position_start" title="Permalink to this definition">¶</a></dt>
+<dd><p>A float trait.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.timeslider_end">
+<tt class="descname">timeslider_end</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.timeslider_end" title="Permalink to this definition">¶</a></dt>
+<dd><p>A float trait.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.timeslider_start">
+<tt class="descname">timeslider_start</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.timeslider_start" title="Permalink to this definition">¶</a></dt>
+<dd><p>A float trait.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.timespacing">
+<tt class="descname">timespacing</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.timespacing" title="Permalink to this definition">¶</a></dt>
+<dd><p>An int trait.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.timestep">
+<tt class="descname">timestep</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.timestep" title="Permalink to this definition">¶</a></dt>
+<dd><p>A float trait.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.title">
+<tt class="descname">title</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.title" title="Permalink to this definition">¶</a></dt>
+<dd><p>A trait for unicode strings.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.user_f">
+<tt class="descname">user_f</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.user_f" title="Permalink to this definition">¶</a></dt>
+<dd><p>A trait for unicode strings.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skspec.interact.ipynbs.specgram.SpectraModel.var_unit">
+<tt class="descname">var_unit</tt><a class="headerlink" href="#skspec.interact.ipynbs.specgram.SpectraModel.var_unit" title="Permalink to this definition">¶</a></dt>
+<dd><p>An enum that whose value must be in a given sequence.</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
-<div class="section" id="specgui-module">
-<h2><tt class="xref py py-mod docutils literal"><span class="pre">specgui</span></tt> Module<a class="headerlink" href="#specgui-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-skspec.interact.ipynbs.specgui">
+<span id="specgui-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">specgui</span></tt> Module<a class="headerlink" href="#module-skspec.interact.ipynbs.specgui" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="skspec.interact.ipynbs.specgui.Alert">
+<em class="property">class </em><tt class="descclassname">skspec.interact.ipynbs.specgui.</tt><tt class="descname">Alert</tt><big>(</big><em>*pargs</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/skspec/interact/ipynbs/specgui.html#Alert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.interact.ipynbs.specgui.Alert" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">IPython.html.widgets.widget_string.HTML</span></tt></p>
+<p>HTML widget that is used to store alerts.  For now,
+just a pure HTML class but put in in separate class to
+allow potential customaization in future.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="skspec.interact.ipynbs.specgui.ControlPanel">
+<em class="property">class </em><tt class="descclassname">skspec.interact.ipynbs.specgui.</tt><tt class="descname">ControlPanel</tt><big>(</big><em>title=None</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/skspec/interact/ipynbs/specgui.html#ControlPanel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.interact.ipynbs.specgui.ControlPanel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">IPython.html.widgets.widget_box.Box</span></tt></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="skspec.interact.ipynbs.specgui.PanelBody">
+<em class="property">class </em><tt class="descclassname">skspec.interact.ipynbs.specgui.</tt><tt class="descname">PanelBody</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/skspec/interact/ipynbs/specgui.html#PanelBody"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.interact.ipynbs.specgui.PanelBody" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">IPython.html.widgets.widget_box.Box</span></tt></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="skspec.interact.ipynbs.specgui.PanelTitle">
+<em class="property">class </em><tt class="descclassname">skspec.interact.ipynbs.specgui.</tt><tt class="descname">PanelTitle</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/skspec/interact/ipynbs/specgui.html#PanelTitle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.interact.ipynbs.specgui.PanelTitle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">IPython.html.widgets.widget_string.HTML</span></tt></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="skspec.interact.ipynbs.specgui.SpectraGui">
+<em class="property">class </em><tt class="descclassname">skspec.interact.ipynbs.specgui.</tt><tt class="descname">SpectraGui</tt><big>(</big><em>model=None</em>, <em>model_config=None</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/skspec/interact/ipynbs/specgui.html#SpectraGui"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.interact.ipynbs.specgui.SpectraGui" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">IPython.html.widgets.widget_box.Box</span></tt></p>
+<p>An example GUI for a spectroscopy application.</p>
+<p>Note that <cite>self.model</cite> is the owner of all of the &#8220;real&#8221; data, while this
+class handles creating all of the GUI controls and links. This ensures
+that the model itself remains embeddable and rem</p>
+<dl class="method">
+<dt id="skspec.interact.ipynbs.specgui.SpectraGui.INOUT_panel">
+<tt class="descname">INOUT_panel</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/skspec/interact/ipynbs/specgui.html#SpectraGui.INOUT_panel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.interact.ipynbs.specgui.SpectraGui.INOUT_panel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skspec.interact.ipynbs.specgui.SpectraGui.plot_panel">
+<tt class="descname">plot_panel</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/skspec/interact/ipynbs/specgui.html#SpectraGui.plot_panel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.interact.ipynbs.specgui.SpectraGui.plot_panel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skspec.interact.ipynbs.specgui.SpectraGui.plot_plugin_panel">
+<tt class="descname">plot_plugin_panel</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/skspec/interact/ipynbs/specgui.html#SpectraGui.plot_plugin_panel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.interact.ipynbs.specgui.SpectraGui.plot_plugin_panel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skspec.interact.ipynbs.specgui.SpectraGui.set_layout">
+<tt class="descname">set_layout</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/skspec/interact/ipynbs/specgui.html#SpectraGui.set_layout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.interact.ipynbs.specgui.SpectraGui.set_layout" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skspec.interact.ipynbs.specgui.SpectraGui.slicing_panel">
+<tt class="descname">slicing_panel</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/skspec/interact/ipynbs/specgui.html#SpectraGui.slicing_panel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.interact.ipynbs.specgui.SpectraGui.slicing_panel" title="Permalink to this definition">¶</a></dt>
+<dd><p>create spectrum controls.  NOTE: should only be called once.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="skspec.interact.ipynbs.specgui.SpectraGui.unit_panel">
+<tt class="descname">unit_panel</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/skspec/interact/ipynbs/specgui.html#SpectraGui.unit_panel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.interact.ipynbs.specgui.SpectraGui.unit_panel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skspec.interact.ipynbs.specgui.SpectraGui.user_function_panel">
+<tt class="descname">user_function_panel</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/skspec/interact/ipynbs/specgui.html#SpectraGui.user_function_panel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.interact.ipynbs.specgui.SpectraGui.user_function_panel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </div>
 </div>
 

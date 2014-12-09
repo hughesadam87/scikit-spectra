@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>skspec.interact.ipynbs.specgram &mdash; scikit-spectra 0.3.1-2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/bootswatch-3.2.0/united/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/bootstrap-sphinx.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '0.3.1-2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../../../_static/bootstrap-3.2.0/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../../../_static/bootstrap-sphinx.js"></script>
+    <link rel="author" title="About these documents" href="../../../../about.html" />
+    <link rel="top" title="scikit-spectra 0.3.1-2 documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+<a href="https://github.com/hugadams/scikit-spectra"
+class="visible-desktop hidden-xs"><img
+id="gh-banner"
+style="position: absolute; top: 50px; right: 0; border: 0;"
+src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"
+alt="Fork me on GitHub"></a>
+<script>
+// Adjust banner height.
+$(function () {
+var navHeight = $(".navbar .container").css("height");
+$("#gh-banner").css("top", navHeight);
+});
+</script>
+
+
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../../../../index.html"><img src="../../../../_static/logo.png" border="100" alt="sampledoc"/></a>
+</div>
+
+
+
+
+<a href="https://github.com/hugadams/scikit-spectra"
+class="visible-desktop hidden-xs"><img
+id="gh-banner"
+style="position: absolute; top: 50px; right: 0; border: 0;"
+src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"
+alt="Fork me on GitHub"></a>
+<script>
+// Adjust banner height.
+$(function () {
+var navHeight = $(".navbar .container").css("height");
+$("#gh-banner").css("top", navHeight);
+});
+</script>
+
+
+
+
+
+  <div id="navbar" class="navbar navbar-inverse navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../../../index.html">
+          skspec</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.3</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../../../index.html">Jump to <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../API/APIMAIN.html">API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../API/APIMAIN.html#primary-structures-spectrum-spectra-specstack">Primary Structures: Spectrum, Spectra, SpecStack</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../API/APIMAIN.html#index-objects">Index Objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../API/APIMAIN.html#builtin-datasets">Builtin Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../API/APIMAIN.html#io">IO</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../API/APIMAIN.html#plotting">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../API/APIMAIN.html#graphical-user-interface-gui">Graphical User Interface (GUI)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../API/APIMAIN.html#two-dimensional-correlation-spectroscopy">Two-Dimensional Correlation Spectroscopy</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../support.html">Support</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../support.html#mailing-list">Mailing List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../support.html#contribute">Contribute</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorials.html">Tutorials</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../tutorials.html#videos">Videos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../tutorials.html#minutes-to-scikit-spectra">10 Minutes to scikit-spectra</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../tutorials.html#ipython-notebooks">IPython Notebooks</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../install.html#dependencies">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../install.html#pip-install">Pip Install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../install.html#installation-from-source">Installation from source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../install.html#testing-installation">Testing Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../about.html">About</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../about.html#history-and-background">History and Background</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../about.html#related-scipy-libraries">Related Scipy Libraries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../about.html#other-spectroscopy-libraries-tools-in-python">Other Spectroscopy Libraries/Tools in Python</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../about.html#about-the-author">About the Author</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../about.html#acknowledgements">Acknowledgements</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../auto_examples/index.html">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../auto_examples/index.html#general-examples">General examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../auto_examples/index.html#longer-examples">Longer examples</a></li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">This Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+            
+            
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<form action="../../../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+        </div>
+      </div>
+    <div class="col-md-12">
+      
+  <h1>Source code for skspec.interact.ipynbs.specgram</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">skspec</span>
+<span class="kn">import</span> <span class="nn">skspec.data</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">skspec</span> <span class="kn">import</span> <span class="n">Spectra</span>
+
+
+<span class="kn">from</span> <span class="nn">IPython.html.widgets</span> <span class="kn">import</span> <span class="p">(</span>
+            <span class="n">FlexBox</span><span class="p">,</span> <span class="n">VBox</span><span class="p">,</span> <span class="n">HBox</span><span class="p">,</span> <span class="n">HTML</span><span class="p">,</span> <span class="n">Box</span><span class="p">,</span> <span class="n">RadioButtons</span><span class="p">,</span>
+            <span class="n">FloatText</span><span class="p">,</span> <span class="n">Dropdown</span><span class="p">,</span> <span class="n">Checkbox</span><span class="p">,</span> <span class="n">Image</span><span class="p">,</span>
+            <span class="n">IntSlider</span><span class="p">,</span> <span class="n">Button</span><span class="p">,</span> <span class="n">Text</span><span class="p">,</span> <span class="n">FloatSlider</span><span class="p">,</span> <span class="n">IntText</span><span class="p">,</span> <span class="n">ContainerWidget</span>
+                                  <span class="p">)</span>
+<span class="kn">from</span> <span class="nn">IPython.utils.traitlets</span> <span class="kn">import</span> <span class="p">(</span>
+            <span class="n">link</span><span class="p">,</span> <span class="n">Unicode</span><span class="p">,</span> <span class="n">Float</span><span class="p">,</span> <span class="n">Int</span><span class="p">,</span> <span class="n">Enum</span><span class="p">,</span> <span class="n">Bool</span><span class="p">,</span> <span class="n">Instance</span><span class="p">,</span> <span class="n">Any</span>
+                                     <span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">IPython</span> <span class="kn">import</span> <span class="n">get_ipython</span>
+
+<span class="kn">from</span> <span class="nn">specgui</span> <span class="kn">import</span> <span class="n">Box</span><span class="p">,</span> <span class="n">HTML</span>
+<span class="kn">from</span> <span class="nn">nbtools</span> <span class="kn">import</span> <span class="n">mpl2html</span><span class="p">,</span> <span class="n">log_message</span>
+
+<span class="kn">from</span> <span class="nn">skspec.core.spectra</span> <span class="kn">import</span> <span class="n">_normdic</span> <span class="k">as</span> <span class="n">NUdic</span>
+<span class="kn">import</span> <span class="nn">skspec.config</span> <span class="kn">as</span> <span class="nn">pvconf</span>
+<span class="kn">from</span> <span class="nn">skspec.data</span> <span class="kn">import</span> <span class="n">aunps_glass</span>
+<span class="kn">from</span> <span class="nn">skspec.plotting.advanced_plots</span> <span class="kn">import</span> <span class="n">PLOTPARSER</span>
+
+<div class="viewcode-block" id="SpectraModel"><a class="viewcode-back" href="../../../../API/skspec.interact.ipynbs.html#skspec.interact.ipynbs.specgram.SpectraModel">[docs]</a><span class="k">class</span> <span class="nc">SpectraModel</span><span class="p">(</span><span class="n">HTML</span><span class="p">,</span> <span class="n">Box</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A notional &quot;complex widget&quot; that knows how to redraw itself when key</span>
+<span class="sd">    properties change.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c"># CONSTANTS (These are not traits)</span>
+    <span class="n">classname</span> <span class="o">=</span> <span class="n">Unicode</span><span class="p">(</span><span class="s">&quot;btn btn-success&quot;</span><span class="p">,</span><span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="n">Unicode</span><span class="p">(</span><span class="s">&quot;Popover Test&quot;</span><span class="p">,</span><span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">CONTENT</span> <span class="o">=</span> <span class="n">Unicode</span><span class="p">(</span><span class="s">&quot;&quot;&quot;Lovely popover :D. Color in green using class btn btn-success&quot;&quot;&quot;</span><span class="p">,</span><span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">html</span> <span class="o">=</span> <span class="n">Bool</span><span class="p">(</span><span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    
+    <span class="n">DONT_DRAW</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;^(_.+|value|keys|comm|children|visible|parent|log|config|msg_throttle)$&#39;</span><span class="p">)</span>
+    <span class="n">SPECUNITS</span> <span class="o">=</span> <span class="n">aunps_glass</span><span class="p">()</span><span class="o">.</span><span class="n">specunits</span><span class="p">()</span>
+    <span class="n">VARUNITS</span> <span class="o">=</span> <span class="n">aunps_glass</span><span class="p">()</span><span class="o">.</span><span class="n">varunits</span><span class="p">()</span>
+    <span class="n">NORMUNITS</span> <span class="o">=</span> <span class="n">NUdic</span>
+    <span class="n">SPECUNITS_REV</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">((</span><span class="n">v</span><span class="p">,</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">SPECUNITS</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+    <span class="n">VARUNITS_REV</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">((</span><span class="n">v</span><span class="p">,</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">VARUNITS</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+    <span class="n">NORMUNITS_REV</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">((</span><span class="n">v</span><span class="p">,</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">NORMUNITS</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+    <span class="n">COLORS</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;b&quot;</span><span class="p">,</span><span class="s">&quot;g&quot;</span><span class="p">,</span><span class="s">&quot;r&quot;</span><span class="p">,</span><span class="s">&quot;y&quot;</span><span class="p">,</span><span class="s">&quot;k&quot;</span><span class="p">]</span>
+    <span class="n">COLORMAPS</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">m</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">plt</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">datad</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">m</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&quot;_r&quot;</span><span class="p">))</span>
+    <span class="n">SLIDER_STEPS</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mi">25</span><span class="p">)</span>
+    
+    <span class="c"># IO traitlets</span>
+    <span class="n">load_spec</span> <span class="o">=</span> <span class="n">Bool</span><span class="p">(</span><span class="bp">False</span><span class="p">,</span><span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">load_file</span> <span class="o">=</span> <span class="n">Bool</span><span class="p">(</span><span class="bp">True</span><span class="p">,</span><span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="c">#</span>
+    <span class="n">file_name</span> <span class="o">=</span> <span class="n">Unicode</span><span class="p">(</span><span class="s">&quot;&lt;Import Variable Name&gt;&quot;</span><span class="p">,</span> <span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">save_spec</span> <span class="o">=</span> <span class="n">Bool</span><span class="p">(</span><span class="bp">False</span><span class="p">,</span><span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">save_spec_as</span> <span class="o">=</span> <span class="n">Unicode</span><span class="p">(</span><span class="s">&quot;&lt;Export Name&gt;&quot;</span><span class="p">,</span><span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    
+    <span class="n">inbox</span> <span class="o">=</span> <span class="n">Bool</span><span class="p">(</span><span class="bp">False</span><span class="p">,</span><span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">outbox</span> <span class="o">=</span> <span class="n">Bool</span><span class="p">(</span><span class="bp">False</span><span class="p">,</span><span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    
+    <span class="c"># Spectra traits</span>
+    <span class="n">spec</span> <span class="o">=</span> <span class="n">Instance</span><span class="p">(</span><span class="n">Spectra</span><span class="p">)</span>
+    <span class="n">testdataset</span> <span class="o">=</span> <span class="n">Unicode</span><span class="p">(</span><span class="s">&#39;&lt;Dataset&gt;&#39;</span><span class="p">,</span> <span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> 
+    <span class="n">spec_modified</span> <span class="o">=</span> <span class="n">Instance</span><span class="p">(</span><span class="n">Spectra</span><span class="p">)</span>
+    
+    <span class="c"># Plotting Traits</span>
+    <span class="n">figwidth</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">6.5</span><span class="p">)</span>
+    <span class="n">figheight</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">6.5</span><span class="p">)</span>
+    <span class="n">interactive</span> <span class="o">=</span> <span class="n">Bool</span><span class="p">(</span><span class="bp">False</span><span class="p">,</span> <span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">colorbar</span> <span class="o">=</span> <span class="n">Bool</span><span class="p">(</span><span class="bp">False</span><span class="p">,</span> <span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">autoupdate</span> <span class="o">=</span> <span class="n">Bool</span><span class="p">(</span><span class="bp">True</span><span class="p">,</span> <span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">colormap</span> <span class="o">=</span> <span class="n">Enum</span><span class="p">(</span><span class="n">COLORMAPS</span> <span class="p">,</span><span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">color</span> <span class="o">=</span> <span class="n">Enum</span><span class="p">(</span><span class="n">COLORS</span><span class="p">,</span> <span class="n">default_value</span> <span class="o">=</span> <span class="s">&#39;k&#39;</span><span class="p">,</span> <span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">advancedbox</span> <span class="o">=</span> <span class="n">Bool</span><span class="p">(</span><span class="bp">False</span><span class="p">,</span><span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">cmapbox</span> <span class="o">=</span> <span class="n">Bool</span><span class="p">(</span><span class="bp">False</span><span class="p">,</span><span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">colorbox</span> <span class="o">=</span> <span class="n">Bool</span><span class="p">(</span><span class="bp">False</span><span class="p">,</span><span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">kind</span> <span class="o">=</span> <span class="n">Enum</span><span class="p">(</span><span class="n">PLOTPARSER</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">default_value</span> <span class="o">=</span> <span class="s">&#39;spec&#39;</span><span class="p">,</span> <span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">selectlines</span> <span class="o">=</span> <span class="n">Bool</span><span class="p">(</span><span class="bp">False</span><span class="p">,</span> <span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    
+    
+    <span class="c"># Units</span>
+    <span class="n">spec_unit</span> <span class="o">=</span> <span class="n">Enum</span><span class="p">(</span><span class="n">SPECUNITS</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span>  <span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">var_unit</span> <span class="o">=</span> <span class="n">Enum</span><span class="p">(</span><span class="n">VARUNITS</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span>  <span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">iunit</span> <span class="o">=</span> <span class="n">Unicode</span>
+    <span class="n">norm_unit</span> <span class="o">=</span> <span class="n">Enum</span><span class="p">(</span><span class="n">NORMUNITS</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span>  <span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    
+    <span class="c"># Message/warnings</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="n">Unicode</span>
+    
+    <span class="c"># Sampling/slicing</span>
+    <span class="c">#specslice_axis = Enum([0,1], default_value=0, sync=True)</span>
+    <span class="n">specslice_position_start</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">specslice_position_end</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">specslider_start</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">specslider_end</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">specstep</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">specspacing</span> <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    
+    <span class="n">timeslice_position_start</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">timeslice_position_end</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">timeslider_start</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">timeslider_end</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">timestep</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">timespacing</span> <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    
+    
+    <span class="n">specbox</span> <span class="o">=</span> <span class="n">Bool</span><span class="p">(</span><span class="bp">False</span><span class="p">,</span> <span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">timebox</span> <span class="o">=</span> <span class="n">Bool</span><span class="p">(</span><span class="bp">False</span><span class="p">,</span> <span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    
+    <span class="c"># User Defined Function</span>
+    <span class="n">user_f</span> <span class="o">=</span> <span class="n">Unicode</span><span class="p">(</span><span class="n">sync</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        
+        <span class="c"># Initialize traits (_spec_changed calls initial draw)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SpectraModel</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dom_classes</span> <span class="o">+=</span> <span class="p">(</span><span class="s">&quot;col-xs-9&quot;</span><span class="p">,)</span>
+    
+    
+    <span class="c"># DEFAULTS</span>
+    <span class="c"># --------</span>
+    <span class="k">def</span> <span class="nf">_spec_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">skspec</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="s">&#39;aunps_water&#39;</span><span class="p">)()</span>
+    
+    <span class="k">def</span> <span class="nf">_colormap_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">pvconf</span><span class="o">.</span><span class="n">CMAP_1DSPECPLOT</span> <span class="c">#Use skspec config default (red/blue map)</span>
+    
+    <span class="c"># Events</span>
+    <span class="c"># ------</span>
+    <span class="k">def</span> <span class="nf">_spec_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Overall spectrum changes; triggers most events.&quot;&quot;&quot;</span>
+        
+        <span class="c"># Leave this at this position in loop</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spec_modified</span><span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span>
+        <span class="c"># --------------</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_FREEZE</span> <span class="o">=</span> <span class="bp">True</span> <span class="c">#pause draws/slicing</span>
+        
+        <span class="c"># Units</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spec_unit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">full_specunit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var_unit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">full_varunit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">norm_unit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">full_norm</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">iunit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">full_iunit</span>
+        
+        
+        <span class="c"># Spec slicing</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">specslice_position_start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">specslice_position_end</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">specslider_start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">specslider_end</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">specstep</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">min</span><span class="p">())</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">SLIDER_STEPS</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">specspacing</span> <span class="o">=</span> <span class="mi">1</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">timeslice_position_start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timeslice_position_end</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timeslider_start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timeslider_end</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timestep</span> <span class="o">=</span> <span class="mi">10</span><span class="c">#(self.spec.columns.max() - self.spec.columns.min())/self.SLIDER_STEPS</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timespacing</span> <span class="o">=</span> <span class="mi">1</span>
+        
+        <span class="c"># Plot defaults to color map</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_color_state</span> <span class="o">=</span> <span class="bp">False</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_FREEZE</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_norm_unit_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spec_modified</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec_modified</span><span class="o">.</span><span class="n">as_norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">NORMUNITS_REV</span><span class="p">[</span><span class="n">new</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_spec_unit_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spec_modified</span><span class="o">.</span><span class="n">specunit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SPECUNITS_REV</span><span class="p">[</span><span class="n">new</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_var_unit_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spec_modified</span><span class="o">.</span><span class="n">varunit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">VARUNITS_REV</span><span class="p">[</span><span class="n">new</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_iunit_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spec_modified</span><span class="o">.</span><span class="n">iunit</span> <span class="o">=</span> <span class="n">new</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">)</span>
+    
+    <span class="c"># Plotting events</span>
+    <span class="c"># ---------------    </span>
+    <span class="k">def</span> <span class="nf">_figwidth_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_figheight_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_colormap_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_color_state</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_color_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Because this sets colorbar, might cause 2 redraws,</span>
+<span class="sd">            so _FREEZE used to prevent this</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_FREEZE</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">colorbar</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_color_state</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_FREEZE</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+    
+    <span class="k">def</span> <span class="nf">_colorbar_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_color_state</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_interactive_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">)</span>
+    
+    <span class="c"># This should be phased out; plots should support colormap, area should handle accordingly</span>
+    <span class="k">def</span> <span class="nf">_kind_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_selectlines_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">interactive</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">)</span>
+    
+    <span class="c"># IO Events</span>
+    <span class="c"># ---------</span>
+    <span class="c"># THIS SHOULD BE LOAD BUTTON CLICKED!!!!</span>
+    <span class="k">def</span> <span class="nf">_file_name_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spec</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">skspec</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_name</span><span class="p">)()</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+    <span class="nd">@log_message</span>
+<div class="viewcode-block" id="SpectraModel.save_plot"><a class="viewcode-back" href="../../../../API/skspec.interact.ipynbs.html#skspec.interact.ipynbs.specgram.SpectraModel.save_plot">[docs]</a>    <span class="k">def</span> <span class="nf">save_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fig_old</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">save_spec_as</span><span class="o">+</span><span class="s">&#39;.png&#39;</span><span class="p">)</span>
+</div>
+    <span class="nd">@log_message</span>
+<div class="viewcode-block" id="SpectraModel.save_to_ns"><a class="viewcode-back" href="../../../../API/skspec.interact.ipynbs.html#skspec.interact.ipynbs.specgram.SpectraModel.save_to_ns">[docs]</a>    <span class="k">def</span> <span class="nf">save_to_ns</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">get_ipython</span><span class="p">()</span><span class="o">.</span><span class="n">user_ns</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">save_spec_as</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">spec_modified</span>
+    </div>
+    <span class="nd">@log_message</span>
+<div class="viewcode-block" id="SpectraModel.load_from_ns"><a class="viewcode-back" href="../../../../API/skspec.interact.ipynbs.html#skspec.interact.ipynbs.specgram.SpectraModel.load_from_ns">[docs]</a>    <span class="k">def</span> <span class="nf">load_from_ns</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spec</span> <span class="o">=</span> <span class="n">get_ipython</span><span class="p">()</span><span class="o">.</span><span class="n">user_ns</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">file_name</span><span class="p">]</span><span class="o">.</span><span class="n">as_varunit</span><span class="p">(</span><span class="s">&quot;s&quot;</span><span class="p">)</span>
+        <span class="c">#def load_from_ns(self, var):</span>
+        <span class="c">#self.spec = get_ipython().user_ns[var]</span>
+        
+    <span class="c"># Slicing events</span>
+    <span class="c"># --------------</span></div>
+    <span class="k">def</span> <span class="nf">_specslice_position_start_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">):</span>       
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_FREEZE</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">slice_spectrum</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_specslice_position_end_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_FREEZE</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">slice_spectrum</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_timeslice_position_start_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_FREEZE</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">slice_spectrum</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_timeslice_position_end_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_FREEZE</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">slice_spectrum</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">)</span>
+    
+    
+    <span class="k">def</span> <span class="nf">_timespacing_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Don&#39;t let user set less than 1 or more than dataset size&quot;&quot;&quot;</span>
+        <span class="c"># Will have to update when add var/spec slicing</span>
+        <span class="c">#axis = self.slice_axis</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">timespacing</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">timespacing</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">timespacing</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec_modified</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">timespacing</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec_modified</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">slice_spectrum</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_specspacing_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Don&#39;t let user set less than 1 or more than dataset size&quot;&quot;&quot;</span>
+        <span class="c"># Will have to update when add var/spec slicing</span>
+        <span class="c">#axis = self.slice_axis</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">specspacing</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">specspacing</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">specspacing</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec_modified</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">specspacing</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec_modified</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">slice_spectrum</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">)</span>
+        
+    <span class="c"># Draw/Slice updates</span>
+    <span class="c"># ------------------</span>
+    <span class="nd">@log_message</span>
+<div class="viewcode-block" id="SpectraModel.slice_spectrum"><a class="viewcode-back" href="../../../../API/skspec.interact.ipynbs.html#skspec.interact.ipynbs.specgram.SpectraModel.slice_spectrum">[docs]</a>    <span class="k">def</span> <span class="nf">slice_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Slice and resample spectra &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spec_modified</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">nearby</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">specslice_position_start</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">specslice_position_end</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">specspacing</span><span class="p">,</span>
+                                              <span class="bp">self</span><span class="o">.</span><span class="n">timeslice_position_start</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">timeslice_position_end</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">timespacing</span><span class="p">]</span>
+    </div>
+    <span class="nd">@log_message</span>
+<div class="viewcode-block" id="SpectraModel.apply_userf"><a class="viewcode-back" href="../../../../API/skspec.interact.ipynbs.html#skspec.interact.ipynbs.specgram.SpectraModel.apply_userf">[docs]</a>    <span class="k">def</span> <span class="nf">apply_userf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spec_modified</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec_modified</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="nb">eval</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user_f</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    
+    
+    </div>
+    <span class="nd">@log_message</span>
+<div class="viewcode-block" id="SpectraModel.draw"><a class="viewcode-back" href="../../../../API/skspec.interact.ipynbs.html#skspec.interact.ipynbs.specgram.SpectraModel.draw">[docs]</a>    <span class="k">def</span> <span class="nf">draw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">old</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">new</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">DONT_DRAW</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+            <span class="k">return</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_FREEZE</span><span class="p">:</span>
+            <span class="k">return</span>
+        
+        <span class="n">plot_and_message</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        
+        <span class="c"># Better way would be a decorator or something that only goes into draw if not autoupdate</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">autoupdate</span><span class="p">:</span>
+            
+            <span class="c"># Generate new figure object</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">figwidth</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">figheight</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">PLOTPARSER</span><span class="o">.</span><span class="n">is_3d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kind</span><span class="p">):</span>
+                <span class="n">projection</span> <span class="o">=</span> <span class="s">&#39;3d&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">projection</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="n">projection</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_color_state</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;spec&#39;</span><span class="p">,</span> <span class="s">&#39;waterfall&#39;</span><span class="p">,</span> <span class="s">&#39;contour&#39;</span><span class="p">,</span> <span class="s">&#39;contour3d&#39;</span><span class="p">]:</span>
+                <span class="n">colorkwags</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">color</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">colorkwags</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">colormap</span><span class="p">,</span> <span class="n">cbar</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">colorbar</span><span class="p">)</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">spec_modified</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+                                    <span class="n">fig</span><span class="o">=</span><span class="n">f</span><span class="p">,</span>
+                                    <span class="n">kind</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kind</span><span class="p">,</span>
+                                    <span class="n">norm</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">NORMUNITS_REV</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">norm_unit</span><span class="p">],</span>
+                                    <span class="o">**</span><span class="n">colorkwags</span>
+                                    <span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span> <span class="c">#Padding around plot</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_lines</span><span class="p">()</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                                    
+            <span class="c">#http://mpld3.github.io/modules/API.html</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">interactive</span><span class="p">:</span>
+                <span class="kn">import</span> <span class="nn">mpld3</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">selectlines</span><span class="p">:</span>
+                    <span class="kn">from</span> <span class="nn">line_plugin</span> <span class="kn">import</span> <span class="n">HighlightLines</span>
+                    
+                    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec_modified</span><span class="o">.</span><span class="n">columns</span><span class="p">):</span>
+                        <span class="n">name</span> <span class="o">=</span> <span class="s">&#39;COLUMN(</span><span class="si">%s</span><span class="s">): </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">col</span><span class="p">)</span>
+                        <span class="n">tooltip</span> <span class="o">=</span> <span class="n">mpld3</span><span class="o">.</span><span class="n">plugins</span><span class="o">.</span><span class="n">LineLabelTooltip</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="n">name</span><span class="p">)</span>
+                        <span class="c">#voffset=10, hoffset=10,  css=css)</span>
+                        <span class="n">mpld3</span><span class="o">.</span><span class="n">plugins</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">tooltip</span><span class="p">)</span>
+                    
+                    <span class="n">mpld3</span><span class="o">.</span><span class="n">plugins</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">HighlightLines</span><span class="p">(</span><span class="n">lines</span><span class="p">))</span>
+                
+                <span class="n">plot_and_message</span> <span class="o">+=</span> <span class="n">mpld3</span><span class="o">.</span><span class="n">fig_to_html</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">plot_and_message</span> <span class="o">+=</span> <span class="n">mpl2html</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">fig_old</span> <span class="o">=</span> <span class="n">f</span>
+        
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">plot_and_message</span> <span class="o">+=</span> <span class="n">html_figure</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fig_old</span><span class="p">)</span>
+        
+        <span class="c"># VALUE IS WHAT GUI LOOKS UP!!!</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">plot_and_message</span></div></div>
+</pre></div>
+
+    </div>
+    
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+        <br/>
+        
+      
+    </p>
+    <p>
+        &copy; Copyright 2014, Adam Hughes, ReevesLab, George Washington University.<br/>
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.3.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

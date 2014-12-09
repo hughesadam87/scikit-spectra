@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>skspec.interact.ipynbs.specgui &mdash; scikit-spectra 0.3.1-2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/bootswatch-3.2.0/united/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/bootstrap-sphinx.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '0.3.1-2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../../../_static/bootstrap-3.2.0/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../../../_static/bootstrap-sphinx.js"></script>
+    <link rel="author" title="About these documents" href="../../../../about.html" />
+    <link rel="top" title="scikit-spectra 0.3.1-2 documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+<a href="https://github.com/hugadams/scikit-spectra"
+class="visible-desktop hidden-xs"><img
+id="gh-banner"
+style="position: absolute; top: 50px; right: 0; border: 0;"
+src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"
+alt="Fork me on GitHub"></a>
+<script>
+// Adjust banner height.
+$(function () {
+var navHeight = $(".navbar .container").css("height");
+$("#gh-banner").css("top", navHeight);
+});
+</script>
+
+
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="../../../../index.html"><img src="../../../../_static/logo.png" border="100" alt="sampledoc"/></a>
+</div>
+
+
+
+
+<a href="https://github.com/hugadams/scikit-spectra"
+class="visible-desktop hidden-xs"><img
+id="gh-banner"
+style="position: absolute; top: 50px; right: 0; border: 0;"
+src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"
+alt="Fork me on GitHub"></a>
+<script>
+// Adjust banner height.
+$(function () {
+var navHeight = $(".navbar .container").css("height");
+$("#gh-banner").css("top", navHeight);
+});
+</script>
+
+
+
+
+
+  <div id="navbar" class="navbar navbar-inverse navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../../../index.html">
+          skspec</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.3</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../../../index.html">Jump to <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../API/APIMAIN.html">API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../API/APIMAIN.html#primary-structures-spectrum-spectra-specstack">Primary Structures: Spectrum, Spectra, SpecStack</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../API/APIMAIN.html#index-objects">Index Objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../API/APIMAIN.html#builtin-datasets">Builtin Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../API/APIMAIN.html#io">IO</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../API/APIMAIN.html#plotting">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../API/APIMAIN.html#graphical-user-interface-gui">Graphical User Interface (GUI)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../API/APIMAIN.html#two-dimensional-correlation-spectroscopy">Two-Dimensional Correlation Spectroscopy</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../support.html">Support</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../support.html#mailing-list">Mailing List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../support.html#contribute">Contribute</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorials.html">Tutorials</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../tutorials.html#videos">Videos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../tutorials.html#minutes-to-scikit-spectra">10 Minutes to scikit-spectra</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../tutorials.html#ipython-notebooks">IPython Notebooks</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../install.html#dependencies">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../install.html#pip-install">Pip Install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../install.html#installation-from-source">Installation from source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../install.html#testing-installation">Testing Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../about.html">About</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../about.html#history-and-background">History and Background</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../about.html#related-scipy-libraries">Related Scipy Libraries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../about.html#other-spectroscopy-libraries-tools-in-python">Other Spectroscopy Libraries/Tools in Python</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../about.html#about-the-author">About the Author</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../about.html#acknowledgements">Acknowledgements</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../auto_examples/index.html">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../auto_examples/index.html#general-examples">General examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../auto_examples/index.html#longer-examples">Longer examples</a></li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">This Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+            
+            
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<form action="../../../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+        </div>
+      </div>
+    <div class="col-md-12">
+      
+  <h1>Source code for skspec.interact.ipynbs.specgui</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">skspec.plotting.advanced_plots</span> <span class="kn">import</span> <span class="n">PLOTPARSER</span>
+
+<span class="kn">from</span> <span class="nn">IPython.html.widgets</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">FlexBox</span><span class="p">,</span> <span class="n">VBox</span><span class="p">,</span> <span class="n">HBox</span><span class="p">,</span> <span class="n">HTML</span><span class="p">,</span> <span class="n">Box</span><span class="p">,</span> <span class="n">RadioButtons</span><span class="p">,</span>
+    <span class="n">Text</span><span class="p">,</span> <span class="n">Dropdown</span><span class="p">,</span> <span class="n">Checkbox</span><span class="p">,</span> <span class="n">Image</span><span class="p">,</span> <span class="n">Popup</span><span class="p">,</span>
+    <span class="n">IntSlider</span><span class="p">,</span> <span class="n">Button</span><span class="p">,</span> <span class="n">Text</span><span class="p">,</span> <span class="n">FloatSlider</span><span class="p">,</span> <span class="n">IntText</span><span class="p">,</span> 
+    <span class="n">ContainerWidget</span><span class="p">,</span> <span class="n">FloatText</span>
+    <span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">IPython.display</span> <span class="kn">as</span> <span class="nn">ipdisplay</span>
+
+<span class="kn">from</span> <span class="nn">IPython.utils.traitlets</span> <span class="kn">import</span> <span class="n">link</span><span class="p">,</span> <span class="n">Unicode</span>
+<span class="kn">from</span> <span class="nn">jinja2</span> <span class="kn">import</span> <span class="n">Template</span>
+
+
+<div class="viewcode-block" id="PanelTitle"><a class="viewcode-back" href="../../../../API/skspec.interact.ipynbs.html#skspec.interact.ipynbs.specgui.PanelTitle">[docs]</a><span class="k">class</span> <span class="nc">PanelTitle</span><span class="p">(</span><span class="n">HTML</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">PanelTitle</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dom_classes</span> <span class="o">+=</span> <span class="p">(</span><span class="s">&quot;panel-heading panel-title&quot;</span><span class="p">,)</span>
+</div>
+<div class="viewcode-block" id="PanelBody"><a class="viewcode-back" href="../../../../API/skspec.interact.ipynbs.html#skspec.interact.ipynbs.specgui.PanelBody">[docs]</a><span class="k">class</span> <span class="nc">PanelBody</span><span class="p">(</span><span class="n">Box</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">PanelBody</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dom_classes</span> <span class="o">+=</span> <span class="p">(</span><span class="s">&quot;panel-body&quot;</span><span class="p">,)</span>
+</div>
+<div class="viewcode-block" id="ControlPanel"><a class="viewcode-back" href="../../../../API/skspec.interact.ipynbs.html#skspec.interact.ipynbs.specgui.ControlPanel">[docs]</a><span class="k">class</span> <span class="nc">ControlPanel</span><span class="p">(</span><span class="n">Box</span><span class="p">):</span>
+    <span class="c"># A set of related controls, with an optional title, in a box (provided by CSS)</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ControlPanel</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dom_classes</span> <span class="o">+=</span> <span class="p">(</span><span class="s">&quot;panel panel-info&quot;</span><span class="p">,)</span>
+
+        <span class="c"># add an option title widget</span>
+        <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>            
+            <span class="bp">self</span><span class="o">.</span><span class="n">children</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">PanelTitle</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">title</span><span class="p">),</span>
+                <span class="n">PanelBody</span><span class="p">(</span><span class="n">children</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">)</span>
+            <span class="p">]</span>
+
+</div>
+<div class="viewcode-block" id="Alert"><a class="viewcode-back" href="../../../../API/skspec.interact.ipynbs.html#skspec.interact.ipynbs.specgui.Alert">[docs]</a><span class="k">class</span> <span class="nc">Alert</span><span class="p">(</span><span class="n">HTML</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;HTML widget that is used to store alerts.  For now,</span>
+<span class="sd">    just a pure HTML class but put in in separate class to</span>
+<span class="sd">    allow potential customaization in future.&quot;&quot;&quot;</span>
+
+</div>
+<div class="viewcode-block" id="SpectraGui"><a class="viewcode-back" href="../../../../API/skspec.interact.ipynbs.html#skspec.interact.ipynbs.specgui.SpectraGui">[docs]</a><span class="k">class</span> <span class="nc">SpectraGui</span><span class="p">(</span><span class="n">Box</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An example GUI for a spectroscopy application.</span>
+
+<span class="sd">    Note that `self.model` is the owner of all of the &quot;real&quot; data, while this</span>
+<span class="sd">    class handles creating all of the GUI controls and links. This ensures</span>
+<span class="sd">    that the model itself remains embeddable and rem</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">model_config</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+	<span class="c"># RUN HTML</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span> <span class="ow">or</span> <span class="n">Spectrogram</span><span class="p">(</span><span class="o">**</span><span class="p">(</span><span class="n">model_config</span> <span class="ow">or</span> <span class="p">{}))</span>  <span class="c">#Need to access spectrogram if defaulting...</span>
+        <span class="c"># Create alert widget (refactor into its own function?)</span>
+        <span class="n">alert</span> <span class="o">=</span> <span class="n">Alert</span><span class="p">(</span><span class="n">description</span> <span class="o">=</span> <span class="s">&quot;Alert or something&quot;</span><span class="p">)</span>
+        <span class="n">link</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="s">&quot;message&quot;</span><span class="p">),</span> <span class="p">(</span><span class="n">alert</span><span class="p">,</span> <span class="s">&quot;value&quot;</span><span class="p">))</span>
+
+        <span class="c"># Create a GUI</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s">&quot;orientation&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;horizontal&#39;</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s">&quot;children&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">HBox</span><span class="p">([</span>
+                                    <span class="n">VBox</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">INOUT_panel</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">alert</span><span class="p">]),</span>
+                                    <span class="n">VBox</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">plot_panel</span><span class="p">(),</span><span class="bp">self</span><span class="o">.</span><span class="n">slicing_panel</span><span class="p">(),</span><span class="bp">self</span><span class="o">.</span><span class="n">unit_panel</span><span class="p">()]),</span>
+                                    <span class="p">])</span>
+                              <span class="p">]</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SpectraGui</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dom_classes</span> <span class="o">+=</span> <span class="p">(</span><span class="s">&quot;spectroscopy row&quot;</span><span class="p">,)</span>
+
+
+<div class="viewcode-block" id="SpectraGui.set_layout"><a class="viewcode-back" href="../../../../API/skspec.interact.ipynbs.html#skspec.interact.ipynbs.specgui.SpectraGui.set_layout">[docs]</a>    <span class="k">def</span> <span class="nf">set_layout</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+	<span class="k">return</span> <span class="n">ipdisplay</span><span class="o">.</span><span class="n">HTML</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s">&#39;style1.html&#39;</span><span class="p">,</span><span class="s">&#39;r&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+
+
+</div>
+<div class="viewcode-block" id="SpectraGui.INOUT_panel"><a class="viewcode-back" href="../../../../API/skspec.interact.ipynbs.html#skspec.interact.ipynbs.specgui.SpectraGui.INOUT_panel">[docs]</a>    <span class="k">def</span> <span class="nf">INOUT_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># create correlation controls. NOTE: should only be called once.</span>
+        <span class="n">incheck</span> <span class="o">=</span> <span class="n">Checkbox</span><span class="p">(</span><span class="n">description</span> <span class="o">=</span> <span class="s">&#39;Import&#39;</span><span class="p">)</span>
+        <span class="n">link</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="s">&quot;inbox&quot;</span><span class="p">),</span> <span class="p">(</span><span class="n">incheck</span><span class="p">,</span><span class="s">&quot;value&quot;</span><span class="p">))</span>
+        <span class="n">outcheck</span> <span class="o">=</span> <span class="n">Checkbox</span><span class="p">(</span><span class="n">description</span> <span class="o">=</span> <span class="s">&#39;Export&#39;</span><span class="p">)</span>
+        <span class="n">link</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="s">&quot;outbox&quot;</span><span class="p">),</span> <span class="p">(</span><span class="n">outcheck</span><span class="p">,</span><span class="s">&quot;value&quot;</span><span class="p">))</span>
+        
+        <span class="c">#loaddata = Checkbox(description=&quot;Testdata&quot;)</span>
+        <span class="c">#link((self.model, &quot;load_spec&quot;), (loaddata, &quot;value&quot;))</span>
+        <span class="c">#testdataset = Text(description = &quot;&quot;)</span>
+        <span class="c">#link((self.model, &quot;testdataset&quot;), (testdataset, &quot;value&quot;))</span>
+     
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">Text</span><span class="p">(</span><span class="n">description</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">link</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="s">&quot;file_name&quot;</span><span class="p">),</span> <span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&quot;value&quot;</span><span class="p">))</span>
+        <span class="n">loadbutton</span> <span class="o">=</span> <span class="n">Button</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s">&#39;black&#39;</span><span class="p">,</span><span class="n">background_color</span><span class="o">=</span><span class="s">&#39;AliceBlue&#39;</span><span class="p">,</span><span class="n">description</span><span class="o">=</span><span class="s">&quot;Load&quot;</span><span class="p">)</span>
+        <span class="n">loadbutton</span><span class="o">.</span><span class="n">on_click</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">load_from_ns</span><span class="p">())</span>
+        <span class="n">boxi</span> <span class="o">=</span> <span class="n">HBox</span><span class="p">([</span><span class="n">filename</span><span class="p">,</span><span class="n">loadbutton</span><span class="p">])</span>
+        <span class="c">#link((self.model, &quot;load_spec&quot;), (specbox, &quot;visible&quot;))</span>
+
+<span class="c">#        loadfile = Checkbox(description=&quot;NB Variable&quot;) #Test Data</span>
+<span class="c">#        link((self.model, &quot;load_file&quot;), (loadfile, &quot;value&quot;))</span>
+
+        
+        <span class="c">#                filebox = HBox([loadbutton, filename])</span>
+        <span class="c">#link((self.model, &quot;load_file&quot;), (filebox, &quot;visible&quot;))</span>
+        
+        <span class="c">#boxi = VBox([</span>
+                     <span class="c">#HBox([loaddata, loadfile]),</span>
+                     <span class="c">#loaddata,</span>
+                     <span class="c">#             specbox,</span>
+                     <span class="c">#filebox,</span>
+                     <span class="c">#            ])</span>
+        <span class="n">link</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="s">&quot;inbox&quot;</span><span class="p">),</span> <span class="p">(</span><span class="n">boxi</span><span class="p">,</span><span class="s">&quot;visible&quot;</span><span class="p">))</span>
+
+        <span class="n">saveplot</span> <span class="o">=</span> <span class="n">Button</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s">&#39;black&#39;</span><span class="p">,</span><span class="n">background_color</span><span class="o">=</span><span class="s">&#39;AliceBlue&#39;</span><span class="p">,</span><span class="n">description</span><span class="o">=</span><span class="s">&#39;Save Plot&#39;</span><span class="p">)</span>
+        <span class="n">saveplot</span><span class="o">.</span><span class="n">on_click</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">save_plot</span><span class="p">())</span>
+        <span class="n">savespec</span> <span class="o">=</span> <span class="n">Button</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s">&#39;black&#39;</span><span class="p">,</span><span class="n">background_color</span><span class="o">=</span><span class="s">&#39;AliceBlue&#39;</span><span class="p">,</span><span class="n">description</span><span class="o">=</span><span class="s">&#39;Export Dataset&#39;</span><span class="p">)</span>
+        <span class="n">savespec</span><span class="o">.</span><span class="n">on_click</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">save_to_ns</span><span class="p">())</span>
+        <span class="n">savespecas</span> <span class="o">=</span> <span class="n">Text</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">link</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span><span class="s">&quot;save_spec_as&quot;</span><span class="p">),(</span><span class="n">savespecas</span><span class="p">,</span><span class="s">&quot;value&quot;</span><span class="p">))</span>
+        
+        <span class="n">boxo</span> <span class="o">=</span> <span class="n">VBox</span><span class="p">([</span>
+                    <span class="n">savespecas</span><span class="p">,</span>
+                    <span class="n">HBox</span><span class="p">([</span><span class="n">saveplot</span><span class="p">,</span><span class="n">savespec</span><span class="p">]),</span>
+                    <span class="p">])</span>
+        <span class="n">link</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="s">&quot;outbox&quot;</span><span class="p">),</span> <span class="p">(</span><span class="n">boxo</span><span class="p">,</span><span class="s">&quot;visible&quot;</span><span class="p">))</span>
+        
+        <span class="c">#reset = Button(color=&#39;white&#39;,background_color=&#39;violet&#39;,description=&#39;Reset Defaults&#39;)</span>
+        <span class="c">#reset.on_click(lambda x: self.model.)</span>
+                       
+        <span class="c">#redraw = Button(description=&quot;Redraw&quot;)</span>
+        <span class="c">#redraw.on_click(lambda x: self.model.draw())</span>
+
+        <span class="k">return</span> <span class="n">ControlPanel</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s">&quot;Import/Export Dataset&quot;</span><span class="p">,</span>
+                            <span class="n">children</span><span class="o">=</span><span class="p">[</span><span class="n">HBox</span><span class="p">([</span>
+                                            <span class="n">VBox</span><span class="p">([</span><span class="n">incheck</span><span class="p">,</span><span class="n">outcheck</span><span class="p">]),</span>
+                                            <span class="n">VBox</span><span class="p">([</span><span class="n">boxi</span><span class="p">,</span><span class="n">boxo</span><span class="p">])</span>
+                                            <span class="p">])</span>
+                                     <span class="p">]</span>
+                            <span class="p">)</span>
+                       
+                       
+                       </div>
+<div class="viewcode-block" id="SpectraGui.plot_panel"><a class="viewcode-back" href="../../../../API/skspec.interact.ipynbs.html#skspec.interact.ipynbs.specgui.SpectraGui.plot_panel">[docs]</a>    <span class="k">def</span> <span class="nf">plot_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># create draw mode controls.  NOTE: should only be called once.</span>
+        <span class="n">cbar</span> <span class="o">=</span> <span class="n">Checkbox</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&quot;Colorbar&quot;</span><span class="p">)</span>
+        <span class="n">link</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="s">&quot;colorbar&quot;</span><span class="p">),</span> <span class="p">(</span><span class="n">cbar</span><span class="p">,</span> <span class="s">&quot;value&quot;</span><span class="p">))</span>
+
+        <span class="n">interact</span> <span class="o">=</span> <span class="n">Checkbox</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&quot;Interactive&quot;</span><span class="p">)</span>
+        <span class="n">link</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="s">&quot;interactive&quot;</span><span class="p">),</span> <span class="p">(</span><span class="n">interact</span><span class="p">,</span> <span class="s">&quot;value&quot;</span><span class="p">))</span>
+
+        <span class="n">plug_select</span> <span class="o">=</span> <span class="n">Checkbox</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&quot;Line Selection&quot;</span><span class="p">)</span>
+        <span class="n">link</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="s">&quot;selectlines&quot;</span><span class="p">),</span> <span class="p">(</span><span class="n">plug_select</span><span class="p">,</span> <span class="s">&quot;value&quot;</span><span class="p">))</span>
+
+        <span class="n">autoupdate</span> <span class="o">=</span> <span class="n">Checkbox</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&quot;Auto Update&quot;</span><span class="p">)</span>
+        <span class="n">link</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="s">&quot;autoupdate&quot;</span><span class="p">),</span> <span class="p">(</span><span class="n">autoupdate</span><span class="p">,</span> <span class="s">&quot;value&quot;</span><span class="p">))</span>
+        
+        <span class="n">plugin2</span><span class="o">=</span> <span class="n">Checkbox</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&#39;plugin2&#39;</span><span class="p">)</span>
+        <span class="n">plugin3</span><span class="o">=</span> <span class="n">Checkbox</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&#39;plugin3&#39;</span><span class="p">)</span>
+        <span class="n">fwidth</span> <span class="o">=</span> <span class="n">FloatText</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&#39;Plot width&#39;</span><span class="p">)</span>
+        <span class="n">fheight</span> <span class="o">=</span> <span class="n">FloatText</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&#39;Plot height&#39;</span><span class="p">)</span>
+        <span class="n">link</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="s">&quot;figwidth&quot;</span><span class="p">),</span> <span class="p">(</span><span class="n">fwidth</span><span class="p">,</span> <span class="s">&quot;value&quot;</span><span class="p">))</span>
+        <span class="n">link</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="s">&quot;figheight&quot;</span><span class="p">),</span> <span class="p">(</span><span class="n">fheight</span><span class="p">,</span> <span class="s">&quot;value&quot;</span><span class="p">))</span>
+        
+        
+        <span class="n">f</span> <span class="o">=</span> <span class="n">Text</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&quot;Function:&quot;</span><span class="p">)</span>
+        <span class="n">link</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span><span class="s">&quot;user_f&quot;</span><span class="p">),(</span><span class="n">f</span><span class="p">,</span><span class="s">&quot;value&quot;</span><span class="p">))</span>
+        <span class="n">fapp</span> <span class="o">=</span> <span class="n">Button</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s">&#39;black&#39;</span><span class="p">,</span><span class="n">background_color</span><span class="o">=</span><span class="s">&#39;AliceBlue&#39;</span><span class="p">,</span><span class="n">description</span> <span class="o">=</span> <span class="s">&quot;Apply&quot;</span><span class="p">)</span>
+        <span class="n">fapp</span><span class="o">.</span><span class="n">on_click</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">apply_userf</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;apply clicked&#39;</span><span class="p">))</span>
+
+        <span class="c">#plugins = HBox([plugin1,plugin2,plugin3])</span>
+        <span class="c">#more = Checkbox(description=&quot;More Options&quot;)### LINK IT</span>
+        <span class="c">#link((self, &quot;moreopt&quot;), (more, &quot;value&quot;))</span>
+        <span class="c">#popmore = Popup(children=[VBox([HBox([plug_select,plugin2,plugin3]),</span>
+        <span class="c">#                                HBox([f,fapp]),</span>
+        <span class="c">#                                VBox([fwidth, fheight])</span>
+        <span class="c">#                              ])],</span>
+        <span class="c">#                description=&#39;Advanced&#39;, button_text=&#39;Advanced&#39;)</span>
+
+        <span class="n">more</span> <span class="o">=</span> <span class="n">Checkbox</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&quot;Advanced&quot;</span><span class="p">)</span>
+        <span class="n">link</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="s">&quot;advancedbox&quot;</span><span class="p">),</span> <span class="p">(</span><span class="n">more</span><span class="p">,</span> <span class="s">&quot;value&quot;</span><span class="p">))</span>
+
+        <span class="n">popmore</span> <span class="o">=</span> <span class="n">VBox</span><span class="p">([</span><span class="n">HBox</span><span class="p">([</span><span class="n">plug_select</span><span class="p">,</span><span class="n">plugin2</span><span class="p">,</span><span class="n">plugin3</span><span class="p">]),</span>
+                        <span class="n">HBox</span><span class="p">([</span><span class="n">f</span><span class="p">,</span><span class="n">fapp</span><span class="p">]),</span>
+                        <span class="n">HBox</span><span class="p">([</span><span class="n">fwidth</span><span class="p">,</span> <span class="n">fheight</span><span class="p">])</span>
+                        <span class="p">])</span>
+        <span class="n">link</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="s">&quot;advancedbox&quot;</span><span class="p">),</span> <span class="p">(</span><span class="n">popmore</span><span class="p">,</span><span class="s">&quot;visible&quot;</span><span class="p">))</span>
+
+        <span class="n">cmapcheck</span> <span class="o">=</span> <span class="n">Checkbox</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&quot;Colormap&quot;</span><span class="p">)</span>
+        <span class="n">link</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="s">&quot;cmapbox&quot;</span><span class="p">),</span> <span class="p">(</span><span class="n">cmapcheck</span><span class="p">,</span> <span class="s">&quot;value&quot;</span><span class="p">))</span>
+
+        <span class="n">cmap</span> <span class="o">=</span> <span class="n">Dropdown</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&quot;Colormap&quot;</span><span class="p">,</span><span class="n">values</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">COLORMAPS</span><span class="p">)</span>
+        <span class="n">link</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span><span class="s">&quot;colormap&quot;</span><span class="p">),(</span><span class="n">cmap</span><span class="p">,</span><span class="s">&quot;value&quot;</span><span class="p">))</span>
+        <span class="n">link</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span><span class="s">&quot;cmapbox&quot;</span><span class="p">),(</span><span class="n">cmap</span><span class="p">,</span><span class="s">&quot;visible&quot;</span><span class="p">))</span>
+        
+        <span class="n">colorcheck</span> <span class="o">=</span> <span class="n">Checkbox</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&quot;Color&quot;</span><span class="p">)</span>
+        <span class="n">link</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="s">&quot;colorbox&quot;</span><span class="p">),</span> <span class="p">(</span><span class="n">colorcheck</span><span class="p">,</span> <span class="s">&quot;value&quot;</span><span class="p">))</span>
+
+        <span class="n">color</span> <span class="o">=</span> <span class="n">Dropdown</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&quot;Color&quot;</span><span class="p">,</span><span class="n">values</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">COLORS</span><span class="p">)</span>
+        <span class="n">link</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="s">&quot;color&quot;</span><span class="p">),</span> <span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="s">&quot;value&quot;</span><span class="p">))</span>
+        <span class="n">link</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span><span class="s">&quot;colorbox&quot;</span><span class="p">),(</span><span class="n">color</span><span class="p">,</span><span class="s">&quot;visible&quot;</span><span class="p">))</span>
+
+        <span class="n">kind</span> <span class="o">=</span> <span class="n">Dropdown</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&quot;Plot Type&quot;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">PLOTPARSER</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">link</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="s">&quot;kind&quot;</span><span class="p">),</span> <span class="p">(</span><span class="n">kind</span><span class="p">,</span> <span class="s">&quot;value&quot;</span><span class="p">))</span>
+
+
+        <span class="k">return</span> <span class="n">ControlPanel</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s">&quot;Plot Settings&quot;</span><span class="p">,</span> 
+                            <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+                                <span class="n">VBox</span><span class="p">([</span><span class="n">autoupdate</span><span class="p">,</span><span class="n">kind</span><span class="p">]),</span>
+                                <span class="n">HBox</span><span class="p">([</span><span class="n">cbar</span><span class="p">,</span> <span class="n">interact</span><span class="p">]),</span>
+                                <span class="n">HBox</span><span class="p">([</span><span class="n">colorcheck</span><span class="p">,</span> <span class="n">cmapcheck</span><span class="p">]),</span>
+                                <span class="n">HBox</span><span class="p">([</span><span class="n">more</span><span class="p">]),</span>
+                                <span class="n">cmap</span><span class="p">,</span>
+                                <span class="n">color</span><span class="p">,</span>
+                                <span class="n">popmore</span>
+                                <span class="p">]</span>
+                            <span class="p">)</span>
+</div>
+<div class="viewcode-block" id="SpectraGui.unit_panel"><a class="viewcode-back" href="../../../../API/skspec.interact.ipynbs.html#skspec.interact.ipynbs.specgui.SpectraGui.unit_panel">[docs]</a>    <span class="k">def</span> <span class="nf">unit_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># create spectrum controls.  NOTE: should only be called once.</span>
+        <span class="n">specunit</span> <span class="o">=</span> <span class="n">Dropdown</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&quot;Specunit&quot;</span><span class="p">,</span><span class="n">values</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">SPECUNITS</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="n">link</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span><span class="s">&quot;spec_unit&quot;</span><span class="p">),(</span><span class="n">specunit</span><span class="p">,</span><span class="s">&quot;value&quot;</span><span class="p">))</span>
+
+        <span class="n">varunit</span> <span class="o">=</span> <span class="n">Dropdown</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&quot;Varunit&quot;</span><span class="p">,</span><span class="n">values</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">VARUNITS</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="n">link</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span><span class="s">&quot;var_unit&quot;</span><span class="p">),(</span><span class="n">varunit</span><span class="p">,</span><span class="s">&quot;value&quot;</span><span class="p">))</span>
+
+        <span class="n">iunit</span> <span class="o">=</span> <span class="n">Text</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&quot;I Unit&quot;</span><span class="p">,</span><span class="n">values</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">iunit</span><span class="p">)</span>
+        <span class="n">link</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span><span class="s">&quot;iunit&quot;</span><span class="p">),(</span><span class="n">iunit</span><span class="p">,</span><span class="s">&quot;value&quot;</span><span class="p">))</span>
+
+        <span class="n">normunit</span> <span class="o">=</span> <span class="n">Dropdown</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&quot;Normunit&quot;</span><span class="p">,</span><span class="n">values</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">NORMUNITS</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="n">link</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span><span class="s">&quot;norm_unit&quot;</span><span class="p">),(</span><span class="n">normunit</span><span class="p">,</span><span class="s">&quot;value&quot;</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">ControlPanel</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s">&quot;Units&quot;</span><span class="p">,</span>
+                            <span class="n">children</span><span class="o">=</span> <span class="p">[</span>
+                                <span class="n">normunit</span><span class="p">,</span>
+                                <span class="n">specunit</span><span class="p">,</span>
+                                <span class="n">varunit</span><span class="p">,</span>
+                                <span class="n">iunit</span>
+                            <span class="p">])</span>
+                            
+</div>
+<div class="viewcode-block" id="SpectraGui.slicing_panel"><a class="viewcode-back" href="../../../../API/skspec.interact.ipynbs.html#skspec.interact.ipynbs.specgui.SpectraGui.slicing_panel">[docs]</a>    <span class="k">def</span> <span class="nf">slicing_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; create spectrum controls.  NOTE: should only be called once.&quot;&quot;&quot;</span>
+
+        <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="c">#For readability</span>
+
+        <span class="c"># ALL WIDGETS ARE CAPITALIZED. </span>
+        <span class="c">#AXIS = RadioButtons(values=[0,1],description=&quot;Axis&quot;)</span>
+        <span class="c">#link((model, &quot;slice_axis&quot;), (AXIS, &quot;value&quot;))</span>
+
+        <span class="n">SPECSTART</span> <span class="o">=</span> <span class="n">FloatSlider</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&quot;Spec Start&quot;</span><span class="p">,</span>
+                                <span class="nb">min</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">specslice_position_start</span><span class="p">)</span> <span class="c">#Will not try to update</span>
+
+        <span class="n">link</span><span class="p">((</span><span class="n">model</span><span class="p">,</span><span class="s">&quot;specslice_position_start&quot;</span><span class="p">),(</span><span class="n">SPECSTART</span><span class="p">,</span><span class="s">&quot;value&quot;</span><span class="p">))</span>
+        <span class="n">link</span><span class="p">((</span><span class="n">model</span><span class="p">,</span><span class="s">&quot;specstep&quot;</span><span class="p">),(</span><span class="n">SPECSTART</span><span class="p">,</span><span class="s">&quot;step&quot;</span><span class="p">))</span>
+        <span class="n">link</span><span class="p">((</span><span class="n">model</span><span class="p">,</span><span class="s">&quot;specslider_start&quot;</span><span class="p">),(</span><span class="n">SPECSTART</span><span class="p">,</span><span class="s">&quot;min&quot;</span><span class="p">))</span> <span class="c"># Start end values (IE slider_min / slider_max)</span>
+        <span class="n">link</span><span class="p">((</span><span class="n">model</span><span class="p">,</span><span class="s">&quot;specslider_end&quot;</span><span class="p">),(</span><span class="n">SPECSTART</span><span class="p">,</span><span class="s">&quot;max&quot;</span><span class="p">))</span>
+
+        <span class="n">SPECEND</span> <span class="o">=</span> <span class="n">FloatSlider</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&quot;Spec End&quot;</span><span class="p">,</span>
+                              <span class="nb">max</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">specslice_position_end</span><span class="p">)</span> <span class="c"># Will not try to update</span>
+
+        <span class="n">link</span><span class="p">((</span><span class="n">model</span><span class="p">,</span><span class="s">&quot;specslice_position_end&quot;</span><span class="p">),(</span><span class="n">SPECEND</span><span class="p">,</span><span class="s">&quot;value&quot;</span><span class="p">))</span>
+        <span class="n">link</span><span class="p">((</span><span class="n">model</span><span class="p">,</span><span class="s">&quot;specstep&quot;</span><span class="p">),(</span><span class="n">SPECEND</span><span class="p">,</span><span class="s">&quot;step&quot;</span><span class="p">))</span>
+        <span class="n">link</span><span class="p">((</span><span class="n">model</span><span class="p">,</span><span class="s">&quot;specslider_start&quot;</span><span class="p">),(</span><span class="n">SPECEND</span><span class="p">,</span><span class="s">&quot;min&quot;</span><span class="p">))</span>
+        <span class="n">link</span><span class="p">((</span><span class="n">model</span><span class="p">,</span><span class="s">&quot;specslider_end&quot;</span><span class="p">),(</span><span class="n">SPECEND</span><span class="p">,</span><span class="s">&quot;max&quot;</span><span class="p">))</span>
+
+        <span class="c"># SPACING WIDGET</span>
+        <span class="n">SPECSPACING</span> <span class="o">=</span> <span class="n">IntText</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&quot;Spec Sample by&quot;</span><span class="p">,</span><span class="n">value</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">link</span><span class="p">((</span><span class="n">model</span><span class="p">,</span><span class="s">&quot;specspacing&quot;</span><span class="p">),(</span><span class="n">SPECSPACING</span><span class="p">,</span><span class="s">&quot;value&quot;</span><span class="p">))</span>
+
+        <span class="n">TIMESTART</span> <span class="o">=</span> <span class="n">FloatSlider</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&quot;Var Start&quot;</span><span class="p">,</span>
+                                <span class="nb">min</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">timeslice_position_start</span><span class="p">)</span>
+
+        <span class="n">link</span><span class="p">((</span><span class="n">model</span><span class="p">,</span><span class="s">&quot;timeslice_position_start&quot;</span><span class="p">),(</span><span class="n">TIMESTART</span><span class="p">,</span><span class="s">&quot;value&quot;</span><span class="p">))</span>
+        <span class="n">link</span><span class="p">((</span><span class="n">model</span><span class="p">,</span><span class="s">&quot;timestep&quot;</span><span class="p">),(</span><span class="n">TIMESTART</span><span class="p">,</span><span class="s">&quot;step&quot;</span><span class="p">))</span>
+        <span class="n">link</span><span class="p">((</span><span class="n">model</span><span class="p">,</span><span class="s">&quot;timeslider_start&quot;</span><span class="p">),(</span><span class="n">TIMESTART</span><span class="p">,</span><span class="s">&quot;min&quot;</span><span class="p">))</span>
+        <span class="n">link</span><span class="p">((</span><span class="n">model</span><span class="p">,</span><span class="s">&quot;timeslider_end&quot;</span><span class="p">),(</span><span class="n">TIMESTART</span><span class="p">,</span><span class="s">&quot;max&quot;</span><span class="p">))</span>
+
+        <span class="n">TIMEEND</span> <span class="o">=</span> <span class="n">FloatSlider</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&quot;Var End&quot;</span><span class="p">,</span>
+                              <span class="nb">max</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">timeslice_position_end</span><span class="p">)</span>
+        <span class="n">link</span><span class="p">((</span><span class="n">model</span><span class="p">,</span><span class="s">&quot;timeslice_position_end&quot;</span><span class="p">),(</span><span class="n">TIMEEND</span><span class="p">,</span><span class="s">&quot;value&quot;</span><span class="p">))</span>
+        <span class="n">link</span><span class="p">((</span><span class="n">model</span><span class="p">,</span><span class="s">&quot;timestep&quot;</span><span class="p">),(</span><span class="n">TIMEEND</span><span class="p">,</span><span class="s">&quot;step&quot;</span><span class="p">))</span>
+        <span class="n">link</span><span class="p">((</span><span class="n">model</span><span class="p">,</span><span class="s">&quot;timeslider_start&quot;</span><span class="p">),(</span><span class="n">TIMEEND</span><span class="p">,</span><span class="s">&quot;min&quot;</span><span class="p">))</span>
+        <span class="n">link</span><span class="p">((</span><span class="n">model</span><span class="p">,</span><span class="s">&quot;timeslider_end&quot;</span><span class="p">),(</span><span class="n">TIMEEND</span><span class="p">,</span><span class="s">&quot;max&quot;</span><span class="p">))</span>
+
+        <span class="n">TIMESPACING</span> <span class="o">=</span> <span class="n">IntText</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&quot;Var Sample by&quot;</span><span class="p">,</span><span class="n">value</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">link</span><span class="p">((</span><span class="n">model</span><span class="p">,</span><span class="s">&quot;timespacing&quot;</span><span class="p">),(</span><span class="n">TIMESPACING</span><span class="p">,</span><span class="s">&quot;value&quot;</span><span class="p">))</span>
+
+        <span class="n">speccheck</span> <span class="o">=</span> <span class="n">Checkbox</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&quot;Spectral Axis&quot;</span><span class="p">)</span>
+        <span class="n">link</span><span class="p">((</span><span class="n">model</span><span class="p">,</span><span class="s">&quot;specbox&quot;</span><span class="p">),(</span><span class="n">speccheck</span><span class="p">,</span><span class="s">&quot;value&quot;</span><span class="p">))</span>
+        <span class="n">SPECRANGED</span> <span class="o">=</span> <span class="n">VBox</span><span class="p">([</span><span class="n">SPECSTART</span><span class="p">,</span><span class="n">SPECEND</span><span class="p">,</span><span class="n">SPECSPACING</span><span class="p">])</span>
+        <span class="n">link</span><span class="p">((</span><span class="n">model</span><span class="p">,</span><span class="s">&quot;specbox&quot;</span><span class="p">),(</span><span class="n">SPECRANGED</span><span class="p">,</span><span class="s">&quot;visible&quot;</span><span class="p">))</span>
+        
+        <span class="n">timecheck</span> <span class="o">=</span> <span class="n">Checkbox</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&quot;Variation Axis&quot;</span><span class="p">)</span>
+        <span class="n">link</span><span class="p">((</span><span class="n">model</span><span class="p">,</span><span class="s">&quot;timebox&quot;</span><span class="p">),(</span><span class="n">timecheck</span><span class="p">,</span><span class="s">&quot;value&quot;</span><span class="p">))</span>
+        <span class="n">TIMERANGED</span> <span class="o">=</span> <span class="n">VBox</span><span class="p">([</span><span class="n">TIMESTART</span><span class="p">,</span> <span class="n">TIMEEND</span><span class="p">,</span> <span class="n">TIMESPACING</span><span class="p">])</span>
+        <span class="n">link</span><span class="p">((</span><span class="n">model</span><span class="p">,</span><span class="s">&quot;timebox&quot;</span><span class="p">),(</span><span class="n">TIMERANGED</span><span class="p">,</span><span class="s">&quot;visible&quot;</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">ControlPanel</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s">&quot;Slicing/Sampling&quot;</span><span class="p">,</span>
+                            <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+                                <span class="n">HBox</span><span class="p">([</span><span class="n">speccheck</span><span class="p">,</span> <span class="n">timecheck</span><span class="p">]),</span>
+                                <span class="n">SPECRANGED</span><span class="p">,</span>
+                                <span class="n">TIMERANGED</span>
+                            <span class="p">]</span>
+                            <span class="p">)</span>
+
+
+
+</div>
+<div class="viewcode-block" id="SpectraGui.plot_plugin_panel"><a class="viewcode-back" href="../../../../API/skspec.interact.ipynbs.html#skspec.interact.ipynbs.specgui.SpectraGui.plot_plugin_panel">[docs]</a>    <span class="k">def</span> <span class="nf">plot_plugin_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">plugin1</span><span class="o">=</span> <span class="n">Checkbox</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&#39;plugin1&#39;</span><span class="p">)</span>
+        <span class="n">plugin2</span><span class="o">=</span> <span class="n">Checkbox</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&#39;plugin2&#39;</span><span class="p">)</span>
+        <span class="n">plugin3</span><span class="o">=</span> <span class="n">Checkbox</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&#39;plugin3&#39;</span><span class="p">)</span>
+        <span class="n">cp</span> <span class="o">=</span> <span class="n">ControlPanel</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s">&#39;Choose Plot Plugins&#39;</span><span class="p">,</span><span class="n">children</span><span class="o">=</span><span class="p">[</span><span class="n">plugin1</span><span class="p">,</span><span class="n">plugin2</span><span class="p">,</span><span class="n">plugin3</span><span class="p">])</span>
+        <span class="n">link</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">more</span><span class="p">,</span><span class="s">&quot;value&quot;</span><span class="p">),(</span><span class="n">cp</span><span class="p">,</span><span class="s">&quot;visible&quot;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">cp</span>
+</div>
+<div class="viewcode-block" id="SpectraGui.user_function_panel"><a class="viewcode-back" href="../../../../API/skspec.interact.ipynbs.html#skspec.interact.ipynbs.specgui.SpectraGui.user_function_panel">[docs]</a>    <span class="k">def</span> <span class="nf">user_function_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">Text</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&quot;Function, Args:&quot;</span><span class="p">)</span>
+        <span class="n">link</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span><span class="s">&quot;user_f&quot;</span><span class="p">),(</span><span class="n">f</span><span class="p">,</span><span class="s">&quot;value&quot;</span><span class="p">))</span>
+        <span class="n">fapp</span> <span class="o">=</span> <span class="n">Button</span><span class="p">(</span><span class="n">description</span> <span class="o">=</span> <span class="s">&quot;Apply&quot;</span><span class="p">)</span>
+        <span class="n">fapp</span><span class="o">.</span><span class="n">on_click</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">apply_userf</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;Apply clicked&#39;</span><span class="p">))</span>
+        <span class="n">cp2</span> <span class="o">=</span> <span class="n">ControlPanel</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s">&#39;User Defined Function&#39;</span><span class="p">,</span><span class="n">children</span><span class="o">=</span><span class="p">[</span><span class="n">f</span><span class="p">,</span><span class="n">fapp</span><span class="p">])</span>
+        <span class="n">link</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">more</span><span class="p">,</span><span class="s">&quot;value&quot;</span><span class="p">),(</span><span class="n">cp2</span><span class="p">,</span><span class="s">&quot;visible&quot;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">cp2</span></div></div>
+</pre></div>
+
+    </div>
+    
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+        <br/>
+        
+      
+    </p>
+    <p>
+        &copy; Copyright 2014, Adam Hughes, ReevesLab, George Washington University.<br/>
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.3.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>
