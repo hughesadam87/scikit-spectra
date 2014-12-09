@@ -21,10 +21,8 @@ Table of Contents
    tutorials.rst
    install.rst
    about.rst
-   auto_examples
+   auto_examples/index.rst
 
-
-`Examples <auto_examples.html>`_
 
 
 License

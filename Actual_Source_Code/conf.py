@@ -46,7 +46,8 @@ custom_extensions=['ipython_console_highlighting',
  'notebook',
  'autoimage', 
 'docscrape',
- 'numpydoc']
+ 'numpydoc',
+ 'sphinxgallery.gen_rst']
 
 extensions.extend(custom_extensions)
 
@@ -147,10 +148,10 @@ html_theme_options = {
     #    (name, "http://example.com", True) # arbitrary absolute url
     # Note the "1" or "True" value above as the third argument to indicate
     # an arbitrary url.
-    'navbar_links': [
-        ("Examples", "examples"),
-        ("Link", "http://example.com", True),
-    ],
+ #   'navbar_links': [
+ #       ("Examples", "auto_examples"),
+#        ("Link", "http://example.com", True),
+#    ],
 
     # Render the next and previous page links in navbar. (Default: true)
     'navbar_sidebarrel': False,
@@ -226,7 +227,8 @@ html_theme_options = {
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+import sphinxgallery
+html_static_path = ['_static', sphinxgallery._path_static()]
 
 
 
