@@ -2,6 +2,14 @@
 scikit-spectra: Tools for explorative spectroscopy
 ==================================================
 
+Whats New
+=========
+
+.. youtube:: anwy2MPT5RE
+    :height: 315
+    :width: 560
+    :align: left
+
 Table of Contents
 =================
 
@@ -13,11 +21,11 @@ Table of Contents
    tutorials.rst
    install.rst
    about.rst
+   auto_examples
 
-.. youtube:: anwy2MPT5RE
-    :height: 315
-    :width: 560
-    :align: left
+
+`Examples <auto_examples.html>`_
+
 
 License
 =======

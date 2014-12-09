@@ -1,5 +1,4 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -8,8 +7,10 @@
     
     <title>core Package &mdash; scikit-spectra 0.3.1-2 documentation</title>
     
-    <link rel="stylesheet" href="../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootswatch-3.2.0/united/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
@@ -24,46 +25,214 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-3.2.0/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
     <link rel="author" title="About these documents" href="../about.html" />
     <link rel="top" title="scikit-spectra 0.3.1-2 documentation" href="../index.html" />
-    <link rel="up" title="API" href="APIMAIN.html" />
-    <link rel="next" title="correlation Package" href="skspec.correlation.html" />
-    <link rel="prev" title="chaco_interface Package" href="skspec.chaco_interface.html" /> 
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
   </head>
   <body>
-    <div class="header-wrapper">
-      <div class="header">
-        <div class="headertitle"><a
-          href="../index.html">scikit-spectra 0.3.1-2 documentation</a></div>
-        <div class="rel">
-          <a href="skspec.chaco_interface.html" title="chaco_interface Package"
-             accesskey="P">previous</a> |
-          <a href="skspec.correlation.html" title="correlation Package"
-             accesskey="N">next</a> |
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |
-          <a href="../genindex.html" title="General Index"
-             accesskey="I">index</a>
-        </div>
-       </div>
-    </div>
+
+<a href="https://github.com/hugadams/scikit-spectra"
+class="visible-desktop hidden-xs"><img
+id="gh-banner"
+style="position: absolute; top: 50px; right: 0; border: 0;"
+src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"
+alt="Fork me on GitHub"></a>
+<script>
+// Adjust banner height.
+$(function () {
+var navHeight = $(".navbar .container").css("height");
+$("#gh-banner").css("top", navHeight);
+});
+</script>
 
 
-<a href="https://github.com/hugadams/scikit-spectra"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"></a>
 
 <div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
-<a href="../index.html"><img src="../_static/new_logo.png" border="100" alt="sampledoc"/></a>
+<a href="../index.html"><img src="../_static/logo.png" border="100" alt="sampledoc"/></a>
 </div>
 
 
-    <div class="content-wrapper">
-      <div class="content">
-        <div class="document">
+
+
+<a href="https://github.com/hugadams/scikit-spectra"
+class="visible-desktop hidden-xs"><img
+id="gh-banner"
+style="position: absolute; top: 50px; right: 0; border: 0;"
+src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"
+alt="Fork me on GitHub"></a>
+<script>
+// Adjust banner height.
+$(function () {
+var navHeight = $(".navbar .container").css("height");
+$("#gh-banner").css("top", navHeight);
+});
+</script>
+
+
+
+
+
+  <div id="navbar" class="navbar navbar-inverse navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          skspec</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.3</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
             
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body">
+                <li><a href="../examples.html">Examples</a></li>
+                <li><a href="http://example.com">Link</a></li>
             
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Jump to <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="APIMAIN.html">API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="APIMAIN.html#primary-structures-spectrum-spectra-specstack">Primary Structures: Spectrum, Spectra, SpecStack</a></li>
+<li class="toctree-l2"><a class="reference internal" href="APIMAIN.html#index-objects">Index Objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="APIMAIN.html#builtin-datasets">Builtin Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="APIMAIN.html#io">IO</a></li>
+<li class="toctree-l2"><a class="reference internal" href="APIMAIN.html#plotting">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="APIMAIN.html#graphical-user-interface-gui">Graphical User Interface (GUI)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="APIMAIN.html#two-dimensional-correlation-spectroscopy">Two-Dimensional Correlation Spectroscopy</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../support.html">Support</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../support.html#mailing-list">Mailing List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../support.html#contribute">Contribute</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials.html">Tutorials</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials.html#videos">Videos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials.html#minutes-to-scikit-spectra">10 Minutes to scikit-spectra</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials.html#ipython-notebooks">IPython Notebooks</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../install.html#dependencies">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../install.html#pip-install">Pip Install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../install.html#installation-from-source">Installation from source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../install.html#testing-installation">Testing Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../about.html">About</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../about.html#history-and-background">History and Background</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../about.html#related-scipy-libraries">Related Scipy Libraries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../about.html#other-spectroscopy-libraries-tools-in-python">Other Spectroscopy Libraries/Tools in Python</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../about.html#about-the-author">About the Author</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../about.html#acknowledgements">Acknowledgements</a></li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">This Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">core Package</a><ul>
+<li><a class="reference internal" href="#module-skspec.core.abcindex"><tt class="docutils literal"><span class="pre">abcindex</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-skspec.core.abcspectra"><tt class="docutils literal"><span class="pre">abcspectra</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-skspec.core.anyspectra"><tt class="docutils literal"><span class="pre">anyspectra</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-skspec.core.baseline"><tt class="docutils literal"><span class="pre">baseline</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-skspec.core.file_utils"><tt class="docutils literal"><span class="pre">file_utils</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-skspec.core.specindex"><tt class="docutils literal"><span class="pre">specindex</span></tt> Module</a></li>
+<li><a class="reference internal" href="#specpanel-module"><tt class="docutils literal"><span class="pre">specpanel</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-skspec.core.specstack"><tt class="docutils literal"><span class="pre">specstack</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-skspec.core.spectra"><tt class="docutils literal"><span class="pre">spectra</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-skspec.core.tempspectra"><tt class="docutils literal"><span class="pre">tempspectra</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-skspec.core.timeindex"><tt class="docutils literal"><span class="pre">timeindex</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-skspec.core.timespectra"><tt class="docutils literal"><span class="pre">timespectra</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-skspec.core.utilities"><tt class="docutils literal"><span class="pre">utilities</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+            
+            
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper"><ul>
+<li><a class="reference internal" href="#">core Package</a><ul>
+<li><a class="reference internal" href="#module-skspec.core.abcindex"><tt class="docutils literal"><span class="pre">abcindex</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-skspec.core.abcspectra"><tt class="docutils literal"><span class="pre">abcspectra</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-skspec.core.anyspectra"><tt class="docutils literal"><span class="pre">anyspectra</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-skspec.core.baseline"><tt class="docutils literal"><span class="pre">baseline</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-skspec.core.file_utils"><tt class="docutils literal"><span class="pre">file_utils</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-skspec.core.specindex"><tt class="docutils literal"><span class="pre">specindex</span></tt> Module</a></li>
+<li><a class="reference internal" href="#specpanel-module"><tt class="docutils literal"><span class="pre">specpanel</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-skspec.core.specstack"><tt class="docutils literal"><span class="pre">specstack</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-skspec.core.spectra"><tt class="docutils literal"><span class="pre">spectra</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-skspec.core.tempspectra"><tt class="docutils literal"><span class="pre">tempspectra</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-skspec.core.timeindex"><tt class="docutils literal"><span class="pre">timeindex</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-skspec.core.timespectra"><tt class="docutils literal"><span class="pre">timespectra</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-skspec.core.utilities"><tt class="docutils literal"><span class="pre">utilities</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+
+<form action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+        </div>
+      </div>
+    <div class="col-md-12">
+      
   <div class="section" id="core-package">
 <h1>core Package<a class="headerlink" href="#core-package" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="module-skspec.core.abcindex">
@@ -290,7 +459,7 @@ to format return in a sexy way.  Couldn&#8217;t quite rig it up properly so this
 <dd><p>Bases: <a class="reference internal" href="#skspec.core.abcindex.ConversionFloat64Index" title="skspec.core.abcindex.ConversionFloat64Index"><tt class="xref py py-class docutils literal"><span class="pre">skspec.core.abcindex.ConversionFloat64Index</span></tt></a></p>
 <dl class="attribute">
 <dt id="skspec.core.specindex.SpecIndex.unitdict">
-<tt class="descname">unitdict</tt><em class="property"> = {'um-1': &lt;skspec.units.specunits.Micrometersinverse object at 0x4168610&gt;, 'nm': &lt;skspec.units.specunits.Nanometers object at 0x4168510&gt;, 'cm': &lt;skspec.units.specunits.Centimeters object at 0x4168550&gt;, 'f': &lt;skspec.units.specunits.Frequency object at 0x4168690&gt;, 'k': &lt;skspec.units.specunits.Metersinverse object at 0x41684d0&gt;, 'm': &lt;skspec.units.specunits.Meters object at 0x4168490&gt;, 'um': &lt;skspec.units.specunits.Micrometers object at 0x41685d0&gt;, 'w': &lt;skspec.units.specunits.Angularfrequency object at 0x41686d0&gt;, 'cm-1': &lt;skspec.units.specunits.Centimetersinverse object at 0x4168590&gt;, 'ev': &lt;skspec.units.specunits.Electronvolts object at 0x4168650&gt;}</em><a class="headerlink" href="#skspec.core.specindex.SpecIndex.unitdict" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">unitdict</tt><em class="property"> = {'um-1': &lt;skspec.units.specunits.Micrometersinverse object at 0x579c910&gt;, 'nm': &lt;skspec.units.specunits.Nanometers object at 0x579c810&gt;, 'cm': &lt;skspec.units.specunits.Centimeters object at 0x579c850&gt;, 'f': &lt;skspec.units.specunits.Frequency object at 0x579c990&gt;, 'k': &lt;skspec.units.specunits.Metersinverse object at 0x579c7d0&gt;, 'm': &lt;skspec.units.specunits.Meters object at 0x579c790&gt;, 'um': &lt;skspec.units.specunits.Micrometers object at 0x579c8d0&gt;, 'w': &lt;skspec.units.specunits.Angularfrequency object at 0x579c9d0&gt;, 'cm-1': &lt;skspec.units.specunits.Centimetersinverse object at 0x579c890&gt;, 'ev': &lt;skspec.units.specunits.Electronvolts object at 0x579c950&gt;}</em><a class="headerlink" href="#skspec.core.specindex.SpecIndex.unitdict" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -466,13 +635,19 @@ the current label object to generate teh next object.</p>
 <dt>Returns total area under the spectra vs. time curve.  To choose a slice of the spectrum,</dt>
 <dd>call wavelength_slices with appropriate ranges and an apply_fcn appropriate to style of integration.</dd>
 </dl>
-<p>apply_fcn: Integration method-&#8216;simps&#8217;, &#8216;trapz&#8217;, &#8216;romb&#8217;, &#8216;cumtrapz&#8217;</p>
-<blockquote>
-<div><p>This is a wrapper for wavelength_sclices, and as such, user can actually pass any function into the apply_fcn. 
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>apply_fcn: Integration method-&#8216;simps&#8217;, &#8216;trapz&#8217;, &#8216;romb&#8217;, &#8216;cumtrapz&#8217;</strong> :</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>This is a wrapper for wavelength_sclices, and as such, user can actually pass any function into the apply_fcn. 
 Besides mean/sum which is understands already, one could, for example, pass a euler integration function and
 it should work.</p>
 <p>WHEN PLOTTING, PLOT THE TRANSPOSE OF THE RETURNED DF.</p>
-</div></blockquote>
 </dd></dl>
 
 <dl class="method">
@@ -509,12 +684,22 @@ Also has the option of manually passing a new reference for on-the-fly rereferen
 <dt id="skspec.core.spectra.Spectra.boxcar">
 <tt class="descname">boxcar</tt><big>(</big><em>binwidth</em>, <em>axis=1</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.boxcar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.boxcar" title="Permalink to this definition">¶</a></dt>
 <dd><p>Performs pvutils.boxcar averaging by binning data.</p>
-<dl class="docutils">
-<dt>binwidth: int or float</dt>
-<dd>Width of the bin.  EG 10minutes or 5 seconds.</dd>
-<dt>axis: 0 or 1</dt>
-<dd>Average over rows or columns, respectively.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>binwidth: int or float</strong> :</p>
+<blockquote>
+<div><p>Width of the bin.  EG 10minutes or 5 seconds.</p>
+</div></blockquote>
+<p><strong>axis: 0 or 1</strong> :</p>
+<blockquote class="last">
+<div><p>Average over rows or columns, respectively.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="attribute">
@@ -593,17 +778,22 @@ own index conversions.</p>
 <dt id="skspec.core.spectra.Spectra.list_attr">
 <tt class="descname">list_attr</tt><big>(</big><em>privattr=False</em>, <em>dfattr=False</em>, <em>methods=False</em>, <em>types=False</em>, <em>delim='\t'</em>, <em>sortby='name'</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.list_attr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.list_attr" title="Permalink to this definition">¶</a></dt>
 <dd><p>Outputs various attributes in the namespace, as well as their types.</p>
-<blockquote>
-<div>privattr: Should private attributes be listed.
-dfattr: Should dataframe&#8217;s attributes (eg shape, columns) be listed
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>privattr: Should private attributes be listed.</strong> :</p>
+<blockquote class="last">
+<div><p>dfattr: Should dataframe&#8217;s attributes (eg shape, columns) be listed
 methods: If True, methods will be output; otherwise, only non-method attributes are listed.
 types: Output the type of attribute along with it?
 delim: For formatting.
-sortby: If outputing by type, order by name or by type?</div></blockquote>
-<blockquote>
-<div>Would like to add &#8220;values&#8221; but the formatting might get messy.  A good IDE can provide this information anyway,
-for example, Stack Data in windware.  Also increases complexity of the logic below.
-Refer to label_stats() for more detailed information on certain attributes.</div></blockquote>
+sortby: If outputing by type, order by name or by type?</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
 <p>.</p>
 </dd></dl>
 
@@ -644,12 +834,22 @@ various plot types.  Will append correct x and y labels.</p>
 pandas.daterange().  Takes in start, stop and spacing.  Users can use
 either start and stop, start and spacing or stop and spacing (but not 
 start, stop and spacing) to generate specindex.</p>
-<p>start: Wavelength start value.
-stop: Wavelength stop value.
-spacing: Wavelength spacing.
-unit: Valid specunit type.  Note, if None is passed, current specunit of</p>
-<blockquote>
-<div>object is used.  To force a null unit, use special keyword &#8216;null&#8217;.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>start: Wavelength start value.</strong> :</p>
+<p><strong>stop: Wavelength stop value.</strong> :</p>
+<p><strong>spacing: Wavelength spacing.</strong> :</p>
+<p><strong>unit: Valid specunit type.  Note, if None is passed, current specunit of</strong> :</p>
+<blockquote class="last">
+<div><p>object is used.  To force a null unit, use special keyword &#8216;null&#8217;.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
 <p>User must pass 2 of the 3 keywords start, stop or spacing.  Function
 will compute the other using the length of the current dfindex.  
 For example, if df.index is 100 entries and user enters start=0, stop=1000,
@@ -679,6 +879,7 @@ np.linspace().</p>
 <dt id="skspec.core.spectra.Spectra.split_by">
 <tt class="descname">split_by</tt><big>(</big><em>n</em>, <em>axis=1</em>, <em>stack=True</em>, <em>**stackkwargs</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.split_by"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.split_by" title="Permalink to this definition">¶</a></dt>
 <dd><p>Slice data into n subsets.</p>
+<p class="rubric">Notes</p>
 <p>If n does not evenly divide the axis, the final element returned tends
 to be larger than the others (culmination of rounding down iteratively)
 and a warning is raised.</p>
@@ -714,10 +915,6 @@ If True: metadata is added to it&#8217;s own file named path_or_buff.mdf</dd>
 </dl>
 <p>csv_kwargs: csv formatting arguments passed directoy to self._frame.to_csv()</p>
 </div></blockquote>
-<blockquote>
-<div>MetaData is gotten from self.__dict__.
-In future, may opt to implement the option to choose the meta_separate filename if 
-output is separated (eg meta_separate=True)</div></blockquote>
 </dd></dl>
 
 <dl class="attribute">
@@ -736,22 +933,6 @@ output is separated (eg meta_separate=True)</div></blockquote>
 <tt class="descname">wavelength_slices</tt><big>(</big><em>ranges</em>, <em>apply_fcn='mean'</em>, <em>**applyfcn_kwds</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/spectra.html#Spectra.wavelength_slices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.Spectra.wavelength_slices" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns sliced averages/sums of wavelength regions. Composite dataframe will nicely
 plot when piped into spec aesthetics timeplot.</p>
-<dl class="docutils">
-<dt>apply_fcn: Chooses the way to collapse data.  Builtin functions include &#8216;mean&#8217;</dt>
-<dd><dl class="first last docutils">
-<dt>&#8216;sum&#8217;, &#8216;simps&#8217;, &#8216;trapz&#8217;, &#8216;romb&#8217;, &#8216;cumtrapz&#8217;, but any user function that</dt>
-<dd>results in collapsed data (eg averging function/integrators/etc...) can 
-be passed in with any relevant keywords.</dd>
-</dl>
-</dd>
-<dt><a href="#id5"><span class="problematic" id="id6">**</span></a>apply_fcn_kdws: </dt>
-<dd>If user is passing a function to apply_fcn that requires keywords, 
-the get passed in to dfcut.apply()</dd>
-</dl>
-<p>Notes:
-&#8212;&#8211;_
-See description of &#8216;df_wavelength_slices&#8217; in utilities.py for more information.         
-For easy plotting, plot the transpose of the returned timespectra.</p>
 </dd></dl>
 
 </dd></dl>
@@ -828,11 +1009,19 @@ with even spacing.  Simply a wrapper around np.histogram.</p>
 <tt class="descclassname">skspec.core.spectra.</tt><tt class="descname">specplot</tt><big>(</big><em>ts</em>, <em>*args</em>, <em>**pltkwargs</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/spectra.html#specplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.spectra.specplot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plotting interface.  Use kind=&#8217;surf, wire etc...&#8217; to go through 
 various plot types.  Will append correct x and y labels.</p>
-<dl class="docutils">
-<dt>norm <span class="classifier-delimiter">:</span> <span class="classifier">None or str</span></dt>
-<dd>Shortcut to return timespectra in normalized ref system (ie Absorbance)
-without changing the Spectra.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>norm</strong> : None or str</p>
+<blockquote class="last">
+<div><p>Shortcut to return timespectra in normalized ref system (ie Absorbance)
+without changing the Spectra.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
@@ -846,7 +1035,7 @@ without changing the Spectra.</dd>
 <p>Temperature Index</p>
 <dl class="attribute">
 <dt id="skspec.core.tempspectra.TempIndex.unitdict">
-<tt class="descname">unitdict</tt><em class="property"> = {'K': &lt;skspec.units.tempunits.Kelvin object at 0x4161750&gt;, None: &lt;skspec.units.abcunits.ConversionUnit object at 0x4161810&gt;, 'C': &lt;skspec.units.tempunits.Celsius object at 0x4161790&gt;, 'F': &lt;skspec.units.tempunits.Farenheiht object at 0x41617d0&gt;}</em><a class="headerlink" href="#skspec.core.tempspectra.TempIndex.unitdict" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">unitdict</tt><em class="property"> = {'K': &lt;skspec.units.tempunits.Kelvin object at 0x5794a50&gt;, None: &lt;skspec.units.abcunits.ConversionUnit object at 0x5794b10&gt;, 'C': &lt;skspec.units.tempunits.Celsius object at 0x5794a90&gt;, 'F': &lt;skspec.units.tempunits.Farenheiht object at 0x5794ad0&gt;}</em><a class="headerlink" href="#skspec.core.tempspectra.TempIndex.unitdict" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1030,7 +1219,7 @@ objects.  Otherwise, get ValueError:</p>
 
 <dl class="attribute">
 <dt id="skspec.core.timeindex.TimeIndex.unitdict">
-<tt class="descname">unitdict</tt><em class="property"> = {'dti': &lt;skspec.units.intvlunit.DateTime object at 0x550db90&gt;, 'd': &lt;skspec.units.intvlunit.Days object at 0x550dd50&gt;, 'h': &lt;skspec.units.intvlunit.Hours object at 0x550dd10&gt;, 'm': &lt;skspec.units.intvlunit.Minutes object at 0x550dcd0&gt;, 'us': &lt;skspec.units.intvlunit.Microseconds object at 0x550dc10&gt;, 's': &lt;skspec.units.intvlunit.Seconds object at 0x550dc90&gt;, 'ms': &lt;skspec.units.intvlunit.Milliseconds object at 0x550dc50&gt;, 'intvl': &lt;skspec.units.intvlunit.TimeDelta object at 0x550dd90&gt;, 'ns': &lt;skspec.units.intvlunit.Nanoseconds object at 0x550dbd0&gt;}</em><a class="headerlink" href="#skspec.core.timeindex.TimeIndex.unitdict" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">unitdict</tt><em class="property"> = {'dti': &lt;skspec.units.intvlunit.DateTime object at 0x582b450&gt;, 'd': &lt;skspec.units.intvlunit.Days object at 0x582b610&gt;, 'h': &lt;skspec.units.intvlunit.Hours object at 0x582b5d0&gt;, 'm': &lt;skspec.units.intvlunit.Minutes object at 0x582b590&gt;, 'us': &lt;skspec.units.intvlunit.Microseconds object at 0x582b4d0&gt;, 's': &lt;skspec.units.intvlunit.Seconds object at 0x582b550&gt;, 'ms': &lt;skspec.units.intvlunit.Milliseconds object at 0x582b510&gt;, 'intvl': &lt;skspec.units.intvlunit.TimeDelta object at 0x582b650&gt;, 'ns': &lt;skspec.units.intvlunit.Nanoseconds object at 0x582b490&gt;}</em><a class="headerlink" href="#skspec.core.timeindex.TimeIndex.unitdict" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1045,12 +1234,20 @@ objects.  Otherwise, get ValueError:</p>
 <dd><p>Bases: <a class="reference internal" href="#skspec.core.spectra.Spectra" title="skspec.core.spectra.Spectra"><tt class="xref py py-class docutils literal"><span class="pre">skspec.core.spectra.Spectra</span></tt></a></p>
 <p>Spectra that enforces a TimeIndex.  TimeIndex converts representations
 between DatetimeIndex and Intervals.</p>
-<dl class="docutils">
-<dt>force_datetime: bool (False)</dt>
-<dd>Convienence method for when a user is passing in datetimes, but does
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>force_datetime: bool (False)</strong> :</p>
+<blockquote class="last">
+<div><p>Convienence method for when a user is passing in datetimes, but does
 not have them in a DatetimeIndex.  The only use case we&#8217;ve found is
-trying to parse CSV files; the datetimes are a list of strings and</dd>
-</dl>
+trying to parse CSV files; the datetimes are a list of strings and</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
@@ -1092,22 +1289,6 @@ based on the bin array</p>
 <dd><p>Small wrapper around pandas.divide() that takes in either column integers, names,
 or entire arrays as the divisor.  Note, pandas.divide by default is rowwise, but here
 it defaults to column-wise.</p>
-<blockquote>
-<div><p>df:  Dataframe object.
-divisor: (See notes below)
-axis: Division axis. 0=column-wise division. 1=row-wise
-sameshape: If true, function will check that the divisor as the same shape as</p>
-<blockquote>
-<div>the data along that axis.  For example, is an array of 2000 units, 
-and axis=0, then the row dimension must be 2000 for the dataframe.
-AFAIK df.div does not enforce this stringency, which sometimes can lead
-to hard-to-find bugs.</div></blockquote>
-</div></blockquote>
-<blockquote>
-<div>This program first checks if divisor is an integer.  If not, it attempts
-to lookup by rowname or columnname.  Finally, it tries to divide by the divisor itself,
-if the divisor is an array/series.  This seemed like a flexible way to do this 
-without too much type checking.</div></blockquote>
 </dd></dl>
 
 <dl class="function">
@@ -1126,12 +1307,6 @@ without too much type checking.</div></blockquote>
 <tt class="descclassname">skspec.core.utilities.</tt><tt class="descname">maxmin_xy</tt><big>(</big><em>obj</em>, <em>style='max'</em>, <em>arg=False</em>, <em>idx=True</em>, <em>val=True</em><big>)</big><a class="reference internal" href="../_modules/skspec/core/utilities.html#maxmin_xy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skspec.core.utilities.maxmin_xy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return arg (eg integer index position), index val, and object val
 at the data maximum.  Works on series or dataframes.</p>
-<blockquote>
-<div>obj: 1 or 2-d array type.
-style: return &#8216;max&#8217; or &#8216;min&#8217; vals along the dataset.
-arg: Index position at maximum.
-idx: Index val at maximum.
-val: Return the data val at this point.</div></blockquote>
 </dd></dl>
 
 <dl class="function">
@@ -1174,67 +1349,28 @@ for row sampling.</p>
 </div>
 
 
-          </div>
-        </div>
-      </div>
-        </div>
-        <div class="sidebar">
-          <h3>Table Of Contents</h3>
-          <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="APIMAIN.html">API</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="APIMAIN.html#primary-structures-spectrum-spectra-specstack">Primary Structures: Spectrum, Spectra, SpecStack</a></li>
-<li class="toctree-l2"><a class="reference internal" href="APIMAIN.html#index-objects">Index Objects</a></li>
-<li class="toctree-l2"><a class="reference internal" href="APIMAIN.html#builtin-datasets">Builtin Datasets</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="APIMAIN.html#full-modules-documentation-messy">Full Modules Documentation (messy)</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="../support.html">Support</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorials.html">Tutorials</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../about.html">History and Background</a></li>
-</ul>
-
-          <h3 style="margin-top: 1.5em;">Search</h3>
-          <form class="search" action="../search.html" method="get">
-            <input type="text" name="q" />
-            <input type="submit" value="Go" />
-            <input type="hidden" name="check_keywords" value="yes" />
-            <input type="hidden" name="area" value="default" />
-          </form>
-          <p class="searchtip" style="font-size: 90%">
-            Enter search terms or a module, class or function name.
-          </p>
-        </div>
-        <div class="clearer"></div>
-      </div>
     </div>
-
-    <div class="footer-wrapper">
-      <div class="footer">
-        <div class="left">
-          <a href="skspec.chaco_interface.html" title="chaco_interface Package"
-             >previous</a> |
-          <a href="skspec.correlation.html" title="correlation Package"
-             >next</a> |
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |
-          <a href="../genindex.html" title="General Index"
-             >index</a>
-            <br/>
-            <a href="../_sources/API/skspec.core.txt"
-               rel="nofollow">Show Source</a>
-        </div>
-
-        <div class="right">
-          
-    <div class="footer">
-        &copy; Copyright 2014, Adam Hughes, ReevesLab Dept. Physics, George Washington University.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
-    </div>
-        </div>
-        <div class="clearer"></div>
-      </div>
-    </div>
-
+    
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+        <br/>
+        
+<div id="sourcelink">
+  <a href="../_sources/API/skspec.core.txt"
+     rel="nofollow">Source</a>
+</div>
+      
+    </p>
+    <p>
+        &copy; Copyright 2014, Adam Hughes, ReevesLab Dept. Physics, George Washington University.<br/>
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.3.<br/>
+    </p>
+  </div>
+</footer>
   </body>
 </html>

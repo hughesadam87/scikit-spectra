@@ -1,5 +1,8 @@
+About
+=====
+
 History and Background
-======================
+----------------------
 
 ``scikit-spectra`` originally began as a set of scripts to use pandas_ for our spectral data.
 We found that we were constantly moving metadata around, and that although pandas provided an
@@ -14,7 +17,7 @@ be useful, our library had to do the the following:
    3. Provide general spectroscopic utilities such as:
        -  Indexing for most common spectral unit systems.
        -  Baseline manipulation/Data normalization and transformation (i.e. raw, Abosrbance, % Transmittance)
-       -  A uniform plotting API for 1/2/3D plots, with optional interactivity.
+       -  A uniform plotting API for 1D /2D /3D plots with support for interactivity.
 
    4.  Provide some GUI-level functionality; most spectroscopists don't want to use the command line.
 
@@ -30,13 +33,15 @@ Interested in the Python ecosystem?   Check out some of these related libraries:
    - matplotlib_ (De facto static plotting in Python)
    - pandas_ (R on steroids)
    - plotly_ (Interactive/cloud plotting)
+   - mpld3_ (Bringing Matplotlib to the Browser)
 
    .. _NumPy : http://www.numpy.org/
    .. _pandas : http://pandas.pydata.org/
    .. _scipy : http://scipy.org/
    .. _matplotlib : http://matplotlib.org/
    .. _plotly : https://plot.ly/
-     
+   .. _mpld3 : http://mpld3.github.io/     
+
 Other Spectroscopy Libraries/Tools in Python
 --------------------------------------------
 
@@ -66,8 +71,7 @@ alongside the code helped served as a basic regression test platform.
 
 Acknowledgements
 ----------------
-Thank you countless developers who have patiently answered hundreds of 
-my questions on too many mailing lists and sites to list.  A few that I must name specifically:
+Of the many developers who have patiently answered my questions on various mailing list, I must specifically thank:
 
    - `Jeff Reback <https://twitter.com/jreback>`_ (pandas)
    - `Stephan Hoyer <https://twitter.com/shoyer>`_ (pandas/xray)
