@@ -53,9 +53,9 @@ class SpectraModel(HTML, Box):
     # IO traitlets
     load_spec = Bool(False,sync=True)
     load_file = Bool(True,sync=True) #
-    file_name = Unicode("<Variable>", sync=True)
+    file_name = Unicode("<Import Variable Name>", sync=True)
     save_spec = Bool(False,sync=True)
-    save_spec_as = Unicode('Test',sync=True)
+    save_spec_as = Unicode("<Export Name>",sync=True)
     
     inbox = Bool(False,sync=True)
     outbox = Bool(False,sync=True)
@@ -238,8 +238,10 @@ class SpectraModel(HTML, Box):
         get_ipython().user_ns[self.save_spec_as]=self.spec_modified
     
     @log_message
-    def load_from_ns(self, var):
-        self.spec = get_ipython().user_ns[var]
+    def load_from_ns(self):
+        self.spec = get_ipython().user_ns[self.file_name].as_varunit("s")
+        #def load_from_ns(self, var):
+        #self.spec = get_ipython().user_ns[var]
         
     # Slicing events
     # --------------

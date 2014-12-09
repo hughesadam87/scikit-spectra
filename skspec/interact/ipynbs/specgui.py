@@ -82,35 +82,38 @@ class SpectraGui(Box):
         outcheck = Checkbox(description = 'Export')
         link((self.model, "outbox"), (outcheck,"value"))
         
-        loaddata = Checkbox(description="Testdata")
-        link((self.model, "load_spec"), (loaddata, "value"))
-        testdataset = Text(description = "")
-        link((self.model, "testdataset"), (testdataset, "value"))
+        #loaddata = Checkbox(description="Testdata")
+        #link((self.model, "load_spec"), (loaddata, "value"))
+        #testdataset = Text(description = "")
+        #link((self.model, "testdataset"), (testdataset, "value"))
      
-        loadbutton = Button(description="Load")
-        specbox = HBox([loadbutton, testdataset])
-        link((self.model, "load_spec"), (specbox, "visible"))
-
-        loadfile = Checkbox(description="NB Variable") #Test Data
-        link((self.model, "load_file"), (loadfile, "value"))
         filename = Text(description = "")
-
         link((self.model, "file_name"), (filename, "value"))
-        filebox = HBox([loadbutton, filename])
-        link((self.model, "load_file"), (filebox, "visible"))
+        loadbutton = Button(color='black',background_color='AliceBlue',description="Load")
+        loadbutton.on_click(lambda x: self.model.load_from_ns())
+        boxi = HBox([filename,loadbutton])
+        #link((self.model, "load_spec"), (specbox, "visible"))
+
+#        loadfile = Checkbox(description="NB Variable") #Test Data
+#        link((self.model, "load_file"), (loadfile, "value"))
+
         
-        boxi = VBox([
-                    HBox([loaddata, loadfile]),
-                    specbox,
-                    filebox,
-                    ])
+        #                filebox = HBox([loadbutton, filename])
+        #link((self.model, "load_file"), (filebox, "visible"))
+        
+        #boxi = VBox([
+                     #HBox([loaddata, loadfile]),
+                     #loaddata,
+                     #             specbox,
+                     #filebox,
+                     #            ])
         link((self.model, "inbox"), (boxi,"visible"))
 
-        saveplot = Button(description='Save Plot')
+        saveplot = Button(color='black',background_color='AliceBlue',description='Save Plot')
         saveplot.on_click(lambda x: self.model.save_plot())
-        savespec = Button(description='Export as NB Variable')
+        savespec = Button(color='black',background_color='AliceBlue',description='Export Dataset')
         savespec.on_click(lambda x: self.model.save_to_ns())
-        savespecas = Text(description='Save as:')
+        savespecas = Text(description="")
         link((self.model,"save_spec_as"),(savespecas,"value"))
         
         boxo = VBox([
@@ -159,7 +162,7 @@ class SpectraGui(Box):
         
         f = Text(description="Function:")
         link((self.model,"user_f"),(f,"value"))
-        fapp = Button(description = "Apply")
+        fapp = Button(color='black',background_color='AliceBlue',description = "Apply")
         fapp.on_click(lambda x: self.model.apply_userf(name='apply clicked'))
 
         #plugins = HBox([plugin1,plugin2,plugin3])
