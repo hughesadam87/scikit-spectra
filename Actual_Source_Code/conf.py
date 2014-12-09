@@ -64,7 +64,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'scikit-spectra'
-copyright = u'2014, Adam Hughes, ReevesLab Dept. Physics, George Washington University'
+copyright = u'2014, Adam Hughes, ReevesLab, George Washington University'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
