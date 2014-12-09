@@ -5,6 +5,8 @@ scikit-spectra: Tools for explorative spectroscopy
 Whats New
 =========
 
+Check out our demo of running a spectroscopy GUI in the IPython Notebook.
+
 .. youtube:: RhMHgQbP__A
     :height: 315
     :width: 560
