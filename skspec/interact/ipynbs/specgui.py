@@ -12,29 +12,6 @@ import IPython.display as ipdisplay
 from IPython.utils.traitlets import link, Unicode
 from jinja2 import Template
 
-class PopOvers(HTML):
-    template = Template("""
-        <p id="x"
-        class="{{classname}}"
-        title="{{ title|escape }}"
-        data-toggle="popover"
-        data-content="{{ content|escape }}">{{description}}</p>
-        <script>
-        $('#x').popover();
-        </script>
-        """)
-    description = Unicode(sync=True)
-    classname = Unicode(sync=True)
-    title = Unicode(sync=True)
-    content = Unicode(sync=True)
-
-
-    def __init__(self, *args, **kwargs):
-        super(PopOvers, self).__init__(*args, **kwargs)
-
-    def _title_changed(self, old, new):
-        self.value = self.template.render(**self._trait_values)
-
 
 class PanelTitle(HTML):
     def __init__(self, *args, **kwargs):
@@ -74,7 +51,6 @@ class SpectraGui(Box):
     class handles creating all of the GUI controls and links. This ensures
     that the model itself remains embeddable and rem
     """
-    more = Checkbox(description="Advanced")
 
     def __init__(self, model=None, model_config=None, *args, **kwargs):
 	# RUN HTML
@@ -85,37 +61,33 @@ class SpectraGui(Box):
 
         # Create a GUI
         kwargs["orientation"] = 'horizontal'
-        kwargs["children"] = [
-            HBox([VBox([alert, self.model]),
-                  VBox([self.save_load_panel(), 
-                        self.load_panel(),
-                        self.unit_panel()]),
-                       ]),
-            self._controls(),
-        ]
+        kwargs["children"] = [HBox([
+                                    VBox([self.INOUT_panel(), self.model, alert]),
+                                    VBox([self.plot_panel(),self.slicing_panel(),self.unit_panel()]),
+                                    ])
+                              ]
         super(SpectraGui, self).__init__(*args, **kwargs)
         self._dom_classes += ("spectroscopy row",)
 
-    def _controls(self):
-        panels = VBox([
-            HBox([self.plot_panel(),self.slicing_panel()]),
-            HBox([self.plot_plugin_panel(),self.user_function_panel()])],
-                      _dom_classes=["col-xs-3"])
-
-        return panels
 
     def set_layout(self):
 	return ipdisplay.HTML(open('style1.html','r').read())
 
-    def load_panel(self):
-        # create correlation controls. NOTE: should only be called once.
-        loadbutton = Button(description = 'Load')
 
+
+    def INOUT_panel(self):
+        # create correlation controls. NOTE: should only be called once.
+        incheck = Checkbox(description = 'Import')
+        link((self.model, "inbox"), (incheck,"value"))
+        outcheck = Checkbox(description = 'Export')
+        link((self.model, "outbox"), (outcheck,"value"))
+        
         loaddata = Checkbox(description="Testdata")
         link((self.model, "load_spec"), (loaddata, "value"))
-        testdataset = Text(description = "") 
+        testdataset = Text(description = "")
         link((self.model, "testdataset"), (testdataset, "value"))
      
+        loadbutton = Button(description="Load")
         specbox = HBox([loadbutton, testdataset])
         link((self.model, "load_spec"), (specbox, "visible"))
 
@@ -126,13 +98,43 @@ class SpectraGui(Box):
         link((self.model, "file_name"), (filename, "value"))
         filebox = HBox([loadbutton, filename])
         link((self.model, "load_file"), (filebox, "visible"))
+        
+        boxi = VBox([
+                    HBox([loaddata, loadfile]),
+                    specbox,
+                    filebox,
+                    ])
+        link((self.model, "inbox"), (boxi,"visible"))
 
-        reset = Button(color='white',background_color='violet',
-                       escription='Reset Defaults')
+        saveplot = Button(description='Save Plot')
+        saveplot.on_click(lambda x: self.model.save_plot())
+        savespec = Button(description='Export as NB Variable')
+        savespec.on_click(lambda x: self.model.save_to_ns())
+        savespecas = Text(description='Save as:')
+        link((self.model,"save_spec_as"),(savespecas,"value"))
+        
+        boxo = VBox([
+                    savespecas,
+                    HBox([saveplot,savespec]),
+                    ])
+        link((self.model, "outbox"), (boxo,"visible"))
+        
+        #reset = Button(color='white',background_color='violet',description='Reset Defaults')
         #reset.on_click(lambda x: self.model.)
+                       
+        #redraw = Button(description="Redraw")
+        #redraw.on_click(lambda x: self.model.draw())
 
-        return ControlPanel(title="Load Dataset", children=[HBox(children=[loaddata,loadfile]),specbox,filebox,reset])
-
+        return ControlPanel(title="Import/Export Dataset",
+                            children=[HBox([
+                                            VBox([incheck,outcheck]),
+                                            VBox([boxi,boxo])
+                                            ])
+                                     ]
+                            )
+                       
+                       
+                       
     def plot_panel(self):
         # create draw mode controls.  NOTE: should only be called once.
         cbar = Checkbox(description="Colorbar")
@@ -146,7 +148,7 @@ class SpectraGui(Box):
 
         autoupdate = Checkbox(description="Auto Update")
         link((self.model, "autoupdate"), (autoupdate, "value"))
-
+        
         plugin2= Checkbox(description='plugin2')
         plugin3= Checkbox(description='plugin3')
         fwidth = FloatText(description='Plot width')
@@ -163,37 +165,57 @@ class SpectraGui(Box):
         #plugins = HBox([plugin1,plugin2,plugin3])
         #more = Checkbox(description="More Options")### LINK IT
         #link((self, "moreopt"), (more, "value"))
-        popmore = Popup(children=[VBox([HBox([plug_select,plugin2,plugin3]),
-                                        HBox([f,fapp]),
-                                        VBox([fwidth, fheight])
-                                      ])],
-                        description='Advanced', button_text='Advanced')
+        #popmore = Popup(children=[VBox([HBox([plug_select,plugin2,plugin3]),
+        #                                HBox([f,fapp]),
+        #                                VBox([fwidth, fheight])
+        #                              ])],
+        #                description='Advanced', button_text='Advanced')
+
+        more = Checkbox(description="Advanced")
+        link((self.model, "advancedbox"), (more, "value"))
+
+        popmore = VBox([HBox([plug_select,plugin2,plugin3]),
+                        HBox([f,fapp]),
+                        HBox([fwidth, fheight])
+                        ])
+        link((self.model, "advancedbox"), (popmore,"visible"))
+
+        cmapcheck = Checkbox(description="Colormap")
+        link((self.model, "cmapbox"), (cmapcheck, "value"))
 
         cmap = Dropdown(description="Colormap",values=self.model.COLORMAPS)
         link((self.model,"colormap"),(cmap,"value"))
+        link((self.model,"cmapbox"),(cmap,"visible"))
+        
+        colorcheck = Checkbox(description="Color")
+        link((self.model, "colorbox"), (colorcheck, "value"))
 
         color = Dropdown(description="Color",values=self.model.COLORS)
         link((self.model, "color"), (color, "value"))
+        link((self.model,"colorbox"),(color,"visible"))
 
-        kind = Dropdown(description="Kind", values=PLOTPARSER.keys())
+        kind = Dropdown(description="Plot Type", values=PLOTPARSER.keys())
         link((self.model, "kind"), (kind, "value"))
 
 
         return ControlPanel(title="Plot Settings", 
                             children=[
-                                HBox([autoupdate, interact, self.more]),
-                                HBox([cmap,cbar]),
-                                HBox([color, kind]),
+                                VBox([autoupdate,kind]),
+                                HBox([cbar, interact]),
+                                HBox([colorcheck, cmapcheck]),
+                                HBox([more]),
+                                cmap,
+                                color,
                                 popmore
                                 ]
                             )
 
     def unit_panel(self):
         # create spectrum controls.  NOTE: should only be called once.
-        specunit = Text(description="Specunit",values=self.model.spec_unit)
+        specunit = Dropdown(description="Specunit",values=self.model.SPECUNITS.values())
         link((self.model,"spec_unit"),(specunit,"value"))
 
-        varunit = Text(description="Varunit",values=self.model.var_unit)
+        varunit = Dropdown(description="Varunit",values=self.model.VARUNITS.values())
         link((self.model,"var_unit"),(varunit,"value"))
 
         iunit = Text(description="I Unit",values=self.model.iunit)
@@ -207,8 +229,9 @@ class SpectraGui(Box):
                                 normunit,
                                 specunit,
                                 varunit,
-                                iunit]
-                            )
+                                iunit
+                            ])
+                            
 
     def slicing_panel(self):
         """ create spectrum controls.  NOTE: should only be called once."""
@@ -219,7 +242,7 @@ class SpectraGui(Box):
         #AXIS = RadioButtons(values=[0,1],description="Axis")
         #link((model, "slice_axis"), (AXIS, "value"))
 
-        SPECSTART = FloatSlider(description="Spec Slice Start",
+        SPECSTART = FloatSlider(description="Spec Start",
                                 min=model.specslice_position_start) #Will not try to update
 
         link((model,"specslice_position_start"),(SPECSTART,"value"))
@@ -227,7 +250,7 @@ class SpectraGui(Box):
         link((model,"specslider_start"),(SPECSTART,"min")) # Start end values (IE slider_min / slider_max)
         link((model,"specslider_end"),(SPECSTART,"max"))
 
-        SPECEND = FloatSlider(description="Spec Slice End",
+        SPECEND = FloatSlider(description="Spec End",
                               max=model.specslice_position_end) # Will not try to update
 
         link((model,"specslice_position_end"),(SPECEND,"value"))
@@ -239,7 +262,7 @@ class SpectraGui(Box):
         SPECSPACING = IntText(description="Spec Sample by",value=1)
         link((model,"specspacing"),(SPECSPACING,"value"))
 
-        TIMESTART = FloatSlider(description="Time Slice Start",
+        TIMESTART = FloatSlider(description="Var Start",
                                 min=model.timeslice_position_start)
 
         link((model,"timeslice_position_start"),(TIMESTART,"value"))
@@ -247,47 +270,35 @@ class SpectraGui(Box):
         link((model,"timeslider_start"),(TIMESTART,"min"))
         link((model,"timeslider_end"),(TIMESTART,"max"))
 
-        TIMEEND = FloatSlider(description="Time Slice End",
+        TIMEEND = FloatSlider(description="Var End",
                               max=model.timeslice_position_end)
         link((model,"timeslice_position_end"),(TIMEEND,"value"))
         link((model,"timestep"),(TIMEEND,"step"))
         link((model,"timeslider_start"),(TIMEEND,"min"))
         link((model,"timeslider_end"),(TIMEEND,"max"))
 
-        TIMESPACING = IntText(description="Time Sample by",value=1)
+        TIMESPACING = IntText(description="Var Sample by",value=1)
         link((model,"timespacing"),(TIMESPACING,"value"))
 
-        RANGED = VBox([SPECSTART,SPECEND,SPECSPACING, TIMESTART, TIMEEND, TIMESPACING])
-
+        speccheck = Checkbox(description="Spectral Axis")
+        link((model,"specbox"),(speccheck,"value"))
+        SPECRANGED = VBox([SPECSTART,SPECEND,SPECSPACING])
+        link((model,"specbox"),(SPECRANGED,"visible"))
+        
+        timecheck = Checkbox(description="Variation Axis")
+        link((model,"timebox"),(timecheck,"value"))
+        TIMERANGED = VBox([TIMESTART, TIMEEND, TIMESPACING])
+        link((model,"timebox"),(TIMERANGED,"visible"))
 
         return ControlPanel(title="Slicing/Sampling",
                             children=[
-                                #AXIS,
-                                RANGED
+                                HBox([speccheck, timecheck]),
+                                SPECRANGED,
+                                TIMERANGED
                             ]
                             )
 
-    def save_load_panel(self):
-        """ All Save/Load IO of GUI in this panel. """
-        saveplot = Button(description='Save Plot')
-        savets = Button(description='Export as NB Variable')
-        #link((self.model,"save_spec"),(savets,'value'))
-        savets.on_click(lambda x: self.model.save_to_ns())
-        savetsas = Text(description='Save as:')
-        link((self.model,"save_spec_as"),(savetsas,"value"))
 
-        po= PopOvers(description='Click for Popover')
-        link((self.model,"CONTENT"),(po,"content"))
-        link((self.model,"classname"),(po,"classname"))
-        link((self.model,"title"),(po,"title"))
-        #redraw = Button(description="Redraw")
-        #redraw.on_click(lambda x: self.model.draw())
-        return ControlPanel(title='Save Dataset (combine w/ load)',
-                            children=[saveplot,
-                                      savets,
-                                      savetsas,
-                                      po])
-        #return ToolBar(redraw)
 
 
     def plot_plugin_panel(self):

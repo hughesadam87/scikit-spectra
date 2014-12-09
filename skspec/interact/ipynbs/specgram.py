@@ -17,6 +17,7 @@ from IPython.utils.traitlets import (
             link, Unicode, Float, Int, Enum, Bool, Instance, Any
                                      )
 
+from IPython import get_ipython
 
 from specgui import Box, HTML
 from nbtools import mpl2html, log_message
@@ -39,7 +40,11 @@ class SpectraModel(HTML, Box):
     html = Bool(sync=True)
     
     DONT_DRAW = re.compile(r'^(_.+|value|keys|comm|children|visible|parent|log|config|msg_throttle)$')
+    SPECUNITS = aunps_glass().specunits()
+    VARUNITS = aunps_glass().varunits()
     NORMUNITS = NUdic
+    SPECUNITS_REV = OrderedDict((v,k) for k,v in SPECUNITS.items())
+    VARUNITS_REV = OrderedDict((v,k) for k,v in VARUNITS.items())
     NORMUNITS_REV = OrderedDict((v,k) for k,v in NORMUNITS.items())
     COLORS = ["b","g","r","y","k"]
     COLORMAPS = sorted(m for m in plt.cm.datad if not m.endswith("_r"))
@@ -51,6 +56,9 @@ class SpectraModel(HTML, Box):
     file_name = Unicode("<Variable>", sync=True)
     save_spec = Bool(False,sync=True)
     save_spec_as = Unicode('Test',sync=True)
+    
+    inbox = Bool(False,sync=True)
+    outbox = Bool(False,sync=True)
     
     # Spectra traits
     spec = Instance(Spectra)
@@ -65,11 +73,16 @@ class SpectraModel(HTML, Box):
     autoupdate = Bool(True, sync=True)
     colormap = Enum(COLORMAPS ,sync=True)
     color = Enum(COLORS, default_value = 'k', sync=True)
+    advancedbox = Bool(False,sync=True)
+    cmapbox = Bool(False,sync=True)
+    colorbox = Bool(False,sync=True)
     kind = Enum(PLOTPARSER.keys(), default_value = 'spec', sync=True)
+    selectlines = Bool(False, sync=True)
+    
     
     # Units
-    spec_unit = Unicode
-    var_unit = Unicode
+    spec_unit = Enum(SPECUNITS.values(),  sync=True)
+    var_unit = Enum(VARUNITS.values(),  sync=True)
     iunit = Unicode
     norm_unit = Enum(NORMUNITS.values(),  sync=True)
     
@@ -92,7 +105,9 @@ class SpectraModel(HTML, Box):
     timestep = Float(sync=True)
     timespacing = Int(1, sync=True)
     
-    selectlines = Bool(False, sync=True)
+    
+    specbox = Bool(False, sync=True)
+    timebox = Bool(False, sync=True)
     
     # User Defined Function
     user_f = Unicode(sync=True)
@@ -156,6 +171,14 @@ class SpectraModel(HTML, Box):
         self.spec_modified = self.spec_modified.as_norm(self.NORMUNITS_REV[new])
         self.draw(name, old, new)
     
+    def _spec_unit_changed(self, name, old, new):
+        self.spec_modified.specunit = self.SPECUNITS_REV[new]
+        self.draw(name, old, new)
+    
+    def _var_unit_changed(self, name, old, new):
+        self.spec_modified.varunit = self.VARUNITS_REV[new]
+        self.draw(name, old, new)
+    
     def _iunit_changed(self, name, old, new):
         self.spec_modified.iunit = new
         self.draw(name, old, new)
@@ -206,13 +229,17 @@ class SpectraModel(HTML, Box):
         except AttributeError:
             pass
 
-    @log_message    
+    @log_message
+    def save_plot(self):
+        self.fig_old.savefig(self.save_spec_as+'.png')
+
+    @log_message
     def save_to_ns(self):
         get_ipython().user_ns[self.save_spec_as]=self.spec_modified
     
     @log_message
     def load_from_ns(self, var):
-        self.spec = get_ipython().user_ns[var]            
+        self.spec = get_ipython().user_ns[var]
         
     # Slicing events
     # --------------
