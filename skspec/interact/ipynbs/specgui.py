@@ -12,6 +12,13 @@ import IPython.display as ipdisplay
 from IPython.utils.traitlets import link, Unicode
 from jinja2 import Template
 
+LAYOUT_HTML_1 = '<style> \
+.widget-area .spectroscopy .panel-body{padding: 0.5;} \
+.widget-area .spectroscopy .widget-numeric-text{width: 3em;} \
+.widget-area .spectroscopy .widget-box.start{margin-left: 0;} \
+.widget-area .spectroscopy .widget-hslider{width: 10em;} \
+.widget-area .spectroscopy .widget-text{width: 10em;} \
+</style>'
 
 class PanelTitle(HTML):
     def __init__(self, *args, **kwargs):
