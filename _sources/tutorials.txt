@@ -4,11 +4,11 @@ Tutorials
 Videos
 ------
 
-Video 1: IPython Notebook Spectroscopy GUI
+**Video 1**: IPython Notebook Spectroscopy GUI
 
 .. youtube:: RhMHgQbP__A
-    :height: 150
-    :width: 250
+    :height: 250
+    :width: 380
     :align: left
 
 10 Minutes to scikit-spectra

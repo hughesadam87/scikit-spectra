@@ -221,11 +221,15 @@ $("#gh-banner").css("top", navHeight);
 <div class="section" id="dependencies">
 <h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
 <p>In its current state, pyuvvis requires following dependencies:</p>
-<p><strong>pandas</strong>, <strong>scipy</strong>, <strong>chaco</strong></p>
+<p><strong>pandas 0.14</strong>, <strong>scipy</strong>, <strong>chaco</strong></p>
 <p><a class="reference external" href="http://www.scipy.org">scipy</a> and <a class="reference external" href="http://code.enthought.com/chaco/">chaco</a>, for now, aren&#8217;t critically important.  Only a few <strong>scipy</strong> modules are used,
 and the implementation of <strong>chaco</strong> is ancillary at this point in time.  As for version compatibility, I would
 recommend the most current versions of these packages, as <strong>pyuvvis</strong> has not beed adequately
 tested on various systems at this point in its nascent development.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Pandas 0.14 is the only supported version at the moment due to API changes in 0.15.  We apologize for any inconveniences.</p>
+</div>
 </div>
 <div class="section" id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>

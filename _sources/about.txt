@@ -77,6 +77,9 @@ Of the many developers who have patiently answered my questions on various maili
    - `Stephan Hoyer <https://twitter.com/shoyer>`_ (pandas/xray)
    - Nicholas Bollweg (IPython)
    - `Jonathan March and Robert Kern <https://www.enthought.com/company/team/devs/>`_ (Traits/Enthought) 
+   - Juan Nunez-Iglesias, Tony Yu, Setfan van der Walt `(scikit-image) <http://scikit-image.org/>`_
+
+In regard to this website, we've used the autodocumentation library, `Sphinx <http://sphinx-doc.org/>`_, with the awesome `Sphinx-bootstrap theme <http://ryan-roemer.github.io/sphinx-bootstrap-theme/>`_.
 
 Thank you `Zhaowen Liu`_ for all of your help with this project, our 
 other projects and for your unwaivering encouragement (and for the panda).

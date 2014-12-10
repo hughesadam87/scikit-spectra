@@ -351,8 +351,11 @@ $("#gh-banner").css("top", navHeight);
 <col width="90%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td><a class="reference internal" href="skspec.core.html#skspec.core.spectra.Spectra.from_csv" title="skspec.core.spectra.Spectra.from_csv"><tt class="xref py py-obj docutils literal"><span class="pre">spectra.Spectra.from_csv</span></tt></a>(filepath_or_buffer)</td>
-<td>Read from CSV file.</td>
+<tr class="row-odd"><td><a class="reference internal" href="skspec.interact.ipynbs.html#skspec.interact.ipynbs.specgram.SpectraModel" title="skspec.interact.ipynbs.specgram.SpectraModel"><tt class="xref py py-obj docutils literal"><span class="pre">specgram.SpectraModel</span></tt></a>(*args,&nbsp;**kwargs)</td>
+<td>A notional &#8220;complex widget&#8221; that knows how to redraw itself when key properties change.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="skspec.interact.ipynbs.html#skspec.interact.ipynbs.specgui.SpectraGui" title="skspec.interact.ipynbs.specgui.SpectraGui"><tt class="xref py py-obj docutils literal"><span class="pre">specgui.SpectraGui</span></tt></a>([model,&nbsp;model_config])</td>
+<td>An example GUI for a spectroscopy application.</td>
 </tr>
 </tbody>
 </table>
@@ -369,6 +372,23 @@ files with header and index as TimeStamps:</p>
 <div class="section" id="graphical-user-interface-gui">
 <h2>Graphical User Interface (GUI)<a class="headerlink" href="#graphical-user-interface-gui" title="Permalink to this headline">¶</a></h2>
 <p>We&#8217;ve adopted a &#8220;GUI when you want it, API when you need it&#8221; mindset.  While our GUI support is clearly prototypical at this point, we&#8217;re very pleased to present GUI&#8217;s that run entirely in the browser through IPython Notebooks.  The idea behind this was to provide GUI&#8217;s to quickly do the tedious munging in your spectra (sampling, slicing, basic plotting, loading/saving), directly in the Notebook, without disrupting your workflow.  As such, Spectra generated in the GUI can then be used in subsequent notebook cells.</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><tt class="xref py py-obj docutils literal"><span class="pre">specindex.SpecIndex</span></tt></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><tt class="xref py py-obj docutils literal"><span class="pre">timeindex.TimeIndex</span></tt></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><tt class="xref py py-obj docutils literal"><span class="pre">tempspectra.TempIndex</span></tt></td>
+<td></td>
+</tr>
+</tbody>
+</table>
 <p>One major problem with GUI&#8217;s in the notebook right now is that they don&#8217;t work unless you&#8217;re connected to the IPython kernel; i.e., you are running the notebook on your computer.  Hosted static versions of the notebooks (like those in our IPython Notebook tutorials) won&#8217;t display GUIs.  Work to remedy <a class="reference external" href="https://jakevdp.github.io/blog/2013/12/05/static-interactive-widgets/">this is already underway</a> by other, more gifted, programmers.</p>
 </div>
 <div class="section" id="two-dimensional-correlation-spectroscopy">

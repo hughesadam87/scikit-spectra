@@ -78,10 +78,13 @@ IO
 
 The most reliable way to read in your data and export is is through in comma-separated-value **(CSV)** formats.  We are still developing `pickle` and `json` support.  This is done through `Spectra.read_csv()`:
 
+
+.. currentmodule:: skspec.interact.ipynbs
 .. autosummary::
    :toctree: generated/
 
-   spectra.Spectra.from_csv
+   specgram.SpectraModel
+   specgui.SpectraGui
    ...
 
 `Spectra.read_csv()` accepts all arguments of `pandas.read_csv() <http://pandas.pydata.org/pandas-docs/stable/generated/pandas.read_csv.html#pandas.read_csv>`_, and adds the `header_datetime=False` and `index_datetime=False` options for parsing
@@ -99,6 +102,14 @@ Graphical User Interface (GUI)
 ------------------------------
 
 We've adopted a "GUI when you want it, API when you need it" mindset.  While our GUI support is clearly prototypical at this point, we're very pleased to present GUI's that run entirely in the browser through IPython Notebooks.  The idea behind this was to provide GUI's to quickly do the tedious munging in your spectra (sampling, slicing, basic plotting, loading/saving), directly in the Notebook, without disrupting your workflow.  As such, Spectra generated in the GUI can then be used in subsequent notebook cells.
+
+.. autosummary::
+   :toctree: generated/
+
+   specindex.SpecIndex
+   timeindex.TimeIndex
+   tempspectra.TempIndex
+   ...
 
 One major problem with GUI's in the notebook right now is that they don't work unless you're connected to the IPython kernel; i.e., you are running the notebook on your computer.  Hosted static versions of the notebooks (like those in our IPython Notebook tutorials) won't display GUIs.  Work to remedy `this is already underway <https://jakevdp.github.io/blog/2013/12/05/static-interactive-widgets/>`_ by other, more gifted, programmers.
 

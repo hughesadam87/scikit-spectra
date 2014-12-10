@@ -5,7 +5,7 @@ Dependencies
 ------------
 In its current state, pyuvvis requires following dependencies:
 
-**pandas**, **scipy**, **chaco**
+**pandas 0.14**, **scipy**, **chaco**
 
 .. _scipy: http://www.scipy.org
 .. _chaco: http://code.enthought.com/chaco/
@@ -15,6 +15,8 @@ and the implementation of **chaco** is ancillary at this point in time.  As for 
 recommend the most current versions of these packages, as **pyuvvis** has not beed adequately 
 tested on various systems at this point in its nascent development.
 
+.. warning::
+    Pandas 0.14 is the only supported version at the moment due to API changes in 0.15.  We apologize for any inconveniences.
 
 Installation
 ------------
