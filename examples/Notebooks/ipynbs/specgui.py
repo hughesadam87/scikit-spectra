@@ -14,7 +14,7 @@ from jinja2 import Template
 
 LAYOUT_HTML_1 = '<style> \
 .widget-area .spectroscopy .panel-body{padding: 0.5;} \
-.widget-area .spectroscopy .widget-numeric-text{width: 3em;} \
+.widget-area .spectroscopy .widget-numeric-text{width: 2.5em;} \
 .widget-area .spectroscopy .widget-box.start{margin-left: 0;} \
 .widget-area .spectroscopy .widget-hslider{width: 10em;} \
 .widget-area .spectroscopy .widget-text{width: 10em;} \
@@ -76,11 +76,9 @@ class SpectraGui(Box):
         super(SpectraGui, self).__init__(*args, **kwargs)
         self._dom_classes += ("spectroscopy row",)
 
-
-    def set_layout(self):
-	return ipdisplay.HTML(open('style1.html','r').read())
-
-
+    def tight_layout(self):
+	""" Tight layout for gui boxes/widgets """
+        return ipdisplay.HTML(LAYOUT_HTML_1)
 
     def INOUT_panel(self):
         # create correlation controls. NOTE: should only be called once.
@@ -159,7 +157,7 @@ class SpectraGui(Box):
         autoupdate = Checkbox(description="Auto Update")
         link((self.model, "autoupdate"), (autoupdate, "value"))
         
-        plugin2= Checkbox(description='plugin2')
+        plugin2= Checkbox(description='Cursor')
         plugin3= Checkbox(description='plugin3')
         fwidth = FloatText(description='Plot width')
         fheight = FloatText(description='Plot height')
@@ -184,7 +182,10 @@ class SpectraGui(Box):
         more = Checkbox(description="Advanced")
         link((self.model, "advancedbox"), (more, "value"))
 
-        popmore = VBox([HBox([plug_select,plugin2,plugin3]),
+        popmore = VBox([HBox([plug_select,
+									plugin2,
+							#		plugin3
+									]),
                         HBox([f,fapp]),
                         HBox([fwidth, fheight])
                         ])
