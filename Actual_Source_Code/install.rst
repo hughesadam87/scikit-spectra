@@ -12,7 +12,7 @@ In its current state, scikit-spectra requires following dependencies:
 .. warning::
     Pandas 0.14 is the only supported version at the moment due to API changes in 0.15.  We apologize for the inconvenience.
 
-To use the newer features if scikit-spectra such as the IPython notebook GUIs, please instal:
+To use the newer features if scikit-spectra such as the IPython notebook GUIs, please install:
 
    - `IPython Notebook 3.0.0 Dev. Version <https://github.com/ipython/ipython>`_
    - `MPLD3 <https://github.com/jakevdp/mpld3>`_

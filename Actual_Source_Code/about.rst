@@ -54,16 +54,15 @@ between Python spectroscopy libraries.
 If you manage a library and want to collaborate, please contact me at hughesadam87@gmail.com
 
 
-About the Author
-----------------
+Developers
+----------
 
-I'm a PhD student at GWU (check me out on researchgate_, Linkedin_ or twitter_ (@hughesadam87))
-and former Enthought intern. I work in biomolecule sensing and nanophotonics under `Dr. Mark Reeves Biophysics Group`_.  
-Like any PhD student, my time is stretched across many projects.  As such,
-the ``scikit-spectra`` source code may is messy in places, and a test suite has
-yet to be developed.  Developing the iPython notebook tutorials 
-alongside the code helped served as a basic regression test platform.  
+Adam Hughes (researchgate_, Linkedin_ or twitter_ (@hughesadam87)) and `Evelyn Liu`_ are PhD students working
+in biomolecule sensing and nanophotonics under `Dr. Mark Reeves Biophysics Group`_.  We started this project
+after encountering shortcomings in the open-source spectroscopy toolbelt, and after learning how apt pandas
+was for our datasets.
 
+   .. _Evelyn Liu : https://www.researchgate.net/profile/Zhaowen_Liu
    .. _researchgate : https://www.researchgate.net/profile/Adam_Hughes2/?ev=hdr_xprf
    .. _Linkedin : http://www.linkedin.com/profile/view?id=121484744&goback=%2Enmp_*1_*1_*1_*1_*1_*1_*1_*1_*1_*1_*1&trk=spm_pic
    .. _twitter : https://twitter.com/hughesadam87

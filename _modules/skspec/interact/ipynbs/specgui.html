@@ -141,7 +141,7 @@ $("#gh-banner").css("top", navHeight);
 <li class="toctree-l2"><a class="reference internal" href="../../../../about.html#history-and-background">History and Background</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../about.html#related-scipy-libraries">Related Scipy Libraries</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../about.html#other-spectroscopy-libraries-tools-in-python">Other Spectroscopy Libraries/Tools in Python</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../about.html#about-the-author">About the Author</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../about.html#developers">Developers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../about.html#acknowledgements">Acknowledgements</a></li>
 </ul>
 </li>
@@ -216,6 +216,13 @@ $("#gh-banner").css("top", navHeight);
 <span class="kn">from</span> <span class="nn">IPython.utils.traitlets</span> <span class="kn">import</span> <span class="n">link</span><span class="p">,</span> <span class="n">Unicode</span>
 <span class="kn">from</span> <span class="nn">jinja2</span> <span class="kn">import</span> <span class="n">Template</span>
 
+<span class="n">LAYOUT_HTML_1</span> <span class="o">=</span> <span class="s">&#39;&lt;style&gt; </span><span class="se">\</span>
+<span class="s">.widget-area .spectroscopy .panel-body{padding: 0.5;} </span><span class="se">\</span>
+<span class="s">.widget-area .spectroscopy .widget-numeric-text{width: 2.5em;} </span><span class="se">\</span>
+<span class="s">.widget-area .spectroscopy .widget-box.start{margin-left: 0;} </span><span class="se">\</span>
+<span class="s">.widget-area .spectroscopy .widget-hslider{width: 10em;} </span><span class="se">\</span>
+<span class="s">.widget-area .spectroscopy .widget-text{width: 10em;} </span><span class="se">\</span>
+<span class="s">&lt;/style&gt;&#39;</span>
 
 <div class="viewcode-block" id="PanelTitle"><a class="viewcode-back" href="../../../../API/skspec.interact.ipynbs.html#skspec.interact.ipynbs.specgui.PanelTitle">[docs]</a><span class="k">class</span> <span class="nc">PanelTitle</span><span class="p">(</span><span class="n">HTML</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -273,11 +280,9 @@ $("#gh-banner").css("top", navHeight);
         <span class="nb">super</span><span class="p">(</span><span class="n">SpectraGui</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_dom_classes</span> <span class="o">+=</span> <span class="p">(</span><span class="s">&quot;spectroscopy row&quot;</span><span class="p">,)</span>
 
-
-<div class="viewcode-block" id="SpectraGui.set_layout"><a class="viewcode-back" href="../../../../API/skspec.interact.ipynbs.html#skspec.interact.ipynbs.specgui.SpectraGui.set_layout">[docs]</a>    <span class="k">def</span> <span class="nf">set_layout</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-	<span class="k">return</span> <span class="n">ipdisplay</span><span class="o">.</span><span class="n">HTML</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s">&#39;style1.html&#39;</span><span class="p">,</span><span class="s">&#39;r&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
-
-
+<div class="viewcode-block" id="SpectraGui.tight_layout"><a class="viewcode-back" href="../../../../API/skspec.interact.ipynbs.html#skspec.interact.ipynbs.specgui.SpectraGui.tight_layout">[docs]</a>    <span class="k">def</span> <span class="nf">tight_layout</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot; Tight layout for gui boxes/widgets &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ipdisplay</span><span class="o">.</span><span class="n">HTML</span><span class="p">(</span><span class="n">LAYOUT_HTML_1</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="SpectraGui.INOUT_panel"><a class="viewcode-back" href="../../../../API/skspec.interact.ipynbs.html#skspec.interact.ipynbs.specgui.SpectraGui.INOUT_panel">[docs]</a>    <span class="k">def</span> <span class="nf">INOUT_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c"># create correlation controls. NOTE: should only be called once.</span>
@@ -356,7 +361,7 @@ $("#gh-banner").css("top", navHeight);
         <span class="n">autoupdate</span> <span class="o">=</span> <span class="n">Checkbox</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&quot;Auto Update&quot;</span><span class="p">)</span>
         <span class="n">link</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="s">&quot;autoupdate&quot;</span><span class="p">),</span> <span class="p">(</span><span class="n">autoupdate</span><span class="p">,</span> <span class="s">&quot;value&quot;</span><span class="p">))</span>
         
-        <span class="n">plugin2</span><span class="o">=</span> <span class="n">Checkbox</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&#39;plugin2&#39;</span><span class="p">)</span>
+        <span class="n">plugin2</span><span class="o">=</span> <span class="n">Checkbox</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&#39;Cursor&#39;</span><span class="p">)</span>
         <span class="n">plugin3</span><span class="o">=</span> <span class="n">Checkbox</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&#39;plugin3&#39;</span><span class="p">)</span>
         <span class="n">fwidth</span> <span class="o">=</span> <span class="n">FloatText</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&#39;Plot width&#39;</span><span class="p">)</span>
         <span class="n">fheight</span> <span class="o">=</span> <span class="n">FloatText</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&#39;Plot height&#39;</span><span class="p">)</span>
@@ -381,7 +386,10 @@ $("#gh-banner").css("top", navHeight);
         <span class="n">more</span> <span class="o">=</span> <span class="n">Checkbox</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&quot;Advanced&quot;</span><span class="p">)</span>
         <span class="n">link</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="s">&quot;advancedbox&quot;</span><span class="p">),</span> <span class="p">(</span><span class="n">more</span><span class="p">,</span> <span class="s">&quot;value&quot;</span><span class="p">))</span>
 
-        <span class="n">popmore</span> <span class="o">=</span> <span class="n">VBox</span><span class="p">([</span><span class="n">HBox</span><span class="p">([</span><span class="n">plug_select</span><span class="p">,</span><span class="n">plugin2</span><span class="p">,</span><span class="n">plugin3</span><span class="p">]),</span>
+        <span class="n">popmore</span> <span class="o">=</span> <span class="n">VBox</span><span class="p">([</span><span class="n">HBox</span><span class="p">([</span><span class="n">plug_select</span><span class="p">,</span>
+									<span class="n">plugin2</span><span class="p">,</span>
+							<span class="c">#		plugin3</span>
+									<span class="p">]),</span>
                         <span class="n">HBox</span><span class="p">([</span><span class="n">f</span><span class="p">,</span><span class="n">fapp</span><span class="p">]),</span>
                         <span class="n">HBox</span><span class="p">([</span><span class="n">fwidth</span><span class="p">,</span> <span class="n">fheight</span><span class="p">])</span>
                         <span class="p">])</span>
