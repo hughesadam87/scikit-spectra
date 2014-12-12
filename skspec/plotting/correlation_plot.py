@@ -104,7 +104,7 @@ def _corr2d4fig(spec, a1_label=r'$\bar{A}(\nu_1)$',
 
 
 
-def corr2d(spec, sideplots='mean', **pltkwargs):
+def corr2d(spec2d, sideplots='mean', **pltkwargs):
     """ Visualize synchronous, asynchronous or phase angle spectra.
 
     Parameters
@@ -144,17 +144,22 @@ def corr2d(spec, sideplots='mean', **pltkwargs):
                     )
        
     if sideplots:
+        if spec2d.spec is None:
+            raise CorrPlotError('Sideplots require access to original dataset.'
+                                '  Not found on %s object.' % type(spec2d))
+        
         if sideplots == True:
             sideplots = 'mean'
 
         # Should be identical, but maybe not when do heterspectral corr...
         try:
-            symbol1 = spec.index._unit.symbol
-            symbol2 = spec.columns._unit.symbol
+            symbol1 = spec2d.index._unit.symbol
+            symbol2 = spec2d.columns._unit.symbol
         except Exception:
             symbol1 = symbol2 = r'\lambda'
                 
-        if spec._corr2d.center is not None:
+        # if centered, add a bar (doesn't matter what kind of centering)
+        if spec2d.centered:
             label1 = r'$\bar{A}(%s_1)$' % symbol1
             label2 = r'$\bar{A}(%s_2)$' % symbol2
 
@@ -162,11 +167,11 @@ def corr2d(spec, sideplots='mean', **pltkwargs):
             label1, label2 = r'$A(%s_1)$' % symbol1, r'$A(%s_2)$' % symbol2
 
         # BASED ON SELF, NOT BASED ON THE OBJECT ITSELF!
-        ax1, ax2, ax3, ax4 = _corr2d4fig(spec, label1, label2, **pltkwargs )
+        ax1, ax2, ax3, ax4 = _corr2d4fig(spec2d, label1, label2, **pltkwargs )
 
         # Side plots    
-        data_orig_top = spec._corr2d.spec.loc[spec.index[0]:spec.index[-1], :]
-        data_orig_side = spec._corr2d.spec.loc[spec.columns[0]:spec.columns[-1], :]
+        data_orig_top = spec2d.spec.loc[spec2d.index[0]:spec2d.index[-1], :]
+        data_orig_side = spec2d.spec.loc[spec2d.columns[0]:spec2d.columns[-1], :]
 
         top =  None
 
@@ -228,14 +233,14 @@ def corr2d(spec, sideplots='mean', **pltkwargs):
     else:
         # If no sideplots, can allow for 3d plots
         pltkwargs.setdefault('kind', 'contour')
-        ax = pltkwargs.pop('ax', _gen2d3d(spec, **pltkwargs)[0]) #return axes, not contours
+        ax = pltkwargs.pop('ax', _gen2d3d(spec2d, **pltkwargs)[0]) #return axes, not contours
         if _reverse_axis:
             ax.set_ylim(ax.get_ylim()[::-1]) 
             ax.set_xlim(ax.get_xlim()[::-1]) 
         return ax
 
     
-def corr3d(spec, projection='xy', **pltkwargs):
+def corr3d(spec2d, projection='xy', **pltkwargs):
     """ pltkwargs are passed to wire plot.  Special keyword 'contourkwargs'
     can pass arguments directly to contour plot.
     """
@@ -246,12 +251,12 @@ def corr3d(spec, projection='xy', **pltkwargs):
     pltkwargs.setdefault('elev', 45)
     pltkwargs.setdefault('azim', -135)            
         
-    ax = spec.plot(kind='wire', **pltkwargs)    
+    ax = spec2d.plot(kind='wire', **pltkwargs)    
 
     # if fill, will will draw over 3d (bug)
     if projection:
         # Pass contourkwargs, not plotkwards
-        ax = add_projection(spec, ax=ax, plane=projection, **contourkwargs) 
+        ax = add_projection(spec2d, ax=ax, plane=projection, **contourkwargs) 
     
     return ax
 

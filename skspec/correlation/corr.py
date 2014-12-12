@@ -46,6 +46,7 @@ from skspec.core.anyspectra import AnyFrame
 from skspec.plotting.correlation_plot import corr2d, corr3d, corr_multi
 import skspec.config as pvconfig
 import skspec.core.utilities as pvutils
+from skspec.core.specindex import SpecIndex
 from skspec.pandas_utils.metadframe import MetaDataFrame
 from pca_lite import PCA
 #from pcakernel import PCA
@@ -78,10 +79,14 @@ class Spec2dError(Exception):
 
 class Spec2d(AnyFrame):
     """ Frame to hold synchronous, asynchronous and other 2D spectra objects.
-    Mostly just want to customize headers, and subclasses correspond to various
-    corr2D object.  For example, synchronous spectra has spectral data on 
-    index and columns.  Therefore, it is represented by Spec2D class.
-
+    Custom output and plotting are main changes from AnyFrame.  
+    
+    Notes
+    -----
+    This class only stores limited units from the original data, including 
+    specunit and varunit.  Otherwise, it is a generic AnyFrame, and we don't
+    want users to access the original Spectra backwards through this class.
+    
     Also overwrites Spectra.norm for 3dPlotting purposes.
 
     Will update active/spectral unit based on index/columns, but original
@@ -97,35 +102,62 @@ class Spec2d(AnyFrame):
         kwargs
         ------
 
-        _corr2d: Corr2D object
-
-        _norm: ''
-           norm to appear in 3dplots and on contour colorbar
+        spec: Optional (original dataset ie Spectra, TimeSpectra)
+            Access the original data allows for more detailed output like
+            sideplots in the plot calls and instructive headers.  
+            
+        scaled: str
+            Status of scaling, ie "no scaling", "alpha=1" etc... just a string
+            that is output in various plots.
+            
+        centered : str
+            Status of centering (ie "mean", "no centering") just a string
+            that is output in various plots.        
         """
-
-
-        # Mandatory, access to corr2d and hence original dataset 
-        # (passed by reference)!
-        self._corr2d = kwargs.pop('corr2d')
-
-        #self._scalestring = kwargs.pop('scalestring', '??')
-        #self._originadataindex
-
-        # INDEX/COLUMNS are SET TO INDEX OF ORIGINAL DATA
-        kwargs['index'] = self._corr2d.index
-        kwargs['columns'] = self._corr2d.index
+        
+        # Access to original data is helpful (SHOULD THIS BE DEEP COPY?)
+        self.spec = kwargs.pop('spec', None)
+        self.scaled = kwargs.pop('scaled', '')
+        self.centered = kwargs.pop('centered', '')
 
         super(Spec2d, self).__init__(*args, **kwargs)
 
+        # Do I need to add other attributes if reading Sync from a file or
+        # something?
+        
 
     @classmethod
-    def from_corr2d(cls, corr2d):
-        return cls(scale_string=corr2d.scalestring, 
-                   originaldatindex=corr2d.index)
+    def from_corr2d(cls, arrayout, corr2d, *args, **kwargs):
+        """ From Corr2D, create Spec2d object (e.g. Synchronous Spectrum).
+        Parameters
+        ----------
+        arrayout : matrix values (ie synchronous spectrum)
+        
+        corr2d : Corr2D calling object
+        
+        Notes
+        -----
+
+        Will store a reference to the original dataset, and also overwrite
+        the index and columns, respectively.
+        
+        """
+        specout = cls(
+                   arrayout,
+                   scaled = corr2d._scale_string, 
+                   centered = corr2d.center,
+                   spec=corr2d.spec,
+                   *args, **kwargs
+                   )
+        # Set columns and index both to index
+        specout.index = corr2d.index
+        specout.columns = corr2d.index
+        return specout
+        
         
     @property
     def _var_span(self):
-        cols = self._corr2d.columns
+        cols = self.columns
         return pvutils._compute_span(cols, with_unit=True)
     
     # Header/output
@@ -142,9 +174,9 @@ class Spec2d(AnyFrame):
         ftunit = pvutils.safe_lookup(self, 'varunit')  
         spunit = pvutils.safe_lookup(self, 'specunit')
 
-
+        # FT/SP UNIT NOT ON HEADER
         header = "*%s*%sScaling:%s\n" % \
-            (name, delim, self._corr2d._scale_string)
+            (name, delim, self.scaled)
 
         return header
 
@@ -172,7 +204,7 @@ class Spec2d(AnyFrame):
             colorshape = '<font color="#0000CD"> (%s)</font>' % (self.shape)
 
         # Green        
-        scale_string = 'Scaling: <font color="#197519">%s</font>' % self._corr2d._scale_string
+        scale_string = 'Scaling: <font color="#197519">%s</font>' % self.scaled
 
         # Black 
         span_string = 'Span:  <font color="#000000">%s</font>' % self._var_span
@@ -198,8 +230,8 @@ class Spec2d(AnyFrame):
         if kind not in ['corr2d', 'corr3d']:
             return super(Spec2d, self).plot(kind=kind, **pltkwargs)
 
-        pltkwargs.setdefault('xlabel', self.specunit)
-        pltkwargs.setdefault('ylabel', self.specunit)         
+        pltkwargs.setdefault('xlabel', self.full_specunit)
+        pltkwargs.setdefault('ylabel', self.full_varunit)         
 
         if kind == 'corr2d':
             # If user sets color/cmap, will overwrite
@@ -214,6 +246,7 @@ class Spec2d(AnyFrame):
 
         elif kind == 'corr3d':
             return corr3d(self, **pltkwargs)
+
 
 
 
@@ -239,8 +272,8 @@ class Corr2d(object):
         # MAKE AN ACTUAL COPY OF DATA, NOT PASSING BY REFERENCE
         self.spec = spec.deepcopy()
 
-
-        self.index = spec.index   #Relax these maybe and just hide some sideplots...
+        # Promote spec attributes for convenience
+        self.index = spec.index   
         self.columns = spec.columns
         self.specunit = spec.specunit
         self.varunit = spec.varunit
@@ -431,7 +464,7 @@ class Corr2d(object):
         else:
             matrixout = self.sync_noscale
 
-        return Spec2d(matrixout, 
+        return Spec2d.from_corr2d(matrixout, 
                       corr2d = self,
                       name='Synchronous Correlation',
                       iunit='synchronicity')   
@@ -445,7 +478,7 @@ class Corr2d(object):
         else:
             matrixout = self.async_noscale
 
-        return Spec2d(matrixout, 
+        return Spec2d.from_corr2d(matrixout, 
                       corr2d = self,
                       name='Asynchronous Correlation',
                       iunit='asynchronicity')   
@@ -471,7 +504,7 @@ class Corr2d(object):
     @property
     def correlation(self):
         """ 2D Correlation Spectrum"""
-        return Spec2d(self.coeff_corr, 
+        return Spec2d.from_corr2d(self.coeff_corr, 
                       corr2d = self,
                       name = 'Correlation Coefficient',
                       iunit='corr. coefficient')                
@@ -479,7 +512,7 @@ class Corr2d(object):
     @property
     def disrelation(self):
         """ 2D Disrelation Spectrum"""
-        return Spec2d(self.coeff_disr,
+        return Spec2d.from_corr2d(self.coeff_disr,
                       corr2d = self,
                       name = 'Disrelation Coefficient',
                       iunit='disr. coefficient')   
@@ -547,7 +580,7 @@ class Corr2d(object):
                 # I believe std[i] std[j] is correct way
                 async[i][j] = coeff * var[i,j]
 
-        return Spec2d(async, 
+        return Spec2d.from_corr2d(async, 
                       corr2d=self, 
                       name='Asynchronous Codistribution', 
                       iunit='asynchronicity')
@@ -566,7 +599,7 @@ class Corr2d(object):
             for j in range(numrows):
                 sync[i][j] = np.sqrt(var[i,j]**2 - async_cod[i,j]**2 )
                  
-        return Spec2d(sync, 
+        return Spec2d.from_corr2d(sync, 
                       corr2d=self, 
                       name='Synchronous Codistribution', 
                       iunit='synchronicity')
