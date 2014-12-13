@@ -157,7 +157,9 @@ class Spec2d(AnyFrame):
         
     @property
     def _var_span(self):
-        cols = self.columns
+        if self.spec is None:
+            return ''
+        cols = self.spec.columns
         return pvutils._compute_span(cols, with_unit=True)
     
     # Header/output
