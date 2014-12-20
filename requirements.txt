@@ -1,3 +1,9 @@
 scipy
 pandas>=0.14 
 matplotlib>=1.4
+
+# Ipython notebook 3.0.0 has many dependencies that may need upgraded including
+
+# pyzmq
+# tornado
+# jsonschema (https://pypi.python.org/pypi/jsonschema) [I installed from source]
