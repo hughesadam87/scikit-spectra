@@ -2,7 +2,7 @@ from skspec.plotting.advanced_plots import PLOTPARSER
 
 from IPython.html.widgets import (
     FlexBox, VBox, HBox, HTML, Box, RadioButtons,
-    Text, Dropdown, Checkbox, Image, Popup,
+    Text, Dropdown, Checkbox, Image,
     IntSlider, Button, Text, FloatSlider, IntText, 
     ContainerWidget, FloatText
     )
