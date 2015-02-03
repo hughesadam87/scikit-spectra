@@ -133,21 +133,22 @@ def specplot(ts, *args, **pltkwargs):
                            'result in specious absorbance data.')          
 
    # Area plot gets special axis label   
+   safelook = pvutils.safe_lookup
    if kind == 'area':
-      pltkwargs.setdefault('xlabel', ts.full_varunit)
+      pltkwargs.setdefault('xlabel', safelook(ts, 'full_varunit'))
    else:
-      pltkwargs.setdefault('xlabel', ts.full_specunit)
+      pltkwargs.setdefault('xlabel', safelook(ts, 'full_specunit'))
 
    pltkwargs.setdefault('title', ts.name)            
 
    pltfcn, is_2d_3d = PLOTPARSER[kind].function, PLOTPARSER.is_2d_3d(kind)
    
    if is_2d_3d:
-      pltkwargs.setdefault('ylabel', ts.full_varunit)      
-      pltkwargs.setdefault('zlabel', ts.full_iunit) 
+      pltkwargs.setdefault('ylabel', safelook(ts, 'full_varunit'))      
+      pltkwargs.setdefault('zlabel', safelook(ts, 'full_iunit'))
    
    else:
-      pltkwargs.setdefault('ylabel', ts.full_iunit)
+      pltkwargs.setdefault('ylabel', safelook(ts,'full_iunit'))
                
    # Hack 
    if pltfcn == _gen2d3d:
