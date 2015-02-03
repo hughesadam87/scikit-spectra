@@ -25,9 +25,9 @@ def _parse_conversion_unit(unit, unitdict):
 # Custom Index Classes
 # --------------------
 
-# NOT SURE WHY BUT SUBCLASSING INDEX CALLS THINGS LIKE ALL_DATES THAT SCREW THIS UP
-# IN CERTAIN CASES BUT THIS ACTUALLY WORKS, EVEN WHEN DTYPE IS TIMESTAMPS!?
-class CustomIndex(Float64Index):
+# This used to sublcass Float64Index, but I relaxed that condition.  Issues
+# may arise unexpectedly from this class, and would most likley be from that
+class CustomIndex(Index): #(Float64Index)
    """ Custom index used in skspec to interface to Unit."""
    
    _unit = None #leave as _unit to keep api of Spectra
