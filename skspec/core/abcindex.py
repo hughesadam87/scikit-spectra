@@ -27,7 +27,7 @@ def _parse_conversion_unit(unit, unitdict):
 
 # This used to sublcass Float64Index, but I relaxed that condition.  Issues
 # may arise unexpectedly from this class, and would most likley be from that
-class CustomIndex(Index): #(Float64Index)
+class CustomIndex(Float64Index):#(Index):
    """ Custom index used in skspec to interface to Unit."""
    
    _unit = None #leave as _unit to keep api of Spectra
