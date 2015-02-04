@@ -27,17 +27,21 @@ def _genplot(ts, *args, **pltkwargs):
         xlabel
         ylabel
         title
+        legprefix and legend as integers
+            - setting legprefix and not legend defaults legend to True
     """
              
-    # Add custom legend interface.  Keyword legstyle does custom ones, if pltkwrd legend==True
+    # Add custom legend interface. 
     # For now this could use improvement  
     xlabel = pltkwargs.pop('xlabel', '')
     ylabel = pltkwargs.pop('ylabel', '')
     title = pltkwargs.pop('title', '')
 
-    pltkwargs.setdefault('legend', False)
     pltkwargs.setdefault('linewidth', 1)
-    legstyle = pltkwargs.pop('legstyle', None)   
+
+    # Legend can be T/F, integer for pre-loaded styles
+    legend = pltkwargs.setdefault('legend', False)
+    legprefix = pltkwargs.pop('legprefix', None)
         
     # Adhere to cananoical "cmap" 
     if 'cmap' in pltkwargs:
@@ -152,14 +156,25 @@ def _genplot(ts, *args, **pltkwargs):
         except Exception:
             pass
         
-    
-    if legstyle and pltkwargs['legend'] == True:  #Defaults to False
-        if legstyle == 0:
-            ax.legend(loc='upper center', ncol=8, shadow=True, fancybox=True)
-        elif legstyle == 1:
-            ax.legend(loc='upper left', ncol=2, shadow=True, fancybox=True)  
-        elif legstyle == 2:
-            ax=put.easy_legend(ax, position='top', fancy=True)
+    # Legend as integer doesn't persist if legprefix. IE legprefix makes entirely new legend
+    # but legend as an integer is so unused, who cares
+    if legend:
+        pltkwargs['legend'] = True
+        if isinstance(legend, int):
+            if legend == 0:
+                ax.legend(loc='upper center', ncol=8, shadow=True, fancybox=True)
+            elif legend == 1:
+                ax.legend(loc='upper left', ncol=2, shadow=True, fancybox=True)  
+            elif legend == 2:
+                ax=put.easy_legend(ax, position='top', fancy=True)
+
+    if legprefix:
+        if not isinstance(legprefix, basestring):
+            raise PlotError('Plot keyword "legprefix" must be a string, got %s' % type(legprefix))
+        handles, labels = ax.get_legend_handles_labels()
+        newlabels = ['%s%s' % (legprefix, i) for i in range(len(labels))] #step1, step2 etc...
+        ax.legend(handles, newlabels)
+        
 
     # http://matplotlib.org/api/axis_api.html           
     # Other grid args like linestyle should be set directly with calls
@@ -271,6 +286,6 @@ if __name__ == '__main__':
     from skspec.data import aunps_glass
     ts = aunps_glass()
     print ts.full_iunit
-    ts.plot(kind='area')
+    ts.plot(legend=1, legprefix='fuck_')
 #    areaplot(ts)
     plt.show()
