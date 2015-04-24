@@ -35,7 +35,6 @@ class TimeSpectra(Spectra):
     def __init__(self, *dfargs, **dfkwargs):
         dfkwargs.setdefault('strict_columns', TimeIndex)            
         super(TimeSpectra, self).__init__(*dfargs, **dfkwargs)
-        print 'test'
         
 
 ## TESTING ###
