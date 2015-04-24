@@ -10,10 +10,28 @@ logger = logging.getLogger(__name__)
 class PlotError(Exception):
     """ """
 
-#XXX UPDATE DOCSTRING (HOW TO REFERENCE SPECPLOT TO THIS ONE)
+#XXX UPDATE DOCSTRING (HOW TO REFERENCE SPEC.PLOT / SPECPLOT DOCSTRING TO THIS ONE!?)
 def _genplot(ts, *args, **pltkwargs):
     """ Generic wrapper to ts._frame.plot(), that takes in x/y/title as parsed
-    from various calling functions:
+    from various calling functions.  Implements several new keyword parameters.
+    
+    Parameters
+    ----------
+    ax : Matplotlib Axes
+         Pass in an axes to add lines.  If none, one is generated.
+    
+    color : str, int, or rgb
+         Plot color ('r', (1,0,0), (128)). 
+         
+    cbar : bool (False)
+         Add colorbar to plot if colormap (cmap keyword)
+    
+    Returns:
+    --------
+    ax : Matplotlib Axes
+    
+    
+    grid
     NEW KEYWORDS:
         grid
         color
@@ -172,7 +190,7 @@ def _genplot(ts, *args, **pltkwargs):
         if not isinstance(legprefix, basestring):
             raise PlotError('Plot keyword "legprefix" must be a string, got %s' % type(legprefix))
         handles, labels = ax.get_legend_handles_labels()
-        newlabels = ['%s%s' % (legprefix, i) for i in range(len(labels))] #step1, step2 etc...
+        newlabels = ['%s%s = %s' % (legprefix, i, labels[i]) for i,label in enumerate(labels)] #step1, step2 etc...
         ax.legend(handles, newlabels)
         
 
@@ -286,6 +304,6 @@ if __name__ == '__main__':
     from skspec.data import aunps_glass
     ts = aunps_glass()
     print ts.full_iunit
-    ts.plot(legend=1, legprefix='fuck_')
+    ts.as_varunit('s').plot(legend=True, legprefix='time_')
 #    areaplot(ts)
     plt.show()

@@ -787,7 +787,8 @@ class Controller(object):
         logger.info('Loading contents of %s multiple raw spectral '
                     'files %s.' % (self.infolder, len(infiles)))     
         try:
-            return from_spec_files(infiles, name=self.infolder, 
+            return from_spec_files(infiles, 
+                                   name=self.infolder, 
                                    check_for_overlapping_time=False) 
         except Exception as exc:
             logger.critical('Could not import files from pickle, legacy or' 

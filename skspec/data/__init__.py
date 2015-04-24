@@ -29,7 +29,6 @@ def load_ts(filepath, *args, **kwargs):
     filepath = op.join(data_dir, filepath)
     ext = op.splitext(filepath)[1]
     
-
     if ext == '.csv':
         return TimeSpectra.from_csv(filepath, *args, **kwargs)
 

@@ -31,8 +31,18 @@ logger = logging.getLogger(__name__)
 
 
 ### Verified OCean Optics month naming conventions (Actually it capitalizes but this call with month.lower() ###
-spec_suite_months={'jan':1, 'feb':2, 'mar':3, 'apr':4, 'may':5, 'jun':6, 'jul':7,
-                   'aug':8, 'sep':9, 'oct':10, 'nov':11, 'dec':12}  
+spec_suite_months={'jan':1, 
+                   'feb':2, 
+                   'mar':3, 
+                   'apr':4, 
+                   'may':5,
+                   'jun':6,
+                   'jul':7,
+                   'aug':8,
+                   'sep':9,
+                   'oct':10,
+                   'nov':11, 
+                   'dec':12}  
 
 spec_dtype = np.dtype([ ('wavelength', float), ('intensity', float) ])
 
@@ -175,13 +185,15 @@ def from_spec_files(file_list, name='', skiphead=17, skipfoot=1, check_for_overl
 
         f.close()
 
-    ### Make timespec, add filenames, baseline and metadata attributes (note, DateTimeIndex auto sorts!!)
-    timespec=TimeSpectra(DataFrame(dict_of_series), name=name) #Dataframe beacuse TS doesn't handle dict of series
-    timespec.specunit='nm'
-    timespec.filedict=time_file_dict
-    timespec.baseline=baseline  #KEEP THIS AS DARK SERIES RECALL IT IS SEPARATE FROM reference OR REFERENCE..  
+    # Make timespec, add filenames, baseline and metadata attributes (note, DateTimeIndex auto sorts!!)
+    df = DataFrame(dict_of_series) #Dataframe beacuse TS doesn't handle dict of series
+    print df.columns
+    timespec = TimeSpectra(df, name=name)
+    timespec.specunit = 'nm'
+    timespec.filedict = time_file_dict
+    timespec.baseline = baseline  #KEEP THIS AS DARK SERIES RECALL IT IS SEPARATE FROM reference OR REFERENCE..  
 
-    ### Take metadata from first file in filelist that isn't darkfile
+    # Take metadata from first file in filelist that isn't darkfile
     for infile in file_list:
         if infile != darkfile:
             with open(infile) as f:

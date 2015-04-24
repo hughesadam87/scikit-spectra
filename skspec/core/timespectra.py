@@ -37,7 +37,6 @@ class TimeSpectra(Spectra):
         super(TimeSpectra, self).__init__(*dfargs, **dfkwargs)
         
 
-
 ## TESTING ###
 if __name__ == '__main__':
     from specindex import SpecIndex
