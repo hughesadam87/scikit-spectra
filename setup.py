@@ -38,7 +38,9 @@ setup(
       'skspec.data':['*'],
       'skspec.bundled':['*.css']
    },
-       
+      
+    # These are mostly for internal use, but leaving them in until a full migration has been performed 
+    # so that they are installable from seaprate rpo 
     entry_points = {'console_scripts': 
                     [
                        'gwuspec = skspec.scripts.gwu_script.gwuspec:main',
