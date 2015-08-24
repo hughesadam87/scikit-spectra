@@ -11,8 +11,8 @@ import numpy as np
 from scipy import integrate
 
 from pandas import DataFrame, DatetimeIndex, Index, Series, read_csv, MultiIndex
-from pandas.core.common import _is_bool_indexer
-from pandas.core.indexing import _is_list_like, _is_nested_tuple
+from pandas.core.common import is_bool_indexer
+from pandas.core.indexing import is_list_like, is_nested_tuple
 
 # skspec imports
 from skspec.core.specindex import SpecIndex
