@@ -11,10 +11,10 @@ import numpy as np
 from scipy import integrate
 
 from pandas import DataFrame, DatetimeIndex, Index, Series, read_csv, MultiIndex
-from pandas.core.common import _is_bool_indexer
-from pandas.core.indexing import _is_list_like, _is_nested_tuple
+from pandas.core.common import is_bool_indexer
+from pandas.core.indexing import is_list_like, is_nested_tuple
 
-# skspec imports 
+# skspec imports
 from skspec.core.specindex import SpecIndex
 from skspec.core.abcindex import ConversionIndex, CustomIndex
 from skspec.core.specstack import SpecStack
@@ -33,36 +33,36 @@ from skspec.exceptions import badkey_check, badcount_error, RefError, BaselineEr
 from matplotlib.dates import date2num as _d2num
 
 
-logger = logging.getLogger(__name__) 
+logger = logging.getLogger(__name__)
 
 
 ### _normdic, from_T, to_T and spec_slice all used to be in speclabeltool.py###
-_normdic={None:'No Normalization', #Don't change without updating normplot; relies on these keys 
-      't':'Transmittance', 
-      '%t':'(%)Transmittance', 
+_normdic={None:'No Normalization', #Don't change without updating normplot; relies on these keys
+      't':'Transmittance',
+      '%t':'(%)Transmittance',
       'r':'Inverse Transmittance (1/T)',
-      'a':'Absorbance (base 10)', 
-      'a(ln)':'Absorbance (base e)'} 
+      'a':'Absorbance (base 10)',
+      'a(ln)':'Absorbance (base e)'}
 
 
-### Remember, data is already divided by ref before from_T is called, so "r" is base unit, not "t".  
-from_T={'t':lambda x: 1.0/x, 
-        '%t':lambda x: 100.0 * (1.0/ x), 
-        'r':lambda x: x, 
+### Remember, data is already divided by ref before from_T is called, so "r" is base unit, not "t".
+from_T={'t':lambda x: 1.0/x,
+        '%t':lambda x: 100.0 * (1.0/ x),
+        'r':lambda x: x,
         'a':lambda x: -np.log10(x),
         'a(ln)':lambda x:-np.log(x)}
 
 
-to_T={'t':lambda x: 1.0/x, 
-      '%t':lambda x: (1.0/ x) / 100.0, 
-      'r':lambda x: x, 
-      'a':lambda x: np.power(10, -x), 
-      'a(ln)':lambda x: np.exp(-x)} 
+to_T={'t':lambda x: 1.0/x,
+      '%t':lambda x: (1.0/ x) / 100.0,
+      'r':lambda x: x,
+      'a':lambda x: np.power(10, -x),
+      'a(ln)':lambda x: np.exp(-x)}
 
 
 def spec_slice(spectral_array, bins):
    """ Simple method that will divide a spectral index into n evenly sliced
-   bins and return as nested tuples. Useful for generating wavelength slices 
+   bins and return as nested tuples. Useful for generating wavelength slices
    with even spacing.  Simply a wrapper around np.histogram.
    """
    edges=np.histogram(spectral_array, bins)[1]
@@ -75,7 +75,7 @@ def _valid_xunit(value, dic):
       return None
    else:
       badkey_check(value, dic.keys())
-      return value.lower()    
+      return value.lower()
 
 
 def _valid_norm(sout):
@@ -95,23 +95,23 @@ def _valid_indextype(index):
       index.unitshortdict
    except AttributeError:
       raise SpecError('Unit API only supported by skspec ConversionIndex'
-                      ' got type %s' % type(index))    
+                      ' got type %s' % type(index))
 
 
-def specplot(ts, *args, **pltkwargs):   
-   """ Plotting interface.  Use kind='surf, wire etc...' to go through 
+def specplot(ts, *args, **pltkwargs):
+   """ Plotting interface.  Use kind='surf, wire etc...' to go through
    various plot types.  Will append correct x and y labels.
-   
+
    Parameters
    ----------
-   
+
    norm : None or str
        Shortcut to return timespectra in normalized ref system (ie Absorbance)
        without changing the Spectra.
-       
+
    """
-   
-   kind = pltkwargs.pop('kind', 'spec')   
+
+   kind = pltkwargs.pop('kind', 'spec')
    norm = pltkwargs.pop('norm', None)
 
    # FORCE DEFAULT COLOR/COLORMAPS
@@ -120,40 +120,40 @@ def specplot(ts, *args, **pltkwargs):
          pltkwargs['cmap'] = pvconfig.CMAP_1DSPECPLOT
       elif kind == 'contour':
          pltkwargs['cmap'] = pvconfig.CMAP_CONTOUR
-      elif PLOTPARSER.is_3d(kind):        
+      elif PLOTPARSER.is_3d(kind):
          pltkwargs['color'] = pvconfig.COLOR_3DPLOT
-      
-   
+
+
    if norm:
       if ts.norm != norm:  #Better/general way to do this? (_normdic.keys())
-         ts = ts.as_norm(norm)      
+         ts = ts.as_norm(norm)
 
    if not ts._base_sub:
       logger.warn('Spectrum does not have subtracted baseline; could affect '
-                           'result in specious absorbance data.')          
+                           'result in specious absorbance data.')
 
-   # Area plot gets special axis label   
+   # Area plot gets special axis label
    safelook = pvutils.safe_lookup
    if kind == 'area':
       pltkwargs.setdefault('xlabel', safelook(ts, 'full_varunit'))
    else:
       pltkwargs.setdefault('xlabel', safelook(ts, 'full_specunit'))
 
-   pltkwargs.setdefault('title', ts.name)            
+   pltkwargs.setdefault('title', ts.name)
 
    pltfcn, is_2d_3d = PLOTPARSER[kind].function, PLOTPARSER.is_2d_3d(kind)
-   
+
    if is_2d_3d:
-      pltkwargs.setdefault('ylabel', safelook(ts, 'full_varunit'))      
+      pltkwargs.setdefault('ylabel', safelook(ts, 'full_varunit'))
       pltkwargs.setdefault('zlabel', safelook(ts, 'full_iunit'))
-   
+
    else:
       pltkwargs.setdefault('ylabel', safelook(ts,'full_iunit'))
-               
-   # Hack 
+
+   # Hack
    if pltfcn == _gen2d3d:
       pltkwargs['kind'] = kind
-      
+
    ax = pltfcn(ts, *args, **pltkwargs)
 
    # Some plot methods return (ax, mappable), some just ax
@@ -161,21 +161,21 @@ def specplot(ts, *args, **pltkwargs):
       ax = ax[0]
    except TypeError:
       pass
-   
+
    # Reverse X-axis for all PLOT TYPES (EXCEPT CONTOUR)
    if ts.index[0] > ts.index[-1]:
       if kind != 'contour':
          if kind == 'waterfall':
             ax.set_ylim(ax.get_ylim()[::-1]) # HACK
          else:
-            ax.set_xlim(ax.get_xlim()[::-1]) 
+            ax.set_xlim(ax.get_xlim()[::-1])
 
    return ax
 
 
 ########################################
 ## Spectra Public Utilities    #####
-######################################## 
+########################################
 
 
 # Wrapper for df_from_directory
@@ -196,19 +196,19 @@ def spec_from_dir(directory, csvargs, sortnames=False, concat_axis=1, shortname=
       sortnames- Will attempt to autosort the filelist. Otherwise, files are ordered by the module
                  os.path.listdir().
 
-      concat_axis- How to merge datafiles into a dataframe.  Default is axis=1, which means all files 
+      concat_axis- How to merge datafiles into a dataframe.  Default is axis=1, which means all files
                    should share the same index values.  I use this for spectral data where the wavelength
                    column is my dataframe index.
 
-      shortname- If false, full file path is used as the column name.  If true, only the filename is used. 
+      shortname- If false, full file path is used as the column name.  If true, only the filename is used.
 
       cut_extension- If kwd shortname is True, this will determine if the file extension is saved or cut from the data."""
 
-   return Spectra(df_from_directory(directory, 
+   return Spectra(df_from_directory(directory,
                                     csvargs,
-                                    sortnames=sortnames, 
-                                    concat_axis=concat_axis, 
-                                    shortname=shortname, 
+                                    sortnames=sortnames,
+                                    concat_axis=concat_axis,
+                                    shortname=shortname,
                                     cut_extension=cut_extension))
 
 
@@ -216,19 +216,19 @@ class Spectrum(ABCSpectra, MetaSeries):
    """ Compliment to pandas Series: single array of spectral values with
    spectral Index.
    """
-   
+
    def __init__(self, *args, **kwargs):
-      
+
       specifier = kwargs.pop('specifier', pvconfig.SPECIFIERDEF)
       # CUSTOMIZE!?
-      super(Spectrum, self).__init__(*args, **kwargs)        
+      super(Spectrum, self).__init__(*args, **kwargs)
       self.specifier = specifier
-        
+
 
    @property
    def unit(self):
-      return self.index._unit.short   
-   
+      return self.index._unit.short
+
    @property
    def full_unit(self):
       return self.index._unit.full
@@ -237,29 +237,29 @@ class Spectrum(ABCSpectra, MetaSeries):
    def _header(self):
       """ Header for string printout """
       delim = pvconfig.HEADERDELIM
-      
+
       # Certain methods aren't copying this correctly.  Delete later if fix
 
       unit = pvutils.safe_lookup(self, 'full_unit')
       iunit = pvutils.safe_lookup(self, 'full_iunit')
-      
-   
+
+
       header = "*%s*%s [%s]%sIunit: %s\n" % \
-            (self.name, 
-             delim, 
+            (self.name,
+             delim,
              unit,
-             delim, 
+             delim,
              iunit)
-      
+
       return header
 
 
    @property
    def _header_html(self):
       """ Header for html printout """
-      
+
       delim = pvconfig.HEADERHTMLDELIM
-   
+
       if self.ndim > 1:
          colorshape = '<font color="#0000CD">(%s X %s)</font>' % (self.shape)
       else:
@@ -269,28 +269,28 @@ class Spectrum(ABCSpectra, MetaSeries):
       iunit = pvutils.safe_lookup(self, 'full_iunit')
 
       header = "%s&nbsp%s%s Index Unit:&nbsp%s%sIunit:&nbsp%s" % \
-         (self.name, 
+         (self.name,
           colorshape,
           delim,
           unit,
           delim,
-          iunit)   
-      
-      return header   
-   
+          iunit)
+
+      return header
+
    def plot(self, *args, **pltkwds):
 
       # Replace w/ set defaults
       pltkwds.setdefault('linewidth', 3.0)
       pltkwds.setdefault('color', 'black') # If removing, colormap default in _genplot
                                            # Will cause bug
-      
+
       pltkwds.setdefault('xlabel', self.unit)
       pltkwds.setdefault('ylabel', self.specifier)
       pltkwds.setdefault('title', '%s' % self.name)
-      
+
       return _genplot(self, *args, **pltkwds)
-   
+
    @classmethod
    def from_series(cls, spectra, series, **kwargs):
       """ When Spectra methods need to return a Spectrum, this is called
@@ -301,47 +301,47 @@ class Spectrum(ABCSpectra, MetaSeries):
       if not isinstance(series, Series):
          raise SpecError('Spectrum.from_series() requires series input,'
                          'got %s' % type(series))
-     
+
       out = cls(series.values, index=series.index)
 
       def _transfer(attr):
          '''If attr not in kwargs, trasnfer from spectra object'''
 
-         # Should work for all valid attr, since spectra sets its own defaults 
+         # Should work for all valid attr, since spectra sets its own defaults
          if attr in kwargs:
             value = kwargs[attr]
          else:
             value = pvutils.hasgetattr(spectra, attr, 'invalid transfer')
          setattr(out, attr, value)
-      
-      for attr in ['baseline', 
-#                   'varunit', 
+
+      for attr in ['baseline',
+#                   'varunit',
 #                   'full_varunit',
-                   'name', 
-                   'norm', 
-                   'full_norm', 
+                   'name',
+                   'norm',
+                   'full_norm',
                    '_iunit'    #Pass private variable, because iunit defined in ABC spec
                    ]:            #Otherwise, properties like specunit become just attributes
-                           
+
          _transfer(attr)
-      
+
       return out
-   
-   
-   
+
+
+
 class Spectra(ABCSpectra, MetaDataFrame):
-   """ Provides core Spectra composite pandas DataFrame to represent a set 
-   of spectral data.  Enforces spectral data along the index and temporal 
-   data as columns.  The spectral index is controlled from the specindex module, 
-   which has a psuedo-class called SpecIndex (really a monkey patched Index). 
-   Temporal data is stored using a DatetimeIndex or a modified interval 
-   reprentation.  The need to support two types of temporal index, one of 
-   which is Pandas builtin DatetimeIndex is what led me to not create a 
-   special index object (like SpecIndex).  Other spectral axis types (like 
+   """ Provides core Spectra composite pandas DataFrame to represent a set
+   of spectral data.  Enforces spectral data along the index and temporal
+   data as columns.  The spectral index is controlled from the specindex module,
+   which has a psuedo-class called SpecIndex (really a monkey patched Index).
+   Temporal data is stored using a DatetimeIndex or a modified interval
+   reprentation.  The need to support two types of temporal index, one of
+   which is Pandas builtin DatetimeIndex is what led me to not create a
+   special index object (like SpecIndex).  Other spectral axis types (like
    Temperature axis) should probably be built close to the manner of Spec index.
-   The Spectra dataframe actually stores enough temporal metadatato go back 
-   and forth between DatetimeIndex and Interval representations.  
-   It does this by generating one or the other on the fly, and never relies on 
+   The Spectra dataframe actually stores enough temporal metadatato go back
+   and forth between DatetimeIndex and Interval representations.
+   It does this by generating one or the other on the fly, and never relies on
    the current label object to generate teh next object.
    """
 
@@ -356,52 +356,52 @@ class Spectra(ABCSpectra, MetaDataFrame):
       # Spectral index-related keywords
       specunit = dfkwargs.pop('specunit', None)
       varunit = dfkwargs.pop('varunit', Unit())
-      iunit = dfkwargs.pop('iunit', IUnit(short='cts', 
+      iunit = dfkwargs.pop('iunit', IUnit(short='cts',
                                          full='Counts (photons)',
-                                         symbol=r'$\gamma$') # ever used? 
+                                         symbol=r'$\gamma$') # ever used?
                                          )
-      
+
       # Intensity data-related stuff
       norm = dfkwargs.pop('norm', None)
 
-      # Time index-related keywords  (note, the are only used if a 
+      # Time index-related keywords  (note, the are only used if a
       # DatetimeIndex is not passed in)
-      reference = dfkwargs.pop('reference', None)        
+      reference = dfkwargs.pop('reference', None)
       bline = dfkwargs.pop('baseline', None)
 
       # Logging __init__() in @logclass can't access self.name
-      logger.info('Initializing %s' %  '%s:(name = %s)' % 
+      logger.info('Initializing %s' %  '%s:(name = %s)' %
                   (self.__class__.__name__, self.name))
 
 
-      super(Spectra, self).__init__(*dfargs, **dfkwargs)        
+      super(Spectra, self).__init__(*dfargs, **dfkwargs)
 
       # Iunit
       self.iunit = iunit
 
-      # Convert to the passed unit        
+      # Convert to the passed unit
       self._frame.index = self._valid_index(self.index)
       if specunit:
          self.specunit = specunit
-#         self._frame.index = self._frame.index.convert(specunit)          
+#         self._frame.index = self._frame.index.convert(specunit)
 
       # Convert to the passed unit
-      self._frame.columns = self._valid_columns(self.columns)            
+      self._frame.columns = self._valid_columns(self.columns)
       if varunit:
          self.varunit = varunit
-#         self._frame.columns = self._frame.columns.convert(varunit)     
+#         self._frame.columns = self._frame.columns.convert(varunit)
 
-      # Assign spectral intensity related stuff but 
+      # Assign spectral intensity related stuff but
       # DONT CALL _set_normtype function
       norm =_valid_norm(norm)
       self._normtype = norm
 
       # This has to be done AFTER self._frame has been set
-      self._reference = self._reference_valid(reference)#SHOULD DEFAULT TO NONE SO USER CAN PASS NORMALIZED DATA WITHOUT REF        
+      self._reference = self._reference_valid(reference)#SHOULD DEFAULT TO NONE SO USER CAN PASS NORMALIZED DATA WITHOUT REF
 
       # Baseline Initialization (UNTESTED)
-      self._base_sub = False 
-      self._baseline = None  
+      self._base_sub = False
+      self._baseline = None
 
       if not isinstance(bline, NoneType):
          self.baseline = bline
@@ -424,8 +424,8 @@ class Spectra(ABCSpectra, MetaDataFrame):
       logger.log(decode_lvl(level), statement)
 
 
-   ###########################################################################    
-   # Methods ( @property decorators ensure use can't overwrite methods) ####   
+   ###########################################################################
+   # Methods ( @property decorators ensure use can't overwrite methods) ####
    #############################################################################
 
    # Unit printouts (change to pretty print?)
@@ -445,7 +445,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
       out = self.columns.unitshortdict
       if not pprint:
          return out
-      return self._list_out(out, delim=delim)        
+      return self._list_out(out, delim=delim)
 
    def norms(self, delim='\t', pprint = False):
       """ Intensity units of dateframe.  Eg %Transmittance vs. Absorbance"""
@@ -461,19 +461,19 @@ class Spectra(ABCSpectra, MetaDataFrame):
    # Properties, private, etc...?
    def _summary(self):
       """"""
-      
-      
+
+
    def _summary_html(self):
       """"""""
 
-   # Self necessary here or additional df stuff gets printed   
+   # Self necessary here or additional df stuff gets printed
    def specunits(self, delim='\t', pprint = False):
       """ Print out all available units in a nice format"""
       _valid_indextype(self.index)
       out = self.index.unitshortdict
       if not pprint:
          return out
-      return self._list_out(out, delim=delim) 
+      return self._list_out(out, delim=delim)
 
    # ADD PYTHON STRING FORMATTING TO THIS
    def list_attr(self, privattr=False, dfattr=False, methods=False, types=False, delim='\t', sortby='name'): #values=False,):
@@ -495,12 +495,12 @@ class Spectra(ABCSpectra, MetaDataFrame):
          Refer to label_stats() for more detailed information on certain attributes.
       ."""
 
-      # Take all attributes in current instance        
+      # Take all attributes in current instance
       atts=[x for x in dir(self) if '__' not in x]
 
       # Remove self._intrinsic (aka class attributes) if desired
       if privattr==False:
-         atts=[attr for attr in atts if attr not in self._intrinsic]        
+         atts=[attr for attr in atts if attr not in self._intrinsic]
          filterout=['_intrinsic', 'ix', '_ix', 'list_attr'] #Don't want these as attributes
          for att in filterout:
             atts.remove(att)
@@ -517,7 +517,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
 
       # Should output include types and/or values?
       outheader=['Attribute']
-      if types==True: 
+      if types==True:
          outheader=outheader+['Type']
          atts=[(att, str(type(getattr(self, att))).split()[1].split('>')[0] ) for att in atts]
          #string operation just does str(<type 'int'>) ---> 'int'
@@ -532,13 +532,13 @@ class Spectra(ABCSpectra, MetaDataFrame):
             atts=sorted(atts, key=itemgetter(1))
 
       # Output to screen
-      print delim.join(outheader)    
+      print delim.join(outheader)
       print '--------------------'
       for att in atts:
          if types == True:
             print string.rjust(delim.join(att), 7) #MAKE '\N' comprehension if string format never works out
          else:
-            print att    
+            print att
 
 
    ########################
@@ -552,12 +552,12 @@ class Spectra(ABCSpectra, MetaDataFrame):
          return Spectrum(self._reference.values, self._reference.index)
 
    @reference.setter
-   def reference(self, reference, force_series=True):  
-      """ Before changing reference, first validates.  Then considers various cases, and changes 
+   def reference(self, reference, force_series=True):
+      """ Before changing reference, first validates.  Then considers various cases, and changes
       class attributes and dataframe values appropriately."""
 
       int_or_column = False
-      if reference in self._frame.columns or isinstance(reference, int):            
+      if reference in self._frame.columns or isinstance(reference, int):
          int_or_column = True
 
       # Adding or changing reference
@@ -565,18 +565,18 @@ class Spectra(ABCSpectra, MetaDataFrame):
 
          # If data is in raw/full mode (normtype=None)
          if self._normtype == None:
-            reference=self._reference_valid(reference, force_series=force_series)                  
+            reference=self._reference_valid(reference, force_series=force_series)
 
             self._reference=reference
 
-         # Let _set_normtype() do lifting.  Basically convert to full and back to current normtype. 
+         # Let _set_normtype() do lifting.  Basically convert to full and back to current normtype.
          else:
             self._set_normtype(self._normtype, ref=reference)
-            if int_or_column:            
+            if int_or_column:
                logger.warn('Reference changed based on column data while'
-                           'Spectra was normalized.')            
+                           'Spectra was normalized.')
 
-      # Removing reference.  
+      # Removing reference.
       else:
          # If current reference is not None, convert
          if not isinstance(self._reference, NoneType):  #Can't do if array==None
@@ -585,7 +585,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
 
 
    def _reference_valid(self, ref, force_series=True, zero_warn=True, nan_warn=True):
-      """ Helper method for to handles various scenarios of valid references.  Eg user wants to 
+      """ Helper method for to handles various scenarios of valid references.  Eg user wants to
       convert the spectral representation, this evaluates manually passed ref vs. internally stored one.
 
       Parameters:
@@ -611,7 +611,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
 
       Zero_warn and nan_warn are useful when the user plans on changing intensity units of the data.  For example,
       converting from raw data to absorbance data, a relative division will result in hard-to-spot errors due to
-      the 0's and nans in the original reference. 
+      the 0's and nans in the original reference.
       """
 
 
@@ -622,10 +622,10 @@ class Spectra(ABCSpectra, MetaDataFrame):
       if ref in self._frame.columns:
          rout=self._frame[ref]
 
-      # If rtemp is an integer, return that column value.  
+      # If rtemp is an integer, return that column value.
       # NOTE: IF COLUMN NAMES ARE ALSO INTEGERS, THIS CAN BE PROBLEMATIC.
       elif isinstance(ref, int):
-         rout=self._frame[self._frame.columns[ref]]        
+         rout=self._frame[self._frame.columns[ref]]
 
       # Finally if ref is itself a series, make sure it has the correct spectral index
       elif isinstance(ref, Series):
@@ -638,16 +638,16 @@ class Spectra(ABCSpectra, MetaDataFrame):
       else:
          if force_series:
 
-            # If user passes dataframe, downconvert to series 
+            # If user passes dataframe, downconvert to series
             if isinstance(ref, DataFrame):
                if ref.shape[1] != 1:
                   raise TypeError('reference must be a dataframe of a single column with index values equivalent to those of %s'%self._name)
                if ref.index.all() != self._frame.index.all():
-                  raise RefError(ref, self)                    
+                  raise RefError(ref, self)
                else:
-                  rout=Series(ref[ref.columns[0]], index=ref.index) 
+                  rout=Series(ref[ref.columns[0]], index=ref.index)
 
-            # Add index to current iterable 
+            # Add index to current iterable
             else:
                if len(ref) != len(self._frame.index):
                   raise RefError(ref, self)
@@ -679,12 +679,12 @@ class Spectra(ABCSpectra, MetaDataFrame):
       specifier = kwargs.pop('specifier', args[0].__name__)
       # Call _dataframe attribute and transfer attributes
       out = self._framegetattr('apply', *args, **kwargs)
-      
+
       ## If Spectrum, use function name as specifier!
       if isinstance(out, Spectrum):
          out.specifier = specifier
       return out
-   
+
    def wavelength_slices(self, ranges, apply_fcn='mean', **applyfcn_kwds):
       """Returns sliced averages/sums of wavelength regions. Composite dataframe will nicely
       plot when piped into spec aesthetics timeplot.
@@ -694,23 +694,23 @@ class Spectra(ABCSpectra, MetaDataFrame):
       -----------
       apply_fcn: Chooses the way to collapse data.  Builtin functions include 'mean'
                 'sum', 'simps', 'trapz', 'romb', 'cumtrapz', but any user function that
-                 results in collapsed data (eg averging function/integrators/etc...) can 
+                 results in collapsed data (eg averging function/integrators/etc...) can
                  be passed in with any relevant keywords.
 
-      **apply_fcn_kdws: 
-                 If user is passing a function to apply_fcn that requires keywords, 
-                 the get passed in to dfcut.apply() 
+      **apply_fcn_kdws:
+                 If user is passing a function to apply_fcn that requires keywords,
+                 the get passed in to dfcut.apply()
 
       Notes:
       -----_
-      See description of 'df_wavelength_slices' in utilities.py for more information.         
-      For easy plotting, plot the transpose of the returned timespectra.  
-      """   
+      See description of 'df_wavelength_slices' in utilities.py for more information.
+      For easy plotting, plot the transpose of the returned timespectra.
+      """
 
       dflist=[]; snames=[]
 
       if isinstance(ranges, float) or isinstance(ranges, int):
-         ranges=spec_slice(self.index, ranges)           
+         ranges=spec_slice(self.index, ranges)
 
       # If single range is passed in, want to make sure it can still be iterated over...
       if len(ranges)==2:
@@ -732,7 +732,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
                else:
                   xvals = self.index
                # Pandas cython operations ###
-               if apply_fcn.lower() == 'mean': 
+               if apply_fcn.lower() == 'mean':
                   series=dfcut.mean(axis=0)
                elif apply_fcn.lower() == 'sum':
                   series=dfcut.sum(axis=0)
@@ -744,20 +744,20 @@ class Spectra(ABCSpectra, MetaDataFrame):
                   series=dfcut.apply(integrate.simps, x=xvals, even='last')
 
                elif apply_fcn.lower() == 'trapz':
-                  series=dfcut.apply(integrate.trapz, x=xvals)     
+                  series=dfcut.apply(integrate.trapz, x=xvals)
 
                elif apply_fcn.lower() == 'romb':
                   series=dfcut.apply(integrate.romb, x=xvals)
 
                elif apply_fcn.lower() == 'cumtrapz':
-                  series=dfcut.apply(integrate.trapz, x=xvals, ititial=None)           
+                  series=dfcut.apply(integrate.trapz, x=xvals, ititial=None)
 
                else:
                   raise AttributeError('apply_fcn in wavelength slices, as a string, must be one of the following: \
                         (mean, sum, simps, trapz, romb, cumtrapz) but %s was entered.  Alternatively, you can pass \
                         a function to apply_fcn, with any relevant **kwds')
 
-            # Try to apply arbirtrary function.  Note, function can't depend on dfcut, since 
+            # Try to apply arbirtrary function.  Note, function can't depend on dfcut, since
             # that is created in here
             else:
                series=dfcut.apply(apply_fcn, **applyfcn_kwds)
@@ -779,7 +779,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
       ----------
       binwidth: int or float
          Width of the bin.  EG 10minutes or 5 seconds.
-         
+
       axis: 0 or 1
          Average over rows or columns, respectively.
       """
@@ -795,21 +795,21 @@ class Spectra(ABCSpectra, MetaDataFrame):
 
       Parameters
       ----------
-         
+
       apply_fcn: Integration method-'simps', 'trapz', 'romb', 'cumtrapz'
-         
+
 
       Notes
       -----
-         This is a wrapper for wavelength_sclices, and as such, user can actually pass any function into the apply_fcn. 
+         This is a wrapper for wavelength_sclices, and as such, user can actually pass any function into the apply_fcn.
          Besides mean/sum which is understands already, one could, for example, pass a euler integration function and
-         it should work. 
+         it should work.
 
          WHEN PLOTTING, PLOT THE TRANSPOSE OF THE RETURNED DF.
       """
 
       out = self.wavelength_slices((self.index[0],#min(self.index),
-                                     self.index[-1]),#max(self.index)), 
+                                     self.index[-1]),#max(self.index)),
                                     apply_fcn=apply_fcn)
 
       out.specifier = 'Area (%s)' % apply_fcn
@@ -829,15 +829,15 @@ class Spectra(ABCSpectra, MetaDataFrame):
 
    @specunit.setter
    def specunit(self, unit):
-      # Calling self.index will type-check      
+      # Calling self.index will type-check
       if isinstance(unit, Unit):
          self.index = CustomIndex(self.index, unit=unit)
-      
+
       else:
-         _valid_indextype(self.index) #Raises error in corner cases (leave)               
-         self.index = self._frame.index.convert(unit) 
-         
-         
+         _valid_indextype(self.index) #Raises error in corner cases (leave)
+         self.index = self._frame.index.convert(unit)
+
+
    @property
    def varunit(self):
       return self._frame.columns._unit.short    #Short name key
@@ -851,32 +851,32 @@ class Spectra(ABCSpectra, MetaDataFrame):
       # Calling self.columns will type-check
       if isinstance(unit, Unit):
          self.columns = CustomIndex(self.columns, unit=unit) #self.columns.setter will validate
-      
+
       # If string
       else:
-         _valid_indextype(self.columns) #Raises error in corner cases (leave)      
-         self.columns = self._frame.columns.convert(unit) 
-               
-      
+         _valid_indextype(self.columns) #Raises error in corner cases (leave)
+         self.columns = self._frame.columns.convert(unit)
+
+
 
    def as_specunit(self, unit):
       """ Returns new dataframe with different spectral unit on the index."""
       tsout = self.deepcopy()
       tsout.specunit = unit
-      return tsout       
+      return tsout
 
    def as_varunit(self, unit):
       """ Returns new dataframe with different spectral unit on the index."""
       tsout = self.deepcopy()
       tsout.varunit = unit
-      return tsout   
+      return tsout
 
    # Still want this?
    def set_specindex(self, start=None, stop=None, spacing=None, unit=None):
       """
       Helper method to generate a spectral index.  Works similarly to
       pandas.daterange().  Takes in start, stop and spacing.  Users can use
-      either start and stop, start and spacing or stop and spacing (but not 
+      either start and stop, start and spacing or stop and spacing (but not
       start, stop and spacing) to generate specindex.
 
       Parameters
@@ -890,9 +890,9 @@ class Spectra(ABCSpectra, MetaDataFrame):
       Notes
       -----
       User must pass 2 of the 3 keywords start, stop or spacing.  Function
-      will compute the other using the length of the current dfindex.  
+      will compute the other using the length of the current dfindex.
       For example, if df.index is 100 entries and user enters start=0, stop=1000,
-      then spacing is set to ten to retain 100 entries.  
+      then spacing is set to ten to retain 100 entries.
       If user enters start and spacing, then stop is determined to retain 100
       entries.
       User can also enter stop and spacing, and start is inferred by counting
@@ -902,8 +902,8 @@ class Spectra(ABCSpectra, MetaDataFrame):
       set_sindex() function in specindex.py module.
 
       Under the hood this calls set_sindex() which is a wrapper to
-      np.linspace(). 
-      """        
+      np.linspace().
+      """
 
       numpts=float(len(self.index))
 
@@ -923,22 +923,22 @@ class Spectra(ABCSpectra, MetaDataFrame):
       if not start and not stop and not spacing:
          raise badcount_error(2,0,3, argnames='start, stop, keywords')
 
-      # User enters start and stop    
+      # User enters start and stop
       if start and stop:
-         start=float(start)            
+         start=float(start)
          stop=float(stop)
 
       # User enters spacing and start or spacing and stop.
-      if spacing:    
-         spacing=float(spacing)            
+      if spacing:
+         spacing=float(spacing)
          if start:
-            start=float(start)                
-            stop= start + (spacing * numpts)           
+            start=float(start)
+            stop= start + (spacing * numpts)
          elif stop:
             stop=float(stop)
             start=stop - (spacing * numpts)
 
-      # If user only entered one keyword, then all three will not be generated by this point 
+      # If user only entered one keyword, then all three will not be generated by this point
       if not start or not stop:
          raise badcount_error(2,1,3, argnames='start, stop, keywords')
 
@@ -954,7 +954,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
       """ Quick check to see if self._baseline is found or missing.  If missing,
           raises error.  If found, passes."""
       if isinstance(self._baseline, NoneType):
-         raise AttributeError('Baseline not found.')        
+         raise AttributeError('Baseline not found.')
 
    def sub_base(self):
       """ Subtracts baseline from entire dataset.
@@ -988,13 +988,13 @@ class Spectra(ABCSpectra, MetaDataFrame):
 
       # Only add if baseline is currently in a subtracted state
       if self._base_sub:
-         self._frame = self._frame.add(self._baseline, axis=0)   
+         self._frame = self._frame.add(self._baseline, axis=0)
          if self._reference is not None:
             self._reference = self._reference.add(self._baseline, axis=0)
             self._base_sub = False
 
       #else:
-         #print 'raise waring? already added'        
+         #print 'raise waring? already added'
 
    @property
    def base_sub(self):
@@ -1010,7 +1010,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
 
       if baseline is None:
          self._comment('Baseline is None')
-         return 
+         return
 
       # If baseline not iterable, return series of constant values
       try:
@@ -1029,7 +1029,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
                                 %(baseline.shape, self.name, self.index.shape))
          else:
             if np.array_equal(baseline.index, self._frame.index):
-               self._comment('Baseline is a series; has identical index ' 
+               self._comment('Baseline is a series; has identical index '
                              'to self._frame.index')
                return baseline
             else:
@@ -1062,12 +1062,12 @@ class Spectra(ABCSpectra, MetaDataFrame):
                                 'match the current spectral index.'%len(self._frame.index))
 
 
-   def plot(self, *args, **pltkwargs):   
-      """ Plotting interface.  Use kind='surf, wire etc...' to go through 
+   def plot(self, *args, **pltkwargs):
+      """ Plotting interface.  Use kind='surf, wire etc...' to go through
       various plot types.  Will append correct x and y labels.
-      """      
+      """
       return specplot(self, *args, **pltkwargs)
-            
+
 
    @property
    def baseline(self):
@@ -1082,7 +1082,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
       ## Logic.  Need validation for various cases.
       # Depending on type/length, force or set index?  What about non-equal length types,
       # try an interpolation?
-      # End th "valid_base" 
+      # End th "valid_base"
 
       bline=self._valid_baseline(bline)
 
@@ -1109,24 +1109,24 @@ class Spectra(ABCSpectra, MetaDataFrame):
       return self._normtype
 
    @norm.setter
-   def norm(self, unit):     
+   def norm(self, unit):
       """ Change norm in place."""
       if isinstance(unit, basestring):
          if unit.lower() in ['none', 'full']:
             unit=None
 
-      self._set_normtype(unit)        
+      self._set_normtype(unit)
 
 
    def as_norm(self, unit, reference=None):
-      """ Returns new Spectra of modified norm.  Useful if in-place operation not desirable.  
+      """ Returns new Spectra of modified norm.  Useful if in-place operation not desirable.
       Also has the option of manually passing a new reference for on-the-fly rereferencing."""
       if isinstance(unit, basestring):
          if unit.lower() in ['none', 'full']:
             unit=None
 
 
-      tsout = self.deepcopy()        
+      tsout = self.deepcopy()
       tsout._set_normtype(unit, reference)
       return tsout
 
@@ -1153,20 +1153,20 @@ class Spectra(ABCSpectra, MetaDataFrame):
          if rout == None:
             rout = self._reference
 
-         # If ref not passed, use current reference.  Want to make sure it is 
+         # If ref not passed, use current reference.  Want to make sure it is
          # not none, but have to roundabout truthtest
          if isinstance(rout, NoneType):
-            raise TypeError('Cannot convert spectrum to norm %s without a reference'%sout)                
+            raise TypeError('Cannot convert spectrum to norm %s without a reference'%sout)
          else:
             df=pvutils.divby(df, divisor=rout)
-            df=df.apply(from_T[sout])                    
+            df=df.apply(from_T[sout])
          #Assumes typeerror is due to rout not being a series/array, but doesn't further test it.  EG do another
          #typeerror check of try: if rout == None: raise error
 
 
-      ##############################################################   
+      ##############################################################
       # Case 2: Changing spectral representation of converted data.#
-      ##############################################################     
+      ##############################################################
       elif sin !=None and sout != None:
 
          # If user changing reference on the fly, need to change ref ###
@@ -1175,18 +1175,18 @@ class Spectra(ABCSpectra, MetaDataFrame):
 
             # Make this it's own method called change reference?
             df=df.apply(to_T[sin])
-            df=df.mul(self._reference, axis=0)  
+            df=df.mul(self._reference, axis=0)
             df=pvutils.divby(df, divisor=rout)
-            df=df.apply(from_T[sout])                        
+            df=df.apply(from_T[sout])
 
 
          else:
             rout=self._reference #For sake of consistent transferring at end of this function
             df=df.apply(to_T[sin])
-            df=df.apply(from_T[sout])        
+            df=df.apply(from_T[sout])
 
 
-      ###########################################################    
+      ###########################################################
       # Case 3: User converting referenced data up to full data.#
       #############################################################
       elif sin !=None and sout==None:
@@ -1198,28 +1198,28 @@ class Spectra(ABCSpectra, MetaDataFrame):
          df=df.apply(to_T[sin])
          df=df.mul(rout, axis=0)  #Multiply up!
 
-      self._reference=rout       
-      self._normtype=sout        
-      self._frame=df    
+      self._reference=rout
+      self._normtype=sout
+      self._frame=df
 
-   ############################################ 
+   ############################################
    #####Overwrite MetaDataFrame behavior ########
-   ############################################    
+   ############################################
 
 
    def _valid_index(self, index):
       """ Recast index to self._strict_index """
-      if self._strict_index:       
+      if self._strict_index:
          if not isinstance(index, self._strict_index):
 
             # Cornercase User passes PressureIndex where SpecIndex required
             if isinstance(index, ConversionIndex) or isinstance(index, CustomIndex):
-               raise SpecError('Invalid index type: %s; require %s.' % 
-                               (type(index), self._strict_index))                
+               raise SpecError('Invalid index type: %s; require %s.' %
+                               (type(index), self._strict_index))
             try:
                index = self._strict_index(index)
             except Exception:
-               raise SpecError('Could not convert index to %s.' % 
+               raise SpecError('Could not convert index to %s.' %
                                self._strict_index )
             else:
                # If subclassing ConversionIndex
@@ -1228,19 +1228,19 @@ class Spectra(ABCSpectra, MetaDataFrame):
                except AttributeError:
                   pass
                else:
-                  index = index.convert(unit)                        
+                  index = index.convert(unit)
 
       return index
 
 
    def _valid_columns(self, columns):
       """ Recast columns to self._strict_columns """
-      if self._strict_columns:        
+      if self._strict_columns:
          if not isinstance(columns, self._strict_columns):
 
-            # User passes a valid skspec index type    
+            # User passes a valid skspec index type
             if isinstance(columns, ConversionIndex) or isinstance(columns, CustomIndex):
-               raise SpecError('Invalid column type: %s; require %s.' % 
+               raise SpecError('Invalid column type: %s; require %s.' %
                                (type(columns), self._strict_columns))
 
 
@@ -1248,22 +1248,22 @@ class Spectra(ABCSpectra, MetaDataFrame):
             try:
                columns = self._strict_columns(columns)
             except Exception:
-               raise SpecError('Could not convert columns to %s.' % 
+               raise SpecError('Could not convert columns to %s.' %
                                self._strict_columns )
-            try:                    
+            try:
                # If subclassing ConversionIndex
                unit = self._frame.columns.unit
             except AttributeError:
                pass
             else:
-               columns = columns.convert(unit)                                 
+               columns = columns.convert(unit)
 
       return columns
 
 
    # Properies
    # ---------------
- 
+
 
    # Necessary even though these are already defined in metadataframe
    # Setter looks for them on this object
@@ -1278,7 +1278,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
 
    @index.setter
    def index(self, index):
-      self._frame.index = self._valid_index(index)    
+      self._frame.index = self._valid_index(index)
 
 
    @columns.setter
@@ -1308,7 +1308,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
          try:
             consout.append(attrgetter(attr, self))
          except AttributeError:
-            raise AttributeError('%s not found on object %s'%(attr, self)) 
+            raise AttributeError('%s not found on object %s'%(attr, self))
 
       self._cnsvdattr=consout
 
@@ -1328,7 +1328,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
          else:
             raise AttributeError('%s has no attribute "%s"'%(self.name, attr))
 
-      self._cnsvdmeth=attrs        
+      self._cnsvdmeth=attrs
 
    def _framegetattr(self, attr, *fcnargs, **fcnkwargs):
       """ Overloading MEtaPandas Object, returns a new object, either
@@ -1349,9 +1349,9 @@ class Spectra(ABCSpectra, MetaDataFrame):
 
          # Are there specially conserved attributes?
          csvdout=None
-         if attr in self._cnsvdmeth:    
+         if attr in self._cnsvdmeth:
             if self._cnsvdattr:
-               cnsvdattr=dict((k,v) for k, v in self.cnsvdattr.iteritems() 
+               cnsvdattr=dict((k,v) for k, v in self.cnsvdattr.iteritems()
                               if v is not None)
 
                csvdf=DataFrame(cnsvdattr)  #STILL WORKS WITH NONEQUAL LENGTH
@@ -1361,7 +1361,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
                   csvdout=getattr(csvdf, attr)(*fcnargs, **fcnkwargs)
                except Exception:
                   raise Exception('Could not successfully perform operation "%s" on one or multiple \
-                        conserved attributes %s.'%attr, '","'.join(csvdout.columns))                               
+                        conserved attributes %s.'%attr, '","'.join(csvdout.columns))
 
          # Create new timespectra object
          tsout = self._transfer(out)
@@ -1372,19 +1372,19 @@ class Spectra(ABCSpectra, MetaDataFrame):
             for col in csvdout:
 
                # Restore custom attributes on the cnsvdattributes
-               restattr=[attr for attr in _csvdfattrs[col] if attr not in 
+               restattr=[attr for attr in _csvdfattrs[col] if attr not in
                          csvdout[col].__dict__]
                if restattr:
                   for attr in restattr:
-                     setattr(csvdout[col], attr, _csvdfattrs[col][attr]) 
+                     setattr(csvdout[col], attr, _csvdfattrs[col][attr])
 
                   # Hack to conserve "name" attribute of series return
                   try:
-                     setattr(csvdout[col], 'name', _csvdfattrs[col]['name']) 
+                     setattr(csvdout[col], 'name', _csvdfattrs[col]['name'])
                   except KeyError:
                      pass
 
-               # Apply conserved attributes to new dataframe                        
+               # Apply conserved attributes to new dataframe
                setattr(tsout, col, csvdout[col])
 
          return tsout
@@ -1392,17 +1392,17 @@ class Spectra(ABCSpectra, MetaDataFrame):
       # Otherwise return whatever the method return would be
       elif isinstance(out, Series):
          return Spectrum.from_series(self, out)
-         
+
       else:
          return out
-      
+
    @property
    def _header(self):
-      
+
       delim = pvconfig.HEADERDELIM
-      
+
       header = super(Spectra, self)._header
-      
+
       if self._baseline is None:
          base = 'None'
       else:
@@ -1410,42 +1410,42 @@ class Spectra(ABCSpectra, MetaDataFrame):
             base = 'Subtracted'
          else:
             base = 'Found (no sub)'
-            
+
       if self.reference is None:
          ref = 'None'
       else:
          ref = 'Found'
-         
+
 
       header += '\nBaseline: %s%sReference: %s%sNormalization: %s\n' %\
-                                                               (base, 
-                                                                delim, 
+                                                               (base,
+                                                                delim,
                                                                 ref,
-                                                                delim, 
+                                                                delim,
                                                                 str(self.norm))
       return header
-   
-      
+
+
    @property
    def _header_html(self):
       """ Add normalization, baseline, reference. """
       delim = pvconfig.HEADERHTMLDELIM
-      
+
       #http://www.w3schools.com/html/html_colors.asp
       def _red(string):
-         return '<font color="#CC0033">%s</font>' % (string) 
-      
+         return '<font color="#CC0033">%s</font>' % (string)
+
       def _green(string):
-         return '<font color="#009900">%s</font>' % (string) 
-         
-      
+         return '<font color="#009900">%s</font>' % (string)
+
+
       header = super(Spectra, self)._header_html
-      
+
       if self.norm is None:
          norm = _red('None')
       else:
          norm = _green(self.full_norm) #Actually use the value
-         
+
       if self._baseline is None:
          base = _red('None')
       else:
@@ -1453,33 +1453,33 @@ class Spectra(ABCSpectra, MetaDataFrame):
             base = _green('Subtracted')
          else:
             base = _green('Found')+' (no sub)'
-         
+
       if self.reference is None:
          ref = _red('None')
       else:
          ref = _green('Found')
-         
 
-      header += '<br><br>Baseline: %s%sReference: %s%sNormalization: %s' %(base, 
-                                                              delim, 
+
+      header += '<br><br>Baseline: %s%sReference: %s%sNormalization: %s' %(base,
+                                                              delim,
                                                               ref,
-                                                              delim, 
+                                                              delim,
                                                               norm)
       return header
-   
+
 
    def __getitem__(self, keyslice):
-      ''' Item lookup.  If output is an interable, _transfer is called.  
-      Sometimes __getitem__ returns a float (indexing a series) at which 
+      ''' Item lookup.  If output is an interable, _transfer is called.
+      Sometimes __getitem__ returns a float (indexing a series) at which
       point we just want to return that.'''
 
       dfout = self._frame.__getitem__(keyslice)
-       
+
       if isinstance(dfout, Series):
          return Spectrum.from_series(self, dfout)
-       
+
       return super(Spectra, self).__getitem__(keyslice)
-    
+
 
 
    def split_by(self, n, axis=1, stack=True, **stackkwargs):
@@ -1500,22 +1500,22 @@ class Spectra(ABCSpectra, MetaDataFrame):
 
    # Output
    #-------
-   
+
    def to_R_df(self):
       """ Wraps pandas.rpy.common import convert_to_r_dataframe."""
 
       from pandas.rpy.common import convert_to_r_dataframe
       logger.info('Converting %s to R dataframe.' % self.full_name)
-      return( convert_to_r_dataframe(self._frame) )      
+      return( convert_to_r_dataframe(self._frame) )
 
    def to_csv(self, path_or_buff, meta_separate=None, **csv_kwargs):
-      """ Output to CSV file.  
+      """ Output to CSV file.
 
           Parameters:
           ----------
              path_or_buff: string path to outfile destination.
 
-             meta_separate: 
+             meta_separate:
                  If None: metadata is lost and self._frame.to_csv(**csv_kwargs) is called.
                  If False: metadata is serialized and output at tail file the path_or_buff file.
                  If True: metadata is added to it's own file named path_or_buff.mdf
@@ -1525,7 +1525,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
           Notes:
           ------
              MetaData is gotten from self.__dict__.
-             In future, may opt to implement the option to choose the meta_separate filename if 
+             In future, may opt to implement the option to choose the meta_separate filename if
              output is separated (eg meta_separate=True)
 
       """
@@ -1548,7 +1548,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
 
 
    @classmethod
-   def from_csv(cls, filepath_or_buffer, header_datetime=False, 
+   def from_csv(cls, filepath_or_buffer, header_datetime=False,
                 index_datetime=False, **kwargs):
       """ Read from CSV file.  Wrapping pandas read_csv:
       http://pandas.pydata.org/pandas-docs/version/0.13.1/  \
@@ -1556,81 +1556,81 @@ class Spectra(ABCSpectra, MetaDataFrame):
 
       Parameters:
       ----------
-      filepath_or_buffer: (from pandas API) string or file handle / StringIO. 
-      The string could be a URL. Valid URL schemes include http, ftp, s3, 
-      and file. For file URLs, a host is expected. For instance, a local 
+      filepath_or_buffer: (from pandas API) string or file handle / StringIO.
+      The string could be a URL. Valid URL schemes include http, ftp, s3,
+      and file. For file URLs, a host is expected. For instance, a local
       file could be file.
 
       header_datetime: bool or format str (False)
-          Used to parse files with header that is a datetime string.  
+          Used to parse files with header that is a datetime string.
           User must pass a format string e.g. %Y/%m/%d %H:%M:%S, which
           is the default.  Results in DatetimeIndex as label.  This will
           set the varunit to 'dti' automatically, unless specifically
           set as None.
 
       index_datetime: bool or format str (False)
-          Used to parse files with header that is a datetime string.  
+          Used to parse files with header that is a datetime string.
           User must pass a format string e.g. %Y/%m/%d %H:%M:%S, which
           is the default.   Results in DatetimeIndex as label.  This will
           set the specunit to 'dti' automatically, unles specifically set
           as None.
 
-      **kwargs: Any valid spectra or pandas readcsv() kwargs.       
+      **kwargs: Any valid spectra or pandas readcsv() kwargs.
 
       Returns: Spectra
       """
 
 
-      _CSVKWDS = dict(sep=',', 
-                      dialect=None, 
+      _CSVKWDS = dict(sep=',',
+                      dialect=None,
                       compression=None,
-                      doublequote=True, 
+                      doublequote=True,
                       escapechar=None,
-                      quotechar='"', 
-                      quoting=0, 
-                      skipinitialspace=False, 
+                      quotechar='"',
+                      quoting=0,
+                      skipinitialspace=False,
                       lineterminator=None,
-                      header='infer', 
-                      index_col=None, 
-                      names=None, 
+                      header='infer',
+                      index_col=None,
+                      names=None,
                       prefix=None,
-                      skiprows=None, 
-                      skipfooter=None, 
-                      skip_footer=0, 
-                      na_values=None, 
-                      na_fvalues=None, 
-                      true_values=None, 
+                      skiprows=None,
+                      skipfooter=None,
+                      skip_footer=0,
+                      na_values=None,
+                      na_fvalues=None,
+                      true_values=None,
                       false_values=None,
-                      delimiter=None, 
-                      converters=None, 
-                      dtype=None, 
-                      usecols=None, 
-                      engine=None, 
+                      delimiter=None,
+                      converters=None,
+                      dtype=None,
+                      usecols=None,
+                      engine=None,
                       delim_whitespace=False,
                       as_recarray=False,
-                      na_filter=True, 
-                      compact_ints=False, 
-                      use_unsigned=False, 
+                      na_filter=True,
+                      compact_ints=False,
+                      use_unsigned=False,
                       low_memory=True,
-                      buffer_lines=None, 
-                      warn_bad_lines=True, 
+                      buffer_lines=None,
+                      warn_bad_lines=True,
                       error_bad_lines=True,
                       keep_default_na=True,
                       thousands=None,
-                      comment=None, 
+                      comment=None,
                       decimal='.',
-                      parse_dates=False, 
+                      parse_dates=False,
                       keep_date_col=False,
-                      dayfirst=False, 
-                      date_parser=None, 
-                      memory_map=False, 
+                      dayfirst=False,
+                      date_parser=None,
+                      memory_map=False,
                       nrows=None,
                       iterator=False,
-                      chunksize=None, 
+                      chunksize=None,
                       verbose=False,
-                      encoding=None, 
-                      squeeze=False, 
-                      mangle_dupe_cols=True, 
+                      encoding=None,
+                      squeeze=False,
+                      mangle_dupe_cols=True,
                       tupleize_cols=False,
                       infer_datetime_format=False)
 
@@ -1644,9 +1644,9 @@ class Spectra(ABCSpectra, MetaDataFrame):
 
       if header_datetime:
          if not isinstance(header_datetime, basestring):
-            header_datetime = '%Y/%m/%d %H:%M:%S'      
+            header_datetime = '%Y/%m/%d %H:%M:%S'
 
-         df.columns = DatetimeIndex([datetime.datetime.strptime(s, header_datetime) 
+         df.columns = DatetimeIndex([datetime.datetime.strptime(s, header_datetime)
                                      for s in df.columns])
 
          if 'varunit' in kwargs:
@@ -1655,13 +1655,13 @@ class Spectra(ABCSpectra, MetaDataFrame):
                                "varunit = 'dti' or 'None', received %s" % kwargs['varunit'])
 
          else:
-            kwargs['varunit'] = 'dti'   
+            kwargs['varunit'] = 'dti'
 
       if index_datetime:
          if not isinstance(index_datetime, basestring):
-            index_datetime = '%Y/%m/%d %H:%M:%S'      
+            index_datetime = '%Y/%m/%d %H:%M:%S'
 
-         df.index = DatetimeIndex([datetime.datetime.strptime(s, index_datetime) 
+         df.index = DatetimeIndex([datetime.datetime.strptime(s, index_datetime)
                                    for s in df.index])
 
          if 'specunit' in kwargs:
@@ -1670,8 +1670,8 @@ class Spectra(ABCSpectra, MetaDataFrame):
                                "specunit = 'dti' or 'None', received %s" % kwargs['specunit'])
 
          else:
-            kwargs['specunit'] = 'dti' 
-      return cls(df, **kwargs) 
+            kwargs['specunit'] = 'dti'
+      return cls(df, **kwargs)
 
 
    @classmethod
@@ -1681,15 +1681,15 @@ class Spectra(ABCSpectra, MetaDataFrame):
       have a DataFrame and want it as a TimeSpectra, which will do its
       own index conversions.
       """
-      return cls(np.array(pandas_object.df), 
-                 index=pandas_object.index, 
+      return cls(np.array(pandas_object.df),
+                 index=pandas_object.index,
                  columns=pandas_object.columns,
                  **dfkwargs)
 
-    
+
 
 ## TESTING ###
-if __name__ == '__main__':  
+if __name__ == '__main__':
 
    from skspec.data import solvent_evap, aunps_glass, trip_peaks
    import matplotlib.pyplot as plt
@@ -1701,4 +1701,4 @@ if __name__ == '__main__':
    print x
    print ts.mean().index
 
- 
+
