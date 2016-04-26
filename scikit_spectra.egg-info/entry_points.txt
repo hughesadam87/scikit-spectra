@@ -1,0 +1,4 @@
+[console_scripts]
+gwureport = skspec.scripts.gwu_script.gwureport:main
+gwuspec = skspec.scripts.gwu_script.gwuspec:main
+
