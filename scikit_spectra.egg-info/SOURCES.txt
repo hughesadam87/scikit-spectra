@@ -4,6 +4,7 @@ LICENSE.txt
 README.rst
 requirements.txt
 setup.py
+dist/scikit_spectra-0.3.2.post1-py2.7.egg
 examples/Notebooks/EXAMPLE_OF_BADROUNDING.ipynb
 examples/Notebooks/FORMIKDELTEME.ipynb
 examples/Notebooks/NBCONFIG.ipynb

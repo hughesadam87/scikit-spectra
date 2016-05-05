@@ -196,14 +196,16 @@ class Electronvolts(SpecUnit):
 
 
 class partspermillion(SpecUnit):
-   short= 'ppm'
-   full= 'partspermillion'
-   category= 'frequency'
+   short = 'ppm'
+   full = 'partspermillion'
+   category = 'frequency'
    @staticmethod
    def to_canonical(x):
-      meters = Meters.to_canonical(x)
-      ref = raw_input("Enter reference frequency in Hz:")
-      return = (x*ref+ref)
+      meters= Meters.to_canonical(x)
+      ref= raw_input("Enter reference frequency in Hz:")
+      return x*float(ref)+float(ref)
+
+
 _specunits = (
              Meters(), 
              Metersinverse(), 
@@ -215,6 +217,7 @@ _specunits = (
              Electronvolts(),
              Frequency(),
              Angularfrequency(),
+             partspermillion(),
              )
 
 SPECUNITS = dict((obj.short, obj) for obj in _specunits)
