@@ -193,7 +193,17 @@ class Electronvolts(SpecUnit):
    def from_canonical(x):
       return (H*C/(eVtoJ)) / x
 
-   
+
+
+class partspermillion(SpecUnit):
+   short= 'ppm'
+   full= 'partspermillion'
+   category= 'frequency'
+   @staticmethod
+   def to_canonical(x):
+      meters = Meters.to_canonical(x)
+      ref = raw_input("Enter reference frequency in Hz:")
+      return = (x*ref+ref)
 _specunits = (
              Meters(), 
              Metersinverse(), 
