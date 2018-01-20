@@ -1,0 +1,5 @@
+#!/bin/bash
+# Post build script for mybinder.org
+
+# Install package in develop mode
+python setup.py develop

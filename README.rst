@@ -4,6 +4,9 @@ scikit-spectra: Tools for explorative spectroscopy
 
 **Official Documentation** hosted at `http://hugadams.github.io/scikit-spectra/`
 
+.. image:: https://mybinder.org/badge.svg
+  :target: https://mybinder.org/v2/gh/hugadams/scikit-spectra/master
+
 Support
 =======
 
