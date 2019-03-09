@@ -1,8 +1,10 @@
+=========================================================================================
+THIS LIBRARY IS NOT LONGER MAINTAINED AND IS UNLIKELY TO WORK WITH MODERN PYTHON STACKS 
+=========================================================================================
+
 ==================================================
 scikit-spectra: Tools for explorative spectroscopy
 ==================================================
-
-* THIS LIBRARY IS NOT LONGER MAINTAINED AND IS UNLIKELY TO WORK WITH MODERN PYTHON STACKS *
 
 **Official Documentation** hosted at `http://hugadams.github.io/scikit-spectra/`
 
