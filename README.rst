@@ -1,5 +1,5 @@
 =========================================================================================
-THIS LIBRARY IS NOT LONGER MAINTAINED AND IS UNLIKELY TO WORK WITH MODERN PYTHON STACKS 
+THIS LIBRARY IS NO LONGER MAINTAINED AND IS UNLIKELY TO WORK WITH MODERN PYTHON STACKS 
 =========================================================================================
 
 ==================================================
