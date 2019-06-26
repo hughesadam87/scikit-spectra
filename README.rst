@@ -1,5 +1,5 @@
 =========================================================================================
-For a great alternative, check out [radis](https://radis.readthedocs.io/en/latest/)
+For a great alternative, check out radis_
 =========================================================================================
 
 =========================================================================================
@@ -27,4 +27,5 @@ License
 
    .. _BSD : https://github.com/hugadams/scikit-spectra/blob/master/LICENSE.txt
 
+   .. _radis : https://radis.readthedocs.io/en/latest/
 
