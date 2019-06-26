@@ -1,5 +1,7 @@
 =========================================================================================
 THIS LIBRARY IS NO LONGER MAINTAINED AND IS UNLIKELY TO WORK WITH MODERN PYTHON STACKS 
+
+For a great alternative, check out [radis](https://radis.readthedocs.io/en/latest/)
 =========================================================================================
 
 ==================================================
