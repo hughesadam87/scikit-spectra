@@ -1,3 +1,4 @@
+from __future__ import print_function
 from skspec.core.spectra import Spectra
 from skspec.units.abcunits import Unit
 
@@ -21,4 +22,4 @@ if __name__ == '__main__':
     import numpy as np
     af=AnyFrame(np.random.rand(50,50))
     af.specunit = Unit(short='foo', full='bar')
-    print af
+    print(af)

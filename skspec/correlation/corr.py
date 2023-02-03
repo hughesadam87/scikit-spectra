@@ -34,7 +34,11 @@ References
 #Copy these to notebooks?
 
 from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
+from builtins import range
+from builtins import object
 import logging
 import pandas
 logger = logging.getLogger(__name__) 
@@ -48,7 +52,7 @@ import skspec.config as pvconfig
 import skspec.core.utilities as pvutils
 from skspec.core.specindex import SpecIndex
 from skspec.pandas_utils.metadframe import MetaDataFrame
-from pca_lite import PCA
+from .pca_lite import PCA
 #from pcakernel import PCA
 
 
@@ -743,7 +747,7 @@ if __name__ == '__main__':
 
     cd = Corr2d(ts)#, refspec=ts.mean(axis=1) )
     cd.set_center('mean')
-    print cd.sync
+    print(cd.sync)
     cd.scale(alpha=0, beta=0)
     cd.sync.plot(contours=20, kind='corr3d')
     plt.show()

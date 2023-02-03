@@ -1,4 +1,6 @@
-from dataframeserial import _get_metadict
+from __future__ import print_function
+from __future__ import absolute_import
+from .dataframeserial import _get_metadict
 
 ### Following two functions deal with attribute stored of dataframe.
 def store_attr(df):
@@ -8,7 +10,7 @@ def store_attr(df):
     
 def restore_attr(df, stored_attr):
     ''' Set the attributes of the pandas dataframe using sotred_attr dictionary.'''
-    for attr, value in stored_attr.items():
+    for attr, value in list(stored_attr.items()):
         setattr(df, attr, value)    
     return df
 
@@ -24,11 +26,11 @@ def transfer_attr(df1, df2, reversedeletion=False, speakup=True):
     if len(df1attr) > 0:
         df2=restore_attr(df2, df1attr)
         if speakup:            
-            print '\nTransferring %s attributes:\n'%len(df1attr)        
+            print('\nTransferring %s attributes:\n'%len(df1attr))        
 
     else:
         if speakup:
-            print 'No attributes found for transfer'
+            print('No attributes found for transfer')
     
     return df2
      

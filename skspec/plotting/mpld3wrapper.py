@@ -1,5 +1,9 @@
 """ Wrappers and utilitiles for MPLD3 customization """
+from __future__ import print_function
 
+from builtins import range
+from past.builtins import basestring
+from builtins import object
 import mpld3
 from mpld3.plugins import Reset, Zoom, BoxZoom, \
            PointLabelTooltip, PointHTMLTooltip, LineLabelTooltip, \
@@ -17,7 +21,7 @@ ALLPLUGINS = dict(
    )
 
 # Reversed dictionary
-ALLPLUGINS_REV = dict((v, k) for k,v in ALLPLUGINS.items())
+ALLPLUGINS_REV = dict((v, k) for k,v in list(ALLPLUGINS.items()))
 
 # Plugins that require access to lines
 LABELPLUGINS = [LineLabelTooltip, PointLabelTooltip]
@@ -69,7 +73,7 @@ class PluginManager(object):
    def fig(self):
       """ Returns figure with plugins attached."""
       mpld3.plugins.clear(self._fig)
-      for p in self._plugins.values():
+      for p in list(self._plugins.values()):
          if p in LABELPLUGINS:
             for idx, line in enumerate(self.lines):
                mpld3.plugins.connect(self._fig, p(*self.lines))            
@@ -103,7 +107,7 @@ class PluginManager(object):
             
    @property
    def plugins(self):
-      return self._plugins.values()
+      return list(self._plugins.values())
    
    @property
    def available(self):
@@ -148,11 +152,11 @@ if __name__ == '__main__':
    
    
    pman.add('mousepos')
-   print pman._plugins
+   print(pman._plugins)
    pman.remove('boxzoom')
    pman.remove('zoom')
 #   pman.add('linelabel')
-   print pman._plugins
+   print(pman._plugins)
    
    
 

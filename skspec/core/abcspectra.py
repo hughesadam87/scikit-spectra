@@ -1,5 +1,7 @@
 #Want C(abcspectra, metaframe)
 
+from past.builtins import basestring
+from builtins import object
 from pandas import Series, DataFrame
 import skspec.core.utilities as pvutils
 import skspec.config as pvconfig

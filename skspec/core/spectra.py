@@ -1,7 +1,13 @@
 """Provides core "Spectra" class and associated utilities."""
+from __future__ import print_function
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
+from past.builtins import basestring
 import string
-import cPickle
+import pickle
 import logging
 from types import NoneType, MethodType
 from operator import itemgetter
@@ -74,7 +80,7 @@ def _valid_xunit(value, dic):
    if value == None:
       return None
    else:
-      badkey_check(value, dic.keys())
+      badkey_check(value, list(dic.keys()))
       return value.lower()
 
 
@@ -407,7 +413,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
          self.baseline = bline
 
       # Store intrinsic attributes for output later by listattr methods
-      self._intrinsic=self.__dict__.keys()
+      self._intrinsic=list(self.__dict__.keys())
       self._intrinsic.remove('name') #Not a private attr
 
       # Which attributes/methods are manipulated along with the dataframe
@@ -432,12 +438,12 @@ class Spectra(ABCSpectra, MetaDataFrame):
    def _list_out(self, outdic, delim='\t'):
       """ Generic output method for shortname:longname iterables.  Prints out various
       dictionaries, and is independent of the various datastructures contained"""
-      print '\nKey',delim,'Description'
-      print '-------------------\n'
+      print('\nKey',delim,'Description')
+      print('-------------------\n')
 
       for (k,v) in sorted(outdic.items()):
-         print k,delim,v
-      print '\n'
+         print(k,delim,v)
+      print('\n')
 
    def varunits(self, delim='\t', pprint = False):
       """ Print out all available variable units in a nice format"""
@@ -456,7 +462,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
    @property
    def plot_kinds(self):
       """ List available plot kinds"""
-      print PLOTPARSER.__shortrepr__()
+      print(PLOTPARSER.__shortrepr__())
 
    # Properties, private, etc...?
    def _summary(self):
@@ -532,13 +538,13 @@ class Spectra(ABCSpectra, MetaDataFrame):
             atts=sorted(atts, key=itemgetter(1))
 
       # Output to screen
-      print delim.join(outheader)
-      print '--------------------'
+      print(delim.join(outheader))
+      print('--------------------')
       for att in atts:
          if types == True:
-            print string.rjust(delim.join(att), 7) #MAKE '\N' comprehension if string format never works out
+            print(string.rjust(delim.join(att), 7)) #MAKE '\N' comprehension if string format never works out
          else:
-            print att
+            print(att)
 
 
    ########################
@@ -1351,7 +1357,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
          csvdout=None
          if attr in self._cnsvdmeth:
             if self._cnsvdattr:
-               cnsvdattr=dict((k,v) for k, v in self.cnsvdattr.iteritems()
+               cnsvdattr=dict((k,v) for k, v in self.cnsvdattr.items()
                               if v is not None)
 
                csvdf=DataFrame(cnsvdattr)  #STILL WORKS WITH NONEQUAL LENGTH
@@ -1530,7 +1536,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
 
       """
 
-      meta=cPickle.dumps(self.__dict__)
+      meta=pickle.dumps(self.__dict__)
       self._frame.to_csv(path_or_buff, **csv_kwargs)
       if meta_separate == None:
          return
@@ -1635,7 +1641,7 @@ class Spectra(ABCSpectra, MetaDataFrame):
                       infer_datetime_format=False)
 
       # Pop out any parser keyword args
-      for kw in kwargs.keys():
+      for kw in list(kwargs.keys()):
          if kw in _CSVKWDS:
             _CSVKWDS[kw] = kwargs[kw]
             del kwargs[kw]
@@ -1695,10 +1701,10 @@ if __name__ == '__main__':
    import matplotlib.pyplot as plt
    ts = aunps_glass()
    ts.baseline=5
-   print 'hi'
-   print ts.baseline
+   print('hi')
+   print(ts.baseline)
    x = ts.iloc[0, 0:5].index
-   print x
-   print ts.mean().index
+   print(x)
+   print(ts.mean().index)
 
 

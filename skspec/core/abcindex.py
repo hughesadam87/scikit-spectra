@@ -1,3 +1,4 @@
+from past.builtins import basestring
 from pandas import Float64Index, Index
 import numpy as np
 from skspec.units.abcunits import UnitError, Unit, ConversionUnit
@@ -190,7 +191,7 @@ class ConversionIndex(Index):
    @property
    def unitshortdict(self):
       """ Return key:shortname; used by TimeSpectra to list output units."""
-      return dict((k,v.full) for k,v in self.unitdict.items())
+      return dict((k,v.full) for k,v in list(self.unitdict.items()))
       
    
 class ConversionFloat64Index(ConversionIndex, Float64Index):

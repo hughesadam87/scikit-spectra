@@ -1,7 +1,13 @@
 """ Storage class for sets of pandas object.  Similar to a panel, 
     but does inherently store 3d data.  Data can be converted to 3d through
     methods, but otherwise is just a container."""
+from __future__ import absolute_import
 
+from builtins import str
+from builtins import zip
+from builtins import range
+from past.builtins import basestring
+from builtins import object
 from collections import OrderedDict, Iterable
 from copy import deepcopy
 
@@ -52,7 +58,7 @@ class Stack(object):
             logger.debug('Initializing "%s" from dictionary.' % self.full_name)
             if sort_items:
                 logger.debug('Sorting keys')
-                self._data=OrderedDict(sorted(data.keys(), key=lambda t: t[0]))
+                self._data=OrderedDict(sorted(list(data.keys()), key=lambda t: t[0]))
 
             else:
                 self._data=OrderedDict(data)
@@ -78,7 +84,7 @@ class Stack(object):
             else:
                 # Zipped data ((key, df), (key, df))               
                 try:
-                    keys, data = zip(*data)
+                    keys, data = list(zip(*data))
                 except Exception:                
                     keys=self._gen_keys(len(data))
                     if len(keys) > 1:
@@ -117,12 +123,12 @@ class Stack(object):
             tuples_out = []
             for item in keyslice:
                 if isinstance(item, str):
-                    item = self._data.keys().index(item)
-                tuples_out.append(self._data.items()[item])
+                    item = list(self._data.keys()).index(item)
+                tuples_out.append(list(self._data.items())[item])
                         
         else:
             if isinstance(keyslice, int) or isinstance(keyslice, slice):
-                tuples_out = self._data.items()[keyslice] 
+                tuples_out = list(self._data.items())[keyslice] 
             else: 
                 tuples_out = [(keyslice, self._data[keyslice])]  #keyslice is name              
         
@@ -167,7 +173,7 @@ class Stack(object):
         in the dictionary (eg items=['a','b','keys'] is addressed.
         """
         
-        if attr in self._data.keys():
+        if attr in list(self._data.keys()):
             if hasattr(self._data, attr):
                 raise AttributeError('"%s attribute" found in both the items\
                 and as a method of the underlying dictionary object.'%(attr))
@@ -203,7 +209,7 @@ class Stack(object):
         """Generator/tuple etc.. of (item, attribute) pairs. """
         
         return put._parse_generator(
-            ((item[0], getattr(item[1], attr)) for item in self.items()), astype)
+            ((item[0], getattr(item[1], attr)) for item in list(self.items())), astype)
     
                 
     def _get_unique(self, attr):
@@ -222,7 +228,7 @@ class Stack(object):
         """ Set attributes itemwise.  
             If not inplace, returns new instance of self"""
         if inplace:
-            for (key, item) in self.items():
+            for (key, item) in list(self.items()):
                 try:           
                     setattr(item, attr, val)    
                 except Exception as E:
@@ -268,7 +274,7 @@ class Stack(object):
 
             else:                
                 return self.__class__(OrderedDict([(k, getattr(v, func)(*args, \
-                                 **kwargs)) for k,v in self.items()]))                
+                                 **kwargs)) for k,v in list(self.items())]))                
              
         # function, numpyfunction etc...   
         else:
@@ -278,7 +284,7 @@ class Stack(object):
                     
             else:
                 return self.__class__(OrderedDict([(k, v.apply(func, *args, \
-                                 **kwargs)) for k,v in self.items()]))                  
+                                 **kwargs)) for k,v in list(self.items())]))                  
                 
         
 
@@ -302,7 +308,7 @@ class SpecStack(Stack):
     def as_3d(self, **kwargs):
         """ Returns a 3d stack (SpecPanel) of the currently stored items.
             Additional kwargs can be passed directly to SpecPanel constructor."""
-        from specpanel import SpecPanel      
+        from .specpanel import SpecPanel      
         return SpecPanel(data=self._data, **kwargs)        
     
     
@@ -354,7 +360,7 @@ class SpecStack(Stack):
         plotkwargs.setdefault('title', self.name)        
         if 'cbar' in plotkwargs:
             raise NotImplementedError("Colorbar on stack plot not yet supported")
-        return slice_plot(self.values(), *plotargs, names=self.keys(), **plotkwargs)
+        return slice_plot(list(self.values()), *plotargs, names=list(self.keys()), **plotkwargs)
 
 
 

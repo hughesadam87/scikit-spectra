@@ -1,7 +1,9 @@
-import plot_utils as put
+from __future__ import absolute_import
+from builtins import range
+from . import plot_utils as put
 import matplotlib.pyplot as plt
 from skspec.core.utilities import split_by
-from basic_plots import areaplot, range_timeplot
+from .basic_plots import areaplot, range_timeplot
 
 # Used by SpecStack.plot()
 def slice_plot(ts_list, names=[], n=4, *plotargs, **plotkwds):

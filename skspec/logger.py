@@ -14,6 +14,9 @@
     
     In the future, this should be consolidated into a Class'''
 
+from builtins import str
+from builtins import range
+from past.builtins import basestring
 import inspect       
 import logging        
 import sys
@@ -189,7 +192,7 @@ def log(level='info', show_args=False, show_values=False, crop_values=True,
         
     def _wraps(fcn_name, fcn, *args, **kwargs):
 
-        arg_names = fcn.func_code.co_varnames    
+        arg_names = fcn.__code__.co_varnames    
 
         if show_args:
             arg_str = arg_names

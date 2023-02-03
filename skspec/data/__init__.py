@@ -1,3 +1,4 @@
+from __future__ import print_function
 # Import sample data.  This import structure was taken directly from skimages
 # data import style:
     # https://github.com/scikit-image/scikit-image
@@ -186,5 +187,5 @@ def aunps_water(*args, **kwargs):
     
 if __name__ == '__main__':
     ts = aunps_water()
-    print ts, type(ts)
+    print(ts, type(ts))
     

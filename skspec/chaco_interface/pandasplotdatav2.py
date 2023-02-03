@@ -1,3 +1,4 @@
+from builtins import str
 import numpy as np
 from chaco.api import AbstractPlotData
 from traits.api import Dict, Instance, Str, Array, Enum
@@ -81,13 +82,13 @@ class PandasPlotData(AbstractPlotData):
             if extras:
                 extras.transpose()
         else:
-            raise(AttributeError('Attribute "primaryaxis" must be 0, 1 but %s was passed'%axis))
+            raise AttributeError
               
         self.arrays=self._set_arrays(dataframe)
-        event={'added':self.arrays.keys()}  
+        event={'added':list(self.arrays.keys())}  
         if extras:
             self.extras=self._set_arrays(extras)
-            event['added'].extend(self.extras.keys())
+            event['added'].extend(list(self.extras.keys()))
             
         self.data_changed = event        
 
@@ -124,9 +125,9 @@ class PandasPlotData(AbstractPlotData):
         axis can be 0,1 or the index label column label.
         """
         if as_strings:
-            return self.arrays.keys()
+            return list(self.arrays.keys())
         else:
-            return [self.nameget(val) for val in self.arrays.values()]
+            return [self.nameget(val) for val in list(self.arrays.values())]
 
 
     def get_data(self, name):

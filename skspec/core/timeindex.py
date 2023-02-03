@@ -1,3 +1,4 @@
+from __future__ import print_function
 from copy import deepcopy, copy
 import numpy as np
 from pandas import DatetimeIndex, Timestamp
@@ -261,11 +262,11 @@ if __name__ == '__main__':
 
     #From datetime constructor
     idx = TimeIndex.from_datetime(date_range(start='3/3/12',periods=30,freq='45s'))
-    print idx
+    print(idx)
     for unit in INTVLUNITS:
-        print unit, idx.convert(unit)
+        print(unit, idx.convert(unit))
 
-    print idx.unitdict.keys()
+    print(list(idx.unitdict.keys()))
 
 #   idx.cumsum = False
 #   for unit in INTVLUNITS:

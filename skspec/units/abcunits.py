@@ -1,8 +1,10 @@
 """ Unit Class: series of metadata for various index units used throughout.
 All class attributes to conserve memory.  Unit conversions are defined
 in the respective index classes calling these"""
+from __future__ import print_function
 
 
+from builtins import object
 class UnitError(Exception):
    """ """
 
@@ -57,7 +59,7 @@ class ConversionUnit(Unit):
       
 if __name__ == '__main__':
    unit = Unit(short='bar')
-   print unit.__dict__
-   print unit.short
+   print(unit.__dict__)
+   print(unit.short)
    unit.short = 'foo'
-   print unit.short
+   print(unit.short)

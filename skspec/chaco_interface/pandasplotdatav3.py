@@ -1,3 +1,6 @@
+from __future__ import print_function
+from builtins import str
+from past.builtins import basestring
 import numpy as np
 from chaco.api import AbstractPlotData
 from traits.api import Any, Dict, Tuple
@@ -158,7 +161,7 @@ class PandasPlotData(AbstractPlotData):
             
         self.data_changed=event
         
-        if event.has_key('changed'): #Changed will be the only call.
+        if 'changed' in event: #Changed will be the only call.
             return True
         return False
     
@@ -176,12 +179,12 @@ class PandasPlotData(AbstractPlotData):
             ### If only column names are changing, trigger change event and exit
             if np.array_equal(dfnew.columns.values, self.df.columns.values): #very fast operation
                 self.df=dfnew
-                event['changed']=self._colmap.keys()
+                event['changed']=list(self._colmap.keys())
                 return event
                 
             else:
                 ### Remove old columns
-                event['removed']=self._colmap.keys()
+                event['removed']=list(self._colmap.keys())
 
         ### Add new columns/update self.df
         event.update(self._add_df(dfnew))  
@@ -203,13 +206,13 @@ class PandasPlotData(AbstractPlotData):
         
     def _reset_extras(self):
         if self._extras:
-            return {'removed':self._extras.keys()}
+            return {'removed':list(self._extras.keys())}
         
     def _add_df(self, dfnew):
         ''' Add all columns of new df, update colmap, set self.df'''
         self._colmap=dict((str(c), c) for c in dfnew.columns.values)        
         self.df=dfnew        
-        return {'added':self._colmap.keys()}
+        return {'added':list(self._colmap.keys())}
                    
     def _get_indicies(self, *names):
         ''' Takes in a list of names and returns indicies corresponding to.  Useful for label
@@ -220,7 +223,7 @@ class PandasPlotData(AbstractPlotData):
     ### These are used by chaco to inform the plot that a certain region of data is selected
     def get_selection(self, name):
         """ Returns the selection for the given column name """
-        print 'hi being selected in plotdata'
+        print('hi being selected in plotdata')
         return self.selections.get(name, None)
 
     def set_selection(self, name, selection):

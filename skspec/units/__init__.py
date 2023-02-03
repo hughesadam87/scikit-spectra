@@ -1,6 +1,7 @@
-from tempunits import TEMPUNITS
-from soluteunits import SOLUTEUNITS
-from specunits import SPECUNITS
+from __future__ import absolute_import
+from .tempunits import TEMPUNITS
+from .soluteunits import SOLUTEUNITS
+from .specunits import SPECUNITS
 
 # Units and Index
-from abcunits import Unit, ConversionUnit
+from .abcunits import Unit, ConversionUnit

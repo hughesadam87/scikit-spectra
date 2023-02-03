@@ -1,4 +1,6 @@
-from pandasplotdatav2 import PandasPlotData
+from __future__ import print_function
+from __future__ import absolute_import
+from .pandasplotdatav2 import PandasPlotData
 from traits.api import DelegatesTo, Str, Delegate, Enum
 
 ## For testing
@@ -36,7 +38,7 @@ class SpectralPlotData(PandasPlotData):
 if __name__=='__main__':
     df=DataFrame((np.random.randn(10,10)) ) 
     data=SpectralPlotData(df, specname='HO')
-    print data[0]
+    print(data[0])
     df2=DataFrame((np.random.randn(10,10)) )
     data.update_dataframe(df2)
-    print data.extras
+    print(data.extras)

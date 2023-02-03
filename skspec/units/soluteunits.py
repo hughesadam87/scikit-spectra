@@ -1,4 +1,5 @@
-from abcunits import ConversionUnit
+from __future__ import absolute_import
+from .abcunits import ConversionUnit
 
 class SoluteUnit(ConversionUnit):
    """ Goes through molar.  Test case """

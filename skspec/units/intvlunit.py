@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import division
+from past.utils import old_div
 from skspec.units.abcunits import ConversionUnit, UnitError
 from datetime import timedelta
 from pandas import DatetimeIndex, date_range, Index
@@ -104,7 +107,7 @@ class Nanoseconds(IntvlUnit):
 
    @staticmethod      
    def from_canonical(x):
-      return x / 10**-9
+      return old_div(x, 10**-9)
 
 
 class Microseconds(IntvlUnit):
@@ -117,7 +120,7 @@ class Microseconds(IntvlUnit):
 
    @staticmethod      
    def from_canonical(x):
-      return x / 10**-6
+      return old_div(x, 10**-6)
 
 class Milliseconds(IntvlUnit):
    short = 'ms'
@@ -129,7 +132,7 @@ class Milliseconds(IntvlUnit):
 
    @staticmethod      
    def from_canonical(x):
-      return x / 10**-3
+      return old_div(x, 10**-3)
 
 class Hours(IntvlUnit):
 
@@ -187,4 +190,4 @@ _intvlunits = (
 
 INTVLUNITS = dict((obj.short, obj) for obj in _intvlunits)
 
-print INTVLUNITS.keys()
+print(list(INTVLUNITS.keys()))

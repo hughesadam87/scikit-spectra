@@ -1,3 +1,5 @@
+from __future__ import print_function
+from builtins import str
 import numpy as np
 
 from chaco.api import AbstractPlotData, ArrayPlotData, Plot, ArrayDataSource
@@ -62,15 +64,15 @@ class PandasPlotData(AbstractPlotData):
         """
         if axis==0 or axis==self.columnlabel:
             if as_strings:
-                datalist=self._colmasks.keys()
+                datalist=list(self._colmasks.keys())
             else:
-                datalist=self._colmasks.values()
+                datalist=list(self._colmasks.values())
 
         elif axis==1 or axis==self.indexlabel:
             if as_strings:
-                datalist=self._rowmasks.keys()
+                datalist=list(self._rowmasks.keys())
             else:
-                datalist=self._rowmasks.values()
+                datalist=list(self._rowmasks.values())
 
         return datalist
 
@@ -93,9 +95,9 @@ class PandasPlotData(AbstractPlotData):
                         self.extras[self._colmasks[name]].values
                     except KeyError: 
                         if name == self.columnlabel:
-                            return self._colmasks.values()  
+                            return list(self._colmasks.values())  
                         elif name == self.indexlabel:
-                            return self._rowmasks.values()                                  
+                            return list(self._rowmasks.values())                                  
 
     def get_row_data(self, name):
         ''' Returns row data.  This is never used by plots, only a convienence method for users.'''
@@ -149,10 +151,10 @@ class PandasPlotData(AbstractPlotData):
         ''' Completely reset plotdata with a new object.  This removes ALL 
         old data, does not cross check for overlapping keys.'''
         ### Remove old columns of dataframe ###
-        removed={'removed':self._colmasks.keys()}
+        removed={'removed':list(self._colmasks.keys())}
         ### Add new entries
         added=self._add_dataframe(dataframe)
-        event=dict(added.items() + removed.items() )
+        event=dict(list(added.items()) + list(removed.items()) )
         self.data_changed = event
                
     
@@ -163,7 +165,7 @@ class PandasPlotData(AbstractPlotData):
         self.df=dataframe                
         self._colmasks=dict( ((str(val), val) for val in self.df.columns.values)) 
         self._rowmasks=dict( ((str(val), val) for val in self.df.index.values))
-        return {'added':self._colmasks.keys()}
+        return {'added':list(self._colmasks.keys())}
         
 
     ######## These are used by chaco to inform the plot that a certain region of data is selected
@@ -181,8 +183,8 @@ class PandasPlotData(AbstractPlotData):
 if __name__=='__main__':
     df=DataFrame((np.random.randn(10,10)) ) 
     data=PandasPlotData(df)
-    print data.df[0]
+    print(data.df[0])
     df2=DataFrame((np.random.randn(10,10)) )
     data.set_dataframe(df2)
-    print data.df[0]
+    print(data.df[0])
 

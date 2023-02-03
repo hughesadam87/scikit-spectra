@@ -1,9 +1,11 @@
 """ Utilities to run notebooks offline, among others.  CREDIT FOR MOST OF THIS GOES TO:
 https://github.com/ipython/ipython/wiki/Cookbook%3a-Notebook-utilities """
 
+from future import standard_library
+standard_library.install_aliases()
 import os,sys,time
 
-from Queue import Empty
+from queue import Empty
 try:
     from IPython.kernel import KernelManager
 except ImportError:

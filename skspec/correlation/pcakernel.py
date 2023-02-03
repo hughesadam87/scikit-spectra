@@ -11,7 +11,10 @@ Author: Alexis Mignon (c)
 Date: 10/01/2012
 e-mail: alexis.mignon@gmail.com
 """
+from __future__ import division
 
+from builtins import object
+from past.utils import old_div
 import numpy as np
 from scipy.sparse.linalg.eigen.arpack import eigs
 from scipy.linalg import eigh
@@ -101,10 +104,10 @@ def extern_pca(data,k):
     data_m = data - data.mean(0)
     K = np.dot(data_m,data_m.T)
     w,v = eigs(K,k = k,which = 'LM')
-    U = np.dot(data.T,v/np.sqrt(w))
+    U = np.dot(data.T,old_div(v,np.sqrt(w)))
     # Normalizes eigenvalues by length of data (?)
 #    return w[::-1]/(len(data)-1),U[:,::-1]
-    return w/(len(data)-1),U
+    return old_div(w,(len(data)-1)),U
 
 def full_kpca(data):
     """
@@ -218,11 +221,11 @@ class PCA(object):
         else :
             self.mean = X.mean(0)
             diff = X - self.mean
-            total_variance = (diff*diff).sum()/(X.shape[0]-1)
+            total_variance = old_div((diff*diff).sum(),(X.shape[0]-1))
 
         # Scikit image also has this; how much variance each component
         # can account for.  Should sum to 1 if all components used.
-        self.explained_variance_ = self.eigen_values_.sum()/total_variance
+        self.explained_variance_ = old_div(self.eigen_values_.sum(),total_variance)
         return self
     
         
@@ -270,7 +273,7 @@ class PCA(object):
         if self._kernel :
             pr = np.dot(X,self.eigen_vectors_)
             if whiten :
-                pr /= self.eigen_values_ / np.sqrt(X.shape[0]-1)
+                pr /= old_div(self.eigen_values_, np.sqrt(X.shape[0]-1))
             else :
                 pr /= np.sqrt(self.eigen_values_)
         else :

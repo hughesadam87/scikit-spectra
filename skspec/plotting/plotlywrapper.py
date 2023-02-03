@@ -1,9 +1,13 @@
+from __future__ import print_function
+from __future__ import absolute_import
 # skspec intefrace to plotly:
 # http://nbviewer.ipython.org/github/plotly/python-user-guide/blob/master/s00_homepage/s00_homepage.ipyn
 
+from builtins import map
+from builtins import range
 import plotly.graph_objs as grobs
 import numpy as np
-import plot_utils as put
+from . import plot_utils as put
 
 def make_linetrace(x, y, **tracekwargs):#, linecolor):  
     """Trace-generating function (returns a Scatter object) from timespectra"""
@@ -111,14 +115,14 @@ def ply_fig(ts, points=False, color='jet', **kwds):
         cmapper = put._df_colormapper(ts, color, axis=0)        
         
     # Map colors to rgb
-    cmapper = map(put.to_normrgb, cmapper)    
+    cmapper = list(map(put.to_normrgb, cmapper))    
     
     # Scale by 255 and string format for plotly
     def _rgbplotlycolor(rgb):
         r,g,b = rgb
         return 'rgb(%s, %s, %s)' % (255.0*r, 255.0*g, 255.0*b)
     
-    cmapper = map(_rgbplotlycolor, cmapper)
+    cmapper = list(map(_rgbplotlycolor, cmapper))
 
     if points:
         tracefcn = make_pointtrace
@@ -149,7 +153,7 @@ if __name__ == '__main__':
     ts = test_spectra()
     out = ply_figure(ts)
 
-    print tls.get_subplots(rows=3, columns=2, print_grid=True)
+    print(tls.get_subplots(rows=3, columns=2, print_grid=True))
 
     
     import plotly.plotly as py
@@ -157,4 +161,4 @@ if __name__ == '__main__':
     
     fig = ply_figure(ts, color='black', points=True)
     py.iplot(fig, filename='foo', fileopt='new')    
-    print 'FINISHED PLOT 1'
+    print('FINISHED PLOT 1')

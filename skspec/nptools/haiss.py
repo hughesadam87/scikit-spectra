@@ -6,7 +6,9 @@
 
     Three functions are build based on the results of this paper, as well as a utility
     for estimating nanoparticle concentration.'''
+from __future__ import division
 
+from past.utils import old_div
 import math
 import numpy as np
 import warnings
@@ -175,7 +177,7 @@ def _haiss_m1(lambda_spr):
     L1=6.53
     L2=0.0216
 
-    d=(math.log((lambda_spr-lambda_0)/L1))/L2
+    d=old_div((math.log(old_div((lambda_spr-lambda_0),L1))),L2)
     return d
 
 
@@ -200,13 +202,13 @@ def _haiss_m2(Aspr, A450, exp=True):
     if exp:
         B1=3.00 
         B2=2.20
-        d=math.exp( (B1 * (Aspr/A450) - B2) )
+        d=math.exp( (B1 * (old_div(Aspr,A450)) - B2) )
 
     ### Calculate diameter from theoretical fit parameters 
     else:
         B1=3.55
         B2=3.11
-        d=math.exp( (B1 * (Aspr/A450) - B2) )
+        d=math.exp( (B1 * (old_div(Aspr,A450)) - B2) )
 
     return d
 
@@ -263,7 +265,7 @@ def haiss_m3(ts, Cau, dilution=None, style='boxcar', width=None, limit_range=(40
         
     ### Scale up Aspr based on dilution factor.
     if dilution:
-        Aspr=Aspr/dilution
+        Aspr=old_div(Aspr,dilution)
 
     return Aspr.apply(_haiss_m3, Cau=Cau, exp=exp)
 
@@ -283,7 +285,7 @@ def _haiss_m3(Aspr, Cau, exp=True):
         C1=-4.70
         C2=0.300
 
-    return ( (Aspr * term )/ (Cau * math.exp(C1) ) )**(1.0/C2)
+    return ( old_div((Aspr * term ), (Cau * math.exp(C1) )) )**(1.0/C2)
 
 def haiss_conc(ts, d, style='boxcar', width=None, limit_range=(400.0,700.0), ref=450.0, ref_width=None, exp=True):
     ''' Return estimation of AuNP concentration given the diameter of gold nanoparticles as the Absorbance
@@ -322,6 +324,6 @@ def haiss_conc(ts, d, style='boxcar', width=None, limit_range=(400.0,700.0), ref
 def _haiss_conc(Aref, d):
     ''' See haiss conc '''
     num=Aref * 10**14
-    t1=1.36 * math.exp(-( (d-96.8)/(78.2))**2 )
+    t1=1.36 * math.exp(-( old_div((d-96.8),(78.2)))**2 )
     den=d**2 * (-0.295+ t1)
-    return num/den
+    return old_div(num,den)

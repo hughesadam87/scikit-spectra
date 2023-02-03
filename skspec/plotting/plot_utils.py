@@ -1,7 +1,11 @@
 ''' Plotting wrappers for dataframes, for implementation in skspec.  Basically calls df.plot()
 with some extra bells and whistles like trying to extract column labels and dataframe names,
 as well as some exploration into custom labels and color mapping.'''
+from __future__ import division
 
+from builtins import map
+from past.builtins import basestring
+from past.utils import old_div
 __author__ = "Adam Hughes"
 __copyright__ = "Copyright 2012, GWU Physics"
 __license__ = "Free BSD"
@@ -58,7 +62,7 @@ def multi_axes(count, **kwargs):
 
     else:  
 #       ncols = _mod_closest(count)
-        nrows = int(count/ncols)         
+        nrows = int(old_div(count,ncols))         
         if count % ncols: #If not perfect division
             nrows += 1
 
@@ -202,7 +206,7 @@ def to_normrgb(color):
 
         # Any thing like (0, 255, 30) ... uses 255 as upper limit!
         else:
-            r, g, b = map(_pix_norm, (r, g, b) )        
+            r, g, b = list(map(_pix_norm, (r, g, b) ))        
             return (r, g, b)
 
 

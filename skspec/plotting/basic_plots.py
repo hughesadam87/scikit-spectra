@@ -1,4 +1,8 @@
-import plot_utils as put
+from __future__ import print_function
+from __future__ import absolute_import
+from builtins import str
+from past.builtins import basestring
+from . import plot_utils as put
 import skspec.core.utilities as pvutils
 import skspec.config as pvcnfg
 import logging
@@ -303,7 +307,7 @@ def areaplot(ranged_ts, **pltkwds):
 if __name__ == '__main__':
     from skspec.data import aunps_glass
     ts = aunps_glass()
-    print ts.full_iunit
+    print(ts.full_iunit)
     ts.as_varunit('s').plot(legend=True, legprefix='time_')
 #    areaplot(ts)
     plt.show()

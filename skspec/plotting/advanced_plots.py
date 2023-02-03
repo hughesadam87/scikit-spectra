@@ -1,4 +1,9 @@
 """ 2d and 3d wrappers for plotting 2d and 3d data in dataframes """
+from __future__ import print_function
+from __future__ import absolute_import
+from builtins import zip
+from builtins import range
+from past.builtins import basestring
 __author__ = "Adam Hughes"
 __copyright__ = "Copyright 2012, GWU Physics"
 __license__ = "Free BSD"
@@ -16,16 +21,16 @@ from mpl_toolkits.mplot3d import Axes3D, axes3d, art3d #Need Axes3d for 3d proje
 import numpy as np
 import matplotlib.cm as cm
 from matplotlib.collections import PolyCollection
-from basic_plots import PlotError
+from .basic_plots import PlotError
 from skspec.core.abcspectra import SpecError
 
-import plot_utils as pu
+from . import plot_utils as pu
 import skspec.config as pvconfig
 
 from skspec.exceptions import badvalue_error
 
 # Smart float to int conversion
-_ir=lambda(x): int(round(x))
+_ir=lambda x: int(round(x))
 
 from skspec.plotting.basic_plots import range_timeplot, areaplot, _genplot    
 from skspec.plotting.plot_registry import PlotRegister
@@ -95,7 +100,7 @@ def custom_wireframe(ax, X, Y, Z, *args, **kwargs):
     tX, tY, tZ = np.transpose(X), np.transpose(Y), np.transpose(Z)
 
     if rstride:
-        rii = list(xrange(0, rows, rstride))
+        rii = list(range(0, rows, rstride))
         # Add the last index only if needed
         if rows > 0 and rii[-1] != (rows - 1) :
             rii += [rows-1]        
@@ -103,7 +108,7 @@ def custom_wireframe(ax, X, Y, Z, *args, **kwargs):
         rii = []
 
     if cstride:                
-        cii = list(xrange(0, cols, cstride))
+        cii = list(range(0, cols, cstride))
         if cols > 0 and cii[-1] != (cols - 1) :
             cii += [cols-1]        
     else:
@@ -701,7 +706,7 @@ if __name__ == '__main__':
 #    xx,yy = ts.meshgrid()
     
     
-    print PLOTPARSER
+    print(PLOTPARSER)
     
     ##---- First subplot
     #ax2 = fig.add_subplot(1, 2, 1, projection='3d')
@@ -754,5 +759,5 @@ if __name__ == '__main__':
 
     rc('text', usetex=True)    
     
-    print ts.shape
+    print(ts.shape)
     plt.show()

@@ -226,7 +226,7 @@ class SpectraGui(Box):
         link((self.model, "color"), (color, "value"))
         link((self.model,"colorbox"),(color,"visible"))
 
-        kind = Dropdown(description="Plot Type", values=PLOTPARSER.keys())
+        kind = Dropdown(description="Plot Type", values=list(PLOTPARSER.keys()))
         link((self.model, "kind"), (kind, "value"))
 
 	Splot=Checkbox(description="Standardplot")
@@ -235,7 +235,7 @@ class SpectraGui(Box):
 	loadit = Checkbox(description = 'load')
 	link((self.model, "load"), (loadit,"value"))
 	
-	plott= Dropdown(description="Corr Plot", values=PLOTPARSER.keys())
+	plott= Dropdown(description="Corr Plot", values=list(PLOTPARSER.keys()))
 	link((self.model,"plottype"), (kind, "value"))
 	
         return ControlPanel(title="Plot Settings", 
@@ -256,16 +256,16 @@ class SpectraGui(Box):
 
     def unit_panel(self):
         # create spectrum controls.  NOTE: should only be called once.
-        specunit = Dropdown(description="Specunit",values=self.model.SPECUNITS.values())
+        specunit = Dropdown(description="Specunit",values=list(self.model.SPECUNITS.values()))
         link((self.model,"spec_unit"),(specunit,"value"))
 
-        varunit = Dropdown(description="Varunit",values=self.model.VARUNITS.values())
+        varunit = Dropdown(description="Varunit",values=list(self.model.VARUNITS.values()))
         link((self.model,"var_unit"),(varunit,"value"))
 
         iunit = Text(description="I Unit",values=self.model.iunit)
         link((self.model,"iunit"),(iunit,"value"))
 
-        normunit = Dropdown(description="Normunit",values=self.model.NORMUNITS.values())
+        normunit = Dropdown(description="Normunit",values=list(self.model.NORMUNITS.values()))
         link((self.model,"norm_unit"),(normunit,"value"))
 	
 	eggs_dropdown =Dropdown(description="My eggs", values=self.model.EGGS)

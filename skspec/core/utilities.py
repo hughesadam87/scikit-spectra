@@ -3,7 +3,11 @@
     such as "baseline" and "filedict".  For serialization operations, import 
     from spec_serial.py 
     """
+from __future__ import division
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
 from pandas import Series, DataFrame
 import numpy as np
 from scipy import integrate
@@ -154,7 +158,7 @@ def boxcar(df, binwidth, axis=0):
     ''' Only works on boxcar for now.  Also, want binwidth and/or binnumber
     to be inputs but not both. '''
     if axis==1:
-        binnumber=len(df.columns)/binwidth    
+        binnumber=old_div(len(df.columns),binwidth)    
         counts, binarray=np.histogram(df.columns, bins=binnumber)
         digiarray=np.digitize(np.asarray(df.columns, dtype=float), binarray)          
         mapped_series=Series(digiarray, index=df.columns)       
@@ -162,7 +166,7 @@ def boxcar(df, binwidth, axis=0):
         dfout.columns=binarray
     
     elif axis==0:
-        binnumber=len(df.index)/binwidth  #Converted to int when np.histogram called
+        binnumber=old_div(len(df.index),binwidth)  #Converted to int when np.histogram called
         counts, binarray=np.histogram(df.index, bins=binnumber)
         digiarray=np.digitize(np.asarray(df.index, dtype=float), binarray)    
         
@@ -202,9 +206,9 @@ def digitize_by(df, digitized_bins, binarray, axis=0, avg_fcn='mean', weight_max
         elif avg_fcn.lower() == 'weighted':
             dfout=df.groupby(mapped_series).mean()
             if weight_max:
-                dfout= dfout.apply(lambda x: x / weight_max)  #These should be float division
+                dfout= dfout.apply(lambda x: old_div(x, weight_max))  #These should be float division
             else:
-                dfout= dfout.apply(lambda x: x/ x.max())
+                dfout= dfout.apply(lambda x: old_div(x, x.max()))
             
         else:
             raise NotImplementedError('%s is not a valid key to df_rebin, must \
@@ -224,9 +228,9 @@ def digitize_by(df, digitized_bins, binarray, axis=0, avg_fcn='mean', weight_max
         elif avg_fcn.lower() == 'weighted':
             dfout=df.groupby(mapped_series, axis=axis).mean()
             if weight_max:                
-                dfout=dfout.apply(lambda x:x / weight_max, axis=axis)
+                dfout=dfout.apply(lambda x:old_div(x, weight_max), axis=axis)
             else:
-                dfout=dfout.apply(lambda x: x / x.max(), axis=axis)            
+                dfout=dfout.apply(lambda x: old_div(x, x.max()), axis=axis)            
             
         else:
             raise NotImplementedError('%s is not a valid key to df_rebin, must \
@@ -298,9 +302,9 @@ def rebin(df, binwidth, axis=0, avg_fcn='weighted', weight_max=None):
         elif avg_fcn.lower() == 'weighted':
             dfout=df.groupby(lambda x:x//binwidth).mean()  #Groupby uses int division
             if weight_max:
-                dfout=dfout.apply(lambda x: x / weight_max)      #Apply uses float division
+                dfout=dfout.apply(lambda x: old_div(x, weight_max))      #Apply uses float division
             else:
-                dfout=dfout.apply(lambda x: x/ x.max())
+                dfout=dfout.apply(lambda x: old_div(x, x.max()))
             
         else:
             raise NotImplementedError('%s is not a valid key to df_rebin, must \
@@ -318,9 +322,9 @@ def rebin(df, binwidth, axis=0, avg_fcn='weighted', weight_max=None):
         elif avg_fcn.lower() == 'weighted':
             dfout=df.groupby(lambda x:x//binwidth, axis=axis).mean()
             if weight_max:                
-                dfout=dfout.apply(lambda x:x / weight_max, axis=axis)
+                dfout=dfout.apply(lambda x:old_div(x, weight_max), axis=axis)
             else:
-                dfout=dfout.apply(lambda x: x / x.max(), axis=axis)            
+                dfout=dfout.apply(lambda x: old_div(x, x.max()), axis=axis)            
             
         else:
             raise NotImplementedError('%s is not a valid key to df_rebin, must \

@@ -6,7 +6,10 @@
  
  Returns a skspec TimeSpectra with custom attributes "metadata", "filedict", "baseline".
  '''
+from __future__ import print_function
 
+from builtins import zip
+from builtins import range
 __author__ = "Adam Hughes, Zhaowen Liu"
 __copyright__ = "Copyright 2012, GWU Physics"
 __license__ = "Free BSD"
@@ -142,7 +145,7 @@ def from_spec_files(file_list, name='', skiphead=17, skipfoot=1, check_for_overl
 
         if darkfile:
             with open(darkfile) as f:
-                header=[f.next().strip() for x in xrange(skiphead)]
+                header=[f.next().strip() for x in range(skiphead)]
 
             wavedata=np.genfromtxt(darkfile, dtype=spec_dtype, skip_header=skiphead, skip_footer=skipfoot) 
             darktime=_get_datetime_specsuite(header)        
@@ -161,7 +164,7 @@ def from_spec_files(file_list, name='', skiphead=17, skipfoot=1, check_for_overl
         ###Read in only the header lines, not all the lines of the file
         ###Strips and splits in one go
         with open(infile) as f:
-            header=[f.next().strip() for x in xrange(skiphead)]
+            header=[f.next().strip() for x in range(skiphead)]
 
         #Store wavelength, intensity data in a 2-column datatime for easy itemlookup 
         #Eg wavedata['wavelength']
@@ -187,7 +190,7 @@ def from_spec_files(file_list, name='', skiphead=17, skipfoot=1, check_for_overl
 
     # Make timespec, add filenames, baseline and metadata attributes (note, DateTimeIndex auto sorts!!)
     df = DataFrame(dict_of_series) #Dataframe beacuse TS doesn't handle dict of series
-    print df.columns
+    print(df.columns)
     timespec = TimeSpectra(df, name=name)
     timespec.specunit = 'nm'
     timespec.filedict = time_file_dict
@@ -197,7 +200,7 @@ def from_spec_files(file_list, name='', skiphead=17, skipfoot=1, check_for_overl
     for infile in file_list:
         if infile != darkfile:
             with open(infile) as f:
-                header=[f.next().strip() for x in xrange(skiphead)]         
+                header=[f.next().strip() for x in range(skiphead)]         
             meta_partial=_get_metadata_fromheader(header)
             break      
 
@@ -257,7 +260,7 @@ def from_timefile_datafile(datafile, timefile, extract_dark=True, name=''):
 
     ### Sort datetimes here before assigning/removing dark spec etc...
     sorted_tfd=sorted(time_file_dict.items())
-    sorted_times, sorted_files=zip(*( (((i[0]), (i[1])) for i in sorted_tfd)))
+    sorted_times, sorted_files=list(zip(*( (((i[0]), (i[1])) for i in sorted_tfd))))
 
     ### Seek darkfile.  If found, take it out of dataframe. ###
     if extract_dark:
@@ -364,7 +367,7 @@ def _get_datetime_timefile(splitline):
 def _get_headermetadata_timefile(splitline):
     ''' Return the reduced, available components of headermetadata from timefile (missing data).''' 
     ### Take items that are present ###
-    filldic=dict(zip(['int_time', 'int_unit', 'spec_avg', 'boxcar'], splitline[5:]))
+    filldic=dict(list(zip(['int_time', 'int_unit', 'spec_avg', 'boxcar'], splitline[5:])))
 
     ### Append null for items that are missing ###
     missing=('spectrometer','dark_spec_pres', 'ref_spec_pres', 'electric_dark_correct', 
@@ -419,6 +422,6 @@ if __name__=='__main__':
     ### Test of chem UVVIS data
     files=get_files_in_dir('../data/gwuspecdata/IRData')
     ts3=from_gwu_chem_UVVIS(files, name='IR Spec')
-    print ts3, type(ts3), ts3[ts3.columns[0]]
+    print(ts3, type(ts3), ts3[ts3.columns[0]])
     
     ### ADD CHEM IR DATA (Did it in a notebook at one point actually)

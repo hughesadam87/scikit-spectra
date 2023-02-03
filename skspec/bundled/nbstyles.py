@@ -53,7 +53,7 @@ def load_style(s, figsize=None, loghide=False):
                 style = f.read()
         except IOError:
             raise IOError('Failed to load style as a url, file or builtin type.'
-               ' Valid builtins are "%s"' % '","'.join(__all__.keys() ))
+               ' Valid builtins are "%s"' % '","'.join(list(__all__.keys()) ))
 
     out = '<style>\n{style}\n</style>'.format(style=style)
     

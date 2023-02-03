@@ -3,11 +3,17 @@ attempts to promote attributes and methods to the instance level (eg self.x inst
 can be subclassed and ensures persistence of custom attributes.  The goal of this MetaPandasObject is to provide a 
 subclassing api beyond monkey patching (which currently fails in persisting attributes upon most method returns 
 and upon derialization.'''
+from __future__ import print_function
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import range
+from past.builtins import basestring
+from builtins import object
 from types import MethodType
 import copy
 import functools
-import cPickle
+import pickle
 import collections
 
 from pandas.core.indexing import _IXIndexer, _iLocIndexer, _LocIndexer
@@ -35,11 +41,11 @@ def mload(inname):
     ''' Load MetaPandasObject from file'''
     if isinstance(inname, basestring):
         inname=open(inname, 'r')
-    return cPickle.load(inname)
+    return pickle.load(inname)
 
 def mloads(string):
     ''' Load a MetaPandasObject from string stored in memory.'''
-    return cPickle.loads(string)        
+    return pickle.loads(string)        
         
 
 # Log all public/private methods to debug
@@ -58,11 +64,11 @@ class MetaPandasObject(object):
         ''' Takes in str or opened file and saves. cPickle.dump wrapper.'''
         if isinstance(outname, basestring):
             outname=open(outname, 'w')
-        cPickle.dump(self, outname)
+        pickle.dump(self, outname)
 
     def dumps(self):
         ''' Output TimeSpectra into a pickled string in memory.'''
-        return cPickle.dumps(self)    
+        return pickle.dumps(self)    
 
     #----------------------------------------------------------------------
     # Overwrite Dataframe methods and operators
@@ -182,7 +188,7 @@ class MetaPandasObject(object):
         return self._frame.__repr__()
     
     def _fast_xs(self, *args, **kwargs):
-        print 'in fastxs'
+        print('in fastxs')
         return self._frame._fast_xs(*args, **kwargs)  
 
     ### Operator overloading ####
@@ -228,7 +234,7 @@ class MetaPandasObject(object):
     def __len__(self):
         return self._frame.__len__()
 
-    def __nonzero__(self):
+    def __bool__(self):
         return self._frame.__nonzero__()
 
     def __contains__(self, x):
@@ -381,56 +387,56 @@ if __name__ == '__main__':
     ### Add some new attributes
     meta_df.a=50
     meta_df.b='Pamela'
-    print 'See the original metadataframe\n'
-    print meta_df
-    print '\nI can operate on it (+ - / *) and call dataframe methods like rank()'
+    print('See the original metadataframe\n')
+    print(meta_df)
+    print('\nI can operate on it (+ - / *) and call dataframe methods like rank()')
     
     meta_df.ix[0]
 
     ### Perform some intrinsic DF operations
     new=meta_df*50.0
     new=new.rank()
-    print '\nSee modified dataframe:\n'
-    print new
+    print('\nSee modified dataframe:\n')
+    print(new)
 
     ### Verify attribute persistence
-    print '\nAttributes a = %s and b = %s will persist when new metadataframes are returned.'%(new.a, new.b)
+    print('\nAttributes a = %s and b = %s will persist when new metadataframes are returned.'%(new.a, new.b))
 
     ### Demonstrate subclassing by invoking SubFoo class
-    print '\nI can subclass a dataframe an overwrite its __repr__() or more carefully __bytes__()/__unicode__() method(s)\n'
+    print('\nI can subclass a dataframe an overwrite its __repr__() or more carefully __bytes__()/__unicode__() method(s)\n')
     subclass=SubFoo(50, 200, abs(randn(3,3)), index=['A','B','C'], columns=['c11','c22', 'c33'])    
-    print subclass
+    print(subclass)
     ### Access underlying dataframe
-    print '\nMy underlying dataframe is stored in the "data" attribute.\n'
-    print subclass.data
+    print('\nMy underlying dataframe is stored in the "data" attribute.\n')
+    print(subclass.data)
 
     ### Pickle
-    print '\nSave me by using x.save() / x.dumps() and load using mload(x) / mloads(x).'
+    print('\nSave me by using x.save() / x.dumps() and load using mload(x) / mloads(x).')
     
     # INDEX SLICING THROUGH LOC AND ILOC
-    print '\nslicing one column \n'
-    print meta_df.iloc[0]
-    print meta_df._frame.iloc[0]
+    print('\nslicing one column \n')
+    print(meta_df.iloc[0])
+    print(meta_df._frame.iloc[0])
 
-    print '\nslicing many columns\n'
-    print  meta_df.iloc[0:1]
-    print meta_df._frame.iloc[0:1]
+    print('\nslicing many columns\n')
+    print(meta_df.iloc[0:1])
+    print(meta_df._frame.iloc[0:1])
     
-    print '\nIndexing by label\n'
-    print meta_df.loc['A':'B']
+    print('\nIndexing by label\n')
+    print(meta_df.loc['A':'B'])
 
     #GOOD EXPLANATION OF WHY CANT STRING SLICE COLUMNS
     #http://stackoverflow.com/questions/11285613/selecting-columns    
-    print '\nColumn slicing\n'
-    print meta_df[['c11','c33']]
-    print meta_df[['c11','c33']].a
+    print('\nColumn slicing\n')
+    print(meta_df[['c11','c33']])
+    print(meta_df[['c11','c33']].a)
     
 #    df.save('outpath')
 #    f=open('outpath', 'r')
 #    df2=load(f)    
 
-    print '\nCreating MetaSeries'
-    s = MetaSeries(range(0,10))
-    print s, type(s)
-    print '\nSeries Slicing 0:5'
-    print s[0:5]
+    print('\nCreating MetaSeries')
+    s = MetaSeries(list(range(0,10)))
+    print(s, type(s))
+    print('\nSeries Slicing 0:5')
+    print(s[0:5])

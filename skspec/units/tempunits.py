@@ -1,4 +1,5 @@
-from abcunits import ConversionUnit
+from __future__ import absolute_import
+from .abcunits import ConversionUnit
 
 
 KFACTOR = 273.15 #Difference Kelvin, C (how precise is this known?)

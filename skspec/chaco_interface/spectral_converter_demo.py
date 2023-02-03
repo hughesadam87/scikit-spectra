@@ -1,3 +1,5 @@
+from __future__ import division
+from past.utils import old_div
 from traits.api import HasTraits, Float, Array, Property, Enum, Trait, CFloat, Constant
 from traitsui.api import View, Item, Group, HSplit, VSplit
 from numpy import linspace, array
@@ -32,7 +34,7 @@ class SpectralConverter ( HasTraits ):
 				   'Wavenumber(nm-1)':.000000001, 
 				   'Frequency(Hz)':  c,  
 				   'Angular Frequency(rad)': 2.0*pi*c,
-				   'eV': h*c/(eVtoJ)  
+				   'eV': old_div(h*c,(eVtoJ))  
 					 } )
 
     #Next we specify which units are related to length directly and inversely#
@@ -85,16 +87,16 @@ class SpectralConverter ( HasTraits ):
          #(one input in reciprocal, one in proprotional- single inversion (2 cases)
     def _get_output_array ( self ):
 	if self.input_units in self.proportional and self.output_units in self.proportional:
-	        return (self.input_array * self.input_units_) / self.output_units_
+	        return old_div((self.input_array * self.input_units_), self.output_units_)
 
 	elif self.input_units in self.proportional and self.output_units in self.reciprocal:
-	        return 1.0/( (self.input_array * self.input_units_) / self.output_units_)
+	        return 1.0/( old_div((self.input_array * self.input_units_), self.output_units_))
 
 	elif self.input_units in self.reciprocal and self.output_units in self.proportional:
-	        return 1.0/( (self.input_array * self.output_units_) / self.input_units_)   #Output/input
+	        return 1.0/( old_div((self.input_array * self.output_units_), self.input_units_))   #Output/input
 
 	elif self.input_units in self.reciprocal and self.output_units in self.reciprocal:
-	        return  (self.input_array * self.output_units_) / self.input_units_
+	        return  old_div((self.input_array * self.output_units_), self.input_units_)
 
 if __name__ == '__main__':
     #Populate an aribtrary array to mimic the visible light spectrum (400nm -700nm)#

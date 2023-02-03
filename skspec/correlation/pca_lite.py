@@ -1,3 +1,6 @@
+from __future__ import division
+from builtins import object
+from past.utils import old_div
 import numpy as np
 from scipy import linalg
 
@@ -42,7 +45,7 @@ class PCAError(Exception):
 
 
 # REPLACE V WITH VT TO BE CLOSER IN NOTATION TO NODA BOOK
-class PCA():
+class PCA(object):
     """Principal component analysis (PCA)
 
     Linear dimensionality reduction using Singular Value Decomposition of the
@@ -184,12 +187,12 @@ class PCA():
         self.mean_ = np.mean(X, axis=0) #When transposed, this works fine
         X -= self.mean_
         U, S, VT = linalg.svd(X, full_matrices=False)
-        self.explained_variance_ = (S ** 2) / n_samples
-        self.explained_variance_ratio_ = self.explained_variance_ / \
-                                        self.explained_variance_.sum()
+        self.explained_variance_ = old_div((S ** 2), n_samples)
+        self.explained_variance_ratio_ = old_div(self.explained_variance_, \
+                                        self.explained_variance_.sum())
 
         if self.whiten:
-            self.components_ = VT / S[:, np.newaxis] * np.sqrt(n_samples)
+            self.components_ = old_div(VT, S[:, np.newaxis]) * np.sqrt(n_samples)
         else:
             self.components_ = VT
 

@@ -1,3 +1,5 @@
+from builtins import str
+from builtins import object
 _DESCRIPTION_CHARS = 40 #Max number of characters to format in description
 
 class RegisterError(Exception):
@@ -58,7 +60,7 @@ class PlotRegister(object):
 
     @property
     def plots(self):
-        plots = self.plotdict.values()
+        plots = list(self.plotdict.values())
         return sorted(plots, key=lambda x: x.key)
         
     @property
@@ -123,13 +125,13 @@ class PlotRegister(object):
         return self.plotdict.__setitem__(key, value)    
 
     def items(self):
-        return self.plotdict.items()
+        return list(self.plotdict.items())
 
     def keys(self):
-        return self.plotdict.keys()
+        return list(self.plotdict.keys())
     
     def values(self):
-        return self.plotdict.values() 
+        return list(self.plotdict.values()) 
 
     def __repr__(self):
         # MAKE ACTUAL COLUMNS

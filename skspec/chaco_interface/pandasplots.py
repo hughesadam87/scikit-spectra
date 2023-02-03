@@ -1,4 +1,7 @@
+from __future__ import print_function
+from __future__ import absolute_import
 ### Enthought tool suite imports 
+from builtins import range
 from traits.api import Instance, Str, Enum, Range, HasTraits, Button, Enum, Property, Bool, Any
 from traitsui.api import Item, View, HGroup, VGroup, Group, Include, ShellEditor
 from enable.api import ComponentEditor
@@ -21,7 +24,7 @@ from time import sleep
 from pandas.stats.moments import rolling_mean
 
 ### Local import 
-from pandasplotdatav2 import PandasPlotData
+from .pandasplotdatav2 import PandasPlotData
    
     
 
@@ -94,7 +97,7 @@ class PandasPlot(HasTraits):
             elif list(labelold) != list(labelnew):
                 self._overwrite_plotdata
             else:
-                print 'updating frame'
+                print('updating frame')
                 self.plotdata.set_df(new)
 
     ### Properties ###	

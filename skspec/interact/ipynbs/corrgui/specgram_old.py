@@ -1,3 +1,6 @@
+from __future__ import absolute_import
+from __future__ import division
+from past.utils import old_div
 import re
 import skspec
 import skspec.data
@@ -19,7 +22,7 @@ from IPython.utils.traitlets import (
 
 from IPython import get_ipython
 
-from specgui import Box, HTML
+from .specgui import Box, HTML
 from nbtools import mpl2html, log_message
 
 from skspec.core.spectra import _normdic as NUdic
@@ -43,9 +46,9 @@ class SpectraModel(HTML, Box):
     SPECUNITS = aunps_glass().specunits()
     VARUNITS = aunps_glass().varunits()
     NORMUNITS = NUdic
-    SPECUNITS_REV = OrderedDict((v,k) for k,v in SPECUNITS.items())
-    VARUNITS_REV = OrderedDict((v,k) for k,v in VARUNITS.items())
-    NORMUNITS_REV = OrderedDict((v,k) for k,v in NORMUNITS.items())
+    SPECUNITS_REV = OrderedDict((v,k) for k,v in list(SPECUNITS.items()))
+    VARUNITS_REV = OrderedDict((v,k) for k,v in list(VARUNITS.items()))
+    NORMUNITS_REV = OrderedDict((v,k) for k,v in list(NORMUNITS.items()))
     COLORS = ["b","g","r","y","k"]
     COLORMAPS = sorted(m for m in plt.cm.datad if not m.endswith("_r"))
     SLIDER_STEPS = Float(25)
@@ -76,15 +79,15 @@ class SpectraModel(HTML, Box):
     advancedbox = Bool(False,sync=True)
     cmapbox = Bool(False,sync=True)
     colorbox = Bool(False,sync=True)
-    kind = Enum(PLOTPARSER.keys(), default_value = 'spec', sync=True)
+    kind = Enum(list(PLOTPARSER.keys()), default_value = 'spec', sync=True)
     selectlines = Bool(False, sync=True)
     
     
     # Units
-    spec_unit = Enum(SPECUNITS.values(),  sync=True)
-    var_unit = Enum(VARUNITS.values(),  sync=True)
+    spec_unit = Enum(list(SPECUNITS.values()),  sync=True)
+    var_unit = Enum(list(VARUNITS.values()),  sync=True)
     iunit = Unicode
-    norm_unit = Enum(NORMUNITS.values(),  sync=True)
+    norm_unit = Enum(list(NORMUNITS.values()),  sync=True)
     
     # Message/warnings
     message = Unicode
@@ -151,7 +154,7 @@ class SpectraModel(HTML, Box):
         self.specslice_position_end = self.spec.index[-1]
         self.specslider_start = self.spec.index[0]
         self.specslider_end = self.spec.index[-1]
-        self.specstep = (self.spec.index.max() - self.spec.index.min())/self.SLIDER_STEPS
+        self.specstep = old_div((self.spec.index.max() - self.spec.index.min()),self.SLIDER_STEPS)
         self.specspacing = 1
         
         self.timeslice_position_start = self.spec.columns[0]

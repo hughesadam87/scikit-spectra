@@ -1,3 +1,5 @@
+from __future__ import division
+from past.utils import old_div
 import sys
 import operator
 import nose
@@ -19,8 +21,8 @@ ts = aunps_glass()
 
 class test_timespectra(tm.TestCase):
     def test_specunits(self):
-        k1 = ts.specunits().keys()
-        k2 = SPECUNITS.keys()
+        k1 = list(ts.specunits().keys())
+        k2 = list(SPECUNITS.keys())
         self.assertListEqual(sorted(k1),sorted(k2))
         
     def test_specindex(self):
@@ -30,7 +32,7 @@ class test_timespectra(tm.TestCase):
         ts1 = ts.as_specunit('nm')
         index1 = np.array(ts1.index)*.000000001
         ts2 = ts.as_specunit('ev')
-        index2 = (h*c)/(eVtoJ*np.array(ts2.index))
+        index2 = old_div((h*c),(eVtoJ*np.array(ts2.index)))
         assert_array_almost_equal(index1,index2)
     
     #def test_varunits(self):

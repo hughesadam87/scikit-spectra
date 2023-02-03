@@ -1,6 +1,8 @@
 ''' Utilities in regard to custom exceptions, used throughout skspec.  Mostly used 
 to alert users when they've passed incorrect attributes to a function.'''
 
+from builtins import zip
+from past.builtins import basestring
 __author__ = "Adam Hughes"
 __copyright__ = "Copyright 2012, GWU Physics"
 __license__ = "Free BSD"
@@ -154,7 +156,7 @@ def null_attributes(obj, callfcn, *attr_required):
     if len(attr_required)==1:
         dic={attr_required[0]:values}
     else:
-        dic=dict(zip(attr_required, values))
+        dic=dict(list(zip(attr_required, values)))
 
     missing=[k for k in dic if dic[k] == None]
     

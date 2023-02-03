@@ -1,3 +1,5 @@
+from __future__ import print_function
+from builtins import str
 from operator import attrgetter
 import os
 import os.path as op
@@ -32,7 +34,7 @@ def sort_summary(summary_file, delim='\t'):
             try:
                 lines=sorted(lines, key=lambda item: (item[0].split('_')[1],(item[0].split('_')[0] ) ))
             except Exception:
-                print 'Could not sort summary file, failed at A'
+                print('Could not sort summary file, failed at A')
 
 
         ## Test for style ## 8_b2_f1_... (8/6/12)                        
@@ -40,7 +42,7 @@ def sort_summary(summary_file, delim='\t'):
             try:
                 lines=sorted(lines, key=lambda item: (item[0].split('_')[1],(item[0].split('_')[2] ),(item[0].split('_')[3] ) ))
             except Exception:
-                print 'Could not sort summary file, failed at B'
+                print('Could not sort summary file, failed at B')
 
        ### TO ADD ###     
        ## Test for style ## 8_b2_f1_... (8/6/12) (test for 822)                       
@@ -77,14 +79,14 @@ def make_root_dir(rootout, overwrite=False, verbose=True):
     ### Check if outdirectory already exists and react decide to overwrite or error ###
     if os.path.exists(rootout):
         if overwrite:
-            print 'Deleting directory and all contents of, %s' %rootout
+            print('Deleting directory and all contents of, %s' %rootout)
             shutil.rmtree(rootout)
         else:
             raise IOError('Directory %s already exists, remove or set overwrite to True'%rootout)
         
     ### Make output directory and subdirectories ###    
     if verbose:
-        print 'making directory %s' %rootout
+        print('making directory %s' %rootout)
     os.makedirs(rootout)
     return rootout
 

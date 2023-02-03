@@ -1,4 +1,8 @@
+from __future__ import print_function
+from __future__ import absolute_import
 ### Enthought tool suite imports 
+from builtins import str
+from builtins import range
 from traits.api import Instance, Str, Enum, Range, HasTraits, Button, Enum, Property, Bool, Any, on_trait_change
 from traitsui.api import Item, View, HGroup, VGroup, Group, Include, ShellEditor
 from enable.api import ComponentEditor
@@ -21,7 +25,7 @@ from time import sleep
 from pandas.stats.moments import rolling_mean
 
 ### Local import 
-from pandasplotdatav3 import PandasPlotData
+from .pandasplotdatav3 import PandasPlotData
 
 
 class DefaultEnum(Enum):
@@ -157,11 +161,11 @@ class PandasPlot(HasTraits):
             return           
 
         ### Hide all plots
-        to_hide=self.plot.plots.keys()
+        to_hide=list(self.plot.plots.keys())
         self.plot.hideplot(*to_hide)   
         
         ### Show only plots in samples        
-        to_show=self.plot.plots.keys()[::self._spacing]
+        to_show=list(self.plot.plots.keys())[::self._spacing]
         self.plot.showplot(*to_show)
         self.plot.request_redraw()
                 
@@ -171,9 +175,9 @@ class PandasPlot(HasTraits):
         #### Remove current overlay
         self.plot.overlays=[obj for obj in self.plot.overlays if not isinstance(obj, RangeSelectionOverlay)]
             
-        mycomp=self.plot.plots.itervalues().next()[0] #Quick wayt to get first value in dictionary
+        mycomp=iter(self.plot.plots.values()).next()[0] #Quick wayt to get first value in dictionary
         
-        inds=range(len(self.df.index))
+        inds=list(range(len(self.df.index)))
         idx=ArrayDataSource(inds)
         vals=ArrayDataSource(df.index.values)
         
@@ -196,7 +200,7 @@ class PandasPlot(HasTraits):
         ''' Redraws lines, plots and reapplies line selection.'''
 
 
-        oldplots=self.plot.plots.keys()
+        oldplots=list(self.plot.plots.keys())
         newplots=[name for name in self.plotdata.list_data(as_strings=True)]
 
         to_remove=[p for p in oldplots if p not in newplots]
@@ -217,21 +221,21 @@ class PandasPlot(HasTraits):
     def on_selection_changed(self, selection):
         if selection != None:
             self.rangeXMin, self.rangeXMax = selection    
-            print selection
+            print(selection)
 
 
     def _update_axis(self):    
         ''' Forces a label axis onto the plot. '''
 
-        print 'updaing axis', self.idxname
+        print('updaing axis', self.idxname)
 
         indexlabels=[str(round(i,1)) for i in self.df.index]
         columnlabels=[str(round(i,1)) for i in self.df.columns]
 
 
         index_axis=LabelAxis(self.plot, orientation=self.idxorient, 
-                             positions=range(int(float(indexlabels[0])),
-                                             int(float(indexlabels[-1]))), 
+                             positions=list(range(int(float(indexlabels[0])),
+                                             int(float(indexlabels[-1])))), 
 
                              labels=indexlabels,#, resizable='hv',
                              title=self.idxname)
@@ -239,8 +243,8 @@ class PandasPlot(HasTraits):
 
 
         col_axis=LabelAxis(self.plot, orientation=self.colorient, 
-                           positions=range(int(float(columnlabels[0])),
-                                           int(float(columnlabels[-1]))), 
+                           positions=list(range(int(float(columnlabels[0])),
+                                           int(float(columnlabels[-1])))), 
 
 
                            labels=columnlabels,#, resizable='hv',

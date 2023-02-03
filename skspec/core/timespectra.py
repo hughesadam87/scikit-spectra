@@ -1,12 +1,15 @@
 """Provides core "TimeSpectra" class and associated utilities."""
+from __future__ import print_function
+from __future__ import absolute_import
 
+from builtins import range
 import logging
 from skspec.logger import decode_lvl, logclass
 from pandas import DatetimeIndex, Index
 from skspec.core.spectra import _valid_xunit
 from skspec.units.intvlunit import INTVLUNITS, DatetimeCanonicalError
 from skspec.core.timeindex import TimeIndex
-from spectra import Spectra
+from .spectra import Spectra
 
 logger = logging.getLogger(__name__) 
 
@@ -39,13 +42,13 @@ class TimeSpectra(Spectra):
 
 ## TESTING ###
 if __name__ == '__main__':
-    from specindex import SpecIndex
+    from .specindex import SpecIndex
     from pandas import date_range
     import numpy as np
     from skspec.data import solvent_evap, aunps_glass, aunps_water
     
     x = AnyFrame(np.random.randn(50,50))
-    print x
+    print(x)
 
     def sumdiff(array, absolute=False, cumsum=False):
         """ Sum of the differences of an array (usually array of areas).  If absolute, absolute difference is used.
@@ -99,7 +102,7 @@ if __name__ == '__main__':
 
 
 
-    spec=SpecIndex(range(400, 700,1), unit='nm')
+    spec=SpecIndex(list(range(400, 700,1)), unit='nm')
 ###    spec=SpecIndex([400.,500.,600.])
     testdates = date_range(start='3/3/12',periods=30,freq='h')
     ##testdates2 = date_range(start='3/3/12',periods=30,freq='45s')
@@ -131,7 +134,7 @@ if __name__ == '__main__':
     ts.iloc[:, 2:4.4].columns
     ts._frame.iloc[:, 2:4.4].columns
 #    ts = aunps_glass()
-    print ts.ix[1505.0:1500.0]
+    print(ts.ix[1505.0:1500.0])
     #ts.loc[:, 50.5, 520.0]
     ##area = ts.area()
     ##tf=ts[ts.columns[-1]]

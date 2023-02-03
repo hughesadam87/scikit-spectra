@@ -1,4 +1,7 @@
-from abcunits import ConversionUnit
+from __future__ import absolute_import
+from __future__ import division
+from past.utils import old_div
+from .abcunits import ConversionUnit
 from math import pi
 
 
@@ -155,11 +158,11 @@ class Frequency(SpecUnit):
    @staticmethod
    def to_canonical(x):
       meters = Meters.to_canonical(x)
-      return C / meters
+      return old_div(C, meters)
       
    @staticmethod
    def from_canonical(x):
-      return C / x
+      return old_div(C, x)
 
 
 # Verified correct, look at rad sec-1
@@ -172,11 +175,11 @@ class Angularfrequency(SpecUnit):
    @staticmethod
    def to_canonical(x):
       meters = Meters.to_canonical(x)
-      return (2.0 * pi * C) / meters
+      return old_div((2.0 * pi * C), meters)
       
    @staticmethod
    def from_canonical(x):
-      return (2.0 * pi * C) / x
+      return old_div((2.0 * pi * C), x)
 
    
 class Electronvolts(SpecUnit):
@@ -187,11 +190,11 @@ class Electronvolts(SpecUnit):
    @staticmethod
    def to_canonical(x):
       meters = Meters.to_canonical(x)
-      return (H*C/(eVtoJ) ) / meters
+      return old_div((old_div(H*C,(eVtoJ)) ), meters)
       
    @staticmethod
    def from_canonical(x):
-      return (H*C/(eVtoJ)) / x
+      return old_div((old_div(H*C,(eVtoJ))), x)
 
    
 _specunits = (
