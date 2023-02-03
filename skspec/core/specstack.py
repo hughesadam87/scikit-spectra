@@ -8,7 +8,8 @@ from builtins import zip
 from builtins import range
 from past.builtins import basestring
 from builtins import object
-from collections import OrderedDict, Iterable
+from collections import OrderedDict
+from collections.abc import Iterable
 from copy import deepcopy
 
 import logging
